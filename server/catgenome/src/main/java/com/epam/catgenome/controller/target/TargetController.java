@@ -28,6 +28,7 @@ import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.exception.TargetUpdateException;
 import com.epam.catgenome.manager.target.AlignmentSecurityService;
 import com.epam.catgenome.manager.target.TargetField;
 import com.epam.catgenome.manager.target.TargetSecurityService;
@@ -132,7 +133,7 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Target> updateTarget(@RequestBody final Target target) {
+    public Result<Target> updateTarget(@RequestBody final Target target) throws TargetUpdateException {
         return Result.success(targetSecurityService.updateTarget(target));
     }
 
