@@ -91,40 +91,34 @@ public class TargetManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public Target update(final Target target) throws TargetUpdateException {
         final Target oldTarget = getTarget(target.getTargetId());
-        final List<String> oldGenes = oldTarget.getTargetGenes().stream()
-                .map(g -> g.getGeneId().toLowerCase())
-                .collect(Collectors.toList());
-        final List<String> newGenes = target.getTargetGenes().stream()
-                .map(g -> g.getGeneId().toLowerCase())
-                .collect(Collectors.toList());
-        final List<String> genesToDelete = oldGenes.stream()
-                .filter(g -> !newGenes.contains(g))
-                .collect(Collectors.toList());
-        final List<TargetIdentification> targetIdentifications = oldTarget.getIdentifications();
-        final List<TargetIdentification> identifications = new ArrayList<>();
-        targetIdentifications.forEach(i -> {
-            List<String> genesOfInterest = i.getGenesOfInterest().stream()
-                    .map(String::toLowerCase)
-                    .collect(Collectors.toList());
-            List<String> translationalGenes = i.getTranslationalGenes().stream()
-                    .map(String::toLowerCase)
-                    .collect(Collectors.toList());
-            if (genesOfInterest.stream().filter(genesToDelete::contains).count() +
-                    translationalGenes.stream().filter(genesToDelete::contains).count() > 0) {
-                identifications.add(i);
-            }
-        });
-        if (!CollectionUtils.isEmpty(identifications)) {
-            final boolean force = Optional.ofNullable(target.getForce()).orElse(false);
-            if (force) {
-                identifications.forEach(i -> targetIdentificationDao.delete(i.getId()));
-            } else {
-                final List<String> identificationNames = identifications.stream()
-                        .map(BaseEntity::getName)
+        final List<String> genesToDelete = getGenesToDelete(target, oldTarget);
+        if (!CollectionUtils.isEmpty(genesToDelete)) {
+            final List<TargetIdentification> targetIdentifications = oldTarget.getIdentifications();
+            final List<TargetIdentification> identifications = new ArrayList<>();
+            targetIdentifications.forEach(i -> {
+                List<String> genesOfInterest = i.getGenesOfInterest().stream()
+                        .map(String::toLowerCase)
                         .collect(Collectors.toList());
-                throw new TargetUpdateException(String.format("Can't delete genes %s because of saved " +
-                        "identifications %s", join(genesToDelete, ","),
-                        join(identificationNames, ",")));
+                List<String> translationalGenes = i.getTranslationalGenes().stream()
+                        .map(String::toLowerCase)
+                        .collect(Collectors.toList());
+                if (genesOfInterest.stream().filter(genesToDelete::contains).count() +
+                        translationalGenes.stream().filter(genesToDelete::contains).count() > 0) {
+                    identifications.add(i);
+                }
+            });
+            if (!CollectionUtils.isEmpty(identifications)) {
+                final boolean force = Optional.ofNullable(target.getForce()).orElse(false);
+                if (force) {
+                    identifications.forEach(i -> targetIdentificationDao.delete(i.getId()));
+                } else {
+                    final List<String> identificationNames = identifications.stream()
+                            .map(BaseEntity::getName)
+                            .collect(Collectors.toList());
+                    throw new TargetUpdateException(String.format("Can't delete genes %s because of saved " +
+                                    "identifications %s", join(genesToDelete, ","),
+                            join(identificationNames, ",")));
+                }
             }
         }
         targetGeneDao.deleteTargetGenes(target.getTargetId());
@@ -164,7 +158,7 @@ public class TargetManager {
         }
         return target;
     }
-    
+
     public Page<Target> load(final TargetQueryParams targetQueryParams) {
         final String clause = getFilterClause(targetQueryParams);
         final long totalCount = targetDao.getTotalCount(clause);
@@ -314,5 +308,17 @@ public class TargetManager {
                     .flatMap(List::stream).distinct().sorted().collect(Collectors.toList());
         }
         return Collections.emptyList();
+    }
+
+    private static List<String> getGenesToDelete(final Target target, final Target oldTarget) {
+        final List<String> oldGenes = oldTarget.getTargetGenes().stream()
+                .map(g -> g.getGeneId().toLowerCase())
+                .collect(Collectors.toList());
+        final List<String> newGenes = target.getTargetGenes().stream()
+                .map(g -> g.getGeneId().toLowerCase())
+                .collect(Collectors.toList());
+        return oldGenes.stream()
+                .filter(g -> !newGenes.contains(g))
+                .collect(Collectors.toList());
     }
 }
