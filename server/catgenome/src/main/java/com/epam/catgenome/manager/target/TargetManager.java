@@ -122,7 +122,10 @@ public class TargetManager {
             }
         }
         targetGeneDao.deleteTargetGenes(target.getTargetId());
-        return create(target);
+        final Target updatedTarget = create(target);
+        updatedTarget.setIdentifications(
+                targetIdentificationDao.loadTargetIdentifications(updatedTarget.getTargetId()));
+        return updatedTarget;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
