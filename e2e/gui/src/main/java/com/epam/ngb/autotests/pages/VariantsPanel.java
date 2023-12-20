@@ -20,11 +20,10 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$x;
-import static com.codeborne.selenide.Selenide.screenshot;
 import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.impl.Screenshot;
+import com.epam.ngb.autotests.menus.VariantInfoForm;
 import static java.lang.String.format;
 import static org.openqa.selenium.By.className;
 import static org.testng.Assert.assertTrue;
@@ -63,6 +62,14 @@ public class VariantsPanel implements AccessObject<VariantsPanel> {
         return new BrowserPanel();
     }
 
+    public VariantInfoForm openVariantInfoByPosition(String position) {
+        findVariantByPosition(position).$x(".//button[@aria-label='info']")
+                .shouldBe(visible, enabled).click();
+        VariantInfoForm infoForm = new VariantInfoForm(this);
+        infoForm.context().$(byText("Description")).should(exist);
+        return new VariantInfoForm(this);
+    }
+
     public VariantsPanel filterVariantsBy(String column, String value) {
         SelenideElement columnField = context()
                 .shouldBe(exist, enabled)
@@ -77,5 +84,4 @@ public class VariantsPanel implements AccessObject<VariantsPanel> {
         columnField.pressEnter();
         return this;
     }
-
 }

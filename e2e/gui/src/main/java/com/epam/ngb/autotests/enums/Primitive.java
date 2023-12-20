@@ -6,5 +6,6 @@ public enum Primitive {
     TITLE,
     ADD,
     SAVE,
-    SEARCH
+    SEARCH,
+    CLOSE
 }

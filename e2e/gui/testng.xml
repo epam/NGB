@@ -34,7 +34,7 @@
 
     <test name="VariantsTests">
         <classes>
-            <class name="com.epam.ngb.autotests.VariantsTests"/>
+            <class name="com.epam.ngb.autotests.VcfHighlightTests"/>
         </classes>
     </test>
 </suite>

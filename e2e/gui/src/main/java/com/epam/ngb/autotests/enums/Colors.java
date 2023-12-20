@@ -28,7 +28,8 @@ public enum Colors {
     LIGHT_PINK("rgb(255, 192, 203)"),
     YELLOW("rgb(255, 255, 0)"),
     ORANGE("rgb(255, 165, 0)"),
-    DARK_SATURATED_RED("rgb(249, 41, 0)");
+    DARK_SATURATED_RED("rgb(249, 41, 0)"),
+    BEIGE("rgb(245, 245, 220)");
 
     public final String value;
 

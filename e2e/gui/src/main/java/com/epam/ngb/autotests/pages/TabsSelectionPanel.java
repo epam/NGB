@@ -49,5 +49,4 @@ public class TabsSelectionPanel implements AccessObject<TabsSelectionPanel> {
         return context().$x(".//ngb-variants-table-column//button")
                 .getAttribute("aria-owns");
     }
-
 }

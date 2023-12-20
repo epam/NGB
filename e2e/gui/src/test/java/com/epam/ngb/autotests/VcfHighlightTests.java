@@ -16,6 +16,7 @@
 package com.epam.ngb.autotests;
 
 import static com.epam.ngb.autotests.enums.Colors.AZURE;
+import static com.epam.ngb.autotests.enums.Colors.BEIGE;
 import static com.epam.ngb.autotests.enums.Colors.BLUE;
 import static com.epam.ngb.autotests.enums.Colors.BROWN;
 import static com.epam.ngb.autotests.enums.Colors.DARK_SATURATED_RED;
@@ -38,21 +39,26 @@ import static com.epam.ngb.autotests.utils.AppProperties.TEST_DATASET;
 import static com.epam.ngb.autotests.utils.AppProperties.VCF_DEVIATION;
 import com.epam.ngb.autotests.utils.TestCase;
 import static com.epam.ngb.autotests.utils.Utils.getExpectedImage;
+import static com.epam.ngb.autotests.utils.Utils.takeScreenshot;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 
-public class VariantsTests extends AbstractNgbTest {
-
+public class VcfHighlightTests extends AbstractNgbTest {
     private static final String variantsTC01_1 = "variantsTC01_1";
     private static final String variantsTC01_2 = "variantsTC01_2";
     private static final String BUBBLES_PROFILE = "Bubbles";
     private static final String COMPLEX_CONDITIONS_PROFILE = "Complex Conditions";
     private static final String SIMPLE_CONDITIONS_PROFILE = "Simple Conditions";
+    private static final String DIFFERENT_CONDITIONS_RED_PROFILE = "Different conditions (red highlight)";
+    private static final String DIFFERENT_CONDITIONS_GREEN_PROFILE = "Different conditions (green highlight)";
+    private static final String STRUCTURAL_VARIATIONS = "Structural variations";
     private static final String vcfTrack1 = "agnX1.09-28.trim.dm606.realign.vcf";
     private static final String vcfTrack2 = "agnts3.09-28.trim.dm606.realign.vcf";
+    private static final String dataset1 = "SV_Sample1";
+    private static final String vcfTrack3 = "sample_1-lumpy.vcf";
     private static final String[] testPositionTC01 = {"12585001", "12585008", "12585016"};
     private static final String vcfTestCoordinates1 = "12584436 - 12585579";
 
@@ -84,22 +90,26 @@ public class VariantsTests extends AbstractNgbTest {
         };
     }
 
+    @DataProvider(name = "structuralVariations")
+    public static Object[][] structuralVariations() {
+        return new Object[][]{
+                {"181050143", RED.value, "variantsTC06_1", "CIPOS", "-6", "2"},
+                {"48459903", LIGHT_BLUE.value, "variantsTC06_2", "EVENT", "124"},
+                {"51295112", BLUE.value, "variantsTC06_3", "EVENT", "30"},
+                {"117314770", LIGHT_PINK.value, "variantsTC06_4", "EVENT", "34"},
+                {"31200612", ORANGE.value, "variantsTC06_5", "EVENT", "96"},
+                {"31226616", YELLOW.value, "variantsTC06_6", "PE", "5"},
+                {"31182626", BEIGE.value, "variantsTC06_7", "PE", "4"}
+        };
+    }
+
     @Test
-    @TestCase ({"TC-VARIANTS_TEST-01"})
+    @TestCase ({"TC-VCF_HIGHLIGHT_TEST-01"})
     public void highlightBubblesDependingOnHighlightedVariations() throws IOException {
         String track = vcfTrack1.substring(0, 20);
-        new DatasetsPanel()
-                .expandDataset(TEST_DATASET)
-                .setTrackCheckbox(vcfTrack1, true)
-                .sleep(2, SECONDS);
-        new NavigationPanel()
-                .settings()
-                .openTab(VCF)
-                .checkVariantsHighlighted(true)
-                .selectProfile(BUBBLES_PROFILE)
-                .save()
-                .toolWindows()
-                .selectMainMenuItem(VARIANTS, true);
+
+        openTrack(TEST_DATASET, vcfTrack1);
+        setProfile(BUBBLES_PROFILE);
         new TabsSelectionPanel()
                 .selectPanel(VARIANTS);
         new VariantsPanel()
@@ -117,25 +127,15 @@ public class VariantsTests extends AbstractNgbTest {
     }
 
     @Test(dataProvider = "complexConditions")
-    @TestCase ({"TC-VARIANTS_TEST-02"})
-    public void highlightVcfWithComplexConditions(String position, String color, String fileName) throws IOException {
+    @TestCase ({"TC-VCF_HIGHLIGHT_TEST-02"})
+    public void highlightVcfWithComplexConditions(String position,
+                                                  String color,
+                                                  String fileName) throws IOException {
         String track = vcfTrack2.substring(0, 20);
-        new DatasetsPanel()
-                .expandDataset(TEST_DATASET)
-                .setTrackCheckbox(vcfTrack2, true)
-                .sleep(2, SECONDS);
-        new NavigationPanel()
-                .settings()
-                .openTab(VCF)
-                .checkVariantsHighlighted(true)
-                .selectProfile(COMPLEX_CONDITIONS_PROFILE)
-                .save()
-                .toolWindows()
-                .selectMainMenuItem(VARIANTS, true);
-        new TabsSelectionPanel()
-                .selectPanel(VARIANTS)
-                .openNGBVariantsTableColumn()
-                .selectVariantsTableColumnFormItem("Show filters", true);
+
+        openTrack(TEST_DATASET, vcfTrack2);
+        setProfile(COMPLEX_CONDITIONS_PROFILE);
+        openFiltersPanel();
         new VariantsPanel()
                 .filterVariantsBy("Position", position)
                 .checkBackgroundColorRowByPosition(position, color)
@@ -147,25 +147,15 @@ public class VariantsTests extends AbstractNgbTest {
     }
 
     @Test(dataProvider = "simpleConditions")
-    @TestCase ({"TC-VARIANTS_TEST-03"})
-    public void highlightVcfWithSimpleConditions(String position, String color, String fileName) throws IOException {
+    @TestCase ({"TC-VCF_HIGHLIGHT_TEST-03"})
+    public void highlightVcfWithSimpleConditions(String position,
+                                                 String color,
+                                                 String fileName) throws IOException {
         String track = vcfTrack2.substring(0, 20);
-        new DatasetsPanel()
-                .expandDataset(TEST_DATASET)
-                .setTrackCheckbox(vcfTrack2, true)
-                .sleep(2, SECONDS);
-        new NavigationPanel()
-                .settings()
-                .openTab(VCF)
-                .checkVariantsHighlighted(true)
-                .selectProfile(SIMPLE_CONDITIONS_PROFILE)
-                .save()
-                .toolWindows()
-                .selectMainMenuItem(VARIANTS, true);
-        new TabsSelectionPanel()
-                .selectPanel(VARIANTS)
-                .openNGBVariantsTableColumn()
-                .selectVariantsTableColumnFormItem("Show filters", true);
+
+        openTrack(TEST_DATASET, vcfTrack2);
+        setProfile(SIMPLE_CONDITIONS_PROFILE);
+        openFiltersPanel();
         new VariantsPanel()
                 .filterVariantsBy("Position", position)
                 .checkBackgroundColorRowByPosition(position, color)
@@ -174,5 +164,93 @@ public class VariantsTests extends AbstractNgbTest {
                 .waitTrackDownloaded(track)
                 .trackImageCompare(getExpectedImage(fileName),
                         track, fileName, VCF_DEVIATION);
+    }
+
+    @Test
+    @TestCase ({"TC-VCF_HIGHLIGHT_TEST-04"})
+    public void redHighlightTheSameVariationThatMatchesToDifferentConditions() throws IOException {
+        String position = "12585943";
+        String track = vcfTrack2.substring(0, 20);
+
+        openTrack(TEST_DATASET, vcfTrack2);
+        setProfile(DIFFERENT_CONDITIONS_RED_PROFILE);
+        openFiltersPanel();
+        new VariantsPanel()
+                .filterVariantsBy("Position", position)
+                .checkBackgroundColorRowByPosition(position, RED.value)
+                .openVariantByPosition(position);
+        new BrowserPanel()
+                .waitTrackDownloaded(track)
+                .trackImageCompare(getExpectedImage("variantsTC04_1"),
+                        track, "variantsTC04_1", VCF_DEVIATION);
+    }
+
+    @Test
+    @TestCase ({"TC-VCF_HIGHLIGHT_TEST-05"})
+    public void greenHighlightTheSameVariationThatMatchesToDifferentConditions() throws IOException {
+        String position = "12585943";
+        String track = vcfTrack2.substring(0, 20);
+
+        openTrack(TEST_DATASET, vcfTrack2);
+        setProfile(DIFFERENT_CONDITIONS_GREEN_PROFILE);
+        openFiltersPanel();
+        new VariantsPanel()
+                .filterVariantsBy("Position", position)
+                .checkBackgroundColorRowByPosition(position, GREEN.value)
+                .openVariantByPosition(position);
+        new BrowserPanel()
+                .waitTrackDownloaded(track)
+                .trackImageCompare(getExpectedImage("variantsTC05_1"),
+                        track, "variantsTC05_1", VCF_DEVIATION);
+    }
+    @Test(dataProvider = "structuralVariations")
+    @TestCase ({"TC-VCF_HIGHLIGHT_TEST-06"})
+    public void structuralVariationsBND(String position,
+                                        String color,
+                                        String fileName,
+                                        String property,
+                                        String ... values) throws IOException {
+        String track = (vcfTrack3.length() >= 20) ? vcfTrack3.substring(0, 20) : vcfTrack3;
+
+        openTrack(dataset1, vcfTrack3);
+        setProfile(STRUCTURAL_VARIATIONS);
+        openFiltersPanel();
+        BrowserPanel browserPanel = new VariantsPanel()
+                .filterVariantsBy("Position", position)
+                .checkBackgroundColorRowByPosition(position, color)
+                .openVariantInfoByPosition(position)
+                .checkPropertyValue(property,values)
+                .close()
+                .openVariantByPosition(position);
+        new BrowserPanel()
+                .waitTrackDownloaded(track);
+//                .trackImageCompare(getExpectedImage(fileName),
+//                        track, fileName, VCF_DEVIATION);
+        takeScreenshot(browserPanel.getTrack(track), fileName);
+    }
+
+    private void openTrack(String dataset, String track) {
+        new DatasetsPanel()
+                .expandDataset(dataset)
+                .setTrackCheckbox(track, true)
+                .sleep(2, SECONDS);
+    }
+
+    private void setProfile(String profile) {
+        new NavigationPanel()
+                .settings()
+                .openTab(VCF)
+                .checkVariantsHighlighted(true)
+                .selectProfile(profile)
+                .save()
+                .toolWindows()
+                .selectMainMenuItem(VARIANTS, true);
+    }
+
+    private void openFiltersPanel() {
+        new TabsSelectionPanel()
+                .selectPanel(VARIANTS)
+                .openNGBVariantsTableColumn()
+                .selectVariantsTableColumnFormItem("Show filters", true);
     }
 }

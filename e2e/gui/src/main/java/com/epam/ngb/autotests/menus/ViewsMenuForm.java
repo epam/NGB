@@ -16,12 +16,13 @@
 package com.epam.ngb.autotests.menus;
 
 import static com.codeborne.selenide.Condition.text;
-import com.codeborne.selenide.Selenide;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.actions;
 import com.codeborne.selenide.SelenideElement;
 import com.epam.ngb.autotests.pages.NavigationPanel;
 import com.epam.ngb.autotests.pages.PopupForm;
+import static java.lang.Boolean.valueOf;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.openqa.selenium.By.id;
 
 public class ViewsMenuForm extends PopupForm<ViewsMenuForm, NavigationPanel> {
@@ -39,9 +40,10 @@ public class ViewsMenuForm extends PopupForm<ViewsMenuForm, NavigationPanel> {
     }
 
     public NavigationPanel selectMainMenuItem(ViewsMenuItems item, Boolean isSelected) {
+        sleep(1, SECONDS);
         SelenideElement menuItem = context()
                 .$$x(".//md-menu-item").filter(text(item.text)).first();
-        if(Boolean.valueOf(menuItem.$x(".//ng-md-icon[@ng-if='panel.displayed']").exists())
+        if(valueOf(menuItem.$x(".//ng-md-icon[@ng-if='panel.displayed']").exists())
                 .equals(isSelected)) {
             actions().moveToElement(parent().context(), 0, 0)
                     .click().build().perform();
@@ -71,5 +73,4 @@ public class ViewsMenuForm extends PopupForm<ViewsMenuForm, NavigationPanel> {
             this.text = text;
         }
     }
-
 }
