@@ -32,6 +32,8 @@ export default class ngbTargetsTabService {
     _launchFailed = false;
     _launchErrorMessageList = null;
 
+    _updateForce = false;
+
     get mode () {
         return MODE;
     }
@@ -116,6 +118,13 @@ export default class ngbTargetsTabService {
             (!this.gridOptions || !this.gridOptions.data || this.gridOptions.data.length === 0);
     }
 
+    get updateForce() {
+        return this._updateForce;
+    }
+    set updateForce(value) {
+        this._updateForce = value;
+    }
+
     static instance (
         $timeout,
         dispatcher,
@@ -174,7 +183,8 @@ export default class ngbTargetsTabService {
                 priority: gene.priority
             })),
             diseases: (data.diseases || []).filter(d => d),
-            products: (data.products || []).filter(p => p)
+            products: (data.products || []).filter(p => p),
+            identifications: data.identifications
         };
     }
 
@@ -188,6 +198,7 @@ export default class ngbTargetsTabService {
     }
 
     getTarget(id) {
+        this.updateForce = false;
         return new Promise(resolve => {
             this.targetDataService.getTargetById(id)
                 .then(data => {
@@ -299,6 +310,7 @@ export default class ngbTargetsTabService {
                         this.formErrorMessageList = null;
                         this.setTargetModel(result);
                         this.originalModel = result;
+                        this.updateForce = false;
                         this.setEditMode();
                     }
                     this.formLoading = false;
