@@ -9,21 +9,29 @@ export default function run(
     dispatcher,
     ngbTargetsTabService,
     ngbTargetPanelService,
-    targetContext
+    targetContext,
 ) {
     const displayLaunchDialog = async (target) => {
         $mdDialog.show({
             template: require('./ngbTargetLaunchDialog.tpl.html'),
             controller: function ($scope) {
                 $scope.name = target.name;
-                $scope.genes = groupedBySpecies(target.species.value);
                 $scope.genesOfInterest = [];
                 $scope.translationalGenes = [];
-                $scope.searchText = null;
+                $scope.genes = groupedBySpecies(target.species.value);
 
                 $scope.identifyDisabled = () => (
                     !$scope.genesOfInterest.length || !$scope.translationalGenes.length
                 );
+
+                function getGroupItems (item) {
+                    const { genesOfInterest = [], translationalGenes = [] } = $scope;
+                    return $scope.genes
+                        .filter(s => (s.item
+                            && s.speciesName === item.speciesName
+                            && !genesOfInterest.includes(s)
+                            && !translationalGenes.includes(s)));
+                }
 
                 function filterGroupHead() {
                     return (gene) => {
@@ -34,7 +42,7 @@ export default function run(
                         return true;
                     };
                 }
-                
+
                 $scope.getFilteredGenes = (text) => {
                     const genes = $scope.genes
                         .filter(s => !$scope.genesOfInterest.includes(s))
@@ -44,45 +52,42 @@ export default function run(
                     return genes.filter(createFilterFor(text));
                 }
 
-                function getGroupItems (item) {
-                    const { genesOfInterest = [], translationalGenes = [] } = $scope;
-                    return $scope.genes
-                        .filter(s => s.item
-                            && s.speciesName === item.speciesName
-                            && !genesOfInterest.includes(s)
-                            && !translationalGenes.includes(s));
-                }
-
                 $scope.genesOfInterestChanged = (item) => {
-                    if (item && item.group) {
-                        const items = getGroupItems(item);
-                        for (let i = 0; i < items.length; i++) {
-                            $scope.genesOfInterest.push(items[i]);
-                        }
-                        $timeout(() => {
-                            const index = $scope.genesOfInterest.indexOf(item);
-                            if (index) {
-                                $scope.genesOfInterest.splice(index, 1);
+                    if (item) {
+                        if (item.group) {
+                            const items = getGroupItems(item);
+                            for (let i = 0; i < items.length; i++) {
+                                $scope.genesOfInterest.push(items[i]);
                             }
-                        });
+                            $timeout(() => {
+                                const index = $scope.genesOfInterest.indexOf(item);
+                                if (index !== -1) {
+                                    $scope.genesOfInterest.splice(index, 1);
+                                }
+                            });
+                        } else {
+                            $scope.genesOfInterest.push(item);
+                        }
                     }
-                    document.activeElement.blur();
                 };
 
                 $scope.translationalGenesChanged = (item) => {
-                    if (item && item.group) {
-                        const items = getGroupItems(item);
-                        for (let i = 0; i < items.length; i++) {
-                            $scope.translationalGenes.push(items[i]);
-                        }
-                        $timeout(() => {
-                            const index = $scope.translationalGenes.indexOf(item);
-                            if (index) {
-                                $scope.translationalGenes.splice(index, 1);
+                    if (item) {
+                        if (item.group) {
+                            const items = getGroupItems(item);
+                            for (let i = 0; i < items.length; i++) {
+                                $scope.translationalGenes.push(items[i]);
                             }
-                        });
+                            $timeout(() => {
+                                const index = $scope.translationalGenes.indexOf(item);
+                                if (index !== -1) {
+                                    $scope.translationalGenes.splice(index, 1);
+                                }
+                            });
+                        } else {
+                            $scope.translationalGenes.push(item);
+                        }
                     }
-                    document.activeElement.blur();
                 };
 
                 async function getIdentificationData(scope) {
@@ -130,9 +135,6 @@ export default function run(
 
                 $scope.close = () => {
                     $mdDialog.hide();
-                };
-                $scope.change = () => {
-                    $scope.inReference = !$scope.inReference;
                 };
             },
             clickOutsideToClose: true

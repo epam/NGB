@@ -1,102 +1,37 @@
 <md-dialog aria-label="Target launch identification" class="launch-dialog">
-    <md-toolbar>
-        <div class="md-toolbar-tools">
-            <h2>Target identification for '{{name}}'</h2>
-            <span flex></span>
-            <md-button class="md-icon-button"
+    <form>
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Target identification for '{{name}}'</h2>
+                <span flex></span>
+                <md-button class="md-icon-button"
                         ng-click="close()"
                         aria-label="Close">
-                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+                    <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content>
+            <div class="content">
+                <ngb-launch-menu-input label="Genes of interest:"
+                                       get-genes-list="getFilteredGenes"
+                                       selected-genes="genesOfInterest"
+                                       on-change-gene="genesOfInterestChanged">
+                </ngb-launch-menu-input>
+                <ngb-launch-menu-input label="Translational genes:"
+                                       get-genes-list="getFilteredGenes"
+                                       selected-genes="translationalGenes"
+                                       on-change-gene="translationalGenesChanged">
+                </ngb-launch-menu-input>
+            </div>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <md-button aria-label="Identify target"
+                       ng-click="identify()"
+                       class="md-primary"
+                       ng-disabled="identifyDisabled()">
+                Identify
             </md-button>
-        </div>
-    </md-toolbar>
-    <md-dialog-content class="content">
-        <div layout="column" flex="100">
-            <div layout="row" flex="100" class="input-container">
-                <label class="input-label">Genes of interest:</label>
-                <md-chips ng-model="genesOfInterest"
-                          md-autocomplete-snap
-                          md-require-match="true"
-                          md-removable="true"
-                          md-chips-trim
-                          flex="70">
-                    <md-autocomplete
-                        md-search-text="searchText"
-                        md-clear-button="true"
-                        md-menu-class="genes-md-autocomplete"
-                        md-no-cache="true"
-                        md-items="gene in getFilteredGenes(searchText)"
-                        md-item-text="gene.span"
-                        md-delay="100"
-                        md-min-length="0"
-                        md-selected-item-change="genesOfInterestChanged(gene)"
-                        md-match-case-insensitive="true">
-                        <md-item-template>
-                            <span md-highlight-text="searchText"
-                                  md-highlight-flags="gi"
-                                  ng-class="{'span-padding': gene.item}">
-                                {{gene.span}}
-                            </span>
-                        </md-item-template>
-                        <md-not-found>
-                            Not found.
-                        </md-not-found>
-                    </md-autocomplete>
-                    <md-chip-template>
-                        <span>{{$chip.chip}}</span>
-                    </md-chip-template>
-                    <ng-md-icon icon="close"
-                            md-chip-remove=""
-                            size="12"
-                    ></ng-md-icon>
-                </md-chips>
-            </div>
-            <div layout="row" flex="100" class="input-container">
-                <label class="input-label">Translational genes:</label>
-                <md-chips ng-model="translationalGenes"
-                        md-autocomplete-snap
-                        md-require-match="true"
-                        md-chips-trim
-                        flex="70">
-                    <md-autocomplete
-                        md-search-text="searchText"
-                        md-clear-button="true"
-                        md-menu-class="genes-md-autocomplete"
-                        md-no-cache="true"
-                        md-items="gene in getFilteredGenes(searchText)"
-                        md-item-text="gene.span"
-                        md-delay="100"
-                        md-min-length="0"
-                        md-selected-item-change="translationalGenesChanged(gene)"
-                        md-match-case-insensitive="true">
-                        <md-item-template>
-                            <span md-highlight-text="searchText"
-                                  md-highlight-flags="gi"
-                                  ng-class="{'span-padding': gene.item}">
-                                {{gene.span}}
-                            </span>
-                        </md-item-template>
-                        <md-not-found>
-                            Not found.
-                        </md-not-found>
-                    </md-autocomplete>
-                    <md-chip-template>
-                        <span>{{$chip.chip}}</span>
-                    </md-chip-template>
-                    <ng-md-icon icon="close"
-                            md-chip-remove=""
-                            size="12"
-                    ></ng-md-icon>
-                </md-chips>
-            </div>
-        </div>
-    </md-dialog-content>
-    <md-dialog-actions layout="row">
-        <md-button aria-label="Identify target"
-                   ng-click="identify()"
-                   class="md-primary"
-                   ng-disabled="identifyDisabled()">
-            Identify
-        </md-button>
-    </md-dialog-actions>
+        </md-dialog-actions>
+    </form>
 </md-dialog>
