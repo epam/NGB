@@ -25,14 +25,36 @@ export default class ngbKnownDrugsPanelService {
         return EXPORT_SOURCE;
     }
 
-    static instance (ngbTargetPanelService, targetDataService) {
-        return new ngbKnownDrugsPanelService(ngbTargetPanelService, targetDataService);
+    _tmapLoading = false;
+    _tmapFailed = false;
+    _tmapErrorList = null;
+    _tmapUrl;
+
+    get tmapLoading() {
+        return this._tmapLoading;
+    }
+    set tmapLoading(value) {
+        this._tmapLoading = value;
+    }
+    get tmapFailed() {
+        return this._tmapFailed;
+    }
+    get tmapErrorList() {
+        return this._tmapErrorList;
+    }
+    get tmapUrl() {
+        return this._tmapUrl;
     }
 
-    constructor(ngbTargetPanelService, targetDataService) {
-        Object.assign(this, {ngbTargetPanelService, targetDataService});
+    static instance (dispatcher, ngbTargetPanelService, targetDataService) {
+        return new ngbKnownDrugsPanelService(dispatcher, ngbTargetPanelService, targetDataService);
+    }
+
+    constructor(dispatcher, ngbTargetPanelService, targetDataService) {
+        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService});
         this._loading = false;
         this._sourceModel = this.sourceOptions.OPEN_TARGETS;
+        dispatcher.on('target:identification:reset', this.resetData.bind(this));
     }
 
     get sourceOptions () {
@@ -73,5 +95,38 @@ export default class ngbKnownDrugsPanelService {
             return this.targetDataService.getTargetExportGeneId(this.geneIdsOfInterest[0], source);
         }
         return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
+    }
+
+    async generateTMAP() {
+        if (!this.geneIdsOfInterest || !this.geneIdsOfInterest.length) {
+            return new Promise(resolve => {
+                this._tmapLoading = false;
+                resolve(true);
+            });
+        }
+        return new Promise(resolve => {
+            this.targetDataService.generateTMAP(this.geneIdsOfInterest)
+                .then(data => {
+                    this._tmapFailed = false;
+                    this._tmapErrorList = null;
+                    this._tmapLoading = false;
+                    this._tmapUrl = data;
+                    resolve(true);
+                })
+                .catch(err => {
+                    this._tmapFailed = true;
+                    this._tmapErrorList = [err.message];
+                    this._tmapLoading = false;
+                    this._tmapUrl = undefined;
+                    resolve(false);
+                });
+        });
+    }
+
+    resetData() {
+        this._tmapLoading = false;
+        this._tmapFailed = false;
+        this._tmapErrorList = null;
+        this._tmapUrl = undefined;
     }
 }

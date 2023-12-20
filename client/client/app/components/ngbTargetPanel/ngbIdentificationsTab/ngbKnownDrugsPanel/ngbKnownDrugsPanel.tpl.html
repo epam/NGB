@@ -1,9 +1,24 @@
 <div class="loading-indicator"
-     ng-if="$ctrl.loading">
+     ng-if="$ctrl.loading || $ctrl.tmapLoading">
     <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-class="{'hidden': !$ctrl.tmapFailed || $ctrl.tmapLoading}">
+    <ngb-panel-error-list message-list="$ctrl.tmapErrorList"></ngb-panel-error-list>
 </div>
 <div class="known-drugs-header">
     <div class="action-container">
+        <md-button type="button"
+                   class="md-raised tmap-button"
+                   ng-if="$ctrl.tableResults && !$ctrl.tmapUrl"
+                   aria-label="Generate tmap plot"
+                   ng-click="$ctrl.onClickTMAP()">
+            TMAP plot
+        </md-button>
+        <span class="tmap-link"
+              ng-click="$ctrl.showTMAP()"
+              ng-if="$ctrl.tmapUrl">
+            {{$ctrl.tmapUrl}}
+        </span>
         <md-button type="button"
                    class="md-raised export-button"
                    ng-if="$ctrl.tableResults"

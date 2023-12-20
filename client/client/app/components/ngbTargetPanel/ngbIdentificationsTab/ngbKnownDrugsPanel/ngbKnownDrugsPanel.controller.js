@@ -1,3 +1,5 @@
+import ngbConstants from '../../../../../constants';
+
 export default class ngbKnownDrugsPanelController {
     static get UID() {
         return 'ngbKnownDrugsPanelController';
@@ -51,6 +53,22 @@ export default class ngbKnownDrugsPanelController {
         return [...this.ngbTargetPanelService.allChips];
     }
 
+    get tmapLoading() {
+        return this.ngbKnownDrugsPanelService.tmapLoading;
+    }
+    set tmapLoading(value) {
+        this.ngbKnownDrugsPanelService.tmapLoading = value;
+    }
+    get tmapFailed() {
+        return this.ngbKnownDrugsPanelService.tmapFailed;
+    }
+    get tmapErrorList() {
+        return this.ngbKnownDrugsPanelService.tmapErrorList;
+    }
+    get tmapUrl() {
+        return this.ngbKnownDrugsPanelService.tmapUrl;
+    }
+
     onChangeSource() {
         this.dispatcher.emit('target:identification:drugs:source:changed');
     }
@@ -82,5 +100,22 @@ export default class ngbKnownDrugsPanelController {
                 }
                 this.$timeout(() => this.$scope.$apply());
             });
+    }
+
+    async onClickTMAP() {
+        this.tmapLoading = true;
+        const result = await this.ngbKnownDrugsPanelService.generateTMAP();
+        console.log(result)
+        this.$timeout(() => this.$scope.$apply());
+    }
+
+    showTMAP() {
+        let base = ngbConstants.urlPrefix || '';
+        if (base && base.length) {
+            if (!base.endsWith('/')) {
+                base = base.concat('/');
+            }
+        }
+        window.open(`${base}/${this.tmapUrl}`, '_blank');
     }
 }

@@ -825,4 +825,14 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    generateTMAP() {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve('test');
+                // const message = 'Error generating TMAP';
+                // reject(new Error(message));
+            }, 3000)
+        });
+    }
 }
