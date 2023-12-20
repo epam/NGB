@@ -29,6 +29,7 @@ import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.util.URLEncoder;
 import org.apache.commons.lang3.StringUtils;
@@ -58,9 +59,12 @@ public class NCBIPugManager extends HttpDataManager{
 
     private static final String NCBI_PUG_SERVER = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/";
     private static final String SMILES_BY_NAME_PATTERN = "compound/name/%s/property/CanonicalSMILES/JSON";
+    private static final String SMILES_BY_IDS_PATTERN = "compound/cid/%s/property/CanonicalSMILES,Title/JSON";
+    private static final String SYNONYMS_BY_IDS_PATTERN = "compound/cid/%s/synonyms/JSON";
     private static final String COMPOUND_BY_SMILES_PATTERN = "compound/smiles/%s/cids/JSON";
     private static final String COMPOUND_BY_INCHI_PATTERN = "compound/inchi/cids/JSON?inchi=%s";
     private static final String PATENTS_PATTERN = "compound/cid/%s/xrefs/PatentID/JSON";
+    private static final Integer BATCH_SIZE = 100;
 
 
     public String getSmiles(final String name) throws JsonProcessingException {
@@ -73,6 +77,42 @@ public class NCBIPugManager extends HttpDataManager{
             return null;
         }
         return parseSmiles(result);
+    }
+
+    public Map<String, String> getSmiles(final List<String> compoundIds) throws JsonProcessingException {
+        final Map<String, String> allSmiles = new HashMap<>();
+        final List<List<String>> subSets = Lists.partition(compoundIds, BATCH_SIZE);
+        for (List<String> subSet : subSets) {
+            final String location = NCBI_PUG_SERVER + String.format(SMILES_BY_IDS_PATTERN, join(subSet, ","));
+            final String result;
+            try {
+                result = getResultFromURL(location);
+            } catch (ExternalDbUnavailableException e) {
+                log.error(e.getMessage(), e);
+                return null;
+            }
+            Map<String, String> smiles = getSmilesMap(result);
+            allSmiles.putAll(smiles);
+        }
+        return allSmiles;
+    }
+
+    public Map<String, List<String>> getSynonyms(final List<String> compoundIds) throws JsonProcessingException {
+        final Map<String, List<String>> allSynonyms = new HashMap<>();
+        final List<List<String>> subSets = Lists.partition(compoundIds, BATCH_SIZE);
+        for (List<String> subSet : subSets) {
+            final String location = NCBI_PUG_SERVER + String.format(SYNONYMS_BY_IDS_PATTERN, join(subSet, ","));
+            final String result;
+            try {
+                result = getResultFromURL(location);
+            } catch (ExternalDbUnavailableException e) {
+                log.error(e.getMessage(), e);
+                return null;
+            }
+            Map<String, List<String>> synonyms = getSynonymsMap(result);
+            allSynonyms.putAll(synonyms);
+        }
+        return allSynonyms;
     }
 
     public List<Long> getCID(final String id) throws JsonProcessingException {
@@ -122,6 +162,44 @@ public class NCBIPugManager extends HttpDataManager{
             }
         }
         return null;
+    }
+
+    private Map<String, String> getSmilesMap(final String data) throws JsonProcessingException {
+        final Map<String, String> result = new HashMap<>();
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final JsonNode node = objectMapper.readTree(data);
+        final JsonNode properties = node.at("/PropertyTable/Properties");
+        if (properties.isArray()) {
+            Iterator<JsonNode> elements = properties.elements();
+            while (elements.hasNext()) {
+                JsonNode property = elements.next();
+                result.put(property.at("/CID").asText(), property.at("/CanonicalSMILES").asText());
+            }
+        }
+        return result;
+    }
+
+    private Map<String, List<String>> getSynonymsMap(final String data) throws JsonProcessingException {
+        final Map<String, List<String>> result = new HashMap<>();
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final JsonNode node = objectMapper.readTree(data);
+        final JsonNode properties = node.at("/InformationList/Information");
+        if (properties.isArray()) {
+            Iterator<JsonNode> elements = properties.elements();
+            while (elements.hasNext()) {
+                JsonNode property = elements.next();
+                JsonNode synonymsNode = property.at("/Synonym");
+                List<String> synonyms = new ArrayList<>();
+                if (synonymsNode.isArray()) {
+                    Iterator<JsonNode> synonymsElements = synonymsNode.elements();
+                    while (synonymsElements.hasNext()) {
+                        synonyms.add(synonymsElements.next().asText());
+                    }
+                }
+                result.put(property.at("/CID").asText(), synonyms);
+            }
+        }
+        return result;
     }
 
     private List<Long> parseCIDs(final String data) throws JsonProcessingException {

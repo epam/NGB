@@ -472,4 +472,24 @@ public class LaunchIdentificationManager {
         });
         return geneNames;
     }
+
+    public Map<String, String> getGeneNamesMap(final List<String> geneIds) {
+        final Map<String, String> geneNames = new HashMap<>();
+        geneIds.forEach(g -> {
+            List<String> targetGeneNames = targetManager.getTargetGeneNames(Collections.singletonList(g));
+            if (CollectionUtils.isEmpty(targetGeneNames)) {
+                List<TargetDetails> targetDetails = Collections.emptyList();
+                try {
+                    targetDetails = targetDetailsManager.search(Collections.singletonList(g));
+                } catch (ParseException | IOException e) {
+                    log.debug("No gene names found for {}", g);
+                }
+                targetGeneNames = targetDetails.stream().map(TargetDetails::getSymbol).collect(Collectors.toList());
+            }
+            if (CollectionUtils.isNotEmpty(targetGeneNames)) {
+                geneNames.put(g.toLowerCase(), targetGeneNames.get(0));
+            }
+        });
+        return geneNames;
+    }
 }
