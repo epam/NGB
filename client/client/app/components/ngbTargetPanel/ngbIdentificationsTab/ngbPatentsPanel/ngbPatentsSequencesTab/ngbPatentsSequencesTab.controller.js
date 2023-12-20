@@ -13,9 +13,12 @@ export default class ngbPatentsSequencesTabController {
     constructor($scope, $timeout, dispatcher, ngbPatentsSequencesTabService) {
         Object.assign(this, {$scope, $timeout, dispatcher, ngbPatentsSequencesTabService});
         const refresh = this.refresh.bind(this);
-        dispatcher.on('target:identification:patents:proteins:updated', refresh);
+        const onChangeProtein = this.onChangeProtein.bind(this);
+        dispatcher.on('target:identification:patents:proteins:updated', onChangeProtein);
+        dispatcher.on('target:identification:patents:protein:search:changed', refresh);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:patents:proteins:updated', refresh);
+            dispatcher.removeListener('target:identification:patents:proteins:updated', onChangeProtein);
+            dispatcher.removeListener('target:identification:patents:protein:search:changed', refresh);
         });
     }
 
@@ -112,10 +115,10 @@ export default class ngbPatentsSequencesTabController {
 
     refresh() {
         this.$timeout(() => this.$scope.$apply());
-        this.setSequence();
     }
 
     onChangeProtein() {
+        this.refresh();
         this.setSequence();
     }
 
@@ -161,7 +164,6 @@ export default class ngbPatentsSequencesTabController {
         await this.ngbPatentsSequencesTabService.searchPatentsByProteinName();
         this.$timeout(() => {
             this.dispatcher.emit('target:identification:patents:protein:search:changed');
-            this.$scope.$apply();
         });
     }
 

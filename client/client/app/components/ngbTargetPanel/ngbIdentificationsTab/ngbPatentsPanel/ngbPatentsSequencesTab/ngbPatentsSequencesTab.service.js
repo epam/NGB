@@ -365,6 +365,7 @@ export default class ngbPatentsSequencesTabService {
         this.currentPage = 1;
         if (!this.searchSequence) {
             this.loadingData = false;
+            return;
         }
         this.requestedModel = {
             searchBy: this.searchBy,
@@ -427,6 +428,7 @@ export default class ngbPatentsSequencesTabService {
                 this._errorMessageList = null;
                 this._totalPages = Math.ceil(result.length/this.pageSize);
                 this._emptyResults = result.length === 0;
+                this._loadingData = false;
                 this.setAllResultsBySequence(result);
                 this.setTableResults(this.setTableResultsOnPage());
             }
@@ -435,11 +437,11 @@ export default class ngbPatentsSequencesTabService {
             this._errorMessageList = ['Error getting results'];
             this._totalPages = 0;
             this._emptyResults = false;
+            this._loadingData = false;
             this._tableResults = [];
         }
         this.blastStatus = undefined;
         this.taskId = undefined;
-        this._loadingData = false;
         this.dispatcher.emit('target:identification:patents:protein:search:changed');
         this.dispatcher.emit('target:identification:patents:protein:pagination:updated');
     }
