@@ -67,16 +67,14 @@
                 {{ctrl.trackInstance ? ctrl.trackInstance.error : ''}}
             </md-tooltip>
         </div>
-        <ngb-track-settings
-                style="flex: 1; overflow: hidden;"
-                ng-if="ctrl.trackInstance !== undefined && ctrl.trackInstance.getSettings"
-                settings="ctrl.trackInstance.getSettings()"
-        />
-        <ngb-track-actions
-                dnd-nodrag
-                ng-if="ctrl.trackInstance !== undefined && ctrl.trackInstance.actions"
-                actions="ctrl.trackInstance.actions"
-        />
+        <ngb-track-settings style="flex: 1; overflow: hidden;"
+                            ng-if="ctrl.trackInstance !== undefined && ctrl.trackInstance.getSettings"
+                            settings="ctrl.trackInstance.getSettings()">
+        </ngb-track-settings>
+        <ngb-track-actions dnd-nodrag
+                           ng-if="ctrl.trackInstance !== undefined && ctrl.trackInstance.actions"
+                           actions="ctrl.trackInstance.actions">
+        </ngb-track-actions>
 
         <div ng-style="{'visibility': ctrl.trackDataIsLoading ? 'visible' : 'hidden'}">
             <md-progress-circular md-mode="indeterminate" md-diameter="12"></md-progress-circular>
