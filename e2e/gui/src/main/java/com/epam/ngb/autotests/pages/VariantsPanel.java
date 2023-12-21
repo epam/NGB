@@ -23,9 +23,12 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 import com.codeborne.selenide.SelenideElement;
+import com.epam.ngb.autotests.enums.Colors;
+import static com.epam.ngb.autotests.enums.Colors.BLANK;
 import com.epam.ngb.autotests.menus.VariantInfoForm;
 import static java.lang.String.format;
 import static org.openqa.selenium.By.className;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.NoSuchElementException;
@@ -48,12 +51,16 @@ public class VariantsPanel implements AccessObject<VariantsPanel> {
                 .orElseThrow(NoSuchElementException::new);
     }
 
-    public VariantsPanel checkBackgroundColorRowByPosition(String position, String color) {
-        assertTrue(findVariantByPosition(position).$x("./div[@role='row']/div")
-                .shouldBe(enabled)
-                .has(attribute("style", format("background-color: %s;", color))),
-                format("Expected: %s, actual: %s ", color,
-                        findVariantByPosition(position).$x("./div[@role='row']/div").getAttribute("style")));
+    public VariantsPanel checkBackgroundColorRowByPosition(String position, Colors color) {
+        SelenideElement row = findVariantByPosition(position)
+                .$x("./div[@role='row']/div").shouldBe(enabled);
+        if (color == BLANK) {
+            assertFalse(row.has(attribute("style")),
+                    format("Error: row has %s hightlighting", color.value));
+        } else {
+            assertTrue(row.has(attribute("style", format("background-color: %s;", color.value))),
+                    format("Expected: %s, actual: %s ", color.value, row.getAttribute("style")));
+        }
         return this;
     }
 

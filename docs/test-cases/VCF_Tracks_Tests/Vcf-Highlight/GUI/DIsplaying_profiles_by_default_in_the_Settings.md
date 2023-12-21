@@ -1,5 +1,4 @@
-
-# Logic of displaying profiles in the "Select the profile" field by default
+# [MANUAL] Logic of displaying profiles in the "Select the profile" field by default
 
 Test verifies
  - 

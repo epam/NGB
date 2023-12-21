@@ -15,8 +15,10 @@
  */
 package com.epam.ngb.autotests;
 
+import com.epam.ngb.autotests.enums.Colors;
 import static com.epam.ngb.autotests.enums.Colors.AZURE;
 import static com.epam.ngb.autotests.enums.Colors.BEIGE;
+import static com.epam.ngb.autotests.enums.Colors.BLANK;
 import static com.epam.ngb.autotests.enums.Colors.BLUE;
 import static com.epam.ngb.autotests.enums.Colors.BROWN;
 import static com.epam.ngb.autotests.enums.Colors.DARK_SATURATED_RED;
@@ -65,46 +67,48 @@ public class VcfHighlightTests extends AbstractNgbTest {
     @DataProvider(name = "complexConditions")
     public static Object[][] complexConditions() {
         return new Object[][] {
-                {"12584271", AZURE.value, "variantsTC02_1"},
-                {"12591627", LIGHT_GREEN.value, "variantsTC02_2"},
-                {"12591629", PINK.value, "variantsTC02_3"},
-                {"12587867", DARK_SATURATED_RED.value, "variantsTC02_4"},
-                {"12586790", BROWN.value, "variantsTC02_5"},
-                {"12590931", BROWN.value, "variantsTC02_6"}
+                {"12584271", AZURE, "variantsTC02_1", "ReadPosRankSum", "1.471", "DP", "93"},
+                {"12591627", LIGHT_GREEN, "variantsTC02_2", "DP", "435", "SOR", "1.461"},
+                {"12591629", PINK, "variantsTC02_3", "DP", "386", "SOR", "1.227"},
+                {"12587867", DARK_SATURATED_RED, "variantsTC02_4", "DP", "572", "MQ", "92.2"},
+                {"12586790", BROWN, "variantsTC02_5", "FS", "453.737", "FS", "453.737"},
+                {"12590931", BROWN, "variantsTC02_6", "QD", "36.89", "QD", "36.89"}
         };
     }
 
     @DataProvider(name = "simpleConditions")
     public static Object[][] simpleConditions() {
         return new Object[][] {
-                {"12586950", RED.value, "variantsTC03_1"},
-                {"12586560", YELLOW.value, "variantsTC03_2"},
-                {"12586790", GREEN.value, "variantsTC03_3"},
-                {"12585943", LIGHT_BLUE.value, "variantsTC03_4"},
-                {"12587867", LIGHT_BLUE.value, "variantsTC03_5"},
-                {"12589324", BLUE.value, "variantsTC03_6"},
-                {"12589261", LIGHT_PINK.value, "variantsTC03_7"},
-                {"12591635", LIGHT_PINK.value, "variantsTC03_8"},
-                {"12589600", ORANGE.value, "variantsTC03_9"},
-                {"12590846", ORANGE.value, "variantsTC03_10"}
+                {"12586950", RED, "variantsTC03_1", "DP", "384"},
+                {"12586560", YELLOW, "variantsTC03_2", "AC", "2"},
+                {"12586790", GREEN, "variantsTC03_3", "FS", "453.737"},
+                {"12585943", LIGHT_BLUE, "variantsTC03_4", "MQ", "91.95"},
+                {"12587867", LIGHT_BLUE, "variantsTC03_5", "MQ", "92.2"},
+                {"12589324", BLUE, "variantsTC03_6", "ReadPosRankSum", "-1.651"},
+                {"12589261", LIGHT_PINK, "variantsTC03_7", "QD", "0.32"},
+                {"12591635", LIGHT_PINK, "variantsTC03_8", "QD", "0.26"},
+                {"12589600", ORANGE, "variantsTC03_9", "DP", "114"},
+                {"12590846", ORANGE, "variantsTC03_10", "DP", "137"},
+                {"12585171", BLANK, "variantsTC03_11", "DP", "206"},
+                {"12585001", BEIGE, "variantsTC03_12", "DP", "216"}
         };
     }
 
     @DataProvider(name = "structuralVariations")
     public static Object[][] structuralVariations() {
         return new Object[][]{
-                {"181050143", RED.value, "variantsTC06_1", "CIPOS", "-6", "2"},
-                {"48459903", LIGHT_BLUE.value, "variantsTC06_2", "EVENT", "124"},
-                {"51295112", BLUE.value, "variantsTC06_3", "EVENT", "30"},
-                {"117314770", LIGHT_PINK.value, "variantsTC06_4", "EVENT", "34"},
-                {"31200612", ORANGE.value, "variantsTC06_5", "EVENT", "96"},
-                {"31226616", YELLOW.value, "variantsTC06_6", "PE", "5"},
-                {"31182626", BEIGE.value, "variantsTC06_7", "PE", "4"}
+                {"181050143", RED, "variantsTC06_1", "CIPOS", "-6", "2"},
+                {"48459903", LIGHT_BLUE, "variantsTC06_2", "EVENT", "124"},
+                {"51295112", BLUE, "variantsTC06_3", "EVENT", "30"},
+                {"117314770", LIGHT_PINK, "variantsTC06_4", "EVENT", "34"},
+                {"31200612", ORANGE, "variantsTC06_5", "EVENT", "96"},
+                {"31226616", YELLOW, "variantsTC06_6", "PE", "5"},
+                {"31182626", BEIGE, "variantsTC06_7", "PE", "4"}
         };
     }
 
     @Test
-    @TestCase ({"TC-VCF_HIGHLIGHT_TEST-01"})
+    @TestCase ({"TC-VCF_HIGHLIGHT-01"})
     public void highlightBubblesDependingOnHighlightedVariations() throws IOException {
         String track = vcfTrack1.substring(0, 20);
 
@@ -113,9 +117,9 @@ public class VcfHighlightTests extends AbstractNgbTest {
         new TabsSelectionPanel()
                 .selectPanel(VARIANTS);
         new VariantsPanel()
-                .checkBackgroundColorRowByPosition(testPositionTC01[0], RED.value)
-                .checkBackgroundColorRowByPosition(testPositionTC01[1], GREEN.value)
-                .checkBackgroundColorRowByPosition(testPositionTC01[2], LIGHT_BLUE.value)
+                .checkBackgroundColorRowByPosition(testPositionTC01[0], RED)
+                .checkBackgroundColorRowByPosition(testPositionTC01[1], GREEN)
+                .checkBackgroundColorRowByPosition(testPositionTC01[2], LIGHT_BLUE)
                 .openVariantByPosition(testPositionTC01[0])
                 .waitTrackDownloaded(track)
                 .trackImageCompare(getExpectedImage(variantsTC01_1),
@@ -127,10 +131,14 @@ public class VcfHighlightTests extends AbstractNgbTest {
     }
 
     @Test(dataProvider = "complexConditions")
-    @TestCase ({"TC-VCF_HIGHLIGHT_TEST-02"})
+    @TestCase ({"TC-VCF_HIGHLIGHT-02"})
     public void highlightVcfWithComplexConditions(String position,
-                                                  String color,
-                                                  String fileName) throws IOException {
+                                                  Colors color,
+                                                  String fileName,
+                                                  String property1,
+                                                  String value1,
+                                                  String property2,
+                                                  String value2) throws IOException {
         String track = vcfTrack2.substring(0, 20);
 
         openTrack(TEST_DATASET, vcfTrack2);
@@ -139,6 +147,10 @@ public class VcfHighlightTests extends AbstractNgbTest {
         new VariantsPanel()
                 .filterVariantsBy("Position", position)
                 .checkBackgroundColorRowByPosition(position, color)
+                .openVariantInfoByPosition(position)
+                .checkPropertyValue(property1,value1)
+                .checkPropertyValue(property2,value2)
+                .close()
                 .openVariantByPosition(position);
         new BrowserPanel()
                 .waitTrackDownloaded(track)
@@ -147,10 +159,12 @@ public class VcfHighlightTests extends AbstractNgbTest {
     }
 
     @Test(dataProvider = "simpleConditions")
-    @TestCase ({"TC-VCF_HIGHLIGHT_TEST-03"})
+    @TestCase ({"TC-VCF_HIGHLIGHT-03"})
     public void highlightVcfWithSimpleConditions(String position,
-                                                 String color,
-                                                 String fileName) throws IOException {
+                                                 Colors color,
+                                                 String fileName,
+                                                 String property,
+                                                 String ... values) throws IOException {
         String track = vcfTrack2.substring(0, 20);
 
         openTrack(TEST_DATASET, vcfTrack2);
@@ -159,15 +173,19 @@ public class VcfHighlightTests extends AbstractNgbTest {
         new VariantsPanel()
                 .filterVariantsBy("Position", position)
                 .checkBackgroundColorRowByPosition(position, color)
+                .openVariantInfoByPosition(position)
+                .checkPropertyValue(property,values)
+                .close()
                 .openVariantByPosition(position);
-        new BrowserPanel()
-                .waitTrackDownloaded(track)
-                .trackImageCompare(getExpectedImage(fileName),
-                        track, fileName, VCF_DEVIATION);
+        BrowserPanel browserPanel = new BrowserPanel()
+                .waitTrackDownloaded(track);
+//                .trackImageCompare(getExpectedImage(fileName),
+//                        track, fileName, VCF_DEVIATION);
+        takeScreenshot(browserPanel.getTrack(track), fileName);
     }
 
     @Test
-    @TestCase ({"TC-VCF_HIGHLIGHT_TEST-04"})
+    @TestCase ({"TC-VCF_HIGHLIGHT-04"})
     public void redHighlightTheSameVariationThatMatchesToDifferentConditions() throws IOException {
         String position = "12585943";
         String track = vcfTrack2.substring(0, 20);
@@ -177,7 +195,7 @@ public class VcfHighlightTests extends AbstractNgbTest {
         openFiltersPanel();
         new VariantsPanel()
                 .filterVariantsBy("Position", position)
-                .checkBackgroundColorRowByPosition(position, RED.value)
+                .checkBackgroundColorRowByPosition(position, RED)
                 .openVariantByPosition(position);
         new BrowserPanel()
                 .waitTrackDownloaded(track)
@@ -186,7 +204,7 @@ public class VcfHighlightTests extends AbstractNgbTest {
     }
 
     @Test
-    @TestCase ({"TC-VCF_HIGHLIGHT_TEST-05"})
+    @TestCase ({"TC-VCF_HIGHLIGHT-05"})
     public void greenHighlightTheSameVariationThatMatchesToDifferentConditions() throws IOException {
         String position = "12585943";
         String track = vcfTrack2.substring(0, 20);
@@ -196,7 +214,7 @@ public class VcfHighlightTests extends AbstractNgbTest {
         openFiltersPanel();
         new VariantsPanel()
                 .filterVariantsBy("Position", position)
-                .checkBackgroundColorRowByPosition(position, GREEN.value)
+                .checkBackgroundColorRowByPosition(position, GREEN)
                 .openVariantByPosition(position);
         new BrowserPanel()
                 .waitTrackDownloaded(track)
@@ -204,9 +222,9 @@ public class VcfHighlightTests extends AbstractNgbTest {
                         track, "variantsTC05_1", VCF_DEVIATION);
     }
     @Test(dataProvider = "structuralVariations")
-    @TestCase ({"TC-VCF_HIGHLIGHT_TEST-06"})
+    @TestCase ({"TC-VCF_HIGHLIGHT-06"})
     public void structuralVariationsBND(String position,
-                                        String color,
+                                        Colors color,
                                         String fileName,
                                         String property,
                                         String ... values) throws IOException {

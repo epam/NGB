@@ -51,20 +51,20 @@ Test verifies
 | Steps | Actions | Expected results |
 | :---: | --- | --- |
 | 1 | Login to NGB as system admin user | |
-| 2 | Go to  **Settings** -> **VCF** tab | 'VCF' tab is displayed in the Settings' window|
-| 3 | Set checkbox in **Enabled** field (if it is not set)| **'Select the profile'** field is displayed |
-| 4 | Select **Simple Conditions** profile in dropdown list of **'Select the profile'** field|
+| 2 | Go to  **Settings** -> **VCF** tab | 'VCF' tab is displayed in the Settings' window |
+| 3 | Set checkbox in **Enabled** field (if it is not set) | **'Select the profile'** field is displayed |
+| 4 | Select **Simple Conditions** profile in dropdown list of **'Select the profile'** field | |
 | 5 | Click **Save** button | <li> Changes successfully saved <li> 'Settings' window is closed | 
-| 6 | Go to **Datasets** tab | 
-| 7 | Select dataset and vcf file from **Prerequisites** | Vcf file (**agnts3.09-28.trim.dm606.realign.vcf**) is selected in dataset (**dm6_data**) 
+| 6 | Go to **Datasets** tab | |
+| 7 | Select dataset and vcf file from **Prerequisites** | Vcf file (**agnts3.09-28.trim.dm606.realign.vcf**) is selected in dataset (**dm6_data**) |
 | 8 | Go to **Variants** panel | |
 | 9 | Find Variation on Position **chr X:12586950**| Background of variation highlight in **'ff0000'(red)** color |
-| 10| Click on variation with Position **chr X:12586950** |Browser window is opened with vcf track|
-| 11| At the vcf-track, select **'Collapsed'** view (if it was not set previously)||
-| 12| Look at variation on vcf track in Browser| Variation is highlighted in color  **'ff0000'(red)** along all its length in **collapsed** view
-| 13| At the vcf-track, select **'Expanded'** view 
-| 14| Look at variation on vcf track in Browser| Variation is highlighted in color  **'ff0000'(red)** along all its length in **expanded** view
-| 14| Repeat steps 8-14 for every variation's position shown in the table below |   | 
+| 10 | Click on variation with Position **chr X:12586950** | Browser window is opened with vcf track |
+| 11 | At the vcf-track, select **'Collapsed'** view (if it was not set previously)| |
+| 12 | Look at variation on vcf track in Browser | Variation is highlighted in color  **'ff0000'(red)** along all its length in **collapsed** view |
+| 13 | At the vcf-track, select **'Expanded'** view | |
+| 14 | Look at variation on vcf track in Browser| Variation is highlighted in color  **'ff0000'(red)** along all its length in **expanded** view |
+| 15 | Repeat steps 8-14 for every variation's position shown in the table below |   | 
  
 
 | Steps | Condition | Position chr X| Expected results |

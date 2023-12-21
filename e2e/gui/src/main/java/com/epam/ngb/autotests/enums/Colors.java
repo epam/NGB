@@ -17,6 +17,7 @@ package com.epam.ngb.autotests.enums;
 
 public enum Colors {
 
+    BLANK(""),
     RED("rgb(255, 0, 0)"),
     GREEN("rgb(0, 128, 0)"),
     LIGHT_GREEN("rgb(20, 145, 80)"),
