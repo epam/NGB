@@ -142,6 +142,9 @@ export class TargetDataService extends DataService {
                     } else {
                         resolve([]);
                     }
+                })
+                .catch(err => {
+                    resolve([]);
                 });
         });
     }
