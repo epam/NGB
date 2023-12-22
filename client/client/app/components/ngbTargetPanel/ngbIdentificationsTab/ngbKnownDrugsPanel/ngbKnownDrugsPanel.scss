@@ -96,8 +96,24 @@ ngb-known-drugs-panel {
     }
 
     .tmap-link {
+        display: inline-block;
         color: rgb(102, 153, 255);
         cursor: pointer;
+        min-height: 24px;
+        line-height: 24px;
+        font-size: $known-drugs-font-size;
+        font-weight: normal;
+        text-transform: none;
+        min-width: 88px;
+        vertical-align: middle;
+        -webkit-box-align: center;
+        -webkit-align-items: center;
+        -ms-grid-row-align: center;
+        align-items: center;
+        text-align: center;
+        padding: 0 6px;
+        margin: 6px 8px;
+        box-sizing: border-box;
     }
 }
 
