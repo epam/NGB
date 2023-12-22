@@ -26,7 +26,7 @@ export default function run(
                         return ids
                             .reduce((acc, id) => {
                                 const genesWithId = target.species.value.filter(s => s.geneId === id);
-                                if (!genesWithId.length) return;
+                                if (!genesWithId.length) return [];
                                 if (genesWithId.length === 1) {
                                     acc.push(genesWithId[0]);
                                 } else {

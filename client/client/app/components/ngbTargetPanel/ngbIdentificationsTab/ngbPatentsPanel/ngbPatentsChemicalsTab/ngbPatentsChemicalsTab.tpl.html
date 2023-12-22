@@ -1,0 +1,74 @@
+<div>
+    <div class="loading-indicator"
+         ng-if="$ctrl.loadingDrugs">
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
+    <div ng-class="{'hidden': !$ctrl.failedDrugs || $ctrl.loadingDrugs}">
+        <ngb-panel-error-list message-list="$ctrl.errorDrugsMessage"></ngb-panel-error-list>
+    </div>
+    <div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">
+        <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+    </div>
+    <div ng-if="$ctrl.searchBy === $ctrl.searchByOptions.structure"
+         ng-class="{'hidden': !$ctrl.failedIdentifier || $ctrl.loadingIdentifier}">
+        <ngb-panel-error-list message-list="$ctrl.errorIdentifier"></ngb-panel-error-list>
+    </div>
+    <div class="drug-select">
+        <label>Drug:</label>
+        <md-input-container>
+            <md-select ng-model="$ctrl.selectedDrug"
+                       aria-label="Select drug"
+                       ng-disabled="$ctrl.loadingDrugs || $ctrl.loadingData"
+                       ng-change="$ctrl.onChangeDrug()"
+                       md-container-class="drug-select-container">
+                <md-option ng-repeat="drug in $ctrl.drugs"
+                           ng-value="drug">
+                    {{drug}}
+                </md-option>
+            </md-select>
+        </md-input-container>
+        <md-button type="button"
+                   aria-label="Search patents"
+                   ng-click="$ctrl.onClickSearch()"
+                   class="md-primary md-raised md-accent patent-button"
+                   ng-disabled="$ctrl.searchDisabled">
+            Search
+        </md-button>
+    </div>
+    <div class="checkbox-container">
+        <span class="checkbox-label">Search patents by:</span>
+        <md-checkbox ng-repeat="option in $ctrl.searchByOptions track by option"
+                     aria-label="{{$ctrl.searchByNames[option]}} checkbox"
+                     ng-checked="$ctrl.searchBy === $ctrl.searchByOptions[option]"
+                     ng-click="$ctrl.onChangeSearchBy(option)"
+                     ng-disabled="$ctrl.loadingData">
+            {{$ctrl.searchByNames[option]}}
+        </md-checkbox>
+    </div>
+</div>
+<div class="loading-identifier-indicator"
+     ng-class="{'show': $ctrl.searchBy === $ctrl.searchByOptions.structure && $ctrl.loadingIdentifier}">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-if="$ctrl.searchBy === $ctrl.searchByOptions.structure"
+     class="textarea-container">
+    <label>Identifier:</label>
+    <md-input-container>
+        <textarea ng-model="$ctrl.searchStructure"
+                  aria-label="Search identifier"
+                  ng-disabled="$ctrl.loadingData"
+                  md-no-asterisk
+                  ng-change="$ctrl.onChangeStructure()"
+                  required>
+        </textarea>
+    </md-input-container>
+</div>
+<div class="loading-data-indicator"
+     ng-if="$ctrl.loadingData">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-if="$ctrl.tableResults"
+     class="results-header">
+    <span>{{$ctrl.headerText}}</span><span style="font-style: italic;">{{$ctrl.headerDetails}}</span>
+</div>
+<ngb-patents-chemical-table ng-if="$ctrl.tableResults"></ngb-patents-chemical-table>

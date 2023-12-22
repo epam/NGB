@@ -1,0 +1,152 @@
+@import "../../../ngbTargetsTab.variables.scss";
+
+$label-width: 150px;
+
+ngb-launch-menu-input {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+
+    .input-container {
+        display: flex;
+        width: 100%;
+        padding: 20px 20px 10px 20px;
+        flex-direction: row;
+        align-items: flex-start;
+        box-sizing: border-box;
+
+        .input-label {
+            line-height: calc($md-chip-size + 2px);
+            height: calc($md-chip-size + 2px);
+            font-size: $md-label-font-size;
+            width: $label-width;
+        }
+
+        .input-box {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            flex-wrap: wrap;
+
+            width: calc(100% - $label-width);
+            border: none;
+            border-bottom: 1px solid #cccccc;
+            border-radius: 0;
+            min-height: calc($md-chip-size + 2px);
+            height: auto;
+            padding: 0;
+            font-size: $md-label-font-size;
+            color: $md-chip-color;
+        }
+
+        input.launch-input {
+            border: none;
+            border-radius: 0;
+            height: calc($md-chip-size + 2px);
+            max-width: calc(100% - $label-width);
+    
+            &:hover,
+            &:focus,
+            &:focus-visible {
+                background: #ffffff;
+                border: none;
+            }
+        }
+
+        input[type="text"]:focus {
+            border: none !important;
+            -webkit-box-shadow: none;
+            -moz-box-shadow: none;
+            box-shadow: none;
+            outline: none;
+        }
+    }
+
+    .gene-chip {
+        height: 20px;
+        line-height: $md-chip-font-size;
+        font-size: $md-chip-font-size;
+        background: #eeeeee;
+        border: none;
+        border-radius: 5px;
+        color: #444444;
+        padding: 0 5px;
+        margin-right: 10px;
+        margin-bottom: 5px;
+        box-sizing: content-box;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        max-width: 100%;
+
+        &.removed-chip {
+            background: #adacac;
+        }
+
+        span {
+            margin: 0 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .md-button {
+            cursor: pointer;
+            height: $table-control-height;
+            min-height: $table-control-height;
+            line-height: $table-control-height;
+            min-width: 10px;
+            padding: 0;
+
+            &:hover {
+                background-color: inherit;
+            }
+        }
+    }
+
+    .md-menu.dropdown-menu {
+        width: 100%;
+    }
+
+    .list-container {
+        position: absolute;
+        background-color: #ffffff;
+        z-index: 100;
+        width: 200px;
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+    }
+}
+
+md-menu-content.launch-list {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+
+    md-menu-item {
+        line-height: $md-chip-option-size;
+        height: $md-chip-option-size;
+        min-height: $md-chip-option-size;
+    }
+
+    .list-item {
+        font-size: $md-chip-font-size;
+        padding: 0 5px;
+        margin: 0;
+        line-height: $md-chip-option-size;
+        height: $md-chip-option-size;
+
+        &:hover {
+            cursor: pointer;
+            background-color: rgba(235, 223, 223, 0.25);
+        }
+
+        &.span-padding {
+            padding: 0 20px;
+        }
+    }
+}

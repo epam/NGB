@@ -25,6 +25,7 @@ package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.exception.TargetUpdateException;
 import com.epam.catgenome.util.db.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -71,7 +72,7 @@ public class TargetSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public Target updateTarget(final Target target) {
+    public Target updateTarget(final Target target) throws TargetUpdateException {
         return targetManager.update(target);
     }
 }

@@ -16,8 +16,15 @@ import ngbTargetsTablePaginate from './ngbTargetsTablePaginate';
 import ngbDisableWheelHandler from './disable-wheel-handler';
 import ngbMdChips from './md-chips-trim';
 
+import ngbLaunchMenuInput from './ngbTargetLaunchDialog/ngbLaunchMenuInput/ngbLaunchMenuInput.directive';
+
 export default angular
-    .module('ngbTargetsTable', [ngbTargetsTableActions, ngbTargetsTableFilter, ngbTargetsTablePaginate])
+    .module('ngbTargetsTable', [
+        ngbTargetsTableActions,
+        ngbTargetsTableFilter,
+        ngbTargetsTablePaginate,
+        ngbLaunchMenuInput,
+    ])
     .directive('disableWheelHandler', ngbDisableWheelHandler)
     .directive('mdChipsTrim', ngbMdChips)
     .controller(controller.UID, controller)

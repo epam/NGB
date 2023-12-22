@@ -1,0 +1,15 @@
+@import "../../ngbTargetPanel.variables.scss";
+
+$patents-color: $general-font-color;
+$patents-font-size: $general-font-size;
+$patents-control-height: $general-control-height;
+
+$patents-nav-background: #fafafa;
+$patents-nav-border: 1px solid #f0f0f0;
+$patents-nav-selected-background: #dddddd;
+$patents-nav-selected-border: $general-border;
+$patents-nav-border-radius: 3px;
+
+$patents-button-height: $patents-control-height;
+
+$patents-warning-color: $general-warning-color;

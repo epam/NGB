@@ -1,142 +1,26 @@
 @import "../../ngbTargetsTab.variables.scss";
 
 md-dialog.launch-dialog {
+    min-width: 50%;
     max-width: 50%;
+
+    md-dialog-content {
+        min-width: 80%;
+        max-width: 100%;
+        height: auto;
+        overflow-x: visible;
+    }
 
     md-toolbar {
         background-color: rgb(102,153,255);
     }
 
-    .input-container {
-        margin: 5px 0;
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        align-items: flex-start;
-
-        .input-label {
-            line-height: calc($md-chip-size + 2px);
-            height: calc($md-chip-size + 2px);
-            font-size: $md-label-font-size;
-            min-width: 150px;
-        }
-    }
-
-    md-chips-wrap {
-        border-bottom: 1px solid #cccccc;
-        border-radius: 0;
-        min-height: calc($md-chip-size + 2px);
-        height: auto;
-        padding: 0;
-
-        &:hover {
-            background: #fafafa;
-            border-bottom: 1px solid #aaaaaa;
-        }
-    }
-
-    md-chips li {
-        height: $md-chip-option-size;
-        line-height: $md-chip-option-size;
-    }
-
-    md-autocomplete-wrap {
-        input {
-            font-size: $tab-font-size;
-            height: 22px;
-            align-self: center;
-        }
-    }
-
-    md-chips.md-default-theme .md-chips.md-focused,
-    md-chips .md-chips.md-focused,
-    md-chips.md-default-theme .md-chips,
-    md-chips .md-chips {
-        box-shadow: none;
-    }
-
     .content {
-        margin: 20px;
-        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
     }
-
-    md-chips {
-        .md-chips.md-removable md-chip {
-            padding: 0 $md-chip-remove-width 0 calc($md-chip-remove-width / 2.0);
-        }
-
-        .md-chips md-chip,
-        .md-chips .md-chip-input-container {
-            margin: 2px 3px;
-        }
-
-        md-chip {
-            display: flex;
-            align-items: center;
-            height: $md-chip-size;
-            line-height: $md-chip-size;
-            border-radius: $md-chip-border-radius;
-            padding: 0 $md-chip-border-radius;
-            font-size: $md-chip-font-size;
-
-            .md-chip-content {
-                display: flex;
-                align-items: center;
-                height: $md-chip-size;
-                line-height: $md-chip-size;
-                padding: 0;
-                margin: 0;
-            }
-
-            .md-chip-remove-container {
-                width: $md-chip-remove-width;
-                height: $md-chip-size;
-                line-height: $md-chip-size;
-                right: 2px;
-
-                ng-md-icon {
-                    width: $md-chip-remove-width;
-                    height: $md-chip-size;
-                    text-align: center;
-                    cursor: pointer;
-
-                    svg {
-                        width: calc($md-chip-remove-width / 2.0);
-                        height: calc($md-chip-remove-width / 2.0);
-                        fill: $md-chip-color;
-                    }
-
-                    &:hover svg {
-                        fill: darken($md-chip-color, 50%);
-                    }
-                }
-            }
-        }
-
-        .md-chips .md-chip-input-container {
-            line-height: $md-chip-size;
-            height: $md-chip-size;
-
-            md-autocomplete,
-            md-autocomplete-wrap,
-            input {
-                line-height: $md-chip-size;
-                height: $md-chip-size;
-                font-size: $md-chip-font-size;
-            }
-        }
-    }
-}
-
-.genes-md-autocomplete.md-autocomplete-suggestions li {
-    font-size: $md-chip-font-size;
-    padding: 0 5px;
-    line-height: $md-chip-option-size;
-    height: $md-chip-option-size;
-}
-
-.genes-md-autocomplete.md-autocomplete-suggestions li .span-padding {
-    padding: 0 20px;
 }
 
 .confirm-launch-identification-dlg {

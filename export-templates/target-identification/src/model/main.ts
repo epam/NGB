@@ -89,13 +89,13 @@ export function useSequencesGenes(): Gene[] {
 
 export function useSequencesData(geneId: string): SequencesItem[] {
   const {sequences = empty} =  useInjectedData();
-  const geneData = sequences.find((o) => o.gene.id === geneId);
+  const geneData = sequences.find((o) => o.gene.id.toLowerCase() === geneId.toLowerCase());
   return geneData ? geneData.data : empty;
 }
 
 export function useSequencesReference(geneId: string): SequencesReference {
   const {sequences = empty} =  useInjectedData();
-  const geneReference = sequences.find((o) => o.gene.id === geneId);
+  const geneReference = sequences.find((o) => o.gene.id.toLowerCase() === geneId.toLowerCase());
   return geneReference ? geneReference.reference : empty;
 }
 

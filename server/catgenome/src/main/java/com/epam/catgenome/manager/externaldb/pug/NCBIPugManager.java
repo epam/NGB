@@ -33,6 +33,7 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.util.URLEncoder;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.util.TextUtils;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -116,9 +117,10 @@ public class NCBIPugManager extends HttpDataManager{
     }
 
     public List<Long> getCID(final String id) throws JsonProcessingException {
+    public List<String> getCID(final String id) throws JsonProcessingException {
         String pattern;
         if (StringUtils.isNumeric(id)) {
-            return Collections.singletonList(Long.parseLong(id));
+            return Collections.singletonList(id);
         } else if (isInChI(id)) {
             pattern = COMPOUND_BY_INCHI_PATTERN;
         } else if (isSmiles(id)) {
@@ -137,7 +139,7 @@ public class NCBIPugManager extends HttpDataManager{
         return parseCIDs(result);
     }
 
-    public Map<Long, List<String>> getPatents(final List<Long> cids)
+    public Map<String, List<String>> getPatents(final List<String> cids)
             throws JsonProcessingException {
         final String location = NCBI_PUG_SERVER + String.format(PATENTS_PATTERN, join(cids, ","));
         final String result;
@@ -204,14 +206,16 @@ public class NCBIPugManager extends HttpDataManager{
 
     private List<Long> parseCIDs(final String data) throws JsonProcessingException {
         final List<Long> result = new ArrayList<>();
+    private List<String> parseCIDs(final String data) throws JsonProcessingException {
+        final List<String> result = new ArrayList<>();
         final ObjectMapper objectMapper = new ObjectMapper();
         final JsonNode node = objectMapper.readTree(data);
         final JsonNode properties = node.at("/IdentifierList/CID");
         if (properties.isArray()) {
             Iterator<JsonNode> elements = properties.elements();
             while (elements.hasNext()) {
-                long cid = elements.next().asLong();
-                if (cid != 0) {
+                String cid = elements.next().asText();
+                if (!TextUtils.isBlank(cid)) {
                     result.add(cid);
                 }
             }
@@ -219,8 +223,8 @@ public class NCBIPugManager extends HttpDataManager{
         return result;
     }
 
-    private Map<Long, List<String>> parsePatents(final String data) throws JsonProcessingException {
-        final Map<Long, List<String>> result = new HashMap<>();
+    private Map<String, List<String>> parsePatents(final String data) throws JsonProcessingException {
+        final Map<String, List<String>> result = new HashMap<>();
         final ObjectMapper objectMapper = new ObjectMapper();
         final JsonNode node = objectMapper.readTree(data);
         final JsonNode information = node.at("/InformationList/Information");
@@ -230,7 +234,7 @@ public class NCBIPugManager extends HttpDataManager{
                 List<String> patents = new ArrayList<>();
                 JsonNode element = elements.next();
                 JsonNode patentIdsNode = element.at("/PatentID");
-                Long cid = element.at("/CID").asLong();
+                String cid = element.at("/CID").asText();
                 if (patentIdsNode.isArray()) {
                     Iterator<JsonNode> patentIds = patentIdsNode.elements();
                     while (patentIds.hasNext()){

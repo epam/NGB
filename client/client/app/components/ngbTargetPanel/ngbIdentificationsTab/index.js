@@ -12,6 +12,7 @@ import ngbSequencesPanel from './ngbSequencesPanel';
 import ngbGenomicsPanel from './ngbGenomicsPanel';
 import ngbStructurePanel from './ngbStructurePanel';
 import ngbBibliographyPanel from './ngbBibliographyPanel';
+import ngbPatentsPanel from './ngbPatentsPanel';
 import ngbIdentificationChat from './ngbIdentificationChat';
 import ngbPluralText from './ngbPluralText';
 
@@ -23,6 +24,7 @@ export default angular
         ngbGenomicsPanel,
         ngbStructurePanel,
         ngbBibliographyPanel,
+        ngbPatentsPanel,
         ngbPluralText,
         ngbIdentificationChat
     ])

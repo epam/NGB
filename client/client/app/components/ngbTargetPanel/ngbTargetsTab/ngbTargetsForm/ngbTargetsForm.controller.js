@@ -52,6 +52,13 @@ export default class ngbTargetsFormController{
         return this.ngbTargetsTabService.launchLoading;
     }
 
+    get updateForce() {
+        return this.ngbTargetsTabService.updateForce;
+    }
+    set updateForce(value) {
+        this.ngbTargetsTabService.updateForce = value;
+    }
+
     async backToTable() {
         this.ngbTargetsTabService.resetTarget();
         this.ngbTargetsTabService.setTableMode();
@@ -108,8 +115,11 @@ export default class ngbTargetsFormController{
                     gene.priority = g.priority;
                 }
                 return gene;
-            })
+            }),
         };
+        if (this.updateForce) {
+            request.force = true;
+        }
         return request;
     }
 
@@ -167,8 +177,44 @@ export default class ngbTargetsFormController{
         if (!this.isAddMode) return !this.ngbTargetsTabService.targetModelChanged();
     }
 
+    savedIdentificationGene(index) {
+        if (!this.targetModel.identifications || !this.targetModel.identifications.length) return false;
+        const geneId = this.targetModel.genes[index].geneId;
+        return this.targetModel.identifications.some(identification => {
+            const {genesOfInterest, translationalGenes} = identification;
+            return genesOfInterest.includes(geneId) || translationalGenes.includes(geneId);
+        })
+    }
+
     onClickRemove(index) {
-        this.targetModel.genes.splice(index, 1);
+        if (!this.savedIdentificationGene(index)) {
+            this.targetModel.genes.splice(index, 1);
+        } else {
+            this.openConfirmDialog(index);
+        }
+    }
+
+    openConfirmDialog (index) {
+        const gene = this.targetModel.genes[index];
+        this.$mdDialog.show({
+            template: require('./ngbGeneDeleteDlg.tpl.html'),
+            controller: function($scope, $mdDialog, dispatcher) {
+                $scope.geneName = gene.geneName;
+
+                $scope.delete = function () {
+                    dispatcher.emit('target:gene:delete');
+                    $mdDialog.hide();
+                };
+                $scope.cancel = function () {
+                    $mdDialog.hide();
+                };
+            },
+        });
+
+        this.dispatcher.on('target:gene:delete', () => {
+            this.updateForce = true;
+            this.targetModel.genes.splice(index, 1);
+        });
     }
 
     removeTarget() {

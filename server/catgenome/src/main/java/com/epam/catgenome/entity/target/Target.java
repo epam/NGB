@@ -44,6 +44,7 @@ public class Target extends AbstractSecuredEntity {
     private List<String> products;
     private List<TargetGene> targetGenes;
     private List<TargetIdentification> identifications;
+    private Boolean force;
 
     @Override
     public AbstractSecuredEntity getParent() {
