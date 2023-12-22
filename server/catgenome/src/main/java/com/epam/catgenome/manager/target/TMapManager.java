@@ -68,7 +68,8 @@ import java.util.stream.Collectors;
 public class TMapManager {
     private static final String PUB_CHEM_COMPOUND_DB = "pccompound";
     private static final Integer BATCH_SIZE = 50;
-    public static final String COMMAND = "python %s %s %s";
+    private static final String COMMAND = "python %s --drugs %s --output %s";
+    private static final String CSV = ".csv";
     private final LaunchIdentificationManager launchIdentificationManager;
     private final PharmGKBDrugAssociationManager pharmGKBDrugAssociationManager;
     private final DGIDBDrugAssociationManager dgidbDrugAssociationManager;
@@ -98,22 +99,22 @@ public class TMapManager {
 
     public String generateTMapReport(final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException, InterruptedException, TMapException {
-        final String fileName = geneIds.stream()
+        final String folderName = geneIds.stream()
                 .map(String::toLowerCase)
                 .sorted()
                 .collect(Collectors.joining("-"));
-        final Path outputPath = Paths.get(tMapReportPath, fileName, ".html");
+        final Path outputPath = Paths.get(tMapReportPath, folderName);
         final File outputFile = outputPath.toFile();
         if (!outputFile.exists()) {
             getTMapReport(generateCSV(geneIds), outputPath.toString());
         }
-        return fileName;
+        return folderName;
     }
 
     private String generateCSV(final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        final File tempFile = File.createTempFile(UUID.randomUUID().toString(), ".csv");
-        FileUtils.writeByteArrayToFile(tempFile, export(geneIds, FileFormat.CSV, true));
+        final File tempFile = File.createTempFile(UUID.randomUUID().toString(), CSV);
+        FileUtils.writeByteArrayToFile(tempFile, export(geneIds));
         return tempFile.toString();
     }
 
@@ -134,7 +135,8 @@ public class TMapManager {
         }
     }
 
-    private List<TMapDrug> getDrugs(final List<String> geneIds) throws IOException, ParseException, ExternalDbUnavailableException {
+    private List<TMapDrug> getDrugs(final List<String> geneIds)
+            throws IOException, ParseException, ExternalDbUnavailableException {
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);
@@ -219,8 +221,8 @@ public class TMapManager {
         return drugIdsAll;
     }
 
-    private byte[] export(final List<String> geneIds, final FileFormat format, final boolean includeHeader)
+    private byte[] export(final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return ExportUtils.export(getDrugs(geneIds), Arrays.asList(TMapDrugField.values()), format, includeHeader);
+        return ExportUtils.export(getDrugs(geneIds), Arrays.asList(TMapDrugField.values()), FileFormat.CSV, true);
     }
 }
