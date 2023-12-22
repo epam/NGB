@@ -104,8 +104,7 @@ export default class ngbKnownDrugsPanelController {
 
     async onClickTMAP() {
         this.tmapLoading = true;
-        const result = await this.ngbKnownDrugsPanelService.generateTMAP();
-        console.log(result)
+        await this.ngbKnownDrugsPanelService.generateTMAP();
         this.$timeout(() => this.$scope.$apply());
     }
 
