@@ -67,7 +67,6 @@ public class NCBIPugManager extends HttpDataManager{
     private static final String PATENTS_PATTERN = "compound/cid/%s/xrefs/PatentID/JSON";
     private static final Integer BATCH_SIZE = 100;
 
-
     public String getSmiles(final String name) throws JsonProcessingException {
         final String location = NCBI_PUG_SERVER + String.format(SMILES_BY_NAME_PATTERN, replaceHttpSymbols(name));
         final String result;
@@ -116,7 +115,6 @@ public class NCBIPugManager extends HttpDataManager{
         return allSynonyms;
     }
 
-    public List<Long> getCID(final String id) throws JsonProcessingException {
     public List<String> getCID(final String id) throws JsonProcessingException {
         String pattern;
         if (StringUtils.isNumeric(id)) {
@@ -204,8 +202,6 @@ public class NCBIPugManager extends HttpDataManager{
         return result;
     }
 
-    private List<Long> parseCIDs(final String data) throws JsonProcessingException {
-        final List<Long> result = new ArrayList<>();
     private List<String> parseCIDs(final String data) throws JsonProcessingException {
         final List<String> result = new ArrayList<>();
         final ObjectMapper objectMapper = new ObjectMapper();
