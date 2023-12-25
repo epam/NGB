@@ -828,4 +828,21 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    generateTMAP(geneIds) {
+        return new Promise((resolve, reject) => {
+            this.get(`drug/tmap?geneIds=${geneIds}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve();
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error generating TMAP';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }
