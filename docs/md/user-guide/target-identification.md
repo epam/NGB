@@ -15,6 +15,9 @@
         - [Alignment panel](#alignment-panel)
     - [Structure block](#structure-block)
     - [Bibliography block](#bibliography-block)
+    - [Patents block](#patents-block)
+        - [Patented aminoacid sequences](#patented-aminoacid-sequences)
+        - [Patented chemicals](#patented-chemicals)
     - [Chat with AI](#chat-with-ai)
         - [AI model settings](#ai-model-settings)
     - [Store and share report](#store-and-share-report)
@@ -26,6 +29,7 @@
 - [Diseases search](#diseases-search)
     - [Associated drugs](#associated-drugs)
     - [Associated targets](#associated-targets)
+        - ["Ad hoc" target identification](#ad-hoc-target-identification)
 
 ***
 
@@ -538,6 +542,134 @@ In the bibliography list, only publications corresponding to selected genes will
 Additionally, you can search over the publications - using the search bar above the bibliography list. Specify the clarifying request to the search bar and press Enter key. In the bibliography list, only publications corresponding to your request will be shown:  
   ![NGB GUI](images/targets-93.png)
 
+### Patents block
+
+This block section allows users:
+
+- to search and view patents on the protein sequences - of that are included in the current identification report (in the [Sequences](#sequences-block) section)
+- to search and view patents on the drugs/chemical structures - of that are included in the current identification report (in the [Known drugs](#known-drugs-block) section)
+
+![NGB GUI](images/targets-105.png)
+
+Block contains 2 sub-blocks:
+
+- for search and view patented [aminoacid sequences](#patented-aminoacid-sequences)
+- for search and view patented [chemicals](#patented-chemicals)
+
+Each sub-block can be selected by the special control (tab selector) inside the block, on the upper side.
+
+#### Patented aminoacid sequences
+
+This sub-block is being opened by default, when the **Patents** block is expanded:  
+  ![NGB GUI](images/targets-106.png)
+
+The sub-block contains:
+
+- dropdown list with all protein accessions assigned to the target (same as in the **Sequences** section of the current identification report)
+- checkboxes with search options:  
+    - _Search patents by protein name_ - when selected, search will be performed in [Protein DB](https://www.ncbi.nlm.nih.gov/protein/) of NCBI over patented proteins
+    - _Search patents by amino acid sequence_ - when selected, search will be performed via [blastp](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp) over patented protein sequences DB
+- button to start the search
+
+To start, select the protein sequence from the list, then select the search option and click the **Search** button.
+
+**Search by protein name**
+
+Example of results of the search by protein name:  
+  ![NGB GUI](images/targets-107.png)
+
+Results contain:
+
+- header for results with the name of the protein used for the search
+- table with columns for found patented sequences:  
+    - _Protein_ - protein sequence accession. Each protein is a hyperlink to the corresponding page on NCBI
+    - _Title_ - title inside the reference mentioned that patent
+    - _Journal_ - patent name and name of the reference mentioned that patent
+    - _Protein name_ - protein sequence name
+    - _Length (aa)_ - protein sequence length
+    - _Organism_ - species name (if available)
+
+**Search by amino acid sequence**
+
+When the option of the search by amino acid sequence is selected, an additional text field appears - **Query** field:  
+  ![NGB GUI](images/targets-108.png)
+
+By default, this field contains amino acid sequence of the selected protein. But you may specify custom sequence instead default value.  
+When the button **Search** is clicked - _blastp_ search will be performed by the sequence specified in the **Query** field.
+
+> **_Note_**: as _blastp_ search can take some meaning time - during the search performing the stub will be shown and the search form becomes disabled.  
+> You may collapse/expand the **Patents** section or switch between sub-blocks - these actions will not interrupt the search.
+
+Example of results of the search by custom amino acid sequence:  
+  ![NGB GUI](images/targets-109.png)
+
+Results contain:
+
+- header for results with the protein accession (if available) and length of the amino acid sequence used for the search
+- table with columns for found patented sequences:  
+    - _Protein_ - protein sequence accession. Each protein is a hyperlink to the corresponding page on NCBI
+    - _Length (aa)_ - protein sequence length
+    - _Organism_ - species name (if available)
+    - _Protein name_ - protein sequence name
+    - _Query cover_ - the percent of the query length (requested protein sequence in the **Query** field) that is included in the found patented sequence
+    - _Percent identity_ - the highest percent identity for a set of aligned segments of the found patented sequence to the query (requested protein sequence in the **Query** field)
+
+#### Patented chemicals
+
+![NGB GUI](images/targets-110.png)
+
+The sub-block contains:
+
+- dropdown list with all drugs associated with the target (same as in the **Known drugs** section of the current identification report)
+- checkboxes with options to search:  
+    - _Search patents by drug name_ - when selected, search of patented chemicals will be performed in [PubChem DB](https://www.ncbi.nlm.nih.gov/pccompound/) of NCBI
+    - _Search patents by structure identifier_ - when selected, search will be performed via advanced [PubChem search](https://pubchem.ncbi.nlm.nih.gov/search/search.cgi)
+- button to start the search
+
+To start, select the protein sequence from the list, then select the search option and click the **Search** button.
+
+**Search by drug name**
+
+Example of results of the search by drug name:  
+  ![NGB GUI](images/targets-111.png)
+
+Results contain:
+
+- header for results with the drug name used for the search
+- table with columns for found chemicals:  
+    - _CID_ - chemical identifier. Each CID is a hyperlink to the corresponding page on NCBI ([PubChem](https://www.ncbi.nlm.nih.gov/pccompound/))
+    - _Name_ - set of chemical names/synonyms
+    - _Molecular formula_ - chemical molecular formula
+    - _IUPAC name_ - [IUPAC](https://en.wikipedia.org/wiki/IUPAC_nomenclature_of_organic_chemistry) name of the chemical
+
+**Search by structure ID**
+
+When the option of the search by structure identifier is selected, an additional text field appears - **Identifier** field:  
+  ![NGB GUI](images/targets-112.png)
+
+By default, this field contains [SMILES](https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system) identifier of the selected drug.  
+But you may specify custom identifier instead the default value.  
+The following formats of the identifier query are supported:
+
+- ID (numerical [PubChem](https://www.ncbi.nlm.nih.gov/pccompound/) ID)
+- [SMILES](https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system) identifier
+- [InChI](https://en.wikipedia.org/wiki/International_Chemical_Identifier) identifier
+
+When the button **Search** is clicked - search will be performed by the identifier specified in the **Identifier** field.
+
+Example of results of the search by the structure identifier:  
+  ![NGB GUI](images/targets-113.png)
+
+Results contain:
+
+- header for results with the structure identifier name (if available)
+- table with columns for found chemicals:  
+    - _CID_ - chemical identifier. Each CID is a hyperlink to the corresponding page on NCBI ([PubChem](https://www.ncbi.nlm.nih.gov/pccompound/))
+    - _Name_ - set of chemical names/synonyms
+    - _Molecular formula_ - chemical molecular formula
+    - _IUPAC name_ - [IUPAC](https://en.wikipedia.org/wiki/IUPAC_nomenclature_of_organic_chemistry) name of the chemical
+    - _Patent_ - the patent existence state (found chemical is patented or not)
+
 ### Chat with AI
 
 Additional ability, available for users at the identification results' form - AI chat.  
@@ -768,3 +900,21 @@ Table supports sorting by any column. Click the column header to sort by this co
 Table supports filtering by columns _Target_, _Target name_ and _Homologues_. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
 
 To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
+
+#### "Ad hoc" target identification
+
+For some cases, it is helpful to launch identification for a target without its registration.
+It can be performed from the **Associated targets** section of the **Diseases** panel:
+
+Find the desired target gene in the associated targets list and click its symbol, e.g.:  
+  ![NGB GUI](images/targets-114.png)  
+In the appeared menu, click the **Launch identification** item.
+
+The new identifying process will be performed and, once finished, the **Identifications** sub-tab will be automatically opened with the results (identification report) for the selected target gene:  
+  ![NGB GUI](images/targets-115.png)
+
+Such report is similar to the one described above - in the [Identification results](#identification-results) section.  
+The only differences are the following:
+
+- the identification is being performed only for the selected _gene of interest_, therefore there are no _translational genes_
+- as it is identification without gene registration - there is no ability to store the report, but you may export results if it is necessary
