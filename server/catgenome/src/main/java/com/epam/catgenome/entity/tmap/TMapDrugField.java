@@ -29,8 +29,6 @@ import lombok.Getter;
 
 import java.util.function.Function;
 
-import static org.apache.commons.lang3.StringUtils.join;
-
 @AllArgsConstructor
 @Getter
 public enum TMapDrugField implements ExportField<TMapDrug> {

@@ -352,8 +352,8 @@ public class LaunchIdentificationController extends AbstractRESTController {
 
     @GetMapping(value = "/target/export/{geneId}")
     @ApiOperation(
-            value = "Exports data to CSV/TSV file",
-            notes = "Exports data to CSV/TSV file",
+            value = "Exports data to CSV/TSV file for single gene",
+            notes = "Exports data to CSV/TSV file for single gene",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
@@ -387,8 +387,8 @@ public class LaunchIdentificationController extends AbstractRESTController {
 
     @GetMapping(value = "/target/report/{geneId}")
     @ApiOperation(
-            value = "Exports data to Excel file",
-            notes = "Exports data to Excel file",
+            value = "Exports data to Excel file for single gene",
+            notes = "Exports data to Excel file for single gene",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
@@ -418,8 +418,8 @@ public class LaunchIdentificationController extends AbstractRESTController {
 
     @GetMapping(value = "/target/html/{geneId}")
     @ApiOperation(
-            value = "Downloads target identification html export",
-            notes = "Downloads target identification html export",
+            value = "Downloads target identification html export for single gene",
+            notes = "Downloads target identification html export for single gene",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)

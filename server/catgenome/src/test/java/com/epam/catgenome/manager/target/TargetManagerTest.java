@@ -27,6 +27,7 @@ import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.TargetGenePriority;
 import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.exception.TargetUpdateException;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.PagingInfo;
 import junit.framework.TestCase;
@@ -65,7 +66,7 @@ public class TargetManagerTest extends TestCase {
     }
 
     @Test
-    public void updateTargetTest(){
+    public void updateTargetTest() throws TargetUpdateException {
         final Target target = createTarget(TARGET);
         target.setTargetName("New Target");
         final Target updatedTarget = targetManager.update(target);
