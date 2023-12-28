@@ -57,7 +57,7 @@ public class LLMService {
                                     final int maxSize,
                                     final double temperature) {
         return getHandler(provider)
-                .getSummary(pubmedService.getArticleAbstracts(pubMedIDs), temperature);
+                .getSummary(pubmedService.getArticleAbstracts(pubMedIDs, false), temperature);
     }
 
     public String getGeneArticleSummary(final List<String> geneIds,
@@ -66,7 +66,7 @@ public class LLMService {
                                         final double temperature) {
         final PublicationSearchRequest request = new PublicationSearchRequest();
         request.setGeneIds(geneIds);
-        return getHandler(provider).getSummary(pubmedService.getArticleAbstracts(request), temperature);
+        return getHandler(provider).getSummary(pubmedService.getArticleAbstracts(request, false), temperature);
     }
 
     public String getChatResponse(final List<LLMMessage> messages,
