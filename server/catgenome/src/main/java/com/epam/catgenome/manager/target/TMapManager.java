@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -68,15 +69,15 @@ import java.util.stream.Collectors;
 public class TMapManager {
     private static final String PUB_CHEM_COMPOUND_DB = "pccompound";
     private static final Integer BATCH_SIZE = 50;
-    private static final String COMMAND = "python %s --drugs %s --output %s";
     private static final String CSV = ".csv";
     private final LaunchIdentificationManager launchIdentificationManager;
     private final PharmGKBDrugAssociationManager pharmGKBDrugAssociationManager;
     private final DGIDBDrugAssociationManager dgidbDrugAssociationManager;
     private final DrugAssociationManager drugAssociationManager;
     private final NCBIPugManager ncbiPugManager;
-    private final String tMapScriptPath;
+    private final String command;
     private final String tMapReportPath;
+    private final String tMapReportName;
     private final NCBIAuxiliaryManager ncbiAuxiliaryManager;
 
     public TMapManager(LaunchIdentificationManager launchIdentificationManager,
@@ -85,16 +86,18 @@ public class TMapManager {
                        DrugAssociationManager drugAssociationManager,
                        NCBIPugManager ncbiPugManager,
                        NCBIAuxiliaryManager ncbiAuxiliaryManager,
-                       final @Value("${target.drugs.tmap.script.path:}") String tMapScriptPath,
-                       final @Value("${target.drugs.tmap.report.path:}") String tMapReportPath) {
+                       final @Value("${target.drugs.tmap.command:}") String command,
+                       final @Value("${target.drugs.tmap.report.path:}") String tMapReportPath,
+                       final @Value("${target.drugs.tmap.report.name:TMAP.html}") String tMapReportName) {
         this.launchIdentificationManager = launchIdentificationManager;
         this.pharmGKBDrugAssociationManager = pharmGKBDrugAssociationManager;
         this.dgidbDrugAssociationManager = dgidbDrugAssociationManager;
         this.drugAssociationManager = drugAssociationManager;
         this.ncbiPugManager = ncbiPugManager;
         this.ncbiAuxiliaryManager = ncbiAuxiliaryManager;
-        this.tMapScriptPath = tMapScriptPath;
+        this.command = command;
         this.tMapReportPath = tMapReportPath;
+        this.tMapReportName = tMapReportName;
     }
 
     public String generateTMapReport(final List<String> geneIds)
@@ -108,7 +111,7 @@ public class TMapManager {
         if (!outputFile.exists()) {
             getTMapReport(generateCSV(geneIds), outputPath.toString());
         }
-        return folderName;
+        return FilenameUtils.concat(folderName, tMapReportName);
     }
 
     private String generateCSV(final List<String> geneIds)
@@ -120,8 +123,8 @@ public class TMapManager {
 
     private void getTMapReport(final String inputFilePath, final String outputFilePath)
             throws IOException, TMapException, InterruptedException {
-        final String command = String.format(COMMAND, tMapScriptPath, inputFilePath, outputFilePath);
-        final Process process = Runtime.getRuntime().exec(command);
+        final String execCommand = String.format(command, inputFilePath, outputFilePath);
+        final Process process = Runtime.getRuntime().exec(execCommand);
         final int exitCode = process.waitFor();
         if (exitCode != 0) {
             final BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
