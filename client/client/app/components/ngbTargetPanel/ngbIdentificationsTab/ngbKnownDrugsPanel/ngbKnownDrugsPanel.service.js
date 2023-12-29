@@ -104,8 +104,9 @@ export default class ngbKnownDrugsPanelService {
                 resolve(true);
             });
         }
+        const geneIds = [...this.geneIdsOfInterest, ...this.translationalGeneIds];
         return new Promise(resolve => {
-            this.targetDataService.generateTMAP(this.geneIdsOfInterest)
+            this.targetDataService.generateTMAP(geneIds)
                 .then(data => {
                     this._tmapFailed = false;
                     this._tmapErrorList = null;
