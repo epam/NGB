@@ -109,12 +109,14 @@ export default class ngbKnownDrugsPanelController {
     }
 
     showTMAP() {
-        let base = ngbConstants.urlPrefix || '';
-        if (base && base.length) {
-            if (!base.endsWith('/')) {
-                base = base.concat('/');
+        if (this.tmapUrl) {
+            let base = ngbConstants.urlPrefix || '';
+            if (base && base.length) {
+                if (!base.endsWith('/')) {
+                    base = base.concat('/');
+                }
             }
+            window.open(`${base}${this.tmapUrl}`, '_blank');
         }
-        window.open(`${base}/${this.tmapUrl}`, '_blank');
     }
 }
