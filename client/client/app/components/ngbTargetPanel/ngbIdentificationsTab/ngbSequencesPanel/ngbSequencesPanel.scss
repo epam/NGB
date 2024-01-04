@@ -45,6 +45,7 @@ ngb-sequences-panel {
     .sequences-gene-select {
         display: inline-flex;
         align-items: center;
+        margin-left: 8px;
 
         md-input-container,
         label {
@@ -90,14 +91,18 @@ ngb-sequences-panel {
 
     .action-container {
         margin-left: auto;
+        display: flex;
     }
 
-    .md-button.export-button {
-        min-height: 24px;
-        line-height: 24px;
-        color: $sequences-font-color;
+    .export-link {
+        color: rgb(102, 153, 255);
+        cursor: pointer;
+        min-height: 28px;
+        line-height: 28px;
         font-size: $sequences-font-size;
-        font-weight: normal;
+        min-width: 40px;
+        padding: 0 8px;
+        margin: 0;
     }
 
     .empty-container {

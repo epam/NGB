@@ -12,6 +12,7 @@ ngb-known-drugs-panel {
         .drugs-source-select {
             display: inline-flex;
             align-items: center;
+            margin-left: 8px;
 
             md-input-container,
             label {
@@ -69,16 +70,7 @@ ngb-known-drugs-panel {
 
     .action-container {
         margin-left: auto;
-    }
-
-    .md-button.export-button,
-    .md-button.tmap-button {
-        min-height: 24px;
-        line-height: 24px;
-        color: $known-drugs-font-color;
-        font-size: $known-drugs-font-size;
-        font-weight: normal;
-        text-transform: none;
+        display: flex;
     }
 
     ngb-panel-error-list {
@@ -95,25 +87,16 @@ ngb-known-drugs-panel {
         }
     }
 
+    .export-link,
     .tmap-link {
-        display: inline-block;
         color: rgb(102, 153, 255);
         cursor: pointer;
-        min-height: 24px;
-        line-height: 24px;
+        min-height: 28px;
+        line-height: 28px;
         font-size: $known-drugs-font-size;
-        font-weight: normal;
-        text-transform: none;
-        min-width: 88px;
-        vertical-align: middle;
-        -webkit-box-align: center;
-        -webkit-align-items: center;
-        -ms-grid-row-align: center;
-        align-items: center;
-        text-align: center;
-        padding: 0 6px;
-        margin: 6px 8px;
-        box-sizing: border-box;
+        min-width: 40px;
+        padding: 0 8px;
+        margin: 0;
     }
 }
 

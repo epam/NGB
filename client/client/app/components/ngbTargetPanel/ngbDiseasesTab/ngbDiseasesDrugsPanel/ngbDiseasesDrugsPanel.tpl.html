@@ -4,13 +4,11 @@
 </div>
 <div class="drugs-panel-header">
     <div class="action-container">
-        <md-button type="button"
-                   class="md-raised export-button"
-                   ng-if="$ctrl.drugsResults && $ctrl.drugsResults.length"
-                   aria-label="Export drugs results"
-                   ng-click="$ctrl.exportResults()">
+        <span class="export-link"
+              ng-if="$ctrl.drugsResults && $ctrl.drugsResults.length"
+              ng-click="$ctrl.exportResults()">
             EXPORT
-        </md-button>
+        </span>
     </div>
 </div>
 <div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">

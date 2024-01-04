@@ -3,13 +3,11 @@
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
 <div class="action-container">
-    <md-button type="button"
-               class="md-raised export-button"
-               ng-if="$ctrl.targetsResults && $ctrl.targetsResults.length"
-               aria-label="Export targets results"
-               ng-click="$ctrl.exportResults()">
+    <span class="export-link"
+          ng-if="$ctrl.targetsResults && $ctrl.targetsResults.length"
+          ng-click="$ctrl.exportResults()">
         EXPORT
-    </md-button>
+    </span>
 </div>
 <div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">
     <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
