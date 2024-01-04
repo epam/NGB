@@ -46,4 +46,10 @@ public class TMapSecurityService {
             throws IOException, ParseException, ExternalDbUnavailableException, InterruptedException, TMapException {
         return tMapManager.generateTMapReport(geneIds);
     }
+
+    @PreAuthorize(ROLE_USER)
+    public String generateTMapReport(final String diseaseId)
+            throws IOException, ParseException, ExternalDbUnavailableException, InterruptedException, TMapException {
+        return tMapManager.generateTMapReport(diseaseId);
+    }
 }

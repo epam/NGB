@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -61,5 +62,18 @@ public class DrugController extends AbstractRESTController {
     public Result<String> generateTMapReport(@RequestParam final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException, InterruptedException, TMapException {
         return Result.success(tMapSecurityService.generateTMapReport(geneIds));
+    }
+
+    @GetMapping(value = "/drug/tmap/{diseaseId}")
+    @ApiOperation(
+            value = "Generates TMAP report for drugs associated with disease.",
+            notes = "Generates TMAP report for drugs associated with disease.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<String> generateTMapReport(@PathVariable final String diseaseId)
+            throws IOException, ParseException, ExternalDbUnavailableException, InterruptedException, TMapException {
+        return Result.success(tMapSecurityService.generateTMapReport(diseaseId));
     }
 }
