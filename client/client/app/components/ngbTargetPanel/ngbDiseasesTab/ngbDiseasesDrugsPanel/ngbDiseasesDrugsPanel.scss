@@ -16,7 +16,8 @@ ngb-diseases-drugs-panel {
         display: flex;
         justify-content: end;
 
-        .export-link  {
+        .export-link,
+        .tmap-link  {
             color: rgb(102, 153, 255);
             cursor: pointer;
             min-height: 28px;
