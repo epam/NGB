@@ -132,10 +132,65 @@ You should put **catgenome.properties** in **config** folder in the runtime fold
 ```
 $ java -jar catgenome.jar --conf=/folder/with/properties
 ```
+
+### NGB PKI Management
+As mentioned above NGB uses Java KeyStore (JKS) file (property **server.ssl.key-store**) to store certificates for SSL encryption (**server.ssl.keyAlias**) and SSO message signature (**saml.sign.key**).
+Use the following commands to create a new JKS file and upload certificates to it.
+Prerequisites:
+- **openssl** and **keytool** from JDK are required
+- key and certificate shall be provided in pem format
+```
+# $PKI_FOLDER shall contain the following files:
+# - ssl-private-key.pem
+# - ssl-public-cert.pem
+# - sso-private-key.pem
+# - sso-public-cert.pem
+cd $PKI_FOLDER
+
+# Convert SSL key and certificate pair into PKCS12 format
+$ openssl pkcs12 -export -in ssl-public-cert.pem \
+                        -inkey ssl-private-key.pem \
+                        -out ssl.p12 \
+                        -name ssl \
+                        -password pass:changeit
+
+# Convert SSO key and certificate pair into PKCS12 format
+$ openssl pkcs12 -export -in sso-public-cert.pem \
+                        -inkey sso-private-key.pem \
+                        -out sso.p12 \
+                        -name sso \
+                        -password pass:changeit
  
+# Create JKS file from pkcs12, key will be imported with alias `ssl`
+$ keytool -importkeystore -deststorepass changeit \
+        -destkeypass changeit \
+        -destkeystore store.jks \
+        -srckeystore ssl.p12 \
+        -srcstoretype PKCS12 \
+        -srcstorepass changeit \
+        -alias ssl \
+        -noprompt
+        
+# Import SSO certificate into store.jsk with alias `sso`
+keytool -importkeystore -deststorepass changeit \
+        -destkeypass changeit \
+        -destkeystore store.jks \
+        -srckeystore sso.p12 \
+        -srcstoretype PKCS12 \
+        -srcstorepass changeit \
+        -alias sso \
+        -noprompt   
+```        
+Use the following values in `catgenome.properties` configuration file
+```
+server.ssl.key-store=$PKI_FOLDER/store.jks
+server.ssl.keyAlias=ssl
+saml.sign.key=sso  
+```
+
 ### Configure Embedded Tomcat
 
-NGB uses Spring Boot so it supports a full stack of Spring Boot Application properties.
+NGB uses Spring Boot and supports a full stack of Spring Boot Application properties.
 These properties may be specified by the command line:
 
 ```
@@ -226,7 +281,7 @@ Available authentication methods listed in NGB's order of precedence:
    - [Managed Identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview)
    - other authentication methods, see [DefaultAzureCredential Class](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential?view=azure-dotnet) for details.
 
-#### Specifying sesources
+#### Specifying resources
 Example URL:
 ```
 az://mycontainer/mydirectory/my_bam_file.bam
@@ -278,3 +333,4 @@ azure.storage.managed_identity_id=73a340aa-a150-11ec-b909-0242ac179836
 - `azure.storage.managed_identity_id`: Optional. NGB is required to run in an Azure resource that supports Managed identities and has at least one managed identity with suitable access to the storage account assigned. Required if more than one Managed Identity is assigned.
 
 See [Environment Credential](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet) as an alternative option to specify Azure connectivity information. 
+
