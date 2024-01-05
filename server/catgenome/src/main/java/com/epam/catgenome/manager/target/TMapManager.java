@@ -69,6 +69,7 @@ import java.util.stream.Collectors;
 public class TMapManager {
     private static final String PUB_CHEM_COMPOUND_DB = "pccompound";
     private static final Integer BATCH_SIZE = 50;
+    private static final int RET_MAX = 500;
     private static final String CSV = ".csv";
     private final LaunchIdentificationManager launchIdentificationManager;
     private final PharmGKBDrugAssociationManager pharmGKBDrugAssociationManager;
@@ -114,10 +115,27 @@ public class TMapManager {
         return FilenameUtils.concat(folderName, tMapReportName);
     }
 
+    public String generateTMapReport(final String diseaseId)
+            throws IOException, ParseException, ExternalDbUnavailableException, InterruptedException, TMapException {
+        final Path outputPath = Paths.get(tMapReportPath, diseaseId);
+        final File outputFile = outputPath.toFile();
+        if (!outputFile.exists()) {
+            getTMapReport(generateCSV(diseaseId), outputPath.toString());
+        }
+        return FilenameUtils.concat(diseaseId, tMapReportName);
+    }
+
     private String generateCSV(final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException {
         final File tempFile = File.createTempFile(UUID.randomUUID().toString(), CSV);
         FileUtils.writeByteArrayToFile(tempFile, export(geneIds));
+        return tempFile.toString();
+    }
+
+    private String generateCSV(final String diseaseId)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final File tempFile = File.createTempFile(UUID.randomUUID().toString(), CSV);
+        FileUtils.writeByteArrayToFile(tempFile, export(diseaseId));
         return tempFile.toString();
     }
 
@@ -140,6 +158,47 @@ public class TMapManager {
 
     private List<TMapDrug> getDrugs(final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException {
+        final Map<String, TMapDrug> result = getDrugsByGeneIds(geneIds);
+        final List<TMapDrug> drugs = getTMapDrugs(result);
+        if (CollectionUtils.isNotEmpty(drugs)) {
+            final Map<String, String> geneNames = launchIdentificationManager.getGeneNamesMap(geneIds);
+            drugs.forEach(d -> {
+                if (geneNames.containsKey(d.getGeneId().toLowerCase())) {
+                    d.setGeneName(geneNames.get(d.getGeneId().toLowerCase()));
+                }
+            });
+        }
+        return drugs;
+    }
+
+    private List<TMapDrug> getTMapDrugs(final Map<String, TMapDrug> result)
+            throws ExternalDbUnavailableException, JsonProcessingException {
+        if (MapUtils.isEmpty(result)) {
+            return Collections.emptyList();
+        }
+        final List<TMapDrug> drugs = new ArrayList<>();
+        final List<Compound> compounds = getCompounds(new ArrayList<>(result.keySet()));
+        if (CollectionUtils.isEmpty(compounds)) {
+            return Collections.emptyList();
+        }
+        for (Map.Entry<String, TMapDrug> entry : result.entrySet()) {
+            String k = entry.getKey();
+            TMapDrug v = entry.getValue();
+            Compound compound = null;
+            for (Compound c : compounds) {
+                if (c.getSynonyms().stream().anyMatch(s -> s.equalsIgnoreCase(k))) {
+                    compound = c;
+                }
+            }
+            if (compound != null) {
+                v.setSmiles(compound.getSmiles());
+                drugs.add(v);
+            }
+        }
+        return drugs;
+    }
+
+    private Map<String, TMapDrug> getDrugsByGeneIds(final List<String> geneIds) throws ParseException, IOException {
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);
@@ -159,33 +218,25 @@ public class TMapManager {
                 .drugId(d.getId())
                 .drugName(d.getName())
                 .build()));
-        if (MapUtils.isEmpty(result)) {
-            return Collections.emptyList();
-        }
-        final List<TMapDrug> drugs = new ArrayList<>();
-        final Map<String, String> geneNames = launchIdentificationManager.getGeneNamesMap(geneIds);
-        final List<Compound> compounds = getCompounds(new ArrayList<>(result.keySet()));
-        if (CollectionUtils.isEmpty(compounds)) {
-            return Collections.emptyList();
-        }
-        for (Map.Entry<String, TMapDrug> entry : result.entrySet()) {
-            String k = entry.getKey();
-            TMapDrug v = entry.getValue();
-            Compound compound = null;
-            for (Compound c : compounds) {
-                if (c.getSynonyms().stream().anyMatch(s -> s.equalsIgnoreCase(k))) {
-                    compound = c;
-                }
-            }
-            if (compound != null) {
-                if (geneNames.containsKey(v.getGeneId().toLowerCase())) {
-                    v.setGeneName(geneNames.get(v.getGeneId().toLowerCase()));
-                }
-                v.setSmiles(compound.getSmiles());
-                drugs.add(v);
-            }
-        }
-        return drugs;
+        return result;
+    }
+
+    private List<TMapDrug> getDrugs(final String diseaseId)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        final Map<String, TMapDrug> result = getDrugsByDiseaseId(diseaseId);
+        return getTMapDrugs(result);
+    }
+
+    private Map<String, TMapDrug> getDrugsByDiseaseId(final String diseaseId) throws ParseException, IOException {
+        final List<DrugAssociation> drugAssociations = drugAssociationManager.search(diseaseId);
+        final Map<String, TMapDrug> result = new HashMap<>();
+        drugAssociations.forEach(d -> result.put(d.getName().toLowerCase(), TMapDrug.builder()
+                .geneId(d.getGeneId().toLowerCase())
+                .geneName(d.getGeneSymbol())
+                .drugId(d.getId())
+                .drugName(d.getName())
+                .build()));
+        return result;
     }
 
     private List<Compound> getCompounds(final List<String> drugNames)
@@ -197,7 +248,7 @@ public class TMapManager {
         final Map<String, String> smiles = ncbiPugManager.getSmiles(drugIds);
         final Map<String, List<String>> synonyms = ncbiPugManager.getSynonyms(drugIds);
         final List<Compound> compounds = new ArrayList<>();
-        smiles.forEach((k,v) -> {
+        smiles.forEach((k, v) -> {
             Compound compound = Compound.builder()
                     .cid(k)
                     .smiles(v)
@@ -218,7 +269,7 @@ public class TMapManager {
                     .map(d -> String.format("\"%s\"[CSYNO]", d))
                     .collect(Collectors.joining(" OR "));
             List<String> drugIds = ncbiAuxiliaryManager.searchDbForIds(PUB_CHEM_COMPOUND_DB,
-                    term, null, 500);
+                    term, null, RET_MAX);
             drugIdsAll.addAll(drugIds);
         }
         return drugIdsAll;
@@ -227,5 +278,10 @@ public class TMapManager {
     private byte[] export(final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException {
         return ExportUtils.export(getDrugs(geneIds), Arrays.asList(TMapDrugField.values()), FileFormat.CSV, true);
+    }
+
+    private byte[] export(final String diseaseId)
+            throws IOException, ParseException, ExternalDbUnavailableException {
+        return ExportUtils.export(getDrugs(diseaseId), Arrays.asList(TMapDrugField.values()), FileFormat.CSV, true);
     }
 }
