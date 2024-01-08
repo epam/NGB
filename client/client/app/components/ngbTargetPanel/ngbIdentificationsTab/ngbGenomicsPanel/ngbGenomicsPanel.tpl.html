@@ -6,13 +6,11 @@
     <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
 </div>
 <div class="genomics-header">
-    <md-button type="button"
-               class="md-raised export-button"
-               ng-if="$ctrl.tableResults"
-               aria-label="Export genomics results"
-               ng-click="$ctrl.exportResults()">
+    <span class="export-link"
+          ng-if="$ctrl.tableResults"
+          ng-click="$ctrl.exportResults()">
         EXPORT
-    </md-button>
+    </span>
 </div>
 <ngb-genomics-table></ngb-genomics-table>
 <div ng-if="$ctrl.genesIds && $ctrl.genesIds.length > 1">

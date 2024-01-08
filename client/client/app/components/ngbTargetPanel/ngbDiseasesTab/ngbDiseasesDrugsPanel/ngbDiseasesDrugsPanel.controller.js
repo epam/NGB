@@ -1,3 +1,5 @@
+import ngbConstants from '../../../../../constants';
+
 const COLUMN_LIST = ['target', 'drug', 'type', 'mechanism of action', 'action type', 'target name', 'phase', 'status', 'source'];
 
 export default class ngbDiseasesDrugsPanelController {
@@ -107,6 +109,22 @@ export default class ngbDiseasesDrugsPanelController {
     }
     get diseaseName() {
         return (this.ngbDiseasesTabService.diseasesData || {}).name;
+    }
+
+    get tmapLoading() {
+        return this.ngbDiseasesDrugsPanelService.tmapLoading;
+    }
+    set tmapLoading(value) {
+        this.ngbDiseasesDrugsPanelService.tmapLoading = value;
+    }
+    get tmapFailed() {
+        return this.ngbDiseasesDrugsPanelService.tmapFailed;
+    }
+    get tmapErrorList() {
+        return this.ngbDiseasesDrugsPanelService.tmapErrorList;
+    }
+    get tmapUrl() {
+        return this.ngbDiseasesDrugsPanelService.tmapUrl;
     }
 
     $onInit() {
@@ -304,5 +322,28 @@ export default class ngbDiseasesDrugsPanelController {
                 }
                 this.$timeout(() => this.$scope.$apply());
             });
+    }
+
+    async onClickTMAP() {
+        if (!this.tmapUrl) {
+            this.tmapLoading = true;
+            await this.ngbDiseasesDrugsPanelService.generateTMAP();
+            this.$timeout(() => {
+                this.$scope.$apply();
+                this.showTMAP();
+            });
+        } else {
+            this.showTMAP();
+        }
+    }
+
+    showTMAP() {
+        let base = ngbConstants.urlPrefix || '';
+        if (base && base.length) {
+            if (!base.endsWith('/')) {
+                base = base.concat('/');
+            }
+        }
+        window.open(`${base}${this.tmapUrl}`, '_blank');
     }
 }

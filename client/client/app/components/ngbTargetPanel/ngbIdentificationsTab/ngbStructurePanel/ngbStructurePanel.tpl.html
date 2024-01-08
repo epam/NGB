@@ -9,13 +9,11 @@
 
 <div class="structure-table-header">
     <div class="action-container">
-        <md-button type="button"
-                   class="md-raised export-button"
-                   ng-if="$ctrl.tableResults"
-                   aria-label="Export structure results"
-                   ng-click="$ctrl.exportResults()">
+        <span class="export-link"
+              ng-if="$ctrl.tableResults"
+              ng-click="$ctrl.exportResults()">
             EXPORT
-        </md-button>
+        </span>
         <div class="structure-source-select">
             <label>Source:</label>
             <md-input-container>

@@ -4,13 +4,11 @@
 </div>
 <div class="sequences-header">
     <div class="action-container">
-        <md-button type="button"
-                   class="md-raised export-button"
-                   ng-if="$ctrl.tableResults"
-                   aria-label="Export sequences results"
-                   ng-click="$ctrl.exportResults()">
+        <span class="export-link"
+              ng-if="$ctrl.tableResults"
+              ng-click="$ctrl.exportResults()">
             EXPORT
-        </md-button>
+        </span>
         <div class="sequences-gene-select"
              ng-if="$ctrl.genes.length > 1">
             <label>Gene:</label>

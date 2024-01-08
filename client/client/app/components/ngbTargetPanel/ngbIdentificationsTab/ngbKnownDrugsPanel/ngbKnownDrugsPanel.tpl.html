@@ -7,25 +7,16 @@
 </div>
 <div class="known-drugs-header">
     <div class="action-container">
-        <md-button type="button"
-                   class="md-raised tmap-button"
-                   ng-if="$ctrl.tableResults && !$ctrl.tmapUrl"
-                   aria-label="Generate tmap plot"
-                   ng-click="$ctrl.onClickTMAP()">
-            TMAP plot
-        </md-button>
         <span class="tmap-link"
-              ng-click="$ctrl.showTMAP()"
-              ng-if="$ctrl.tmapUrl">
+              ng-if="$ctrl.tableResults"
+              ng-click="$ctrl.onClickTMAP()">
             TMAP plot
         </span>
-        <md-button type="button"
-                   class="md-raised export-button"
-                   ng-if="$ctrl.tableResults"
-                   aria-label="Export drugs results"
-                   ng-click="$ctrl.exportResults()">
+        <span class="export-link"
+              ng-if="$ctrl.tableResults"
+              ng-click="$ctrl.exportResults()">
             EXPORT
-        </md-button>
+        </span>
         <div class="drugs-source-select">
             <label>Source:</label>
             <md-input-container>

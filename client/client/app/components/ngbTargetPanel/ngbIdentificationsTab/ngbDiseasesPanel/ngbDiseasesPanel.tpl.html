@@ -14,12 +14,10 @@
     </md-nav-item>
     <div class="action-container"
          ng-if="$ctrl.selectedTab === $ctrl.tableTab && $ctrl.tableResults">
-        <md-button type="button"
-                   class="md-raised export-button"
-                   aria-label="Export diseases results"
-                   ng-click="$ctrl.exportResults()">
+        <span class="export-link"
+              ng-click="$ctrl.exportResults()">
             EXPORT
-        </md-button>
+        </span>
         <div class="diseases-source-select">
             <label>Source:</label>
             <md-input-container>

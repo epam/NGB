@@ -1,16 +1,21 @@
 <div class="loading-indicator"
-     ng-if="$ctrl.loadingData">
+     ng-if="$ctrl.loadingData || $ctrl.tmapLoading">
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
+<div ng-class="{'hidden': !$ctrl.tmapFailed || $ctrl.tmapLoading}">
+    <ngb-panel-error-list message-list="$ctrl.tmapErrorList"></ngb-panel-error-list>
+</div>
 <div class="drugs-panel-header">
-    <div class="action-container">
-        <md-button type="button"
-                   class="md-raised export-button"
-                   ng-if="$ctrl.drugsResults && $ctrl.drugsResults.length"
-                   aria-label="Export drugs results"
-                   ng-click="$ctrl.exportResults()">
+    <div class="action-container"
+         ng-if="$ctrl.drugsResults && $ctrl.drugsResults.length">
+        <span class="tmap-link"
+              ng-click="$ctrl.onClickTMAP()">
+            TMAP plot
+        </span>
+        <span class="export-link"
+              ng-click="$ctrl.exportResults()">
             EXPORT
-        </md-button>
+        </span>
     </div>
 </div>
 <div ng-class="{'hidden': !$ctrl.failedResult || $ctrl.loadingData}">

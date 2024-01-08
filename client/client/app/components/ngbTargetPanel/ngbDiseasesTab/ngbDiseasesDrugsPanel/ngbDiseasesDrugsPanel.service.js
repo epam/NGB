@@ -45,6 +45,10 @@ export default class ngbDiseasesDrugsPanelService {
     _filterInfo = null;
     fieldList = {};
     _drugsResults = null;
+    _tmapLoading = false;
+    _tmapFailed = false;
+    _tmapErrorList = null;
+    _tmapUrl;
 
     get loadingData() {
         return this._loadingData;
@@ -84,6 +88,21 @@ export default class ngbDiseasesDrugsPanelService {
     }
     get drugsResults() {
         return this._drugsResults;
+    }
+    get tmapLoading() {
+        return this._tmapLoading;
+    }
+    set tmapLoading(value) {
+        this._tmapLoading = value;
+    }
+    get tmapFailed() {
+        return this._tmapFailed;
+    }
+    get tmapErrorList() {
+        return this._tmapErrorList;
+    }
+    get tmapUrl() {
+        return this._tmapUrl;
     }
 
     static instance (dispatcher, ngbDiseasesTabService, targetDataService) {
@@ -238,6 +257,10 @@ export default class ngbDiseasesDrugsPanelService {
         this._filterInfo = null;
         this.fieldList = {};
         this._drugsResults = null;
+        this._tmapLoading = false;
+        this._tmapFailed = false;
+        this._tmapErrorList = null;
+        this._tmapUrl = undefined;
     }
 
     exportResults() {
@@ -248,5 +271,31 @@ export default class ngbDiseasesDrugsPanelService {
         }
         const source = 'drugs';
         return this.targetDataService.getDiseasesExport(this.diseaseId, source);
+    }
+
+    async generateTMAP() {
+        if (!this.diseaseId) {
+            return new Promise(resolve => {
+                this._tmapLoading = false;
+                resolve(true);
+            });
+        }
+        return new Promise(resolve => {
+            this.targetDataService.generateDiseaseTMAP(this.diseaseId)
+                .then(data => {
+                    this._tmapFailed = false;
+                    this._tmapErrorList = null;
+                    this._tmapLoading = false;
+                    this._tmapUrl = data;
+                    resolve(true);
+                })
+                .catch(err => {
+                    this._tmapFailed = true;
+                    this._tmapErrorList = [err.message];
+                    this._tmapLoading = false;
+                    this._tmapUrl = undefined;
+                    resolve(false);
+                });
+        });
     }
 }
