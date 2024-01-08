@@ -31,6 +31,9 @@ import static com.codeborne.selenide.Selenide.actions;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
+import static com.epam.ngb.autotests.enums.TrackMenus.GENERAL;
+import com.epam.ngb.autotests.menus.MetadataForm;
+import com.epam.ngb.autotests.menus.SearchMotifsForm;
 import com.epam.ngb.autotests.menus.TrackMenuForm;
 import static com.epam.ngb.autotests.utils.AppProperties.DEFAULT_TIMEOUT;
 import static com.epam.ngb.autotests.utils.AppProperties.RESULTS_PATH;
@@ -170,6 +173,11 @@ public class BrowserPanel implements AccessObject<BrowserPanel> {
         return this;
     }
 
+    public SearchMotifsForm openSearchMotifsForm(String trackName) {
+        openTrackMenu(trackName, GENERAL.value)
+                .selectOptionWithCheckbox("Motifs search", true);
+        return new SearchMotifsForm(this);
+    }
 
 
 }

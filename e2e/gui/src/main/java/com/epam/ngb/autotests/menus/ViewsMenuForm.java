@@ -65,7 +65,8 @@ public class ViewsMenuForm extends PopupForm<ViewsMenuForm, NavigationPanel> {
         LINEAGE("Lineage"),
         PATHWAYS("Pathways"),
         TARGET_IDENTIFICATION("Target identification"),
-        RESTORE_DEFAULT_LAYOUT("Restore Default Layout");
+        RESTORE_DEFAULT_LAYOUT("Restore Default Layout"),
+        MOTIFS("Motifs");
 
         public final String text;
 

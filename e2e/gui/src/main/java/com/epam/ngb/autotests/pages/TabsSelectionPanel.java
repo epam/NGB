@@ -28,6 +28,7 @@ public class TabsSelectionPanel implements AccessObject<TabsSelectionPanel> {
     public SelenideElement rightSelectionPanel() {
         return $$(className("lm_stack")).get(1);
     }
+
     public TabsSelectionPanel selectPanel(ViewsMenuItems item) {
         SelenideElement tab = rightSelectionPanel()
                 .$x(format(".//span[contains(@class,'lm_title') and contains(., '%s')]", item.text)).parent();
@@ -38,6 +39,12 @@ public class TabsSelectionPanel implements AccessObject<TabsSelectionPanel> {
             $x(format("//li[contains(@class,'lm_tab') and contains(., '%s')]", item.text)).click();
         }
         return this;
+    }
+
+    public TabsSelectionPanel tabIsExists(ViewsMenuItems item) {
+        SelenideElement tab = rightSelectionPanel()
+                .$x(format(".//span[contains(@class,'lm_title') and contains(., '%s')]", item.text)).parent();
+        return ensureVisible(tab);
     }
 
     public VariantsTableColumnForm openNGBVariantsTableColumn() {

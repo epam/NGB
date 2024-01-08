@@ -221,6 +221,7 @@ public class VcfHighlightTests extends AbstractNgbTest {
                 .trackImageCompare(getExpectedImage("variantsTC05_1"),
                         track, "variantsTC05_1", VCF_DEVIATION);
     }
+
     @Test(dataProvider = "structuralVariations")
     @TestCase ({"TC-VCF_HIGHLIGHT-06"})
     public void structuralVariationsBND(String position,
