@@ -94,9 +94,15 @@ ngb-known-drugs-panel {
         min-height: 28px;
         line-height: 28px;
         font-size: $known-drugs-font-size;
-        min-width: 40px;
+        min-width: 55px;
         padding: 0 8px;
         margin: 0;
+
+        md-progress-circular {
+            margin: 8px;
+            margin-left: auto;
+            margin-right: auto;
+        }
     }
 }
 

@@ -1,5 +1,5 @@
 <div class="loading-indicator"
-     ng-if="$ctrl.loading || $ctrl.tmapLoading">
+     ng-if="$ctrl.loading">
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
 <div ng-class="{'hidden': !$ctrl.tmapFailed || $ctrl.tmapLoading}">
@@ -8,9 +8,13 @@
 <div class="known-drugs-header">
     <div class="action-container">
         <span class="tmap-link"
-              ng-if="$ctrl.tableResults"
+              ng-if="$ctrl.tableResults && !$ctrl.tmapLoading"
               ng-click="$ctrl.onClickTMAP()">
             TMAP plot
+        </span>
+        <span class="tmap-link"
+              ng-if="$ctrl.tableResults && $ctrl.tmapLoading">
+            <md-progress-circular md-diameter="12"></md-progress-circular>
         </span>
         <span class="export-link"
               ng-if="$ctrl.tableResults"

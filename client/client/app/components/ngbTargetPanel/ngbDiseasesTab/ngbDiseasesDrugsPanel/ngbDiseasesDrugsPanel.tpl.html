@@ -1,5 +1,5 @@
 <div class="loading-indicator"
-     ng-if="$ctrl.loadingData || $ctrl.tmapLoading">
+     ng-if="$ctrl.loadingData">
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
 <div ng-class="{'hidden': !$ctrl.tmapFailed || $ctrl.tmapLoading}">
@@ -9,8 +9,13 @@
     <div class="action-container"
          ng-if="$ctrl.drugsResults && $ctrl.drugsResults.length">
         <span class="tmap-link"
+              ng-if="!$ctrl.tmapLoading"
               ng-click="$ctrl.onClickTMAP()">
             TMAP plot
+        </span>
+        <span class="tmap-link"
+              ng-if="$ctrl.tmapLoading">
+            <md-progress-circular md-diameter="12"></md-progress-circular>
         </span>
         <span class="export-link"
               ng-click="$ctrl.exportResults()">
