@@ -325,25 +325,21 @@ export default class ngbDiseasesDrugsPanelController {
     }
 
     async onClickTMAP() {
-        if (!this.tmapUrl) {
-            this.tmapLoading = true;
-            await this.ngbDiseasesDrugsPanelService.generateTMAP();
-            this.$timeout(() => {
-                this.$scope.$apply();
-                this.showTMAP();
-            });
-        } else {
-            this.showTMAP();
-        }
-    }
-
-    showTMAP() {
         let base = ngbConstants.urlPrefix || '';
         if (base && base.length) {
             if (!base.endsWith('/')) {
                 base = base.concat('/');
             }
         }
-        window.open(`${base}${this.tmapUrl}`, '_blank');
+        if (!this.tmapUrl) {
+            this.tmapLoading = true;
+            await this.ngbDiseasesDrugsPanelService.generateTMAP();
+            this.$timeout(() => {
+                this.$scope.$apply();
+                window.open(`${base}${this.tmapUrl}`, '_blank');
+            });
+        } else {
+            window.open(`${base}${this.tmapUrl}`, '_blank');
+        }
     }
 }
