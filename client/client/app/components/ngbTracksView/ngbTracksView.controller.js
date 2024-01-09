@@ -64,9 +64,11 @@ export default class ngbTracksViewController extends baseController {
         this.domElement = this.$element[0];
         this.tracksContainer = $(this.domElement).find('.track-panel-container')[0];
         this.refreshTracksScope = () => $scope.$apply();
+    }
 
+    $onInit() {
         (async() => {
-            await  this.INIT();
+            await this.INIT();
             this.refreshTracksScope();
             if (!this.browserId) {
                 Object.assign(this.events, {
@@ -87,9 +89,7 @@ export default class ngbTracksViewController extends baseController {
                     'blastRegion:change': ::this.setBlastRegion
                 });
             }
-
             this.initEvents();
-
         })();
     }
 
