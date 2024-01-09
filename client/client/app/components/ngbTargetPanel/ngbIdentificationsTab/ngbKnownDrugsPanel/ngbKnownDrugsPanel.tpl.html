@@ -8,12 +8,12 @@
 <div class="known-drugs-header">
     <div class="action-container">
         <span class="tmap-link"
-              ng-if="$ctrl.tableResults && !$ctrl.tmapLoading"
+              ng-if="$ctrl.drugResults && !$ctrl.tmapLoading"
               ng-click="$ctrl.onClickTMAP()">
             TMAP plot
         </span>
         <span class="tmap-link"
-              ng-if="$ctrl.tableResults && $ctrl.tmapLoading">
+              ng-if="$ctrl.drugResults && $ctrl.tmapLoading">
             <md-progress-circular md-diameter="12"></md-progress-circular>
         </span>
         <span class="export-link"

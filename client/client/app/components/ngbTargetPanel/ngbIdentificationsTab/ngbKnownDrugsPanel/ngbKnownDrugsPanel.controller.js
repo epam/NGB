@@ -68,6 +68,10 @@ export default class ngbKnownDrugsPanelController {
     get tmapUrl() {
         return this.ngbKnownDrugsPanelService.tmapUrl;
     }
+    get drugResults() {
+        return (this.ngbTargetPanelService.identificationData &&
+            this.ngbTargetPanelService.identificationData.knownDrugsCount);
+    }
 
     onChangeSource() {
         this.dispatcher.emit('target:identification:drugs:source:changed');
