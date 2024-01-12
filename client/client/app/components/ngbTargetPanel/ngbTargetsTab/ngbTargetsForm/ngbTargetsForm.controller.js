@@ -1,22 +1,4 @@
-const GENES_COLUMNS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority'];
-
-const PRIORITY_LIST = [{
-    name: 'Low',
-    value: 'LOW'
-}, {
-    name: 'High',
-    value: 'HIGH'
-}];
-
 export default class ngbTargetsFormController{
-
-    get genesColumns () {
-        return GENES_COLUMNS;
-    }
-
-    get priorityList() {
-        return PRIORITY_LIST;
-    }
 
     static get UID() {
         return 'ngbTargetsFormController';
@@ -24,13 +6,6 @@ export default class ngbTargetsFormController{
 
     constructor($scope, $timeout, dispatcher, $mdDialog, ngbTargetsTabService) {
         Object.assign(this, {$scope, $timeout, dispatcher, $mdDialog, ngbTargetsTabService});
-    }
-
-    get targetModel() {
-        return this.ngbTargetsTabService.targetModel;
-    }
-    get isEditMode() {
-        return this.ngbTargetsTabService.isEditMode;
     }
 
     get loading() {
@@ -45,13 +20,18 @@ export default class ngbTargetsFormController{
     get errorMessageList() {
         return this.ngbTargetsTabService.formErrorMessageList;
     }
-    get isAddMode() {
-        return this.ngbTargetsTabService.isAddMode;
-    }
     get launchLoading() {
         return this.ngbTargetsTabService.launchLoading;
     }
-
+    get targetModel() {
+        return this.ngbTargetsTabService.targetModel;
+    }
+    get isAddMode() {
+        return this.ngbTargetsTabService.isAddMode;
+    }
+    get isEditMode() {
+        return this.ngbTargetsTabService.isEditMode;
+    }
     get updateForce() {
         return this.ngbTargetsTabService.updateForce;
     }
@@ -65,36 +45,80 @@ export default class ngbTargetsFormController{
         this.dispatcher.emit('show:targets:table');
     }
 
-    getAddRequest() {
-        const {name, diseases, products, genes} = this.targetModel;
-        const request = {
-            targetName: name,
-            diseases,
-            products,
-            targetGenes: genes.map(g => {
-                const gene = {
-                    geneId: g.geneId,
-                    geneName: g.geneName,
-                    taxId: g.taxId,
-                    speciesName: g.speciesName,
-                };
-                if (g.priority && g.priority !== 'None') {
-                    gene.priority = g.priority;
-                }
-                return gene;
-            })
-        };
-        return request;
+    isGenesEmpty() {
+        const {genes} = this.targetModel;
+        const genesEmpty = genes.filter(gene => {
+            const {geneId, geneName, taxId, speciesName} = gene;
+            return [geneId, geneName, taxId, speciesName].some(field => (
+                !field || !String(field).length
+            ));
+        });
+        return genesEmpty.length;
     }
 
-    async addTarget() {
-        const request = this.getAddRequest();
-        await this.ngbTargetsTabService.postNewTarget(request)
-            .then((success) => {
-                if (success) {
-                    this.ngbTargetsTabService.setEditMode();
+    isIdentifyDisabled() {
+        if (this.loading || this.isAddMode) return true;
+        const {name, genes} = this.targetModel;
+        if (!name || !name.length || !genes || !genes.length) return true;
+        if (this.isGenesEmpty()) return true;
+        return this.ngbTargetsTabService.targetModelChanged();
+    }
+
+    identifyTarget() {
+        const {id, name, genes} = this.targetModel;
+        if (!id || !name || !genes || !genes.length) return;
+        const target = {
+            id,
+            name,
+            species: {
+                value: this.targetModel.genes.map(g => ({
+                    geneId: g.geneId,
+                    geneName: g.geneName,
+                    speciesName: g.speciesName,
+                    taxId: g.taxId
+                }))
+            }
+        }
+        this.dispatcher.emit('target:launch:identification', target);
+    }
+
+    isSaveDisabled() {
+        if (this.loading) return true;
+        const {name, genes} = this.targetModel;
+        if (!name || !name.length || !genes || !genes.length) return true;
+        if (this.isGenesEmpty()) return true;
+        if (!this.isAddMode) return !this.ngbTargetsTabService.targetModelChanged();
+    }
+
+    async saveTarget() {
+        this.loading = true;
+        if (this.isAddMode) {
+            await this.addTarget();
+        } else if (this.isEditMode) {
+            await this.updateTarget();
+        }
+        this.$timeout(() => this.$scope.$apply());
+    }
+
+    removeTarget() {
+        this.$mdDialog
+            .show({
+                template: require('./ngbTargetDeleteDlg.tpl.html'),
+                controller: function($scope, $mdDialog, dispatcher) {
+                    $scope.delete = function () {
+                        dispatcher.emit('target:delete');
+                        $mdDialog.hide();
+                    };
+                    $scope.cancel = function () {
+                        $mdDialog.hide();
+                    };
                 }
             });
+
+        this.dispatcher.on('target:delete', async () => {
+            await this.ngbTargetsTabService.deleteTarget();
+            this.$timeout(() => this.$scope.$apply());
+        });
     }
 
     getUpdateRequest() {
@@ -133,31 +157,36 @@ export default class ngbTargetsFormController{
             });
     }
 
-    async saveTarget() {
-        this.loading = true;
-        if (this.isAddMode) {
-            await this.addTarget();
-        } else if (this.isEditMode) {
-            await this.updateTarget();
-        }
-        this.$timeout(() => this.$scope.$apply());
+    getAddRequest() {
+        const {name, diseases, products, genes} = this.targetModel;
+        const request = {
+            targetName: name,
+            diseases,
+            products,
+            targetGenes: genes.map(g => {
+                const gene = {
+                    geneId: g.geneId,
+                    geneName: g.geneName,
+                    taxId: g.taxId,
+                    speciesName: g.speciesName,
+                };
+                if (g.priority && g.priority !== 'None') {
+                    gene.priority = g.priority;
+                }
+                return gene;
+            })
+        };
+        return request;
     }
 
-    addGene() {
-        if (!this.isAddGeneDisabled) {
-            this.ngbTargetsTabService.addNewGene();
-        }
-    }
-
-    isGenesEmpty() {
-        const {genes} = this.targetModel;
-        const genesEmpty = genes.filter(gene => {
-            const {geneId, geneName, taxId, speciesName} = gene;
-            return [geneId, geneName, taxId, speciesName].some(field => (
-                !field || !String(field).length
-            ));
-        });
-        return genesEmpty.length;
+    async addTarget() {
+        const request = this.getAddRequest();
+        await this.ngbTargetsTabService.postNewTarget(request)
+            .then((success) => {
+                if (success) {
+                    this.ngbTargetsTabService.setEditMode();
+                }
+            });
     }
 
     get isAddGeneDisabled () {
@@ -169,98 +198,9 @@ export default class ngbTargetsFormController{
         return this.isGenesEmpty();
     }
 
-    isSaveDisabled() {
-        if (this.loading) return true;
-        const {name, genes} = this.targetModel;
-        if (!name || !name.length || !genes || !genes.length) return true;
-        if (this.isGenesEmpty()) return true;
-        if (!this.isAddMode) return !this.ngbTargetsTabService.targetModelChanged();
-    }
-
-    savedIdentificationGene(index) {
-        if (!this.targetModel.identifications || !this.targetModel.identifications.length) return false;
-        const geneId = this.targetModel.genes[index].geneId;
-        return this.targetModel.identifications.some(identification => {
-            const {genesOfInterest, translationalGenes} = identification;
-            return genesOfInterest.includes(geneId) || translationalGenes.includes(geneId);
-        })
-    }
-
-    onClickRemove(index) {
-        if (!this.savedIdentificationGene(index)) {
-            this.targetModel.genes.splice(index, 1);
-        } else {
-            this.openConfirmDialog(index);
+    addGene() {
+        if (!this.isAddGeneDisabled) {
+            this.ngbTargetsTabService.addNewGene();
         }
-    }
-
-    openConfirmDialog (index) {
-        const gene = this.targetModel.genes[index];
-        this.$mdDialog.show({
-            template: require('./ngbGeneDeleteDlg.tpl.html'),
-            controller: function($scope, $mdDialog, dispatcher) {
-                $scope.geneName = gene.geneName;
-
-                $scope.delete = function () {
-                    dispatcher.emit('target:gene:delete');
-                    $mdDialog.hide();
-                };
-                $scope.cancel = function () {
-                    $mdDialog.hide();
-                };
-            },
-        });
-
-        this.dispatcher.on('target:gene:delete', () => {
-            this.updateForce = true;
-            this.targetModel.genes.splice(index, 1);
-        });
-    }
-
-    removeTarget() {
-        this.$mdDialog
-            .show({
-                template: require('./ngbTargetDeleteDlg.tpl.html'),
-                controller: function($scope, $mdDialog, dispatcher) {
-                    $scope.delete = function () {
-                        dispatcher.emit('target:delete');
-                        $mdDialog.hide();
-                    };
-                    $scope.cancel = function () {
-                        $mdDialog.hide();
-                    };
-                }
-            });
-
-        this.dispatcher.on('target:delete', async () => {
-            await this.ngbTargetsTabService.deleteTarget();
-            this.$timeout(() => this.$scope.$apply());
-        });
-    }
-
-    isIdentifyDisabled() {
-        if (this.loading || this.isAddMode) return true;
-        const {name, genes} = this.targetModel;
-        if (!name || !name.length || !genes || !genes.length) return true;
-        if (this.isGenesEmpty()) return true;
-        return this.ngbTargetsTabService.targetModelChanged();
-    }
-
-    identifyTarget() {
-        const {id, name, genes} = this.targetModel;
-        if (!id || !name || !genes || !genes.length) return;
-        const target = {
-            id,
-            name,
-            species: {
-                value: this.targetModel.genes.map(g => ({
-                    geneId: g.geneId,
-                    geneName: g.geneName,
-                    speciesName: g.speciesName,
-                    taxId: g.taxId
-                }))
-            }
-        }
-        this.dispatcher.emit('target:launch:identification', target);
     }
 }

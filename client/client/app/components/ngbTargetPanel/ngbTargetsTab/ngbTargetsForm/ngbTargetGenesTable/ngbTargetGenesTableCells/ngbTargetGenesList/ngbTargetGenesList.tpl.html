@@ -1,5 +1,5 @@
 
-<md-autocomplete md-no-cache="$ctrl.noCache"
+<md-autocomplete md-no-cache="true"
                  md-selected-item="$ctrl.selectedItem"
                  md-search-text="$ctrl.searchText"
                  md-items="item in $ctrl.getList($ctrl.searchText)"
@@ -12,8 +12,7 @@
                  md-selected-item-change="$ctrl.selectedItemChange(item)"
                  md-search-text-change="$ctrl.searchTextChange($ctrl.searchText)"
                  spellcheck="false"
-                 class="ngb-targets-form-autocomplete"
->
+                 class="ngb-targets-form-autocomplete">
     <md-item-template>
         <span md-highlight-text="$ctrl.searchText">{{item[$ctrl.field]}} {{item.speciesName}}</span>
     </md-item-template>

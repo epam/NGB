@@ -37,6 +37,30 @@
             font-size: $tag-font-size;
         }
     }
+
+    .full-width {
+        padding: $table-cell-full-width-padding;
+        width: unset;
+
+        &.no-genes-info {
+            color: $form-warning-color;
+        }
+    }
+
+    .add-gene-link {
+        margin: 5px 0;
+        cursor: not-allowed;
+        font-style: normal;
+
+        &:not(.disabled) {
+            color: rgb(51, 103, 214);
+            cursor: pointer;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
 }
 
 .form-header {
@@ -62,16 +86,16 @@
 }
 
 .back-target-button {
-  min-height: $main-action-button-height;
-  height: $main-action-button-height;
-  line-height: $main-action-button-height;
-  min-width: 40px;
-  width: 40px;
-  margin: 5px;
+    min-height: $main-action-button-height;
+    height: $main-action-button-height;
+    line-height: $main-action-button-height;
+    min-width: 40px;
+    width: 40px;
+    margin: 5px;
 
-  ng-md-icon {
-    fill: rgba(255,255,255,0.87);
-  }
+    ng-md-icon {
+        fill: rgba(255,255,255,0.87);
+    }
 }
 
 .target-button {
@@ -80,135 +104,6 @@
     line-height: $main-action-button-height;
     min-width: 60px;
     margin: 5px;
-}
-
-.name-input-placeholder,
-.name-input {
-    margin: 5px;
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.name-input {
-    font-weight: bold;
-}
-
-.name-input-placeholder {
-    font-style: italic;
-    color: $form-warning-color;
-}
-
-.table-container {
-    width: 100%;
-    overflow: auto;
-
-    table.ngb-targets-form-table {
-        width: 100%;
-        input {
-            width: 100%;
-        }
-        th {
-            width: 20%;
-            padding: $table-header-cell-padding;
-            background: $section-header-background;
-            line-height: $table-header-cell-height;
-            height: $table-header-cell-height;
-            font-size: $table-header-cell-font-size;
-            color: $table-header-cell-color;
-            font-weight: $table-header-cell-font-weight;
-        }
-        tr td.full-width {
-            padding: $table-cell-full-width-padding;
-            width: unset;
-        }
-        tr td {
-            width: 20%;
-            padding: $table-cell-padding;
-        }
-
-        tr th:nth-child(1),
-        tr td:nth-child(1) {
-            width: 25%;
-        }
-
-        tr th:nth-child(3),
-        tr td:nth-child(3) {
-            width: 15%;
-        }
-
-        tr th:nth-child(5),
-        tr td:nth-child(5) {
-            width: 15%;
-        }
-
-        tr th.button-column,
-        tr td.button-column {
-            width: max($table-control-height, 30px);
-        }
-
-        tr th.button-column {
-            width: 15px;
-            padding: 4px;
-        }
-    }
-
-    .remove-btn {
-        min-height: $table-control-height;
-        min-width: $table-control-height;
-        width: $table-control-height;
-        height: $table-control-height;
-        line-height: $table-control-height;
-        padding: 0;
-        margin: 0;
-    }
-}
-
-.priority-select-container {
-    md-select.ngb-targets-form-table-select {
-        margin: 0;
-        border-radius: $table-control-border-radius;
-        border: $table-control-border;
-        background: $table-control-background;
-        height: $table-control-height;
-        color: $table-control-font-color;
-        box-sizing: border-box;
-        &:hover {
-            background: $table-control-hover-background;
-        }
-    }
-
-    .md-select-value {
-        padding: 0 5px;
-        border-bottom-width: 0;
-        min-height: calc($table-control-height - 2px);
-        color: $table-control-font-color;
-        font-size: $table-control-font-size;
-    }
-
-    md-select-menu {
-        md-select-menu:not(.md-overflow) md-content {
-            padding: 0;
-        }
-    }
-
-    md-option {
-        padding: 0 10px;
-        height: $table-control-height;
-        color: $table-control-font-color;
-    }
-
-    .md-select-value .md-select-icon {
-        width: calc(($table-control-height - 2px) / 2.0);
-        margin: 0 2px;
-    }
-
-    md-select.ngb-targets-form-table-select.md-default-theme:not([disabled]):focus .md-select-value,
-    md-select.ngb-targets-form-table-select:not([disabled]):focus .md-select-value {
-        border-radius: $table-control-border-radius;
-        border-bottom: none;
-    }
 }
 
 input.ngb-targets-form-table-input {
@@ -238,22 +133,6 @@ input.ngb-targets-form-table-input {
     }
 }
 
-.priority-select {
-    md-select-menu:not(.md-overflow) md-content {
-        padding: 0;
-    }
-
-    md-select-menu md-content {
-        min-width: calc($table-control-height * 3.0);
-    }
-
-    md-option {
-        padding: $table-control-padding;
-        height: $table-control-height;
-        color: $table-control-font-color;
-    }
-}
-
 .delete-target-dialog {
     width: 400px;
     min-width: 400px;
@@ -264,20 +143,6 @@ input.ngb-targets-form-table-input {
     }
 
     h2 {
-        margin: 15px;
-    }
-}
-
-.delete-gene-dialog {
-    width: 400px;
-    min-width: 400px;
-
-    md-dialog-content {
-        min-width: 400px;
-        width: 400px;
-    }
-
-    h4 {
         margin: 15px;
     }
 }
@@ -304,37 +169,5 @@ ngb-tags.ngb-target-products {
         color: $section-header-color;
         background: $section-header-background;
         font-size: $section-header-font-size;
-    }
-}
-
-.target-name-row {
-    display: flex;
-    align-items: center;
-
-    .target-name-title {
-        padding: 7px $form-horizontal-offset;
-        font-weight: $table-header-cell-font-weight;
-        font-size: $table-header-cell-font-size;
-        color: $table-header-cell-color;
-        min-width: $main-section-title-width;
-    }
-}
-
-.no-genes-info {
-    color: $form-warning-color;
-}
-
-.add-gene-link {
-    margin: 5px 0;
-    cursor: not-allowed;
-    font-style: normal;
-
-    &:not(.disabled) {
-        color: rgb(51, 103, 214);
-        cursor: pointer;
-
-        &:hover {
-            text-decoration: underline;
-        }
     }
 }

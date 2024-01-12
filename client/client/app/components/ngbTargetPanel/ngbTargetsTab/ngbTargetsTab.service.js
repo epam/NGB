@@ -186,6 +186,7 @@ export default class ngbTargetsTabService {
             products: (data.products || []).filter(p => p),
             identifications: data.identifications
         };
+        this.dispatcher.emit('target:model:changed');
     }
 
     get originalModel() {
@@ -243,6 +244,7 @@ export default class ngbTargetsTabService {
             diseases: [],
             products: []
         };
+        this.dispatcher.emit('target:model:changed');
     }
 
     resetTarget() {
@@ -341,7 +343,8 @@ export default class ngbTargetsTabService {
         });
     }
 
-    setGeneModel(index, field, value) {
+    setGeneModel(row, field, value) {
+        const index = this._targetModel.genes.indexOf(row);
         const geneFields = {
             geneId: 'geneId',
             geneName: 'geneName',
@@ -352,13 +355,12 @@ export default class ngbTargetsTabService {
         if (geneFields[field]) {
             this._targetModel.genes[index][geneFields[field]] = value;
         }
-        this.dispatcher.emit('gene:model:updated');
     }
 
-    selectedGeneChanged(gene, index) {
+    selectedGeneChanged(row, gene) {
         if (gene) {
             for (const [key, value] of Object.entries(gene)) {
-                this.setGeneModel(index, key, value);
+                this.setGeneModel(row, key, value);
             }
         }
     }

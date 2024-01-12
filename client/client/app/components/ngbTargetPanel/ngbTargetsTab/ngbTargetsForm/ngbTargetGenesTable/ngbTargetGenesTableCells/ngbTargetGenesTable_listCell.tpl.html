@@ -1,0 +1,9 @@
+<span class="list-cell"
+      ng-if="row.entity">
+    <ngb-target-genes-list value="row.entity[col.field]"
+                           field="col.field"
+                           row="row.entity"
+                           select-gene="grid.appScope.$ctrl.onSelectGene"
+                           change-text="grid.appScope.$ctrl.onChangeGeneName">
+    </ngb-target-genes-list>
+</span>

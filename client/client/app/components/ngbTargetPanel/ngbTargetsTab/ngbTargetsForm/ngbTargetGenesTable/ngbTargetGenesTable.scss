@@ -1,0 +1,200 @@
+@import "../ngbTargetsForm.variables.scss";
+
+ngb-target-genes-table {
+    .ui-grid {
+        border: none;
+        height: auto;
+        border-top: $table-border;
+        border-bottom: $table-border;
+
+        .ui-grid-viewport {
+            height: 100% !important;
+        }
+
+        .ui-grid-cell-contents {
+            white-space: nowrap;
+        }
+
+        .ui-grid-column-menu-button {
+            width: 12px;
+
+            .ui-grid-icon-angle-down {
+                width: 10px;
+            }
+
+            [class^="ui-grid-icon"]:before,
+            [class*=" ui-grid-icon"]:before {
+                width: 0.7em;
+                margin-right: 0.3em;
+                margin-left: 0;
+            }
+        }
+    }
+
+    .ui-grid-container .ui-grid-render-container {
+        min-height: 200px;
+    }
+
+    .ui-grid-header-cell.ui-grid-clearfix,
+    .ui-grid-header-cell.ui-grid-clearfix.movingColumn {
+        height: 100%;
+
+        .layout-column {
+            height: 100%;
+
+            div.flex {
+                height: 100%;
+            }
+        }
+    }
+
+    .ui-grid-container .ui-grid-cell-contents.md-button {
+        min-height: unset;
+        height: 100%;
+        display: grid;
+        grid-template-columns: repeat(50, 1fr);
+    }
+
+    .ui-grid-header-cell-label-container {
+        display: flex;
+        justify-content: center;
+        min-width: 0;
+        grid-column: 1 / 49;
+        grid-row: 1;
+    }
+
+    .ui-grid-header-cell-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sort-icon {
+        grid-column: 50 / 50;
+        grid-row: 1;
+
+        ng-md-icon {
+            margin-right: 3px;
+        }
+    }
+
+    .input-cell {
+        width: 100%;
+
+        input.ngb-targets-form-table-input {
+            flex: 1;
+            margin: 2px 0;
+            border-radius: $table-control-border-radius;
+            border: none;
+            background: $table-control-background;
+            height: $table-control-height;
+            color: $table-control-font-color;
+            padding: $table-control-padding;
+            font-size: $table-control-font-size;
+            box-sizing: border-box;
+            border-bottom: 1px solid darken($table-control-background, 20%);
+        
+            &.error {
+                border-color: red;
+            }
+        
+            &:hover:not(:focus) {
+                background: $table-control-hover-background;
+            }
+            &:hover,
+            &:active,
+            &:focus {
+                outline: none;
+            }
+        }
+    }
+
+    .select-cell {
+        width: 100%;
+
+        md-select.ngb-targets-form-table-select {
+            margin: 0;
+            border-radius: $table-control-border-radius;
+            border: $table-control-border;
+            background: $table-control-background;
+            height: $table-control-height;
+            color: $table-control-font-color;
+            box-sizing: border-box;
+
+            &:hover {
+                background: $table-control-hover-background;
+            }
+        }
+    
+        .md-select-value {
+            padding: 0 5px;
+            border-bottom-width: 0;
+            min-height: calc($table-control-height - 2px);
+            color: $table-control-font-color;
+            font-size: $table-control-font-size;
+        }
+    
+        md-select-menu {
+            md-select-menu:not(.md-overflow) md-content {
+                padding: 0;
+            }
+        }
+    
+        md-option {
+            padding: 0 10px;
+            height: $table-control-height;
+            color: $table-control-font-color;
+        }
+    
+        .md-select-value .md-select-icon {
+            width: calc(($table-control-height - 2px) / 2.0);
+            margin: 0 2px;
+        }
+    
+        md-select.ngb-targets-form-table-select.md-default-theme:not([disabled]):focus .md-select-value,
+        md-select.ngb-targets-form-table-select:not([disabled]):focus .md-select-value {
+            border-radius: $table-control-border-radius;
+            border-bottom: none;
+        }
+    }
+
+    .remove-btn {
+        min-height: $table-control-height;
+        min-width: $table-control-height;
+        width: $table-control-height;
+        height: $table-control-height;
+        line-height: $table-control-height;
+        padding: 0;
+        margin: 0;
+    }
+}
+
+.priority-select {
+    md-select-menu:not(.md-overflow) md-content {
+        padding: 0;
+    }
+
+    md-select-menu md-content {
+        min-width: calc($table-control-height * 3.0);
+    }
+
+    md-option {
+        padding: $table-control-padding;
+        height: $table-control-height;
+        color: $table-control-font-color;
+    }
+}
+
+.delete-gene-dialog {
+    width: 400px;
+    min-width: 400px;
+
+    md-dialog-content {
+        min-width: 400px;
+        width: 400px;
+    }
+
+    h4 {
+        margin: 15px;
+    }
+}
