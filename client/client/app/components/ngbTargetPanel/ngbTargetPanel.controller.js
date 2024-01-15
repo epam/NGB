@@ -1,9 +1,3 @@
-const TARGET_TAB = {
-    TARGETS: 'TARGETS',
-    IDENTIFICATIONS: 'IDENTIFICATIONS',
-    DISEASES: 'DISEASES'
-};
-
 const DOWNLOAD_OPTIONS = {
     EXCEL: 'Excel',
     HTML: 'HTML',
@@ -11,7 +5,7 @@ const DOWNLOAD_OPTIONS = {
 export default class ngbTargetPanelController {
 
     get targetTab() {
-        return TARGET_TAB;
+        return this.targetContext.targetTab;
     }
 
     get downloadOptions () {
@@ -77,7 +71,7 @@ export default class ngbTargetPanelController {
             targetContext,
             $mdDialog,
         });
-        this.tabSelected = this.targetTab.TARGETS;
+        this.changeTab(this.targetTab.TARGETS);
         dispatcher.on('target:show:identification:tab', this.showIdentificationTab.bind(this));
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
         dispatcher.on('target:identification:show:diseases:tab', this.showDiseasesTab.bind(this));
@@ -153,7 +147,7 @@ export default class ngbTargetPanelController {
     changeTab(tab) {
         if (this.targetTab.hasOwnProperty(tab)) {
             this.tabSelected = this.targetTab[tab];
-            this.targetContext.setCurrentTab(this.targetTab[tab]);
+            this.targetContext.setCurrentTab(this.targetTab[tab], this.ngbTargetsTabService.targetMode);
         }
         this.$timeout(() => this.$scope.$apply());
     }

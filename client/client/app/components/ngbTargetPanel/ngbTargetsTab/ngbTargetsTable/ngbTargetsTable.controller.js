@@ -259,7 +259,7 @@ export default class ngbTargetsTableController {
             });
         this.gridOptions.data = results;
         this.loadingData = false;
-        this.dispatcher.emit('target:table:results:updated');
+        this.dispatcher.emit('target:table:results:updated', this.ngbTargetsTabService.targetMode, !this.ngbTargetsTableService.isFilterEmpty);
         this.$timeout(() => this.$scope.$apply());
     }
 

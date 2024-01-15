@@ -16,7 +16,7 @@ const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'pr
 
 export default class ngbTargetsTabService {
 
-    _targetMode = this.mode.TABLE;
+    _targetMode;
     _targetModel;
     _originalModel;
 
@@ -42,14 +42,21 @@ export default class ngbTargetsTabService {
         return GENE_MODEL_PROPERTIES;
     }
 
+    get targetMode() {
+        return this._targetMode;
+    }
+    set targetMode(value) {
+        this._targetMode = value;
+    }
+
     get isTableMode() {
-        return this._targetMode === this.mode.TABLE;
+        return this.targetMode === this.mode.TABLE;
     }
     get isAddMode() {
-        return this._targetMode === this.mode.ADD;
+        return this.targetMode === this.mode.ADD;
     }
     get isEditMode() {
-        return this._targetMode === this.mode.EDIT;
+        return this.targetMode === this.mode.EDIT;
     }
     get formLoading() {
         return this._formLoading;
@@ -131,6 +138,7 @@ export default class ngbTargetsTabService {
         ngbTargetPanelService,
         targetDataService,
         projectContext,
+        targetContext,
     ) {
         return new ngbTargetsTabService(
             $timeout,
@@ -138,6 +146,7 @@ export default class ngbTargetsTabService {
             ngbTargetPanelService,
             targetDataService,
             projectContext,
+            targetContext,
         );
     }
 
@@ -147,6 +156,7 @@ export default class ngbTargetsTabService {
         ngbTargetPanelService,
         targetDataService,
         projectContext,
+        targetContext,
     ) {
         Object.assign(this, {
             $timeout,
@@ -154,18 +164,23 @@ export default class ngbTargetsTabService {
             ngbTargetPanelService,
             targetDataService,
             projectContext,
+            targetContext,
         });
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
+        this.setTableMode();
     }
 
     setTableMode() {
-        this._targetMode = this.mode.TABLE;
+        this.targetMode = this.mode.TABLE;
+        this.targetContext.setTargetsActionsVisibility(this.targetMode);
     }
     setAddMode() {
-        this._targetMode = this.mode.ADD;
+        this.targetMode = this.mode.ADD;
+        this.targetContext.setTargetsActionsVisibility(this.targetMode);
     }
     setEditMode() {
-        this._targetMode = this.mode.EDIT;
+        this.targetMode = this.mode.EDIT;
+        this.targetContext.setTargetsActionsVisibility(this.targetMode);
     }
     addNewGene() {
         this._targetModel.genes.push({...NEW_GENE});

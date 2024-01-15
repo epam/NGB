@@ -145,14 +145,19 @@ const coverageResetFilters = {
 const targetsTableActions = {
     name: 'targetsTableActions',
     isDefault: true,
-    isVisible: (context, appearance) => !appearance.embedded && appearance.targetsActions
+    isVisible: (context, appearance, bamCoverageContext, targetContext) => (
+        targetContext && targetContext.targetsActionsIsVisible
+    )
 };
 const targetsTablePagination = {
     name: 'targetsTablePagination',
     liStyle: {
         width: 'auto'
     },
-    isDefault: false
+    isDefault: false,
+    isVisible: (context, appearance, bamCoverageContext, targetContext) => (
+        targetContext && targetContext.targetsTablePaginationIsVisible
+    )
 };
 const targetsTableResetFilter = {
     name: 'targetsTableResetFilter',
@@ -160,7 +165,9 @@ const targetsTableResetFilter = {
     event: 'targets:filters:reset',
     icon: 'delete_sweep',
     label: 'Reset targets table filter',
-    isVisible: (context) => context.targetsTableFilterIsVisible
+    isVisible: (context, appearance, bamCoverageContext, targetContext) => (
+        targetContext && targetContext.targetsTableResetFilterIsVisible
+    )
 };
 
 export default {

@@ -19,7 +19,6 @@ export default class ngbTargetsTableService {
     _filterInfo = null;
     _sortInfo = null;
 
-    _totalCount = 0;
     _currentPage = 1;
     _pageSize = PAGE_SIZE;
 
@@ -35,9 +34,6 @@ export default class ngbTargetsTableService {
     set pageSize(value) {
         this._pageSize = value;
     }
-    get totalCount() {
-        return this._totalCount;
-    }
     get currentPage() {
         return this._currentPage;
     }
@@ -48,7 +44,7 @@ export default class ngbTargetsTableService {
         return this._currentPage === 1;
     }
     get isLastPage () {
-        return this._currentPage === this._totalCount;
+        return this._currentPage === this.totalCount;
     }
 
     get displayFilters() {
@@ -79,12 +75,12 @@ export default class ngbTargetsTableService {
         return this._filteringErrorMessageList;
     }
 
-    static instance (projectContext, dispatcher, ngbTargetsTabService, targetDataService) {
-        return new ngbTargetsTableService(projectContext, dispatcher, ngbTargetsTabService, targetDataService);
+    static instance (dispatcher, ngbTargetsTabService, targetDataService, targetContext) {
+        return new ngbTargetsTableService(dispatcher, ngbTargetsTabService, targetDataService, targetContext);
     }
 
-    constructor(projectContext, dispatcher, ngbTargetsTabService, targetDataService) {
-        Object.assign(this, {projectContext, dispatcher, ngbTargetsTabService, targetDataService});
+    constructor(dispatcher, ngbTargetsTabService, targetDataService, targetContext) {
+        Object.assign(this, {dispatcher, ngbTargetsTabService, targetDataService, targetContext});
         this.dispatcher.on('targets:filters:reset', this.resetFilters.bind(this));
     }
 
@@ -99,6 +95,12 @@ export default class ngbTargetsTableService {
     }
     set errorMessageList (value) {
         this.ngbTargetsTabService.tableErrorMessageList = value;
+    }
+    get totalCount() {
+        return this.targetContext.targetTableTotalPages;
+    }
+    set totalCount(value) {
+        this.targetContext.targetTableTotalPages = value;
     }
 
     setGetTargetsRequest() {
@@ -176,15 +178,15 @@ export default class ngbTargetsTableService {
                 .then(([data, totalCount]) => {
                     this.errorMessageList = null;
                     this.failedResult = false;
-                    this._totalCount = Math.ceil(totalCount/this.pageSize);
-                    this._emptyResults = this._totalCount === 0 ? (isFiltered ? false : true) : false;
+                    this.totalCount = Math.ceil(totalCount/this.pageSize);
+                    this._emptyResults = this.totalCount === 0 ? (isFiltered ? false : true) : false;
                     this._filteringFailure = false;
                     this._filteringErrorMessageList = null;
                     this.setTargetsResult(data);
                     resolve(true);
                 })
                 .catch(err => {
-                    this._totalCount = 0;
+                    this.totalCount = 0;
                     this.targetsResults = null;
                     this._currentPage = 1;
                     if (isFiltered) {
@@ -221,12 +223,12 @@ export default class ngbTargetsTableService {
             delete filter[field];
         }
         this._filterInfo = filter;
-        this.projectContext.targetsTableFilterIsVisible = !this.isFilterEmpty;
+        this.targetContext.setTargetsActionsVisibility(this.ngbTargetsTabService.targetMode, !this.isFilterEmpty);
     }
 
     resetFilters() {
         this._filterInfo = null;
-        this.projectContext.targetsTableFilterIsVisible = false;
+        this.targetContext.setTargetsActionsVisibility(this.ngbTargetsTabService.targetMode, false);
         this.dispatcher.emitSimpleEvent('targets:filters:changed');
     }
 

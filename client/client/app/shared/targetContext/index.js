@@ -6,15 +6,38 @@ export { TargetGenomicsResultEvents };
 
 const TARGET_STORAGE_NAME = 'targetState';
 
+const TARGET_TAB = {
+    TARGETS: 'TARGETS',
+    IDENTIFICATIONS: 'IDENTIFICATIONS',
+    DISEASES: 'DISEASES'
+};
+
+const MODE = {
+    TABLE: 'table',
+    ADD: 'add',
+    EDIT: 'edit'
+};
+
 export default class TargetContext {
 
     get targetStorageName() {
         return TARGET_STORAGE_NAME;
     }
+    get targetTab() {
+        return TARGET_TAB;
+    }
+    get mode () {
+        return MODE;
+    }
 
     _alignments = [];
     _featureCoords;
     _currentState = {};
+    _targetsTablePaginationIsVisible;
+    _targetsActionsIsVisible;
+    _targetsTableResetFilterIsVisible = false;
+
+    _targetTableTotalPages = 0;
 
     get alignments () {
         return this._alignments;
@@ -58,6 +81,31 @@ export default class TargetContext {
         }
     }
 
+    get targetTableTotalPages() {
+        return this._targetTableTotalPages;
+    }
+    set targetTableTotalPages(value) {
+        this._targetTableTotalPages = value;
+    }
+    get targetsTablePaginationIsVisible() {
+        return this._targetsTablePaginationIsVisible;
+    }
+    set targetsTablePaginationIsVisible(value) {
+        this._targetsTablePaginationIsVisible = value;
+    }
+    get targetsActionsIsVisible() {
+        return this._targetsActionsIsVisible;
+    }
+    set targetsActionsIsVisible(value) {
+        this._targetsActionsIsVisible = value;
+    }
+    get targetsTableResetFilterIsVisible() {
+        return this._targetsTableResetFilterIsVisible;
+    }
+    set targetsTableResetFilterIsVisible(value) {
+        this._targetsTableResetFilterIsVisible = value;
+    }
+
     static instance(dispatcher) {
         return new TargetContext(dispatcher);
     }
@@ -67,12 +115,14 @@ export default class TargetContext {
         const clear = this.clear.bind(this);
         this.dispatcher.on('reference:change', () => clear(true));
         this.dispatcher.on('chromosome:change', () => clear(true));
+        this.dispatcher.on('target:table:results:updated', this.setTargetsActionsVisibility.bind(this));
     }
 
-    setCurrentTab(tab) {
+    setCurrentTab(tab, mode) {
         const state = {...this.currentState};
         state.tab = tab;
         this.currentState = state;
+        this.setTargetsActionsVisibility(mode);
     }
 
     setCurrentIdentification(target, scope) {
@@ -123,6 +173,20 @@ export default class TargetContext {
         this._alignments = [];
         if (!silent) {
             this.dispatcher.emitSimpleEvent(TargetGenomicsResultEvents.changed, []);
+        }
+    }
+
+    setTargetsActionsVisibility(mode, resetFilterVisibility) {
+        const isTargetTab = this.currentState.tab === this.targetTab.TARGETS;
+        const isTableMode = mode === this.mode.TABLE;
+
+        this.targetsTablePaginationIsVisible = isTargetTab && isTableMode && this.targetTableTotalPages > 1;
+        this.targetsActionsIsVisible = isTargetTab && isTableMode;
+
+        resetFilterVisibility = (resetFilterVisibility !== undefined || (isTargetTab && isTableMode))
+            ? resetFilterVisibility : false;
+        if (resetFilterVisibility !== undefined) {
+            this.targetsTableResetFilterIsVisible = isTargetTab && isTableMode && resetFilterVisibility;
         }
     }
 }

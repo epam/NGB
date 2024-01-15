@@ -181,17 +181,6 @@ class AppearanceContext {
         }
     }
 
-    get targetsActions () {
-        return this._targetsActions;
-    }
-
-    set targetsActions (value) {
-        if (value !== this._targetsActions) {
-            this._targetsActions = value;
-            this.reportStateChange();
-        }
-    }
-
     constructor (dispatcher) {
         this.dispatcher = dispatcher;
         this._embedded = false;
@@ -209,7 +198,6 @@ class AppearanceContext {
         this._genesColumns = true;
         this._genesDownload = true;
         this._coverageActions = true;
-        this._targetsActions = true;
     }
 
     reportStateChange () {
@@ -234,7 +222,6 @@ class AppearanceContext {
                 genescolumns = !this.embedded && this.genesColumns,
                 genesdownload = !this.embedded && this.genesDownload,
                 coverageactions = !this.embedded && this.coverageActions,
-                targetsActions = !this.embedded && this.targetsActions,
                 closelasttrack = !(this.embedded && this.preventCloseLastTrack),
                 closeLastTrack = closelasttrack,
                 closelasttrackignoreformats,
@@ -254,7 +241,6 @@ class AppearanceContext {
             this._genesColumns = genescolumns;
             this._genesDownload = genesdownload;
             this._coverageActions = coverageactions;
-            this._targetsActions = targetsActions;
             this._close = close;
             this._maximise = maximize;
             this.reportStateChange();

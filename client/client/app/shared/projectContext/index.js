@@ -118,7 +118,6 @@ export default class projectContext {
 
     _genesFilterIsDefault = true;
     _bookmarksFilterIsDefault = true;
-    _targetsTableFilterIsVisible = false;
 
     _highlightProfileConditions = [];
 
@@ -307,13 +306,6 @@ export default class projectContext {
 
     set bookmarksFilterIsDefault(value) {
         this._bookmarksFilterIsDefault = value;
-    }
-
-    get targetsTableFilterIsVisible() {
-        return this._targetsTableFilterIsVisible;
-    }
-    set targetsTableFilterIsVisible(value) {
-        this._targetsTableFilterIsVisible = value;
     }
 
     get isBrowserNarrow() {
