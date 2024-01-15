@@ -172,15 +172,18 @@ export default class ngbTargetsTabService {
 
     setTableMode() {
         this.targetMode = this.mode.TABLE;
-        this.targetContext.setTargetsActionsVisibility(this.targetMode);
+        this.targetContext.setTargetsTableActionsVisibility(this.targetMode);
+        this.targetContext.setTargetsFormActionsVisibility(this.targetMode, this.targetModel);
     }
     setAddMode() {
         this.targetMode = this.mode.ADD;
-        this.targetContext.setTargetsActionsVisibility(this.targetMode);
+        this.targetContext.setTargetsTableActionsVisibility(this.targetMode);
+        this.targetContext.setTargetsFormActionsVisibility(this.targetMode, this.targetModel);
     }
     setEditMode() {
         this.targetMode = this.mode.EDIT;
-        this.targetContext.setTargetsActionsVisibility(this.targetMode);
+        this.targetContext.setTargetsTableActionsVisibility(this.targetMode);
+        this.targetContext.setTargetsFormActionsVisibility(this.targetMode, this.targetModel);
     }
     addNewGene() {
         this._targetModel.genes.push({...NEW_GENE});
@@ -199,7 +202,8 @@ export default class ngbTargetsTabService {
             })),
             diseases: (data.diseases || []).filter(d => d),
             products: (data.products || []).filter(p => p),
-            identifications: data.identifications
+            identifications: data.identifications,
+            isParasite: true,
         };
         this.dispatcher.emit('target:model:changed');
     }

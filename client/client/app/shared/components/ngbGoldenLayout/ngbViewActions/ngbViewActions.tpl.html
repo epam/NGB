@@ -13,6 +13,7 @@
     <ngb-coverage-table-actions ng-if="action === actions.coverageTableActions  && action.isVisible(projectContext, appearanceContext)"></ngb-coverage-table-actions>
     <ngb-targets-table-actions ng-if="action === actions.targetsTableActions && action.isVisible(projectContext, appearanceContext, bamCoverageContext, targetContext)"></ngb-targets-table-actions>
     <ngb-targets-table-paginate ng-if="action === actions.targetsTablePagination && action.isVisible(projectContext, appearanceContext, bamCoverageContext, targetContext)"></ngb-targets-table-paginate>
+    <ngb-targets-form-actions ng-if="action === actions.targetsFormActions && action.isVisible(projectContext, appearanceContext, bamCoverageContext, targetContext)"></ngb-targets-form-actions>
     <ngb-close-all-tracks ng-if="action === actions.closeAllTracks && tracksAreSelected() && action.isVisible(projectContext, appearanceContext)"></ngb-close-all-tracks>
     <ngb-project-info-sections ng-if="action === actions.projectInfoSections && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext, appearanceContext))"></ngb-project-info-sections>
     <ngb-genome-annotations ng-if="action === actions.genomeAnnotations && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext, appearanceContext))"></ngb-genome-annotations>

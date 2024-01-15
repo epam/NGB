@@ -25,6 +25,14 @@ export default class ngbTargetGenesTableService {
     }
 
     _tableResults = null;
+    _displayFilters = false;
+
+    get displayFilters() {
+        return this._displayFilters;
+    }
+    set displayFilters(value) {
+        this._displayFilters = value;
+    }
 
     static instance (dispatcher, ngbTargetsTabService) {
         return new ngbTargetGenesTableService(dispatcher, ngbTargetsTabService);
@@ -58,4 +66,6 @@ export default class ngbTargetGenesTableService {
     resetTargetModel() {
         this._tableResults = null;
     }
+
+    async onChangeShowFilters() {}
 }

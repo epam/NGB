@@ -223,12 +223,12 @@ export default class ngbTargetsTableService {
             delete filter[field];
         }
         this._filterInfo = filter;
-        this.targetContext.setTargetsActionsVisibility(this.ngbTargetsTabService.targetMode, !this.isFilterEmpty);
+        this.targetContext.setTargetsTableActionsVisibility(this.ngbTargetsTabService.targetMode, !this.isFilterEmpty);
     }
 
     resetFilters() {
         this._filterInfo = null;
-        this.targetContext.setTargetsActionsVisibility(this.ngbTargetsTabService.targetMode, false);
+        this.targetContext.setTargetsTableActionsVisibility(this.ngbTargetsTabService.targetMode, false);
         this.dispatcher.emitSimpleEvent('targets:filters:changed');
     }
 

@@ -146,7 +146,7 @@ const targetsTableActions = {
     name: 'targetsTableActions',
     isDefault: true,
     isVisible: (context, appearance, bamCoverageContext, targetContext) => (
-        targetContext && targetContext.targetsActionsIsVisible
+        targetContext && targetContext.targetsTableActionsIsVisible
     )
 };
 const targetsTablePagination = {
@@ -167,6 +167,14 @@ const targetsTableResetFilter = {
     label: 'Reset targets table filter',
     isVisible: (context, appearance, bamCoverageContext, targetContext) => (
         targetContext && targetContext.targetsTableResetFilterIsVisible
+    )
+};
+
+const targetsFormActions = {
+    name: 'targetsFormActions',
+    isDefault: true,
+    isVisible: (context, appearance, bamCoverageContext, targetContext) => (
+        targetContext && targetContext.targetsFormActionsIsVisible
     )
 };
 
@@ -193,6 +201,7 @@ export default {
         targetsTableActions: targetsTableActions,
         targetsTablePagination: targetsTablePagination,
         targetsTableResetFilter: targetsTableResetFilter,
+        targetsFormActions: targetsFormActions,
     },
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
@@ -200,6 +209,6 @@ export default {
         ngbGenesTablePanel: [genesTableDownloadAction, genesResetFilterActions, genesTableColumnAction],
         ngbBookmarksPanel: [bookmarksTablePaginationAction, bookmarksResetFilterActions],
         ngbCoveragePanel: [coverageResetFilters, coverageTableActions],
-        ngbTargetPanel: [targetsTableResetFilter, targetsTablePagination, targetsTableActions],
+        ngbTargetPanel: [targetsTableResetFilter, targetsTablePagination, targetsTableActions, targetsFormActions],
     }
 };

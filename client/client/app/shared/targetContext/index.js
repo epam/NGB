@@ -34,8 +34,10 @@ export default class TargetContext {
     _featureCoords;
     _currentState = {};
     _targetsTablePaginationIsVisible;
-    _targetsActionsIsVisible;
+    _targetsTableActionsIsVisible;
     _targetsTableResetFilterIsVisible = false;
+
+    _targetsFormActionsIsVisible;
 
     _targetTableTotalPages = 0;
 
@@ -93,17 +95,23 @@ export default class TargetContext {
     set targetsTablePaginationIsVisible(value) {
         this._targetsTablePaginationIsVisible = value;
     }
-    get targetsActionsIsVisible() {
-        return this._targetsActionsIsVisible;
+    get targetsTableActionsIsVisible() {
+        return this._targetsTableActionsIsVisible;
     }
-    set targetsActionsIsVisible(value) {
-        this._targetsActionsIsVisible = value;
+    set targetsTableActionsIsVisible(value) {
+        this._targetsTableActionsIsVisible = value;
     }
     get targetsTableResetFilterIsVisible() {
         return this._targetsTableResetFilterIsVisible;
     }
     set targetsTableResetFilterIsVisible(value) {
         this._targetsTableResetFilterIsVisible = value;
+    }
+    get targetsFormActionsIsVisible() {
+        return this._targetsFormActionsIsVisible;
+    }
+    set targetsFormActionsIsVisible(value) {
+        this._targetsFormActionsIsVisible = value;
     }
 
     static instance(dispatcher) {
@@ -115,14 +123,14 @@ export default class TargetContext {
         const clear = this.clear.bind(this);
         this.dispatcher.on('reference:change', () => clear(true));
         this.dispatcher.on('chromosome:change', () => clear(true));
-        this.dispatcher.on('target:table:results:updated', this.setTargetsActionsVisibility.bind(this));
+        this.dispatcher.on('target:table:results:updated', this.setTargetsTableActionsVisibility.bind(this));
     }
 
     setCurrentTab(tab, mode) {
         const state = {...this.currentState};
         state.tab = tab;
         this.currentState = state;
-        this.setTargetsActionsVisibility(mode);
+        this.setTargetsTableActionsVisibility(mode);
     }
 
     setCurrentIdentification(target, scope) {
@@ -176,17 +184,21 @@ export default class TargetContext {
         }
     }
 
-    setTargetsActionsVisibility(mode, resetFilterVisibility) {
+    setTargetsTableActionsVisibility(mode, resetFilterVisibility) {
         const isTargetTab = this.currentState.tab === this.targetTab.TARGETS;
         const isTableMode = mode === this.mode.TABLE;
 
         this.targetsTablePaginationIsVisible = isTargetTab && isTableMode && this.targetTableTotalPages > 1;
-        this.targetsActionsIsVisible = isTargetTab && isTableMode;
+        this.targetsTableActionsIsVisible = isTargetTab && isTableMode;
 
         resetFilterVisibility = (resetFilterVisibility !== undefined || (isTargetTab && isTableMode))
             ? resetFilterVisibility : false;
         if (resetFilterVisibility !== undefined) {
             this.targetsTableResetFilterIsVisible = isTargetTab && isTableMode && resetFilterVisibility;
         }
+    }
+
+    setTargetsFormActionsVisibility(mode, model) {
+        this.targetsFormActionsIsVisible = (mode === this.mode.EDIT && model.isParasite);
     }
 }
