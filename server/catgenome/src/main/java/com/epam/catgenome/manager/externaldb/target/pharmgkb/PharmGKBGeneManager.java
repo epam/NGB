@@ -25,6 +25,7 @@ package com.epam.catgenome.manager.externaldb.target.pharmgkb;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBGene;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
@@ -84,6 +85,11 @@ public class PharmGKBGeneManager extends AbstractIndexManager<PharmGKBGene> {
 
     @Override
     public SortField getDefaultSortField() {
+        return null;
+    }
+
+    @Override
+    public FilterType getFilterType(String fieldName) {
         return null;
     }
 

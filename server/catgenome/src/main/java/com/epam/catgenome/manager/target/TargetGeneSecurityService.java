@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023-2024 EPAM Systems
+ * Copyright (c) 2024 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,9 @@
  */
 package com.epam.catgenome.manager.target;
 
-import com.epam.catgenome.entity.target.Target;
-import com.epam.catgenome.entity.target.TargetQueryParams;
-import com.epam.catgenome.exception.TargetUpdateException;
-import com.epam.catgenome.util.db.Page;
+import com.epam.catgenome.entity.target.TargetGene;
+import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.index.SearchRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,47 +33,49 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
 @Service
 @RequiredArgsConstructor
-public class TargetSecurityService {
+public class TargetGeneSecurityService {
 
-    private final TargetManager targetManager;
+    private final TargetGeneManager targetGeneManager;
 
     @PreAuthorize(ROLE_USER)
-    public Target loadTarget(final long targetId) {
-        return targetManager.load(targetId);
+    public void importGenes(final String path, final long targetId) throws IOException, ParseException {
+        targetGeneManager.importData(path, targetId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public Page<Target> loadTargets(final TargetQueryParams queryParameters) {
-        return targetManager.load(queryParameters);
+    public void create(final long targetId, final List<TargetGene> targetGenes) throws IOException {
+        targetGeneManager.create(targetId, targetGenes);
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<Target> loadTargets(final String geneName, final Long taxId) throws ParseException, IOException {
-        return targetManager.load(geneName, taxId);
+    public void update(final List<TargetGene> targetGenes) throws IOException, ParseException {
+        targetGeneManager.update(targetGenes);
     }
 
     @PreAuthorize(ROLE_USER)
-    public Target createTarget(final Target target) throws IOException {
-        return targetManager.create(target);
+    public void delete(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
+        targetGeneManager.delete(targetId, geneIds);
     }
 
     @PreAuthorize(ROLE_USER)
-    public void deleteTarget(final long targetId) throws ParseException, IOException {
-        targetManager.delete(targetId);
+    public SearchResult<TargetGene> filter(final long targetId, final SearchRequest request)
+            throws ParseException, IOException {
+        return targetGeneManager.filter(targetId, request);
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<String> loadFieldValues(final TargetField field) {
-        return targetManager.loadFieldValues(field);
+    public Set<String> getFields(final long targetId) throws ParseException, IOException {
+        return targetGeneManager.getFields(targetId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public Target updateTarget(final Target target) throws TargetUpdateException, IOException {
-        return targetManager.update(target);
+    public List<String> getFieldValues(final long targetId, final String field) throws ParseException, IOException {
+        return targetGeneManager.getFieldValues(targetId, field);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 EPAM Systems
+ * Copyright (c) 2023-2024 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,7 @@ import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -43,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -54,8 +56,7 @@ import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.util.Utils.*;
-import static com.epam.catgenome.util.db.DBQueryUtils.getGeneIdsClause;
-import static com.epam.catgenome.util.db.DBQueryUtils.getInClause;
+import static com.epam.catgenome.util.db.DBQueryUtils.*;
 import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
@@ -63,6 +64,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 public class TargetManager {
 
     private static final String TARGET_NAME = "target_name";
+    private static final String TARGET_ID = "t.target_id";
     private static final String OWNER = "owner";
     private static final String PRODUCTS = "products";
     private static final String DISEASES = "diseases";
@@ -71,57 +73,62 @@ public class TargetManager {
     private static final String SPECIES_NAME = "species_name";
     private final TargetDao targetDao;
     private final TargetGeneDao targetGeneDao;
+    private final TargetGeneManager targetGeneManager;
     private final TargetIdentificationDao targetIdentificationDao;
     private final AuthManager authManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public Target create(final Target target) {
+    public Target create(final Target target) throws IOException {
         if (StringUtils.isEmpty(target.getOwner())) {
             target.setOwner(authManager.getAuthorizedUser());
         }
         target.setAlignmentStatus(AlignmentStatus.NOT_ALIGNED);
         target.setPatentsSearchStatus(PatentsSearchStatus.NOT_STARTED);
         final Target createdTarget = targetDao.saveTarget(target);
-        final List<TargetGene> targetGenes = targetGeneDao.saveTargetGenes(target.getTargetGenes(),
-                target.getTargetId());
-        createdTarget.setTargetGenes(targetGenes);
+        if (isDefault(target)) {
+            final List<TargetGene> targetGenes = targetGeneDao.saveTargetGenes(target.getTargetGenes(),
+                    target.getTargetId());
+            createdTarget.setTargetGenes(targetGenes);
+        }
         return createdTarget;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public Target update(final Target target) throws TargetUpdateException {
-        final Target oldTarget = getTarget(target.getTargetId());
-        final List<String> genesToDelete = getGenesToDelete(target, oldTarget);
-        if (!CollectionUtils.isEmpty(genesToDelete)) {
-            final List<TargetIdentification> targetIdentifications = oldTarget.getIdentifications();
-            final List<TargetIdentification> identifications = new ArrayList<>();
-            targetIdentifications.forEach(i -> {
-                List<String> genesOfInterest = i.getGenesOfInterest().stream()
-                        .map(String::toLowerCase)
-                        .collect(Collectors.toList());
-                List<String> translationalGenes = i.getTranslationalGenes().stream()
-                        .map(String::toLowerCase)
-                        .collect(Collectors.toList());
-                if (genesOfInterest.stream().filter(genesToDelete::contains).count() +
-                        translationalGenes.stream().filter(genesToDelete::contains).count() > 0) {
-                    identifications.add(i);
-                }
-            });
-            if (!CollectionUtils.isEmpty(identifications)) {
-                final boolean force = Optional.ofNullable(target.getForce()).orElse(false);
-                if (force) {
-                    identifications.forEach(i -> targetIdentificationDao.delete(i.getId()));
-                } else {
-                    final List<String> identificationNames = identifications.stream()
-                            .map(BaseEntity::getName)
+    public Target update(final Target target) throws TargetUpdateException, IOException {
+        if (isDefault(target)) {
+            final Target oldTarget = getTarget(target.getTargetId());
+            final List<String> genesToDelete = getGenesToDelete(target, oldTarget);
+            if (!CollectionUtils.isEmpty(genesToDelete)) {
+                final List<TargetIdentification> targetIdentifications = oldTarget.getIdentifications();
+                final List<TargetIdentification> identifications = new ArrayList<>();
+                targetIdentifications.forEach(i -> {
+                    List<String> genesOfInterest = i.getGenesOfInterest().stream()
+                            .map(String::toLowerCase)
                             .collect(Collectors.toList());
-                    throw new TargetUpdateException(String.format("Can't delete genes %s because of saved " +
-                                    "identifications %s", join(genesToDelete, ","),
-                            join(identificationNames, ",")));
+                    List<String> translationalGenes = i.getTranslationalGenes().stream()
+                            .map(String::toLowerCase)
+                            .collect(Collectors.toList());
+                    if (genesOfInterest.stream().filter(genesToDelete::contains).count() +
+                            translationalGenes.stream().filter(genesToDelete::contains).count() > 0) {
+                        identifications.add(i);
+                    }
+                });
+                if (!CollectionUtils.isEmpty(identifications)) {
+                    final boolean force = Optional.ofNullable(target.getForce()).orElse(false);
+                    if (force) {
+                        identifications.forEach(i -> targetIdentificationDao.delete(i.getId()));
+                    } else {
+                        final List<String> identificationNames = identifications.stream()
+                                .map(BaseEntity::getName)
+                                .collect(Collectors.toList());
+                        throw new TargetUpdateException(String.format("Can't delete genes %s because of saved " +
+                                        "identifications %s", join(genesToDelete, ","),
+                                join(identificationNames, ",")));
+                    }
                 }
             }
+            targetGeneDao.deleteTargetGenes(target.getTargetId());
         }
-        targetGeneDao.deleteTargetGenes(target.getTargetId());
         final Target updatedTarget = create(target);
         updatedTarget.setIdentifications(
                 targetIdentificationDao.loadTargetIdentifications(updatedTarget.getTargetId()));
@@ -139,10 +146,14 @@ public class TargetManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void delete(final long targetId) {
-        getTarget(targetId);
+    public void delete(final long targetId) throws ParseException, IOException {
+        final Target target = getTarget(targetId);
         targetIdentificationDao.deleteTargetIdentifications(targetId);
-        targetGeneDao.deleteTargetGenes(targetId);
+        if (isDefault(target)) {
+            targetGeneDao.deleteTargetGenes(targetId);
+        } else {
+            targetGeneManager.delete(targetId, Collections.emptyList());
+        }
         targetDao.deleteTarget(targetId);
     }
 
@@ -190,8 +201,10 @@ public class TargetManager {
                 .build();
     }
 
-    public List<Target> load(final String geneName, final Long taxId) {
-        final String clause = getFilterClause(geneName, taxId);
+    public List<Target> load(final String geneName, final Long taxId) throws ParseException, IOException {
+        final List<TargetGene> targetGenes = targetGeneManager.search(geneName, taxId);
+        final Set<Long> targetIds = targetGenes.stream().map(TargetGene::getTargetId).collect(Collectors.toSet());
+        final String clause = getFilterClause(geneName, taxId, targetIds);
         final SortInfo sortInfo = SortInfo.builder()
                 .field(TARGET_NAME)
                 .ascending(true)
@@ -264,13 +277,20 @@ public class TargetManager {
         return join(clauses, Condition.AND.getValue());
     }
 
-    private static String getFilterClause(final String geneName, final Long taxId) {
-        final List<String> clauses = new ArrayList<>();
+    private static String getFilterClause(final String geneName, final Long taxId, final Set<Long> targetIds) {
+        List<String> clauses = new ArrayList<>();
         clauses.add(String.format(EQUAL_CLAUSE_STRING, GENE_NAME, geneName));
         if (taxId != null) {
             clauses.add(String.format(EQUAL_CLAUSE_NUMBER, TAX_ID, taxId));
         }
-        return join(clauses, Condition.AND.getValue());
+        String clause = join(clauses, Condition.AND.getValue());
+        if (!CollectionUtils.isEmpty(targetIds)) {
+            clauses = new ArrayList<>();
+            clauses.add(clause);
+            clauses.add(String.format(IN_CLAUSE, TARGET_ID, join(targetIds, ",")));
+            clause = join(clauses, Condition.OR.getValue());
+        }
+        return clause;
     }
 
     @NotNull
@@ -323,5 +343,9 @@ public class TargetManager {
         return oldGenes.stream()
                 .filter(g -> !newGenes.contains(g))
                 .collect(Collectors.toList());
+    }
+
+    private static boolean isDefault(final Target target) {
+        return Optional.ofNullable(target.getType()).orElse(TargetType.DEFAULT) == TargetType.DEFAULT;
     }
 }

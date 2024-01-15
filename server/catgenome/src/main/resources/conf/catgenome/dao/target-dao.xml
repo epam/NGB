@@ -14,7 +14,8 @@
                         alignment_status,
                         patents_search_status,
                         diseases,
-                        products
+                        products,
+                        type
                     ) VALUES (
                         :TARGET_ID,
                         :TARGET_NAME,
@@ -22,7 +23,8 @@
                         :ALIGNMENT_STATUS,
                         :PATENTS_SEARCH_STATUS,
                         :DISEASES,
-                        :PRODUCTS
+                        :PRODUCTS,
+                        :TYPE
                     )
                 ]]>
             </value>
@@ -75,7 +77,8 @@
                         alignment_status,
                         patents_search_status,
                         diseases,
-                        products
+                        products,
+                        type
                     FROM catgenome.target
                 ]]>
             </value>
@@ -91,6 +94,7 @@
                         t.alignment_status,
                         t.patents_search_status,
                         t.products,
+                        t.type,
                         g.target_gene_id,
                         g.gene_id,
                         g.gene_name,
@@ -113,6 +117,7 @@
                         t.alignment_status,
                         t.patents_search_status,
                         t.products,
+                        t.type,
                         g.target_gene_id,
                         g.gene_id,
                         g.gene_name,
@@ -136,6 +141,7 @@
                         t.alignment_status,
                         t.patents_search_status,
                         t.products,
+                        t.type,
                         g.target_gene_id,
                         g.gene_id,
                         g.gene_name,
@@ -158,7 +164,8 @@
                         t.alignment_status,
                         t.patents_search_status,
                         t.diseases,
-                        t.products
+                        t.products,
+                        t.type
                     FROM catgenome.target t left join catgenome.target_gene g on t.target_id = g.target_id
                 ]]>
             </value>

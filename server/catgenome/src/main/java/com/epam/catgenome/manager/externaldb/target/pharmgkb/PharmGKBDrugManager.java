@@ -25,6 +25,7 @@ package com.epam.catgenome.manager.externaldb.target.pharmgkb;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
@@ -87,15 +88,13 @@ public class PharmGKBDrugManager extends AbstractIndexManager<PharmGKBDrug> {
     }
 
     @Override
-    public List<PharmGKBDrug> processEntries(List<PharmGKBDrug> entries) {
-        return entries;
+    public FilterType getFilterType(String fieldName) {
+        return null;
     }
 
-    @Getter
-    private enum IndexFields {
-        DRUG_ID,
-        DRUG_NAME,
-        SOURCE;
+    @Override
+    public List<PharmGKBDrug> processEntries(List<PharmGKBDrug> entries) {
+        return entries;
     }
 
     @Override
@@ -114,5 +113,12 @@ public class PharmGKBDrugManager extends AbstractIndexManager<PharmGKBDrug> {
                 .name(doc.getField(IndexFields.DRUG_NAME.name()).stringValue())
                 .source(doc.getField(IndexFields.SOURCE.name()).stringValue())
                 .build();
+    }
+
+    @Getter
+    private enum IndexFields {
+        DRUG_ID,
+        DRUG_NAME,
+        SOURCE;
     }
 }

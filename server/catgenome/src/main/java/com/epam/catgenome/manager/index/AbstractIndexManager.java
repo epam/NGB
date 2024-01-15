@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.manager.index;
 
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.google.common.collect.Lists;
 import org.apache.lucene.document.Document;
@@ -31,6 +32,8 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -46,7 +49,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
+import static com.epam.catgenome.util.IndexUtils.*;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 public abstract class AbstractIndexManager<T> {
@@ -139,6 +142,15 @@ public abstract class AbstractIndexManager<T> {
         }
     }
 
+    public void delete(final Query query) throws IOException, ParseException {
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+             IndexWriter writer = new IndexWriter(
+                     index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
+                     .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
+            writer.deleteDocuments(query);
+        }
+    }
+
     public Sort getSort(final List<OrderInfo> orderInfos) {
         final List<SortField> sortFields = new ArrayList<>();
         if (orderInfos == null) {
@@ -153,10 +165,33 @@ public abstract class AbstractIndexManager<T> {
         return new Sort(sortFields.toArray(new SortField[sortFields.size()]));
     }
 
+    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) throws ParseException {
+        Query query;
+        switch (getFilterType(filter.getField())) {
+            case PHRASE:
+                query = getByPhraseQuery(filter.getTerms().get(0), filter.getField());
+                break;
+            case TERM:
+                query = getByTermsQuery(filter.getTerms(), filter.getField());
+                break;
+            case OPTIONS:
+                query = getByOptionsQuery(filter.getTerms(), filter.getField());
+                break;
+            case RANGE:
+                query = getByRangeQuery(filter.getRange(), filter.getField());
+                break;
+            default:
+                return;
+        }
+        builder.add(query, BooleanClause.Occur.MUST);
+    }
+
     public Sort getDefaultSort() {
         final List<SortField> sortFields = Collections.singletonList(getDefaultSortField());
         return new Sort(sortFields.toArray(new SortField[1]));
     }
+
+    public abstract FilterType getFilterType(String fieldName);
 
     public abstract List<T> readEntries(String path) throws IOException;
     public abstract SortField getDefaultSortField();

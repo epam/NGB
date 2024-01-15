@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023-2024 EPAM Systems
+ * Copyright (c) 2024 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,37 +23,27 @@
  */
 package com.epam.catgenome.entity.target;
 
-import com.epam.catgenome.entity.security.AbstractSecuredEntity;
-import com.epam.catgenome.entity.security.AclClass;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+@AllArgsConstructor
 @Getter
-@Setter
-@Builder
-public class Target extends AbstractSecuredEntity {
-    private Long targetId;
-    private String targetName;
-    private String owner;
-    private AlignmentStatus alignmentStatus;
-    private PatentsSearchStatus patentsSearchStatus;
-    private List<String> diseases;
-    private List<String> products;
-    private List<TargetGene> targetGenes;
-    private List<TargetIdentification> identifications;
-    private Boolean force;
-    private TargetType type;
+public enum TargetType {
+    DEFAULT(0),
+    PARASITE(1);
 
-    @Override
-    public AbstractSecuredEntity getParent() {
-        return null;
+    private final int value;
+    private static final Map<Integer, TargetType> VALUES_MAP = new HashMap<>();
+
+    static {
+        VALUES_MAP.put(0, DEFAULT);
+        VALUES_MAP.put(1, PARASITE);
     }
 
-    @Override
-    public AclClass getAclClass() {
-        return  AclClass.TARGET;
+    public static TargetType getByValue(int id) {
+        return VALUES_MAP.get(id);
     }
 }
