@@ -36,6 +36,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -361,21 +362,15 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             final Header header = getHeader(sheet.getRow(0));
             for (int i = 1; i < totalRows; i++) {
                 Row row = sheet.getRow(i);
-                Map<String, String> metadata = new HashMap<>();
-                header.getMetadataIndexes().forEach((k, v) -> {
-                    Cell cell = row.getCell(v);
-                    if (cell != null) {
-                        metadata.put(k, row.getCell(v).getStringCellValue());
-                    }
-                });
+
                 Cell geneIdCell = row.getCell(header.getIdIndex());
                 Assert.notNull(geneIdCell, "Gene ID column not found");
-                String geneId = geneIdCell.getStringCellValue();
+                String geneId = getCellValue(geneIdCell);
                 Assert.isTrue(!TextUtils.isBlank(geneId), "Gene ID should not be blank");
 
                 Cell geneNameCell = row.getCell(header.getNameIndex());
                 Assert.notNull(geneNameCell, "Gene Name column not found");
-                String geneName = geneNameCell.getStringCellValue();
+                String geneName = getCellValue(geneNameCell);
                 Assert.isTrue(!TextUtils.isBlank(geneName), "Gene name should not be blank");
 
                 Cell taxIdCell = row.getCell(header.getTaxIdIndex());
@@ -384,8 +379,19 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
                 Cell speciesNameCell = row.getCell(header.getSpeciesNameIndex());
                 Assert.notNull(speciesNameCell, "Species name column not found");
-                String speciesName = speciesNameCell.getStringCellValue();
+                String speciesName = getCellValue(speciesNameCell);
                 Assert.isTrue(!TextUtils.isBlank(speciesName), "Species name should not be blank");
+
+                Map<String, String> metadata = new HashMap<>();
+                header.getMetadataIndexes().forEach((k, v) -> {
+                    Cell cell = row.getCell(v);
+                    if (cell != null) {
+                        String cellValue = getCellValue(cell);
+                        if (StringUtils.isNotBlank(cellValue)) {
+                            metadata.put(k, cellValue);
+                        }
+                    }
+                });
 
                 TargetGene gene = TargetGene.builder()
                         .targetId(targetId)
@@ -399,6 +405,24 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             }
         }
         return entries;
+    }
+
+    private static String getCellValue(final Cell cell) {
+        String cellValue = "";
+        switch (cell.getCellTypeEnum()) {
+            case STRING:
+                cellValue = cell.getStringCellValue();
+                break;
+            case NUMERIC:
+                cellValue = String.valueOf(cell.getNumericCellValue());
+                break;
+            case BOOLEAN:
+                cellValue = String.valueOf(cell.getBooleanCellValue());
+                break;
+            default:
+                break;
+        }
+        return cellValue;
     }
 
     private Header getHeader(final Row headerRow) {
