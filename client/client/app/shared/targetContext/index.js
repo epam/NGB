@@ -18,6 +18,11 @@ const MODE = {
     EDIT: 'edit'
 };
 
+const TARGET_TYPE = {
+    DEFAULT: 'DEFAULT',
+    PARASITE: 'PARASITE'
+};
+
 export default class TargetContext {
 
     get targetStorageName() {
@@ -28,6 +33,9 @@ export default class TargetContext {
     }
     get mode () {
         return MODE;
+    }
+    get targetType() {
+        return TARGET_TYPE;
     }
 
     _alignments = [];
@@ -199,6 +207,7 @@ export default class TargetContext {
     }
 
     setTargetsFormActionsVisibility(mode, model) {
-        this.targetsFormActionsIsVisible = (mode === this.mode.EDIT && model.isParasite);
+        this.targetsFormActionsIsVisible = (mode === this.mode.EDIT &&
+            model.type === this.targetType.PARASITE);
     }
 }

@@ -122,10 +122,11 @@ export default class ngbTargetsFormController{
     }
 
     getUpdateRequest() {
-        const {id, name, diseases, products, genes} = this.targetModel;
+        const {id, name, diseases, products, genes, type} = this.targetModel;
         const request = {
             targetId: id,
             targetName: name,
+            type,
             diseases,
             products,
             targetGenes: genes.map(g => {
@@ -158,9 +159,10 @@ export default class ngbTargetsFormController{
     }
 
     getAddRequest() {
-        const {name, diseases, products, genes} = this.targetModel;
+        const {name, diseases, products, genes, type} = this.targetModel;
         const request = {
             targetName: name,
+            type,
             diseases,
             products,
             targetGenes: genes.map(g => {

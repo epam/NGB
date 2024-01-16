@@ -44,6 +44,20 @@
         </md-button>
     </div>
     <div class="ngb-targets-form-section">
+        <div>
+            <label id="targetType" class="radio-title">Type:</label>
+            <md-radio-group ng-model="$ctrl.targetModel.type"
+                            aria-labelledby="targetType">
+                <md-radio-button value="DEFAULT"
+                                 class="radio-button">
+                    Default
+                </md-radio-button>
+                <md-radio-button value="PARASITE"
+                                 class="radio-button">
+                    Parasite
+                </md-radio-button>
+            </md-radio-group>
+        </div>
         <ngb-tags class="ngb-target-diseases"
                   tag-title="'Diseases:'"
                   tags="$ctrl.targetModel.diseases"

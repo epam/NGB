@@ -16,14 +16,17 @@ ngb-targets-form-actions {
                 fill: #FFF;
             }
         }
+
+        .restore-view-button {
+            font-size: 14px;
+            padding-left: 14px;
+            cursor: pointer;
+            text-decoration: underline;
+            color: rgb(0, 0, 238);
+        }
     }
 }
 
-.targets-actions {
-    padding: 0;
-    overflow-y: hidden;
-}
-
-.show-filters-checkbox {
+.menu-checkbox {
     margin-bottom: auto;
 }

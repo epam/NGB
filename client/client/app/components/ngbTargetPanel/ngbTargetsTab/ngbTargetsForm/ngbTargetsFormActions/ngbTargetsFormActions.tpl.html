@@ -6,13 +6,35 @@
     </md-button>
     <md-menu-content width="4" class="targets-actions">
         <md-menu-item>
+            <div class="for-md-tooltip-work restore-view-button"
+                 ng-click="$ctrl.onClickRestore()">
+                Restore view
+            </div>
+        </md-menu-item>
+        <md-divider></md-divider>
+        <md-menu-item>
             <div class="for-md-tooltip-work">
                 <md-checkbox flex
                              layout="row"
-                             class="text__sm show-filters-checkbox"
+                             class="text__sm menu-checkbox"
                              ng-model="$ctrl.displayFilters"
                              ng-change="$ctrl.onChangeShowFilters()">
                     Show filters
+                </md-checkbox>
+            </div>
+        </md-menu-item>
+        <md-divider></md-divider>
+        <md-menu-item ng-repeat="column in $ctrl.columnsList | orderBy: 'name'">
+            <div class="for-md-tooltip-work">
+                <md-checkbox flex
+                             layout="row"
+                             class="text__sm menu-checkbox"
+                             ng-model="column.selection"
+                             ng-change="$ctrl.onChangeColumn()">
+                    {{column.name}}
+                    <md-tooltip class="z-index-more" md-direction="top">
+                        {{column.description}}
+                    </md-tooltip>
                 </md-checkbox>
             </div>
         </md-menu-item>

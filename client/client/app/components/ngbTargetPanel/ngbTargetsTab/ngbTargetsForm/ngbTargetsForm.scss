@@ -61,6 +61,35 @@
             }
         }
     }
+
+    .radio-title {
+        font-weight: bold;
+        font-size: 13px;
+        color: #333333;
+        min-width: 60px;
+        margin-left: 5px;
+    }
+
+    md-radio-button.radio-button {
+        display: inline;
+        font-size: 13px;
+
+        .md-container {
+            width: 16px;
+            height: 16px;
+            left: 10px;
+        }
+
+        .md-on {
+            width: 16px;
+            height: 16px;
+        }
+
+        .md-off {
+            width: 16px;
+            height: 16px;
+        }
+    }
 }
 
 .form-header {

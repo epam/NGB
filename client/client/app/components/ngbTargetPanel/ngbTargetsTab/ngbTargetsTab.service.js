@@ -41,6 +41,9 @@ export default class ngbTargetsTabService {
     get geneModelProperties() {
         return GENE_MODEL_PROPERTIES;
     }
+    get targetType() {
+        return this.targetContext.targetType;
+    }
 
     get targetMode() {
         return this._targetMode;
@@ -203,7 +206,7 @@ export default class ngbTargetsTabService {
             diseases: (data.diseases || []).filter(d => d),
             products: (data.products || []).filter(p => p),
             identifications: data.identifications,
-            isParasite: true,
+            type: data.type,
         };
         this.dispatcher.emit('target:model:changed');
     }
@@ -261,7 +264,8 @@ export default class ngbTargetsTabService {
             name: '',
             genes: [],
             diseases: [],
-            products: []
+            products: [],
+            type: this.targetType.DEFAULT
         };
         this.dispatcher.emit('target:model:changed');
     }
@@ -275,6 +279,7 @@ export default class ngbTargetsTabService {
 
     targetModelChanged() {
         const nameChanged = this.originalModel.targetName !== this.targetModel.name;
+        const typeChanged = this.originalModel.type !== this.targetModel.type;
         const changed = (block) => {
             const originalBlock = (this.originalModel[block] || []).sort();
             const modelBlock = (this.targetModel[block] || []).sort();
@@ -296,7 +301,7 @@ export default class ngbTargetsTabService {
                 })
             ));
         };
-        return nameChanged || changed('diseases') || changed('products') || genesChanged();
+        return nameChanged || typeChanged || changed('diseases') || changed('products') || genesChanged();
     }
 
     postNewTarget(request) {
