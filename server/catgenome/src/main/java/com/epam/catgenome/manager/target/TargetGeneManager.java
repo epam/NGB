@@ -74,14 +74,7 @@ import org.springframework.util.Assert;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
@@ -91,8 +84,6 @@ import static org.apache.poi.ss.usermodel.CellType.NUMERIC;
 @Service
 public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
-    private static final List<String> DEFAULT_COLUMNS = Arrays.asList("Target ID", "Gene ID", "Gene Name",
-            "Tax ID", "Species Name", "Priority");
     private static final List<String> GENE_IDS = Arrays.asList("gene id", "id", "gene", "gene_id");
     private static final List<String> GENE_NAMES = Arrays.asList("gene name", "name", "gene_name");
     private static final List<String> TAX_IDS = Arrays.asList("tax id", "tax_id", "organism_id");
@@ -117,7 +108,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     public Set<String> getFields(final Long targetId) throws ParseException, IOException {
-        final Set<String> defaultColumns = new LinkedHashSet<>(DEFAULT_COLUMNS);
+        final Set<String> defaultColumns = new LinkedHashSet<>(IndexField.VALUES_MAP.keySet());
         Set<String> fields = new HashSet<>();
         Query query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
@@ -338,7 +329,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
         private final String value;
         private final FilterType type;
-        private static final Map<String, IndexField> VALUES_MAP = new HashMap<>();
+        private static final Map<String, IndexField> VALUES_MAP = new LinkedHashMap<>();
         static {
             VALUES_MAP.put("Target ID", TARGET_ID);
             VALUES_MAP.put("Gene ID", GENE_ID);
