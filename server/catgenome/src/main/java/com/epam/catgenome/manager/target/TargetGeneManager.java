@@ -138,7 +138,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, FIELD_VALUES_TOP_HITS);
+            TopDocs topDocs = searcher.search(query, topHits);
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
                 IndexableField indexableField = doc.getField(field);
@@ -148,7 +148,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             }
         }
         final List<String> result = new ArrayList<>(values);
-        return result.stream().sorted().collect(Collectors.toList());
+        return result.stream().sorted().limit(FIELD_VALUES_TOP_HITS).collect(Collectors.toList());
     }
 
     public void delete(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
