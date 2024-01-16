@@ -267,6 +267,7 @@ export default class ngbTargetsTableController {
         if (!this.gridApi) {
             return;
         }
+        this.loadingData = true;
         this.currentPage = page;
         this.gridOptions.data = [];
         const request = await this.ngbTargetsTableService.setGetTargetsRequest();
@@ -300,8 +301,12 @@ export default class ngbTargetsTableController {
 
     async openTarget (row, event) {
         event.stopPropagation();
-        await this.ngbTargetsTabService.getTarget(row.id);
-        this.$timeout(() => this.$scope.$apply());
+        this.loadingData = true;
+        await this.ngbTargetsTabService.getTarget(row.id, row.type);
+        this.$timeout(() => {
+            this.loadingData = false;
+            this.$scope.$apply();
+        });
     }
 
     showOthers(cell, event) {

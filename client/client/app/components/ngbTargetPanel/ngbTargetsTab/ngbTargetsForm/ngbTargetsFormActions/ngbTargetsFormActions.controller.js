@@ -18,4 +18,8 @@ export default class ngbTargetsFormActionsController {
     async onChangeShowFilters() {
         await this.ngbTargetGenesTableService.onChangeShowFilters();
     }
+
+    onClickRestore() {}
+
+    onChangeColumn() {}
 }

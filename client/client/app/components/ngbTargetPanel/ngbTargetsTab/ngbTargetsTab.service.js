@@ -196,7 +196,7 @@ export default class ngbTargetsTabService {
         this._targetModel = {
             id: data.targetId,
             name: data.targetName,
-            genes: data.targetGenes.map(gene => ({
+            genes: (data.targetGenes || []).map(gene => ({
                 geneId: gene.geneId,
                 geneName: gene.geneName,
                 taxId: gene.taxId,
@@ -220,7 +220,56 @@ export default class ngbTargetsTabService {
         this._originalModel.products = (this._originalModel.products || []).filter(p => p);
     }
 
-    getTarget(id) {
+    setParasiteTargetModel(data, genes) {
+        data.genesTotal = genes.totalCount;
+        data.targetGenes = genes.items;
+        this.setTargetModel(data);
+        this.originalModel = data;
+    }
+
+    async getTarget(id, type) {
+        this.formLoading = true;
+        if (type === this.targetType.PARASITE) {
+            return this.getParasiteTarget(id);
+        } else {
+            return this.getDefaultTarget(id);
+        }
+    }
+
+    async getParasiteTarget(id) {
+        this.updateForce = false;
+        const getTarget = new Promise((resolve, reject) => {
+            this.targetDataService.getTargetById(id)
+                .then(data => resolve(data))
+                .catch(err => reject(err));
+        });
+        const getGenes = new Promise((resolve, reject) => {
+            const request = {
+                "page": 1,
+                "pageSize": 10
+            };
+            this.targetDataService.getTargetGenesById(id, request)
+                .then(genes => resolve(genes))
+                .catch(err => reject(err));
+        });
+
+        return Promise.all([getTarget, getGenes])
+            .then(values => {
+                const [data, genes] = values;
+                this.formFailed = false;
+                this.formErrorMessageList = null;
+                this.setParasiteTargetModel(data, genes);
+                this.setEditMode();
+                this.formLoading = false;
+            })
+            .catch(err => {
+                this.formFailed = true;
+                this.formErrorMessageList = [err.message];
+                this.formLoading = false;
+            })
+    }
+
+    getDefaultTarget(id) {
         this.updateForce = false;
         return new Promise(resolve => {
             this.targetDataService.getTargetById(id)
@@ -231,7 +280,7 @@ export default class ngbTargetsTabService {
                     this.originalModel = data;
                     this.setEditMode();
                     this.formLoading = false;
-                    resolve(true);
+                    resolve(data);
                 })
                 .catch(err => {
                     this.formFailed = true;
