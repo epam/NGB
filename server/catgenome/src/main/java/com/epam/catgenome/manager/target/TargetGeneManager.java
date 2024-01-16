@@ -52,13 +52,7 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -133,12 +127,13 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     public List<String> getFieldValues(final Long targetId, final String field) throws ParseException, IOException {
-        final Set<String> values = new HashSet<>();
+        final Set<String> values = new LinkedHashSet<>();
         final Query query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, topHits);
+            final Sort sort = new Sort(new SortField(field, SortField.Type.STRING, false));
+            TopDocs topDocs = searcher.search(query, topHits, sort);
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
                 IndexableField indexableField = doc.getField(field);
@@ -148,7 +143,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             }
         }
         final List<String> result = new ArrayList<>(values);
-        return result.stream().sorted().limit(FIELD_VALUES_TOP_HITS).collect(Collectors.toList());
+        return result.stream().limit(FIELD_VALUES_TOP_HITS).collect(Collectors.toList());
     }
 
     public void delete(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
