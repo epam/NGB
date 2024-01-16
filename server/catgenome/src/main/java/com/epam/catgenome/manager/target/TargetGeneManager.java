@@ -90,6 +90,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     private static final List<String> SPECIES_NAMES = Arrays.asList("species", "species name",
             "species_name", "organism");
 
+    private static final int FIELD_VALUES_TOP_HITS = 200;
+
     public TargetGeneManager(final @Value("${targets.index.directory}") String indexDirectory,
                              final @Value("${targets.top.hits:10000}") int targetsTopHits) {
         super(Paths.get(indexDirectory, "genes").toString(), targetsTopHits);
@@ -136,7 +138,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, topHits);
+            TopDocs topDocs = searcher.search(query, FIELD_VALUES_TOP_HITS);
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
                 IndexableField indexableField = doc.getField(field);
