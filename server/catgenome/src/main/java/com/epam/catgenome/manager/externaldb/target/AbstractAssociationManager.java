@@ -24,7 +24,6 @@
 package com.epam.catgenome.manager.externaldb.target;
 
 import com.epam.catgenome.entity.externaldb.target.Association;
-import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.Filter;
@@ -148,27 +147,6 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
         return mainBuilder.build();
     }
 
-    public void addFieldQuery(BooleanQuery.Builder builder, Filter filter) throws ParseException {
-        Query query;
-        switch (getFilterType(filter.getField())) {
-            case PHRASE:
-                query = getByPhraseQuery(filter.getTerms().get(0), filter.getField());
-                break;
-            case TERM:
-                query = getByTermsQuery(filter.getTerms(), filter.getField());
-                break;
-            case OPTIONS:
-                query = getByOptionsQuery(filter.getTerms(), filter.getField());
-                break;
-            case RANGE:
-                query = getByRangeQuery(filter.getRange(), filter.getField());
-                break;
-            default:
-                return;
-        }
-        builder.add(query, BooleanClause.Occur.MUST);
-    }
-
     public Long totalCount(final List<String> geneIds) throws ParseException, IOException {
         final List<T> result = searchByGeneIds(geneIds);
         return (long) result.size();
@@ -181,8 +159,6 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
         grouped.forEach((k, v) -> totalCounts.put(k.toLowerCase(), (long) v.size()));
         return totalCounts;
     }
-
-    public abstract FilterType getFilterType(String fieldName);
 
     @Getter
     private enum IndexCommonFields {

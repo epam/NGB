@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 EPAM Systems
+ * Copyright (c) 2023-2024 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import com.epam.catgenome.entity.target.AlignmentStatus;
 import com.epam.catgenome.entity.target.PatentsSearchStatus;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
+import com.epam.catgenome.entity.target.TargetType;
 import com.epam.catgenome.util.db.PagingInfo;
 import com.epam.catgenome.util.db.SortInfo;
 import lombok.AllArgsConstructor;
@@ -158,7 +159,8 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
         ALIGNMENT_STATUS,
         PATENTS_SEARCH_STATUS,
         DISEASES,
-        PRODUCTS;
+        PRODUCTS,
+        TYPE;
 
         static MapSqlParameterSource getParameters(final Target target) {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -169,6 +171,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
             params.addValue(PATENTS_SEARCH_STATUS.name(), target.getPatentsSearchStatus().getValue());
             params.addValue(DISEASES.name(), listToData(target.getDiseases()));
             params.addValue(PRODUCTS.name(), listToData(target.getProducts()));
+            params.addValue(TYPE.name(), target.getType().getValue());
             return params;
         }
 
@@ -185,6 +188,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
                     .patentsSearchStatus(PatentsSearchStatus.getByValue(rs.getInt(PATENTS_SEARCH_STATUS.name())))
                     .diseases(dataToList(rs.getString(DISEASES.name())))
                     .products(dataToList(rs.getString(PRODUCTS.name())))
+                    .type(TargetType.getByValue(rs.getInt(TYPE.name())))
                     .build();
         }
         static ResultSetExtractor<List<Target>> getExtendedRowExtractor() {

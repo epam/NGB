@@ -25,6 +25,7 @@ package com.epam.catgenome.manager.externaldb.ncbi;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneInfo;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.CaseInsensitiveWhitespaceAnalyzer;
 import com.epam.catgenome.util.FileFormat;
@@ -146,6 +147,11 @@ public class NCBIGeneInfoManager extends AbstractIndexManager<GeneInfo> {
             }
         }
         return new ArrayList<>(entries);
+    }
+
+    @Override
+    public FilterType getFilterType(String fieldName) {
+        return null;
     }
 
     @Override

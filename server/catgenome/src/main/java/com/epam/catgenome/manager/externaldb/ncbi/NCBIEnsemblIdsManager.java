@@ -25,6 +25,7 @@ package com.epam.catgenome.manager.externaldb.ncbi;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.Getter;
@@ -122,6 +123,11 @@ public class NCBIEnsemblIdsManager extends AbstractIndexManager<GeneId> {
                 .entrezId(Long.parseLong(doc.getField(IndexFields.ENTREZ_ID.name()).stringValue()))
                 .ensemblId(doc.getField(IndexFields.ENSEMBL_ID.name()).stringValue())
                 .build();
+    }
+
+    @Override
+    public FilterType getFilterType(String fieldName) {
+        return null;
     }
 
     @Getter

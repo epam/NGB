@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 EPAM Systems
+ * Copyright (c) 2023-2024 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@ package com.epam.catgenome.manager.externaldb.target.opentargets;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.util.IndexUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -94,6 +95,11 @@ public class TargetDetailsManager extends AbstractIndexManager<TargetDetails> {
 
     @Override
     public SortField getDefaultSortField() {
+        return null;
+    }
+
+    @Override
+    public FilterType getFilterType(String fieldName) {
         return null;
     }
 

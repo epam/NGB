@@ -27,6 +27,7 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.UrlEntity;
+import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -158,6 +159,11 @@ public class DiseaseManager extends AbstractIndexManager<Disease> {
             }
         }
         return entries;
+    }
+
+    @Override
+    public FilterType getFilterType(String fieldName) {
+        return null;
     }
 
     @Override
