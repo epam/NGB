@@ -65,8 +65,16 @@ export default class ngbTargetGenesTableService {
         dispatcher.on('target:model:changed', this.resetTargetModel.bind(this));
     }
 
+    get isParasiteType() {
+        return this.ngbTargetsTabService.targetModel.type === this.targetType.PARASITE;
+    }
+
     get tableResults() {
-        return this._tableResults;
+        if (this.isParasiteType && this.currentPage === this.totalPages) {
+            return [...this._tableResults, ...this.ngbTargetsTabService.addedGenes];
+        } else {
+            return this._tableResults;
+        }
     }
 
     set loading(value) {
@@ -90,9 +98,9 @@ export default class ngbTargetGenesTableService {
     }
 
     async getTableResults() {
-        const {id, type} = this.ngbTargetsTabService.targetModel;
-        if (type === this.targetType.PARASITE) {
+        if (this.isParasiteType) {
             const request = this.getRequest();
+            const id = this.ngbTargetsTabService.targetModel.id;
             this._tableResults = await this.ngbTargetsTabService.getTargetGenes(id, request)
                 .then(success => {
                     if (success) {
@@ -114,6 +122,9 @@ export default class ngbTargetGenesTableService {
 
     resetTargetModel() {
         this._tableResults = null;
+        this._displayFilters = false;
+        this._totalPages = 0;
+        this._currentPage = 1;
     }
 
     async onChangeShowFilters() {}

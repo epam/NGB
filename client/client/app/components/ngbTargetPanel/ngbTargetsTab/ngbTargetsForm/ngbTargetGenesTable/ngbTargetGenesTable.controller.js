@@ -61,6 +61,14 @@ export default class ngbTargetGenesTableController {
             ngbTargetGenesTableService,
             ngbTargetsTabService
         });
+        const getDataOnLastPage = this.getDataOnLastPage.bind(this);
+        const initialize = this.initialize.bind(this);
+        dispatcher.on('target:form:add:gene', getDataOnLastPage);
+        dispatcher.on('target:form:gene:added', initialize);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:form:add:gene', getDataOnLastPage);
+            dispatcher.removeListener('target:form:gene:added', initialize);
+        });
     }
 
     set loading(value) {
@@ -84,6 +92,9 @@ export default class ngbTargetGenesTableController {
     set currentPage(value) {
         this.ngbTargetGenesTableService.currentPage = value;
     }
+    get tableResults() {
+        return this.ngbTargetGenesTableService.tableResults;
+    }
 
     $onInit() {
         Object.assign(this.gridOptions, {
@@ -101,8 +112,8 @@ export default class ngbTargetGenesTableController {
         if (!this.gridOptions) {
             return;
         }
-        if (this.ngbTargetGenesTableService.tableResults) {
-            this.gridOptions.data = this.ngbTargetGenesTableService.tableResults;
+        if (this.tableResults) {
+            this.gridOptions.data = this.tableResults;
         } else {
             await this.loadData();
         }
@@ -191,12 +202,14 @@ export default class ngbTargetGenesTableController {
         this.gridOptions.data = await this.ngbTargetGenesTableService.getTableResults()
             .then(success => {
                 if (success) {
-                    return this.ngbTargetGenesTableService.tableResults;
+                    return this.tableResults;
                 }
                 return [];
             });
-        // this.dispatcher.emit('target:form:genes:results:updated');
-        this.$timeout(() => this.$scope.$apply());
+        this.$timeout(() => {
+            this.$scope.$apply();
+            this.dispatcher.emit('target:form:genes:results:updated');
+        });
     }
 
     onSelectGene(row, gene) {
@@ -255,5 +268,12 @@ export default class ngbTargetGenesTableController {
         }
         this.currentPage = page;
         await this.loadData();
+    }
+
+    async getDataOnLastPage() {
+        if (this.totalPages && this.currentPage !== this.totalPages) {
+            await this.getDataOnPage(this.totalPages);
+            this.$timeout(() => this.ngbTargetsTabService.addNewGene(true));
+        }
     }
 }

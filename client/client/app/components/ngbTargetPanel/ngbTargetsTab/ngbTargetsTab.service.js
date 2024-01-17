@@ -33,6 +33,7 @@ export default class ngbTargetsTabService {
     _launchErrorMessageList = null;
 
     _updateForce = false;
+    _addedGenes = [];
 
     get mode () {
         return MODE;
@@ -134,6 +135,12 @@ export default class ngbTargetsTabService {
     set updateForce(value) {
         this._updateForce = value;
     }
+    get addedGenes() {
+        return this._addedGenes;
+    }
+    set addedGenes(value) {
+        this._addedGenes = value;
+    }
 
     static instance (
         $timeout,
@@ -188,8 +195,13 @@ export default class ngbTargetsTabService {
         this.targetContext.setTargetsTableActionsVisibility(this.targetMode);
         this.targetContext.setTargetsFormActionsVisibility(this.targetMode, this.targetModel);
     }
-    addNewGene() {
-        this._targetModel.genes.push({...NEW_GENE});
+    addNewGene(finished) {
+        if (this.originalModel.type === this.targetType.PARASITE && finished) {
+            this.addedGenes.push({...NEW_GENE});
+            this.dispatcher.emit('target:form:gene:added');
+        } else if (this.originalModel.type === this.targetType.DEFAULT) {
+            this._targetModel.genes.push({...NEW_GENE});
+        }
     }
 
     setTargetModel(data) {
@@ -227,6 +239,7 @@ export default class ngbTargetsTabService {
     }
 
     async getTarget(id) {
+        this.resetTarget();
         this.formLoading = true;
         this.updateForce = false;
         return new Promise(resolve => {
@@ -292,6 +305,7 @@ export default class ngbTargetsTabService {
             products: [],
             type: this.targetType.DEFAULT
         };
+        this._originalModel = undefined;
         this.dispatcher.emit('target:model:changed');
     }
 
@@ -300,6 +314,7 @@ export default class ngbTargetsTabService {
         this._loading = false;
         this._failed = false;
         this._errorMessageList = null;
+        this._addedGenes = [];
     }
 
     targetModelChanged() {
@@ -393,16 +408,19 @@ export default class ngbTargetsTabService {
     }
 
     setGeneModel(row, field, value) {
-        const index = this._targetModel.genes.indexOf(row);
-        const geneFields = {
-            geneId: 'geneId',
-            geneName: 'geneName',
-            priority: 'priority',
-            taxId: 'taxId',
-            speciesName: 'speciesName'
-        };
-        if (geneFields[field]) {
-            this._targetModel.genes[index][geneFields[field]] = value;
+        if (this.originalModel.type === this.targetType.PARASITE) {
+        } else {
+            const index = this._targetModel.genes.indexOf(row);
+            const geneFields = {
+                geneId: 'geneId',
+                geneName: 'geneName',
+                priority: 'priority',
+                taxId: 'taxId',
+                speciesName: 'speciesName'
+            };
+            if (geneFields[field]) {
+                this._targetModel.genes[index][geneFields[field]] = value;
+            }
         }
     }
 

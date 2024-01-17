@@ -51,7 +51,10 @@ export default class ngbTargetsFormController {
     }
 
     isGenesEmpty() {
-        const {genes} = this.targetModel;
+        let {genes} = this.targetModel;
+        if (this.targetModel.type === this.targetType.PARASITE) {
+            genes = [...genes, ...this.ngbTargetsTabService.addedGenes]
+        }
         const genesEmpty = genes.filter(gene => {
             const {geneId, geneName, taxId, speciesName} = gene;
             return [geneId, geneName, taxId, speciesName].some(field => (
@@ -208,6 +211,7 @@ export default class ngbTargetsFormController {
     addGene() {
         if (!this.isAddGeneDisabled) {
             this.ngbTargetsTabService.addNewGene();
+            this.dispatcher.emit('target:form:add:gene');
         }
     }
 
