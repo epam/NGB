@@ -879,4 +879,19 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    postTargetGenes(targetId, request) {
+        return new Promise((resolve, reject) => {
+            this.post(`target/genes/${targetId}`, request)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error adding target genes';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }

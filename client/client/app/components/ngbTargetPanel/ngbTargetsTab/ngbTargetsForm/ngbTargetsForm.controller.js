@@ -43,6 +43,9 @@ export default class ngbTargetsFormController {
     get targetType() {
         return this.ngbTargetsTabService.targetType;
     }
+    get isParasite() {
+        return this.targetModel.type === this.targetType.PARASITE;
+    }
 
     async backToTable() {
         this.ngbTargetsTabService.resetTarget();
@@ -52,7 +55,7 @@ export default class ngbTargetsFormController {
 
     isGenesEmpty() {
         let {genes} = this.targetModel;
-        if (this.targetModel.type === this.targetType.PARASITE) {
+        if (this.isParasite) {
             genes = [...genes, ...this.ngbTargetsTabService.addedGenes]
         }
         const genesEmpty = genes.filter(gene => {
@@ -69,7 +72,7 @@ export default class ngbTargetsFormController {
         const {name, genes} = this.targetModel;
         if (!name || !name.length || !genes || !genes.length) return true;
         if (this.isGenesEmpty()) return true;
-        return this.ngbTargetsTabService.targetModelChanged();
+        return (this.ngbTargetsTabService.targetModelChanged() || this.ngbTargetsTabService.parasiteGenesAdded());
     }
 
     identifyTarget() {
@@ -95,7 +98,7 @@ export default class ngbTargetsFormController {
         const {name, genes} = this.targetModel;
         if (!name || !name.length || !genes || !genes.length) return true;
         if (this.isGenesEmpty()) return true;
-        if (!this.isAddMode) return !this.ngbTargetsTabService.targetModelChanged();
+        if (!this.isAddMode) return !(this.ngbTargetsTabService.targetModelChanged() || this.ngbTargetsTabService.parasiteGenesAdded());
     }
 
     async saveTarget() {
@@ -156,14 +159,67 @@ export default class ngbTargetsFormController {
         return request;
     }
 
+    getUpdateParasiteTargetRequest() {
+        const {id, name, diseases, products, type} = this.targetModel;
+        const request = {
+            targetId: id,
+            targetName: name,
+            type,
+            diseases,
+            products,
+        };
+        return request;
+    }
+
+    getPostParasiteGenesRequest() {
+        const genes = this.ngbTargetsTabService.addedGenes;
+        const request = genes.map(g => {
+            const gene = {
+                // targetGeneId: g.geneId,
+                targetId: this.targetModel.id,
+                geneId: g.geneId,
+                geneName: g.geneName,
+                taxId: g.taxId,
+                speciesName: g.speciesName,
+                // metadata: object
+            };
+            if (g.priority && g.priority !== 'None') {
+                gene.priority = g.priority;
+            }
+            return gene;
+        });
+        return request;
+    }
+
     async updateTarget() {
-        const request = this.getUpdateRequest();
-        await this.ngbTargetsTabService.updateTarget(request)
-            .then((success) => {
-                if (success) {
-                    this.ngbTargetsTabService.setEditMode();
+        if (this.isParasite) {
+            if (this.ngbTargetsTabService.parasiteGenesAdded()) {
+                const request = this.getPostParasiteGenesRequest();
+                await this.ngbTargetsTabService.postParasiteGenes(request)
+                    .then((success) => {
+                        if (success) {
+                            this.ngbTargetsTabService.setEditMode();
+                        }
+                    });
                 }
-            });
+            // if (this.ngbTargetsTabService.targetModelChanged()) {
+            //     const request = this.getUpdateParasiteTargetRequest();
+            //     await this.ngbTargetsTabService.updateTarget(request)
+            //         .then((success) => {
+            //             if (success) {
+            //                 this.ngbTargetsTabService.setEditMode();
+            //             }
+            //         });
+            // }
+        } else {
+            const request = this.getUpdateRequest();
+            await this.ngbTargetsTabService.updateTarget(request)
+                .then((success) => {
+                    if (success) {
+                        this.ngbTargetsTabService.setEditMode();
+                    }
+                });
+        }
     }
 
     getAddRequest() {

@@ -271,8 +271,10 @@ export default class ngbTargetGenesTableController {
     }
 
     async getDataOnLastPage() {
-        if (this.totalPages && this.currentPage !== this.totalPages) {
-            await this.getDataOnPage(this.totalPages);
+        if (this.totalPages) {
+            if (this.currentPage !== this.totalPages) {
+                await this.getDataOnPage(this.totalPages);
+            }
             this.$timeout(() => this.ngbTargetsTabService.addNewGene(true));
         }
     }

@@ -317,6 +317,10 @@ export default class ngbTargetsTabService {
         this._addedGenes = [];
     }
 
+    parasiteGenesAdded() {
+        return this.targetModel.type === this.targetType.PARASITE && !!this.addedGenes.length;
+    }
+
     targetModelChanged() {
         const nameChanged = this.originalModel.targetName !== this.targetModel.name;
         const typeChanged = this.originalModel.type !== this.targetModel.type;
@@ -391,6 +395,32 @@ export default class ngbTargetsTabService {
         });
     }
 
+    postParasiteGenes(request) {
+        const targetId = this.targetModel.id;
+        return new Promise(resolve => {
+            this.targetDataService.postTargetGenes(targetId, request)
+                .then(result => {
+                    console.log(result)
+                    // if (result) {
+                    //     this.formFailed = false;
+                    //     this.formErrorMessageList = null;
+                    //     this.setTargetModel(result);
+                    //     this.originalModel = result;
+                    //     this.updateForce = false;
+                    //     this.setEditMode();
+                    // }
+                    // this.formLoading = false;
+                    resolve(true);
+                })
+                .catch(err => {
+                    this.formFailed = true;
+                    this.formErrorMessageList = [err.message];
+                    this.formLoading = false;
+                    resolve(false);
+                });
+        });
+    }
+
     searchGenes(prefix) {
         return new Promise(resolve => {
             this.targetDataService.searchGenes(prefix)
@@ -408,17 +438,24 @@ export default class ngbTargetsTabService {
     }
 
     setGeneModel(row, field, value) {
+        const geneFields = {
+            geneId: 'geneId',
+            geneName: 'geneName',
+            priority: 'priority',
+            taxId: 'taxId',
+            speciesName: 'speciesName'
+        };
         if (this.originalModel.type === this.targetType.PARASITE) {
+            let index = this._targetModel.genes.indexOf(row);
+            if (index === -1) {
+                let index = this.addedGenes.indexOf(row);
+                if (index !== -1 && geneFields[field]) {
+                    this.addedGenes[index][geneFields[field]] = value;
+                }
+            }
         } else {
             const index = this._targetModel.genes.indexOf(row);
-            const geneFields = {
-                geneId: 'geneId',
-                geneName: 'geneName',
-                priority: 'priority',
-                taxId: 'taxId',
-                speciesName: 'speciesName'
-            };
-            if (geneFields[field]) {
+            if (index !== -1 && geneFields[field]) {
                 this._targetModel.genes[index][geneFields[field]] = value;
             }
         }
