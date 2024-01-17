@@ -5,6 +5,8 @@
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
 
     .loading-indicator {
         padding: 0;
@@ -41,13 +43,18 @@
     .full-width {
         padding: $table-cell-full-width-padding;
         width: unset;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
 
         &.no-genes-info {
             color: $form-warning-color;
         }
     }
 
-    .add-gene-link {
+    .add-gene-link ,
+    .upload-link,
+    .import-link {
         margin: 5px 0;
         cursor: not-allowed;
         font-style: normal;
@@ -60,6 +67,26 @@
                 text-decoration: underline;
             }
         }
+    }
+
+    .cancel-link {
+        margin: 20px;
+        cursor: not-allowed;
+        font-style: normal;
+        color: rgb(183,28,28);
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .import-link {
+        margin: 20px;
+    }
+
+    .file-name {
+        font-size: 13px;
+        text-align: center;
     }
 
     .radio-title {
@@ -88,6 +115,17 @@
         .md-off {
             width: 16px;
             height: 16px;
+        }
+    }
+
+    .ngb-targets-form-section {
+        margin: 2px 2px 8px;
+
+        .ngb-targets-form-section-header {
+            padding: 7px $form-horizontal-offset;
+            color: $section-header-color;
+            background: $section-header-background;
+            font-size: $section-header-font-size;
         }
     }
 }
@@ -187,16 +225,5 @@ ngb-tags.ngb-target-products {
         font-size: $table-header-cell-font-size;
         color: $table-header-cell-color;
         min-width: $main-section-title-width;
-    }
-}
-
-.ngb-targets-form-section {
-    margin: 2px 2px 8px;
-
-    .ngb-targets-form-section-header {
-        padding: 7px $form-horizontal-offset;
-        color: $section-header-color;
-        background: $section-header-background;
-        font-size: $section-header-font-size;
     }
 }

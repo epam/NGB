@@ -95,7 +95,39 @@
                       ng-disabled="$ctrl.isAddGeneDisabled">
                     Add gene
                 </span>
-            </td>
-        </tr>
+            </div>
+        </div>
+        <div ng-if="$ctrl.targetModel.type ===  $ctrl.targetType.PARASITE">
+            <div class="full-width"
+                 ng-if="!$ctrl.geneFile.name"
+                 style="padding-top: 8px; text-align: center">
+                <label class="upload-link"
+                       for="target-genes-file-id">
+                    Upload genes
+                </label>
+                <input accept=".csv"
+                       class="ng-hide"
+                       file-model
+                       id="target-genes-file-id"
+                       ng-change="$ctrl.uploadGenes()"
+                       ng-model="$ctrl.geneFile"
+                       required
+                       type="file">
+            </div>
+            <div class="full-width"
+                 ng-if="$ctrl.geneFile.name">
+                <span class="file-name">{{$ctrl.geneFile.name}}</span>
+                <div>
+                    <span class="import-link"
+                          ng-click="$ctrl.importGenes()">
+                        Upload
+                    </span>
+                    <span class="cancel-link"
+                          ng-click="$ctrl.cancelImport()">
+                        Cancel
+                    </span>
+                </div>
+            </div>
+        </div>
     </div>
 </form>

@@ -10,3 +10,6 @@
          class="genes-table">
     </div>
 </div>
+<ngb-genes-table-pagination ng-if="$ctrl.totalPages > 1"
+                            on-change-page="$ctrl.getDataOnPage(page)">
+</ngb-genes-table-pagination>

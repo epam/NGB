@@ -302,7 +302,7 @@ export default class ngbTargetsTableController {
     async openTarget (row, event) {
         event.stopPropagation();
         this.loadingData = true;
-        await this.ngbTargetsTabService.getTarget(row.id, row.type);
+        await this.ngbTargetsTabService.getTarget(row.id);
         this.$timeout(() => {
             this.loadingData = false;
             this.$scope.$apply();

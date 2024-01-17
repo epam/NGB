@@ -1,9 +1,13 @@
 @import "../ngbTargetsForm.variables.scss";
 
 ngb-target-genes-table {
+
+    .ui-grid-container {
+        height: auto;
+    }
+
     .ui-grid {
         border: none;
-        height: auto;
         border-top: $table-border;
         border-bottom: $table-border;
 

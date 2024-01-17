@@ -75,6 +75,15 @@ export default class ngbTargetGenesTableController {
     set updateForce(value) {
         this.ngbTargetsTabService.updateForce = value;
     }
+    get totalPages() {
+        return this.ngbTargetGenesTableService.totalPages;
+    }
+    get currentPage() {
+        return this.ngbTargetGenesTableService.currentPage;
+    }
+    set currentPage(value) {
+        this.ngbTargetGenesTableService.currentPage = value;
+    }
 
     $onInit() {
         Object.assign(this.gridOptions, {
@@ -186,7 +195,7 @@ export default class ngbTargetGenesTableController {
                 }
                 return [];
             });
-        // this.dispatcher.emit('target:identification:drugs:results:updated');
+        // this.dispatcher.emit('target:form:genes:results:updated');
         this.$timeout(() => this.$scope.$apply());
     }
 
@@ -238,5 +247,13 @@ export default class ngbTargetGenesTableController {
             this.updateForce = true;
             this.targetModel.genes.splice(index, 1);
         });
+    }
+
+    async getDataOnPage(page) {
+        if (!this.gridApi) {
+            return;
+        }
+        this.currentPage = page;
+        await this.loadData();
     }
 }

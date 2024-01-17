@@ -1,4 +1,6 @@
-export default class ngbTargetsFormController{
+export default class ngbTargetsFormController {
+
+    geneFile = null;
 
     static get UID() {
         return 'ngbTargetsFormController';
@@ -37,6 +39,9 @@ export default class ngbTargetsFormController{
     }
     set updateForce(value) {
         this.ngbTargetsTabService.updateForce = value;
+    }
+    get targetType() {
+        return this.ngbTargetsTabService.targetType;
     }
 
     async backToTable() {
@@ -204,5 +209,17 @@ export default class ngbTargetsFormController{
         if (!this.isAddGeneDisabled) {
             this.ngbTargetsTabService.addNewGene();
         }
+    }
+
+    uploadGenes() {
+        console.log('uploadGenes')
+    }
+
+    importGenes() {
+        console.log(this.geneFile)
+    }
+
+    cancelImport() {
+        this.geneFile = null;
     }
 }

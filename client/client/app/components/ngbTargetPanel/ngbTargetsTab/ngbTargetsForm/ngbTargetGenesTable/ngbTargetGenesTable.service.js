@@ -18,14 +18,24 @@ const COLUMN_LIST = [{
     displayName: ''
 }];
 
+
+const PAGE_SIZE = 20;
+
 export default class ngbTargetGenesTableService {
 
     get columnList() {
         return COLUMN_LIST;
     }
 
+    get pageSize() {
+        return PAGE_SIZE;
+    }
+
     _tableResults = null;
     _displayFilters = false;
+
+    _totalPages = 0;
+    _currentPage = 1;
 
     get displayFilters() {
         return this._displayFilters;
@@ -33,13 +43,25 @@ export default class ngbTargetGenesTableService {
     set displayFilters(value) {
         this._displayFilters = value;
     }
-
-    static instance (dispatcher, ngbTargetsTabService, ngbTargetPanelService) {
-        return new ngbTargetGenesTableService(dispatcher, ngbTargetsTabService, ngbTargetPanelService);
+    get totalPages() {
+        return this._totalPages;
+    }
+    set totalPages(value) {
+        this._totalPages = value;
+    }
+    get currentPage() {
+        return this._currentPage;
+    }
+    set currentPage(value) {
+        this._currentPage = value;
     }
 
-    constructor(dispatcher, ngbTargetsTabService, ngbTargetPanelService) {
-        Object.assign(this, {dispatcher, ngbTargetsTabService, ngbTargetPanelService});
+    static instance (dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetContext) {
+        return new ngbTargetGenesTableService(dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetContext);
+    }
+
+    constructor(dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetContext) {
+        Object.assign(this, {dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetContext});
         dispatcher.on('target:model:changed', this.resetTargetModel.bind(this));
     }
 
@@ -51,16 +73,43 @@ export default class ngbTargetGenesTableService {
         this.ngbTargetsTabService.formLoading = value;
     }
 
+    get targetType() {
+        return this.targetContext.targetType;
+    }
+
     getColumnList() {
         return this.columnList;
     }
 
-    getTableResults() {
-        return new Promise(resolve => {
-            this._tableResults = this.ngbTargetsTabService.targetModel.genes;
+    getRequest() {
+        const request = {
+            page: this.currentPage,
+            pageSize: this.pageSize
+        };
+        return request;
+    }
+
+    async getTableResults() {
+        const {id, type} = this.ngbTargetsTabService.targetModel;
+        if (type === this.targetType.PARASITE) {
+            const request = this.getRequest();
+            this._tableResults = await this.ngbTargetsTabService.getTargetGenes(id, request)
+                .then(success => {
+                    if (success) {
+                        return this.ngbTargetsTabService.targetModel.genes;
+                    }
+                    return [];
+                });
+            this.totalPages = Math.ceil(this.ngbTargetsTabService.targetModel.genesTotal/this.pageSize);
             this.loading = false;
-            resolve(true);
-        });
+            return Promise.resolve(true);
+        } else {
+            return new Promise(resolve => {
+                this._tableResults = this.ngbTargetsTabService.targetModel.genes;
+                this.loading = false;
+                resolve(true);
+            });
+        }
     }
 
     resetTargetModel() {
