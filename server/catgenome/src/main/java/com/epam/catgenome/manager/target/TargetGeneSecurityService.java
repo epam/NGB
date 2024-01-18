@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.entity.target.TargetGene;
+import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.SearchRequest;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +45,8 @@ public class TargetGeneSecurityService {
     private final TargetGeneManager targetGeneManager;
 
     @PreAuthorize(ROLE_USER)
-    public void importGenes(final String path, final long targetId) throws IOException, ParseException {
+    public void importGenes(final String path, final long targetId)
+            throws IOException, ParseException, TargetGenesException {
         targetGeneManager.importData(path, targetId);
     }
 
