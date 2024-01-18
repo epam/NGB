@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,36 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.util;
 
-import lombok.Getter;
+package com.epam.catgenome.exception;
 
-import java.util.HashMap;
-import java.util.Map;
+/**
+ * A generic business RuntimeException
+ */
+public class TargetGenesException extends Exception {
 
-@Getter
-public enum FileFormat {
-    CSV("csv", ","),
-    TSV("tsv", "\t");
-
-    private final String extension;
-    private final String separator;
-
-    private static final Map<String, FileFormat> EXTENSION_MAP = new HashMap<>();
-
-    static {
-        EXTENSION_MAP.put("csv", CSV);
-        EXTENSION_MAP.put("tsv", TSV);
-    }
-
-    FileFormat(String extension, String separator) {
-        this.extension = extension;
-        this.separator = separator;
-    }
-
-    public static String getSeparatorByExtension(String extension) {
-        return EXTENSION_MAP.containsKey(extension) ?
-                EXTENSION_MAP.get(extension).getSeparator() :
-                null;
+    public TargetGenesException(final String message) {
+        super(message);
     }
 }

@@ -346,6 +346,6 @@ public class TargetManager {
     }
 
     private static boolean isDefault(final Target target) {
-        return Optional.ofNullable(target.getType()).orElse(TargetType.DEFAULT) == TargetType.DEFAULT;
+        return target.getType() == TargetType.DEFAULT;
     }
 }

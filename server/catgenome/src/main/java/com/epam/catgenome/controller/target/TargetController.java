@@ -29,6 +29,7 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.exception.TargetUpdateException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.SearchRequest;
@@ -172,14 +173,15 @@ public class TargetController extends AbstractRESTController {
 
     @GetMapping(value = "/target/genes/import/{targetId}")
     @ApiOperation(
-            value = "Imports genes from xlsx file",
-            notes = "Imports genes from xlsx file",
+            value = "Imports genes from xlsx, csv and tsv files",
+            notes = "Imports genes from xlsx, csv and tsv files",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importGenes(@RequestParam final String path,
-                                       @PathVariable final long targetId) throws IOException, ParseException {
+                                       @PathVariable final long targetId)
+            throws IOException, ParseException, TargetGenesException {
         targetGeneSecurityService.importGenes(path, targetId);
         return Result.success(null);
     }
