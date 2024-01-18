@@ -269,6 +269,7 @@ export default class ngbTargetGenesTableController {
         if (!this.gridApi) {
             return;
         }
+        this.gridOptions.data = [];
         this.currentPage = page;
         await this.loadData();
     }

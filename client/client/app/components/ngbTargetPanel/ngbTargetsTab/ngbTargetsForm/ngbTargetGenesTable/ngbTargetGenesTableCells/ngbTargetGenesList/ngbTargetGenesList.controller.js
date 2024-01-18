@@ -12,6 +12,9 @@ export default class ngbTargetGenesListController{
         Object.assign(this, {$scope, $timeout, ngbTargetsTabService, projectContext});
         this.searchText = this.value;
         dispatcher.on('target:form:genes:results:updated', this.refresh.bind(this));
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:form:genes:results:updated', this.refresh.bind(this));
+        });
     }
 
     refresh() {
