@@ -47,7 +47,8 @@
         <div>
             <label id="targetType" class="radio-title">Type:</label>
             <md-radio-group ng-model="$ctrl.targetModel.type"
-                            aria-labelledby="targetType">
+                            aria-labelledby="targetType"
+                            ng-disabled="!$ctrl.isAddMode">
                 <md-radio-button value="DEFAULT"
                                  class="radio-button">
                     Default

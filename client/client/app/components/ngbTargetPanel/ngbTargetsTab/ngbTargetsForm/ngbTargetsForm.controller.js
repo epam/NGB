@@ -72,7 +72,10 @@ export default class ngbTargetsFormController {
         const {name, genes} = this.targetModel;
         if (!name || !name.length || !genes || !genes.length) return true;
         if (this.isGenesEmpty()) return true;
-        return (this.ngbTargetsTabService.targetModelChanged() || this.ngbTargetsTabService.parasiteGenesAdded());
+        return (this.ngbTargetsTabService.targetModelChanged()
+            || this.ngbTargetsTabService.targetGenesChanged()
+            || this.ngbTargetsTabService.parasiteGenesAdded()
+        );
     }
 
     identifyTarget() {
@@ -98,7 +101,12 @@ export default class ngbTargetsFormController {
         const {name, genes} = this.targetModel;
         if (!name || !name.length || !genes || !genes.length) return true;
         if (this.isGenesEmpty()) return true;
-        if (!this.isAddMode) return !(this.ngbTargetsTabService.targetModelChanged() || this.ngbTargetsTabService.parasiteGenesAdded());
+        if (!this.isAddMode) {
+            return !(this.ngbTargetsTabService.targetModelChanged()
+                || this.ngbTargetsTabService.targetGenesChanged()
+                || this.ngbTargetsTabService.parasiteGenesAdded()
+            );
+        }
     }
 
     async saveTarget() {
@@ -171,46 +179,14 @@ export default class ngbTargetsFormController {
         return request;
     }
 
-    getPostParasiteGenesRequest() {
-        const genes = this.ngbTargetsTabService.addedGenes;
-        const request = genes.map(g => {
-            const gene = {
-                // targetGeneId: g.geneId,
-                targetId: this.targetModel.id,
-                geneId: g.geneId,
-                geneName: g.geneName,
-                taxId: g.taxId,
-                speciesName: g.speciesName,
-                // metadata: object
-            };
-            if (g.priority && g.priority !== 'None') {
-                gene.priority = g.priority;
-            }
-            return gene;
-        });
-        return request;
-    }
-
     async updateTarget() {
         if (this.isParasite) {
-            if (this.ngbTargetsTabService.parasiteGenesAdded()) {
-                const request = this.getPostParasiteGenesRequest();
-                await this.ngbTargetsTabService.postParasiteGenes(request)
-                    .then((success) => {
-                        if (success) {
-                            this.ngbTargetsTabService.setEditMode();
-                        }
-                    });
-                }
-            // if (this.ngbTargetsTabService.targetModelChanged()) {
-            //     const request = this.getUpdateParasiteTargetRequest();
-            //     await this.ngbTargetsTabService.updateTarget(request)
-            //         .then((success) => {
-            //             if (success) {
-            //                 this.ngbTargetsTabService.setEditMode();
-            //             }
-            //         });
-            // }
+            await this.ngbTargetsTabService.updateParasiteTarget()
+                .then(success => {
+                    if (success) {
+                        this.ngbTargetsTabService.setEditMode();
+                    }
+                });
         } else {
             const request = this.getUpdateRequest();
             await this.ngbTargetsTabService.updateTarget(request)

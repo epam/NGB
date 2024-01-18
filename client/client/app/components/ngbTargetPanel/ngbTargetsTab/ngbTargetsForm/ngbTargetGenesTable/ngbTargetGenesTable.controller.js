@@ -63,11 +63,14 @@ export default class ngbTargetGenesTableController {
         });
         const getDataOnLastPage = this.getDataOnLastPage.bind(this);
         const initialize = this.initialize.bind(this);
+        const getDataOnPage = this.getDataOnPage.bind(this);
         dispatcher.on('target:form:add:gene', getDataOnLastPage);
         dispatcher.on('target:form:gene:added', initialize);
+        dispatcher.on('target:form:refreshed', getDataOnPage);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:add:gene', getDataOnLastPage);
             dispatcher.removeListener('target:form:gene:added', initialize);
+            dispatcher.removeListener('target:form:refreshed', getDataOnPage);
         });
     }
 

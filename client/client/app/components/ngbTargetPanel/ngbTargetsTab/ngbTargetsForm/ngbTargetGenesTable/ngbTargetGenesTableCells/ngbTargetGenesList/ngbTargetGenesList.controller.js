@@ -1,15 +1,20 @@
-export default class ngbTargetsFormListController{
+export default class ngbTargetGenesListController{
 
     searchText = '';
     selectedItem;
     list = [];
 
     static get UID() {
-        return 'ngbTargetsFormListController';
+        return 'ngbTargetGenesListController';
     }
 
-    constructor($scope, $timeout, ngbTargetsTabService, projectContext) {
+    constructor($scope, $timeout, dispatcher, ngbTargetsTabService, projectContext) {
         Object.assign(this, {$scope, $timeout, ngbTargetsTabService, projectContext});
+        this.searchText = this.value;
+        dispatcher.on('target:form:genes:results:updated', this.refresh.bind(this));
+    }
+
+    refresh() {
         this.searchText = this.value;
     }
 

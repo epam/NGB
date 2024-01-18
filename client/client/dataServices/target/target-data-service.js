@@ -135,7 +135,7 @@ export class TargetDataService extends DataService {
 
     searchGenes(prefix) {
         return new Promise((resolve) => {
-            this.get(`target/genes/${prefix}`)
+            this.get(`target/genes/${encodeURIComponent(prefix)}`)
                 .then(data => {
                     if (data) {
                         resolve(data);
@@ -883,13 +883,20 @@ export class TargetDataService extends DataService {
     postTargetGenes(targetId, request) {
         return new Promise((resolve, reject) => {
             this.post(`target/genes/${targetId}`, request)
-                .then(data => {
-                    if (data) {
-                        resolve(data);
-                    }
-                })
+                .then(() => resolve(true))
                 .catch(error => {
                     const message = 'Error adding target genes';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    putTargetGenes(request) {
+        return new Promise((resolve, reject) => {
+            this.put(`target/genes`, request)
+                .then(() => resolve(true))
+                .catch(error => {
+                    const message = 'Error updating target genes';
                     reject(new Error((error && error.message) || message));
                 });
         });
