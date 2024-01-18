@@ -51,6 +51,8 @@ export default class ngbTargetGenesTableService {
 
     additionalColumns = [];
 
+    _sortInfo = null;
+
     get displayFilters() {
         return this._displayFilters;
     }
@@ -68,6 +70,12 @@ export default class ngbTargetGenesTableService {
     }
     set currentPage(value) {
         this._currentPage = value;
+    }
+    get sortInfo() {
+        return this._sortInfo;
+    }
+    set sortInfo(value) {
+        this._sortInfo = value;
     }
 
     get currentColumns () {
@@ -107,7 +115,10 @@ export default class ngbTargetGenesTableService {
     }
 
     getColumnName(field) {
-        return this.displayName[field];
+        if (Object.prototype.hasOwnProperty.call(this.displayName, field)) {
+            return this.displayName[field];
+        }
+        return field;
     }
 
     getRequest() {
@@ -115,6 +126,12 @@ export default class ngbTargetGenesTableService {
             page: this.currentPage,
             pageSize: this.pageSize
         };
+        if (this.sortInfo && this.sortInfo.length) {
+            request.orderInfos = this.sortInfo.map(i => ({
+                orderBy: this.getColumnName(i.field),
+                reverse: !i.ascending
+            }))
+        }
         return request;
     }
 
@@ -146,6 +163,7 @@ export default class ngbTargetGenesTableService {
         this._displayFilters = false;
         this._totalPages = 0;
         this._currentPage = 1;
+        this._sortInfo = null;
     }
 
     async onChangeShowFilters() {}

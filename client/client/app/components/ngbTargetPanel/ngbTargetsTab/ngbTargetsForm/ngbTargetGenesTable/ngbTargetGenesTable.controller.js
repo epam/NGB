@@ -15,7 +15,7 @@ export default class ngbTargetGenesTableController {
         showHeader: true,
         multiSelect: false,
         enableGridMenu: false,
-        enableSorting: true,
+        enableSorting: false,
         enableRowSelection: true,
         enableRowHeaderSelection: false,
         enableFiltering: false,
@@ -100,6 +100,12 @@ export default class ngbTargetGenesTableController {
     get tableResults() {
         return this.ngbTargetGenesTableService.tableResults;
     }
+    get sortInfo() {
+        return this.ngbTargetGenesTableService.sortInfo;
+    }
+    set sortInfo(value) {
+        this.ngbTargetGenesTableService.sortInfo = value;
+    }
 
     $onInit() {
         Object.assign(this.gridOptions, {
@@ -108,6 +114,7 @@ export default class ngbTargetGenesTableController {
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
+                this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
             }
         });
         (this.initialize)();
@@ -132,6 +139,9 @@ export default class ngbTargetGenesTableController {
         const listCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_listCell.tpl.html');
         const removeCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_removeCell.tpl.html');
 
+        const enableSorting = this.ngbTargetsTabService.isParasite ? true : false;
+        const enableColumnMenu = this.ngbTargetsTabService.isParasite ? true : false;
+
         const result = [];
         const columnsList = this.ngbTargetGenesTableService.currentColumnFields;
         for (let i = 0; i < columnsList.length; i++) {
@@ -141,8 +151,8 @@ export default class ngbTargetGenesTableController {
                 name: column,
                 displayName: this.ngbTargetGenesTableService.getColumnName(column),
                 enableHiding: false,
-                enableColumnMenu: false,
-                enableSorting: false,
+                enableColumnMenu,
+                enableSorting,
                 enableFiltering: false,
                 field: column,
                 headerTooltip: column,
@@ -187,6 +197,8 @@ export default class ngbTargetGenesTableController {
                         minWidth: 38,
                         maxWidth: 38,
                         cellTemplate: removeCell,
+                        enableColumnMenu: false,
+                        enableSorting: false,
                     };
                     break;
                 default:
@@ -204,6 +216,7 @@ export default class ngbTargetGenesTableController {
 
     async loadData () {
         this.loading = true;
+        this.gridOptions.data = [];
         this.gridOptions.data = await this.ngbTargetGenesTableService.getTableResults()
             .then(success => {
                 if (success) {
@@ -271,7 +284,6 @@ export default class ngbTargetGenesTableController {
         if (!this.gridApi) {
             return;
         }
-        this.gridOptions.data = [];
         this.currentPage = page;
         await this.loadData();
     }
@@ -282,6 +294,50 @@ export default class ngbTargetGenesTableController {
                 await this.getDataOnPage(this.totalPages);
             }
             this.$timeout(() => this.ngbTargetsTabService.addNewGene(true));
+        }
+    }
+
+    async sortChanged(grid, sortColumns) {
+        if (!this.gridApi) {
+            return;
+        }
+        this.loadingData = true;
+        if (sortColumns && sortColumns.length > 0) {
+            this.sortInfo = sortColumns.map(sc => ({
+                ascending: sc.sort.direction === 'asc',
+                field: sc.field
+            }));
+        } else {
+            this.sortInfo = null;
+        }
+        const sortingConfiguration = sortColumns
+            .filter(column => !!column.sort)
+            .map((column, priority) => ({
+                field: column.field,
+                sort: ({
+                    ...column.sort,
+                    priority
+                })
+            }));
+        const {columns = []} = grid || {};
+        columns.forEach(columnDef => {
+            const [sortingConfig] = sortingConfiguration
+                .filter(c => c.field === columnDef.field);
+            if (sortingConfig) {
+                columnDef.sort = sortingConfig.sort;
+            }
+        });
+        this.currentPage = 1;
+        await this.loadData();
+    }
+
+    resetSorting() {
+        if (!this.gridApi) {
+            return;
+        }
+        const columns = this.gridApi.grid.columns;
+        for (let i = 0 ; i < columns.length; i++) {
+            columns[i].sort = {};
         }
     }
 }

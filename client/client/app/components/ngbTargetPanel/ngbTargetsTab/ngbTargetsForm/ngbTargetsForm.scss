@@ -34,7 +34,7 @@
 
         md-list-item, md-list-item .md-list-item-inner {
             min-height: 18px;
-            height: 19px;
+            height: auto;
             overflow: hidden;
             font-size: $tag-font-size;
         }

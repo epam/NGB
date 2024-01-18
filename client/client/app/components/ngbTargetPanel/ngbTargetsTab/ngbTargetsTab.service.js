@@ -142,6 +142,10 @@ export default class ngbTargetsTabService {
         this._addedGenes = value;
     }
 
+    get isParasite() {
+        return this.targetModel.type === this.targetType.PARASITE;
+    }
+
     static instance (
         $timeout,
         dispatcher,
