@@ -234,7 +234,14 @@ export default class ngbTargetsTabService {
 
     setParasiteTargetGenes(genes) {
         this._targetModel.genesTotal = genes.totalCount;
-        this._targetModel.genes = genes.items;
+        this._targetModel.genes = genes.items.map(g => ({
+            geneId: g.geneId,
+            geneName: g.geneName,
+            taxId: g.taxId,
+            speciesName: g.speciesName,
+            priority: g.priority,
+            ...g.metadata
+        }));
         this.originalModel.targetGenes = genes.items;
     }
 

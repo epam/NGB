@@ -19,7 +19,7 @@ export default class ngbTargetGenesTableController {
         enableRowSelection: true,
         enableRowHeaderSelection: false,
         enableFiltering: false,
-        enableHorizontalScrollbar: 0,
+        enableHorizontalScrollbar: true,
         enablePinning: false,
         treeRowHeaderAlwaysVisible: false,
         saveWidths: true,
@@ -67,10 +67,12 @@ export default class ngbTargetGenesTableController {
         dispatcher.on('target:form:add:gene', getDataOnLastPage);
         dispatcher.on('target:form:gene:added', initialize);
         dispatcher.on('target:form:refreshed', getDataOnPage);
+        dispatcher.on('target:genes:columns:changed', initialize);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:add:gene', getDataOnLastPage);
             dispatcher.removeListener('target:form:gene:added', initialize);
             dispatcher.removeListener('target:form:refreshed', getDataOnPage);
+            dispatcher.removeListener('target:genes:columns:changed', initialize);
         });
     }
 
@@ -131,24 +133,24 @@ export default class ngbTargetGenesTableController {
         const removeCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_removeCell.tpl.html');
 
         const result = [];
-        const columnsList = this.ngbTargetGenesTableService.getColumnList();
+        const columnsList = this.ngbTargetGenesTableService.currentColumnFields;
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
             columnSettings = {
-                name: column.name,
-                displayName: column.displayName,
+                name: column,
+                displayName: this.ngbTargetGenesTableService.getColumnName(column),
                 enableHiding: false,
                 enableColumnMenu: false,
                 enableSorting: false,
                 enableFiltering: false,
-                field: column.name,
-                headerTooltip: column.name,
+                field: column,
+                headerTooltip: column,
                 headerCellTemplate: headerCells,
                 minWidth: 40,
                 width: '*'
             };
-            switch (column.name) {
+            switch (column) {
                 case 'geneId':
                     columnSettings = {
                         ...columnSettings,

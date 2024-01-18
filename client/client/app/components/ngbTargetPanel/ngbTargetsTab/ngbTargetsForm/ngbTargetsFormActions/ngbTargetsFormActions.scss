@@ -27,6 +27,11 @@ ngb-targets-form-actions {
     }
 }
 
+.target-form-actions {
+    padding: 0;
+    height: calc(100vh - 10px);
+}
+
 .menu-checkbox {
     margin-bottom: auto;
 }

@@ -65,6 +65,7 @@ ngb-target-genes-table {
         min-width: 0;
         grid-column: 1 / 49;
         grid-row: 1;
+        height: 100%;
     }
 
     .ui-grid-header-cell-label {
@@ -170,6 +171,10 @@ ngb-target-genes-table {
         line-height: $table-control-height;
         padding: 0;
         margin: 0;
+    }
+
+    .list-cell {
+        width: 100%;
     }
 }
 

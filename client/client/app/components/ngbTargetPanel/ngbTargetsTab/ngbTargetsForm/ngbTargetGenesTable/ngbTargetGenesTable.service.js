@@ -1,34 +1,46 @@
-const COLUMN_LIST = [{
-    name: 'geneId',
-    displayName: 'Gene ID'
-}, {
-    name: 'geneName',
-    displayName: 'Gene Name'
-}, {
-    name: 'taxId',
-    displayName: 'Tax ID'
-}, {
-    name: 'speciesName',
-    displayName: 'Species Name'
-}, {
-    name: 'priority',
-    displayName: 'Priority'
-}, {
-    name: 'remove',
-    displayName: ''
-}];
+const DEFAULT_COLUMNS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority'];
+const REMOVE = 'Remove';
 
+const DISPLAY_NAME = {
+    geneId: 'Gene ID',
+    geneName: 'Gene Name',
+    taxId: 'Tax ID',
+    speciesName: 'Species Name',
+    priority: 'Priority',
+    remove: ''
+};
+
+const COLUMN_FIELD = {
+    'Gene ID': 'geneId',
+    'Gene Name': 'geneName',
+    'Tax ID': 'taxId',
+    'Species Name': 'speciesName',
+    'Priority': 'priority',
+    'Remove': 'remove'
+};
 
 const PAGE_SIZE = 20;
 
 export default class ngbTargetGenesTableService {
 
-    get columnList() {
-        return COLUMN_LIST;
+    get defaultColumns() {
+        return DEFAULT_COLUMNS;
     }
 
     get pageSize() {
         return PAGE_SIZE;
+    }
+
+    get displayName() {
+        return DISPLAY_NAME;
+    }
+
+    get columnField() {
+        return COLUMN_FIELD;
+    }
+
+    get removeColumn() {
+        return REMOVE;
     }
 
     _tableResults = null;
@@ -36,6 +48,8 @@ export default class ngbTargetGenesTableService {
 
     _totalPages = 0;
     _currentPage = 1;
+
+    additionalColumns = [];
 
     get displayFilters() {
         return this._displayFilters;
@@ -54,6 +68,13 @@ export default class ngbTargetGenesTableService {
     }
     set currentPage(value) {
         this._currentPage = value;
+    }
+
+    get currentColumns () {
+        return [...this.defaultColumns, ...this.additionalColumns, this.removeColumn];
+    }
+    get currentColumnFields() {
+        return this.currentColumns.map(c => this.columnField[c] || c)
     }
 
     static instance (dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetContext) {
@@ -85,8 +106,8 @@ export default class ngbTargetGenesTableService {
         return this.targetContext.targetType;
     }
 
-    getColumnList() {
-        return this.columnList;
+    getColumnName(field) {
+        return this.displayName[field];
     }
 
     getRequest() {

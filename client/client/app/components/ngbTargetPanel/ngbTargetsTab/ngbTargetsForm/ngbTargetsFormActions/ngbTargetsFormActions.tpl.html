@@ -4,7 +4,7 @@
                ng-click="$mdOpenMenu($event)">
         <ng-md-icon icon="menu"></ng-md-icon>
     </md-button>
-    <md-menu-content width="4" class="targets-actions">
+    <md-menu-content width="4" class="target-form-actions">
         <md-menu-item>
             <div class="for-md-tooltip-work restore-view-button"
                  ng-click="$ctrl.onClickRestore()">
@@ -32,9 +32,6 @@
                              ng-model="column.selection"
                              ng-change="$ctrl.onChangeColumn()">
                     {{column.name}}
-                    <md-tooltip class="z-index-more" md-direction="top">
-                        {{column.description}}
-                    </md-tooltip>
                 </md-checkbox>
             </div>
         </md-menu-item>

@@ -901,4 +901,16 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    getTargetGenesFields(targetId) {
+        return new Promise(resolve => {
+            this.get(`target/genes/fields/${targetId}`)
+                .then(data => {
+                    resolve(data)
+                })
+                .catch(error => {
+                    resolve([]);
+                });
+        });
+    }
 }
