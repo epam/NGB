@@ -90,33 +90,36 @@ export default class ngbTargetGenesTableService {
         return this.currentColumns.map(c => this.columnField[c] || c)
     }
 
-    static instance (dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetDataService, targetContext) {
-        return new ngbTargetGenesTableService(dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetDataService, targetContext);
+    static instance (dispatcher, ngbTargetsFormService, ngbTargetPanelService, targetDataService, targetContext) {
+        return new ngbTargetGenesTableService(dispatcher, ngbTargetsFormService, ngbTargetPanelService, targetDataService, targetContext);
     }
 
-    constructor(dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetDataService, targetContext) {
-        Object.assign(this, {dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetDataService, targetContext});
+    constructor(dispatcher, ngbTargetsFormService, ngbTargetPanelService, targetDataService, targetContext) {
+        Object.assign(this, {dispatcher, ngbTargetsFormService, ngbTargetPanelService, targetDataService, targetContext});
         dispatcher.on('target:model:changed', this.resetTargetModel.bind(this));
     }
 
     get isParasiteType() {
-        return this.ngbTargetsTabService.targetModel.type === this.targetType.PARASITE;
+        return this.targetModel.type === this.targetType.PARASITE;
     }
 
     get tableResults() {
         if (this.isParasiteType && this.currentPage === this.totalPages) {
-            return [...this._tableResults, ...this.ngbTargetsTabService.addedGenes];
+            return [...this._tableResults, ...this.ngbTargetsFormService.addedGenes];
         } else {
             return this._tableResults;
         }
     }
 
     set loading(value) {
-        this.ngbTargetsTabService.formLoading = value;
+        this.ngbTargetsFormService.loading = value;
     }
 
     get targetType() {
         return this.targetContext.targetType;
+    }
+    get targetModel() {
+        return this.ngbTargetsFormService.targetModel;
     }
 
     getColumnName(field) {
@@ -161,20 +164,20 @@ export default class ngbTargetGenesTableService {
     async getTableResults() {
         if (this.isParasiteType) {
             const request = this.getRequest();
-            const id = this.ngbTargetsTabService.targetModel.id;
-            this._tableResults = await this.ngbTargetsTabService.getTargetGenes(id, request)
+            const id = this.targetModel.id
+            this._tableResults = await this.ngbTargetsFormService.getTargetGenes(id, request)
                 .then(success => {
                     if (success) {
-                        return this.ngbTargetsTabService.targetModel.genes;
+                        return this.targetModel.genes;
                     }
                     return [];
                 });
-            this.totalPages = Math.ceil(this.ngbTargetsTabService.targetModel.genesTotal/this.pageSize);
+            this.totalPages = Math.ceil(this.targetModel.genesTotal/this.pageSize);
             this.loading = false;
             return Promise.resolve(true);
         } else {
             return new Promise(resolve => {
-                this._tableResults = this.ngbTargetsTabService.targetModel.genes;
+                this._tableResults = this.targetModel.genes;
                 this.loading = false;
                 resolve(true);
             });
@@ -216,7 +219,7 @@ export default class ngbTargetGenesTableService {
     }
 
     getGeneFieldValues(field) {
-        const targetId = this.ngbTargetsTabService.targetModel.id;
+        const targetId = this.targetModel.id;
         const fieldName = this.getColumnField(field);
         return new Promise(resolve => {
             this.targetDataService.getGenesFieldValue(targetId, field)

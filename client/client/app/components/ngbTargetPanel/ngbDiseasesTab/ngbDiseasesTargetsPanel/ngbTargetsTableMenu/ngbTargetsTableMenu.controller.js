@@ -15,6 +15,7 @@ export default class ngbTargetsTableMenuController {
         dispatcher,
         ngbDiseasesTabService,
         ngbTargetsTabService,
+        ngbTargetsFormService,
         targetDataService,
         targetContext
     ) {
@@ -24,6 +25,7 @@ export default class ngbTargetsTableMenuController {
             dispatcher,
             ngbDiseasesTabService,
             ngbTargetsTabService,
+            ngbTargetsFormService,
             targetDataService,
             targetContext
         });
@@ -51,7 +53,7 @@ export default class ngbTargetsTableMenuController {
         event.preventDefault();
         event.stopPropagation();
         if (!target.targetId) return;
-        await this.ngbTargetsTabService.getTarget(target.targetId);
+        await this.ngbTargetsFormService.getTarget(target.targetId);
         this.dispatcher.emit('target:diseases:show:targets:tab');
     }
 

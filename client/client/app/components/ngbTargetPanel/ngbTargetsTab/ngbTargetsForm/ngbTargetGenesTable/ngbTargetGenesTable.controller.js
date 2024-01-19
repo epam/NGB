@@ -51,7 +51,7 @@ export default class ngbTargetGenesTableController {
         dispatcher,
         $mdDialog,
         ngbTargetGenesTableService,
-        ngbTargetsTabService,
+        ngbTargetsFormService
     ) {
         Object.assign(this, {
             $scope,
@@ -59,7 +59,7 @@ export default class ngbTargetGenesTableController {
             dispatcher,
             $mdDialog,
             ngbTargetGenesTableService,
-            ngbTargetsTabService
+            ngbTargetsFormService
         });
         const initialize = this.initialize.bind(this);
         const getDataOnPage = this.getDataOnPage.bind(this);
@@ -85,17 +85,20 @@ export default class ngbTargetGenesTableController {
         });
     }
 
+    get loading() {
+        return this.ngbTargetsFormService.loading;
+    }
     set loading(value) {
-        this.ngbTargetsTabService.formLoading = value;
+        this.ngbTargetsFormService.loading = value;
     }
     get targetModel() {
-        return this.ngbTargetsTabService.targetModel;
+        return this.ngbTargetsFormService.targetModel;
     }
     get updateForce() {
-        return this.ngbTargetsTabService.updateForce;
+        return this.ngbTargetsFormService.updateForce;
     }
     set updateForce(value) {
-        this.ngbTargetsTabService.updateForce = value;
+        this.ngbTargetsFormService.updateForce = value;
     }
     get totalPages() {
         return this.ngbTargetGenesTableService.totalPages;
@@ -117,6 +120,9 @@ export default class ngbTargetGenesTableController {
     }
     get displayFilters() {
         return this.ngbTargetGenesTableService.displayFilters;
+    }
+    get isParasite() {
+        return this.targetModel.type === this.ngbTargetsFormService.targetType.PARASITE;
     }
 
     $onInit() {
@@ -186,7 +192,7 @@ export default class ngbTargetGenesTableController {
             };
             switch (column) {
                 case 'geneId':
-                    if (this.ngbTargetsTabService.isParasite) {
+                    if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
                         };
@@ -198,7 +204,7 @@ export default class ngbTargetGenesTableController {
                     }
                     break;
                 case 'geneName':
-                    if (this.ngbTargetsTabService.isParasite) {
+                    if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
                         };
@@ -210,7 +216,7 @@ export default class ngbTargetGenesTableController {
                     }
                     break;
                 case 'taxId':
-                    if (this.ngbTargetsTabService.isParasite) {
+                    if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
                         };
@@ -222,7 +228,7 @@ export default class ngbTargetGenesTableController {
                     }
                     break;
                 case 'speciesName':
-                    if (this.ngbTargetsTabService.isParasite) {
+                    if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
                         };
@@ -234,7 +240,7 @@ export default class ngbTargetGenesTableController {
                     }
                     break;
                 case 'priority':
-                    if (this.ngbTargetsTabService.isParasite) {
+                    if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
                         };
@@ -257,7 +263,7 @@ export default class ngbTargetGenesTableController {
                     };
                     break;
                 default:
-                    if (this.ngbTargetsTabService.isParasite) {
+                    if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings
                         };
@@ -292,11 +298,11 @@ export default class ngbTargetGenesTableController {
     }
 
     onSelectGene(row, gene) {
-        this.ngbTargetsTabService.selectedGeneChanged(row, gene)
+        this.ngbTargetsFormService.selectedGeneChanged(row, gene)
     }
 
     onChangeGeneName(row, field, text) {
-        this.ngbTargetsTabService.setGeneModel(row, field, text);
+        this.ngbTargetsFormService.setGeneModel(row, field, text);
     }
 
     savedIdentificationGene(index) {
@@ -354,7 +360,7 @@ export default class ngbTargetGenesTableController {
             if (this.currentPage !== this.totalPages) {
                 await this.getDataOnPage(this.totalPages);
             }
-            this.$timeout(() => this.ngbTargetsTabService.addNewGene(true));
+            this.$timeout(() => this.ngbTargetsFormService.addNewGene(true));
         }
     }
 

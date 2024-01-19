@@ -58,6 +58,7 @@ export default class ngbTargetPanelController {
         ngbTargetPanelService,
         ngbTargetsTabService,
         ngbDiseasesTabService,
+        ngbTargetsFormService,
         targetContext,
         $mdDialog,
     ) {
@@ -68,6 +69,7 @@ export default class ngbTargetPanelController {
             ngbTargetPanelService,
             ngbTargetsTabService,
             ngbDiseasesTabService,
+            ngbTargetsFormService,
             targetContext,
             $mdDialog,
         });
@@ -96,7 +98,7 @@ export default class ngbTargetPanelController {
 
     addTarget () {
         if (this.ngbTargetsTabService) {
-            this.ngbTargetsTabService.setEmptyTargetModel();
+            this.ngbTargetsFormService.setEmptyTargetModel();
             this.ngbTargetsTabService.setAddMode();
         }
     }

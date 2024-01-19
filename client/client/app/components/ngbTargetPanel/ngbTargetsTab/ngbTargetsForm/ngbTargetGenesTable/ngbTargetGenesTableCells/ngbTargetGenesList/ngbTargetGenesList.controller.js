@@ -8,8 +8,8 @@ export default class ngbTargetGenesListController{
         return 'ngbTargetGenesListController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbTargetsTabService, projectContext) {
-        Object.assign(this, {$scope, $timeout, ngbTargetsTabService, projectContext});
+    constructor($scope, $timeout, dispatcher, ngbTargetsFormService, projectContext) {
+        Object.assign(this, {$scope, $timeout, ngbTargetsFormService, projectContext});
         this.searchText = this.value;
         dispatcher.on('target:form:genes:results:updated', this.refresh.bind(this));
         $scope.$on('$destroy', () => {
@@ -22,7 +22,7 @@ export default class ngbTargetGenesListController{
     }
 
     async getList (text) {
-        const result = await this.ngbTargetsTabService.searchGenes(text);
+        const result = await this.ngbTargetsFormService.searchGenes(text);
         const list = result.map(item => {
             if (item.speciesScientificName) {
                 item.speciesName = item.speciesScientificName;

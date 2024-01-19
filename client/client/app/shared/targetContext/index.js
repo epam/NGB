@@ -49,6 +49,8 @@ export default class TargetContext {
 
     _targetTableTotalPages = 0;
 
+    _targetModelType = this.targetType.DEFAULT;
+
     get alignments () {
         return this._alignments;
     }
@@ -120,6 +122,12 @@ export default class TargetContext {
     }
     set targetsFormActionsIsVisible(value) {
         this._targetsFormActionsIsVisible = value;
+    }
+    get targetModelType() {
+        return this._targetModelType;
+    }
+    set targetModelType(value) {
+        this._targetModelType = value;
     }
 
     static instance(dispatcher) {
@@ -206,8 +214,8 @@ export default class TargetContext {
         }
     }
 
-    setTargetsFormActionsVisibility(mode, model) {
+    setTargetsFormActionsVisibility(mode) {
         this.targetsFormActionsIsVisible = (mode === this.mode.EDIT &&
-            model.type === this.targetType.PARASITE);
+            this.targetModelType === this.targetType.PARASITE);
     }
 }

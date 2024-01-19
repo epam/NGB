@@ -6,27 +6,27 @@ export default class ngbTargetsFormController {
         return 'ngbTargetsFormController';
     }
 
-    constructor($scope, $timeout, dispatcher, $mdDialog, ngbTargetsTabService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, $mdDialog, ngbTargetsTabService});
+    constructor($scope, $timeout, dispatcher, $mdDialog, ngbTargetsFormService, ngbTargetsTabService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, $mdDialog, ngbTargetsFormService, ngbTargetsTabService});
     }
 
     get loading() {
-        return this.ngbTargetsTabService.formLoading;
+        return this.ngbTargetsFormService.loading;
     }
     set loading(value) {
-        this.ngbTargetsTabService.formLoading = value;
+        this.ngbTargetsFormService.loading = value;
     }
     get failed() {
-        return this.ngbTargetsTabService.formFailed;
+        return this.ngbTargetsFormService.failed;
     }
     get errorMessageList() {
-        return this.ngbTargetsTabService.formErrorMessageList;
+        return this.ngbTargetsFormService.errorMessageList;
     }
     get launchLoading() {
         return this.ngbTargetsTabService.launchLoading;
     }
     get targetModel() {
-        return this.ngbTargetsTabService.targetModel;
+        return this.ngbTargetsFormService.targetModel;
     }
     get isAddMode() {
         return this.ngbTargetsTabService.isAddMode;
@@ -35,13 +35,13 @@ export default class ngbTargetsFormController {
         return this.ngbTargetsTabService.isEditMode;
     }
     get updateForce() {
-        return this.ngbTargetsTabService.updateForce;
+        return this.ngbTargetsFormService.updateForce;
     }
     set updateForce(value) {
-        this.ngbTargetsTabService.updateForce = value;
+        this.ngbTargetsFormService.updateForce = value;
     }
     get targetType() {
-        return this.ngbTargetsTabService.targetType;
+        return this.ngbTargetsFormService.targetType;
     }
     get isParasite() {
         return this.targetModel.type === this.targetType.PARASITE;
@@ -51,7 +51,7 @@ export default class ngbTargetsFormController {
     }
 
     async backToTable() {
-        this.ngbTargetsTabService.resetTarget();
+        this.ngbTargetsFormService.resetTarget();
         this.ngbTargetsTabService.setTableMode();
         this.dispatcher.emit('show:targets:table');
     }
@@ -59,7 +59,7 @@ export default class ngbTargetsFormController {
     isGenesEmpty() {
         let {genes} = this.targetModel;
         if (this.isParasite) {
-            genes = [...genes, ...this.ngbTargetsTabService.addedGenes]
+            genes = [...genes, ...this.ngbTargetsFormService.addedGenes]
         }
         const genesEmpty = genes.filter(gene => {
             const {geneId, geneName, taxId, speciesName} = gene;
@@ -75,9 +75,9 @@ export default class ngbTargetsFormController {
         const {name, genes} = this.targetModel;
         if (!name || !name.length || !genes || !genes.length) return true;
         if (this.isGenesEmpty()) return true;
-        return (this.ngbTargetsTabService.targetModelChanged()
-            || this.ngbTargetsTabService.targetGenesChanged()
-            || this.ngbTargetsTabService.parasiteGenesAdded()
+        return (this.ngbTargetsFormService.targetModelChanged()
+            || this.ngbTargetsFormService.targetGenesChanged()
+            || this.ngbTargetsFormService.parasiteGenesAdded()
         );
     }
 
@@ -105,9 +105,9 @@ export default class ngbTargetsFormController {
         if (!name || !name.length || !genes || !genes.length) return true;
         if (this.isGenesEmpty()) return true;
         if (!this.isAddMode) {
-            return !(this.ngbTargetsTabService.targetModelChanged()
-                || this.ngbTargetsTabService.targetGenesChanged()
-                || this.ngbTargetsTabService.parasiteGenesAdded()
+            return !(this.ngbTargetsFormService.targetModelChanged()
+                || this.ngbTargetsFormService.targetGenesChanged()
+                || this.ngbTargetsFormService.parasiteGenesAdded()
             );
         }
     }
@@ -138,36 +138,9 @@ export default class ngbTargetsFormController {
             });
 
         this.dispatcher.on('target:delete', async () => {
-            await this.ngbTargetsTabService.deleteTarget();
+            await this.ngbTargetsFormService.deleteTarget();
             this.$timeout(() => this.$scope.$apply());
         });
-    }
-
-    getUpdateRequest() {
-        const {id, name, diseases, products, genes, type} = this.targetModel;
-        const request = {
-            targetId: id,
-            targetName: name,
-            type,
-            diseases,
-            products,
-            targetGenes: genes.map(g => {
-                const gene = {
-                    geneId: g.geneId,
-                    geneName: g.geneName,
-                    taxId: g.taxId,
-                    speciesName: g.speciesName,
-                };
-                if (g.priority && g.priority !== 'None') {
-                    gene.priority = g.priority;
-                }
-                return gene;
-            }),
-        };
-        if (this.updateForce) {
-            request.force = true;
-        }
-        return request;
     }
 
     getUpdateParasiteTargetRequest() {
@@ -184,15 +157,14 @@ export default class ngbTargetsFormController {
 
     async updateTarget() {
         if (this.isParasite) {
-            await this.ngbTargetsTabService.updateParasiteTarget()
+            await this.ngbTargetsFormService.updateParasiteTarget()
                 .then(success => {
                     if (success) {
                         this.ngbTargetsTabService.setEditMode();
                     }
                 });
         } else {
-            const request = this.getUpdateRequest();
-            await this.ngbTargetsTabService.updateTarget(request)
+            await this.ngbTargetsFormService.updateTarget()
                 .then((success) => {
                     if (success) {
                         this.ngbTargetsTabService.setEditMode();
@@ -226,7 +198,7 @@ export default class ngbTargetsFormController {
 
     async addTarget() {
         const request = this.getAddRequest();
-        await this.ngbTargetsTabService.postNewTarget(request)
+        await this.ngbTargetsFormService.postNewTarget(request)
             .then((success) => {
                 if (success) {
                     this.ngbTargetsTabService.setEditMode();
@@ -245,7 +217,7 @@ export default class ngbTargetsFormController {
 
     addGene() {
         if (!this.isAddGeneDisabled) {
-            this.ngbTargetsTabService.addNewGene();
+            this.ngbTargetsFormService.addNewGene();
             this.dispatcher.emit('target:form:add:gene');
         }
     }
