@@ -54,6 +54,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -171,7 +172,7 @@ public class TargetController extends AbstractRESTController {
         return Result.success(targetSecurityService.loadFieldValues(field));
     }
 
-    @GetMapping(value = "/target/genes/import/{targetId}")
+    @PostMapping(value = "/target/genes/import/{targetId}")
     @ApiOperation(
             value = "Imports genes from xlsx, csv and tsv files",
             notes = "Imports genes from xlsx, csv and tsv files",
@@ -179,10 +180,11 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> importGenes(@RequestParam final String path,
+    public Result<Boolean> importGenes(@RequestParam(required = false) final String path,
+                                       @RequestParam(value = "file", required = false) final MultipartFile multipart,
                                        @PathVariable final long targetId)
             throws IOException, ParseException, TargetGenesException {
-        targetGeneSecurityService.importGenes(path, targetId);
+        targetGeneSecurityService.importGenes(targetId, path, multipart);
         return Result.success(null);
     }
 

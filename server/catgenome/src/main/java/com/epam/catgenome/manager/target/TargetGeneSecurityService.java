@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,9 +46,9 @@ public class TargetGeneSecurityService {
     private final TargetGeneManager targetGeneManager;
 
     @PreAuthorize(ROLE_USER)
-    public void importGenes(final String path, final long targetId)
+    public void importGenes(final long targetId, final String path, final MultipartFile multipart)
             throws IOException, ParseException, TargetGenesException {
-        targetGeneManager.importData(path, targetId);
+        targetGeneManager.importData(targetId, path, multipart);
     }
 
     @PreAuthorize(ROLE_USER)

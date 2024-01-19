@@ -43,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.NumericDocValuesField;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
@@ -74,12 +75,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -112,9 +115,13 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         super(Paths.get(indexDirectory, "genes").toString(), targetsTopHits);
     }
 
-    public void importData(final String path, final long targetId)
+    public void importData(final long targetId, final String path, final MultipartFile file)
             throws IOException, ParseException, TargetGenesException {
-        final List<TargetGene> entries = readEntries(path, targetId);
+        Assert.isTrue(path != null || file != null, "Genes file path or content should be defined");
+        final InputStream inputStream = file != null ?  file.getInputStream() :
+                Files.newInputStream(Paths.get(path));
+        final String extension = FilenameUtils.getExtension(file != null ? file.getOriginalFilename() : path);
+        final List<TargetGene> entries = readEntries(targetId, inputStream, extension);
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
@@ -127,8 +134,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
     public Set<String> getFields(final Long targetId) throws ParseException, IOException {
         final Set<String> defaultColumns = new LinkedHashSet<>(IndexField.VALUES_MAP.keySet());
-        Set<String> fields = new HashSet<>();
-        Query query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
+        final Set<String> fields = new HashSet<>();
+        final Query query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
@@ -145,6 +152,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         }
         final List<String> result = new ArrayList<>(fields).stream().sorted().collect(Collectors.toList());
         defaultColumns.addAll(result);
+        defaultColumns.remove("Target ID");
         return defaultColumns;
     }
 
@@ -312,6 +320,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         doc.add(new TextField(IndexField.GENE_NAME.getValue(), entry.getGeneName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexField.GENE_NAME.getValue(), new BytesRef(entry.getGeneName())));
 
+        doc.add(new LongPoint(IndexField.TAX_ID.getValue(), entry.getTaxId()));
         doc.add(new NumericDocValuesField(IndexField.TAX_ID.getValue(), entry.getTaxId()));
         doc.add(new StoredField(IndexField.TAX_ID.getValue(), entry.getTaxId()));
 
@@ -363,26 +372,26 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         }
 
     }
-    private List<TargetGene> readEntries(final String path, final long targetId)
+    private List<TargetGene> readEntries(final long targetId, final InputStream inputStream, final String extension)
             throws IOException, TargetGenesException {
-        final String fileExtension = FilenameUtils.getExtension(path);
-        if (fileExtension.equalsIgnoreCase(EXCEL_EXTENSION)) {
-            return readExcel(path, targetId);
-        } else if (fileExtension.equals(FileFormat.CSV.getExtension()) ||
-                fileExtension.equals(FileFormat.TSV.getExtension())) {
-            return readCSV(path, targetId);
+        if (extension.equalsIgnoreCase(EXCEL_EXTENSION)) {
+            return readExcel(inputStream, targetId);
+        } else if (extension.equals(FileFormat.CSV.getExtension()) ||
+                extension.equals(FileFormat.TSV.getExtension())) {
+            return readCSV(inputStream, targetId, extension);
         } else {
-            throw new TargetGenesException(String.format("Unsupported file extension '%s'", fileExtension));
+            throw new TargetGenesException(String.format("Unsupported file extension '%s'", extension));
         }
     }
 
-    private List<TargetGene> readCSV(final String path, final long targetId) throws IOException {
-        final String fileExtension = FilenameUtils.getExtension(path);
+    private List<TargetGene> readCSV(final InputStream inputStream, final long targetId, final String fileExtension)
+            throws IOException {
         final String separator = FileFormat.getSeparatorByExtension(fileExtension);
         String line;
         String[] cells;
         final List<TargetGene> entries = new ArrayList<>();
-        try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
+        try (Reader reader = new InputStreamReader(inputStream);
+             BufferedReader bufferedReader = new BufferedReader(reader)) {
             line = bufferedReader.readLine();
             final Header header = getHeader(line, separator);
             while ((line = bufferedReader.readLine()) != null) {
@@ -420,56 +429,54 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return entries;
     }
 
-    private List<TargetGene> readExcel(final String path, final long targetId) throws IOException {
+    private List<TargetGene> readExcel(final InputStream inputStream, final long targetId) throws IOException {
         final List<TargetGene> entries = new ArrayList<>();
-        try (FileInputStream file = new FileInputStream(path)) {
-            final Workbook workbook = new XSSFWorkbook(file);
-            final Sheet sheet = workbook.getSheetAt(0);
-            final int totalRows = sheet.getPhysicalNumberOfRows();
-            final Header header = getHeader(sheet.getRow(0));
-            for (int i = 1; i < totalRows; i++) {
-                Row row = sheet.getRow(i);
+        final Workbook workbook = new XSSFWorkbook(inputStream);
+        final Sheet sheet = workbook.getSheetAt(0);
+        final int totalRows = sheet.getPhysicalNumberOfRows();
+        final Header header = getHeader(sheet.getRow(0));
+        for (int i = 1; i < totalRows; i++) {
+            Row row = sheet.getRow(i);
 
-                Cell geneIdCell = row.getCell(header.getIdIndex());
-                Assert.notNull(geneIdCell, "Gene ID column not found");
-                String geneId = getCellValue(geneIdCell);
-                Assert.isTrue(!TextUtils.isBlank(geneId), "Gene ID should not be blank");
+            Cell geneIdCell = row.getCell(header.getIdIndex());
+            Assert.notNull(geneIdCell, "Gene ID column not found");
+            String geneId = getCellValue(geneIdCell);
+            Assert.isTrue(!TextUtils.isBlank(geneId), "Gene ID should not be blank");
 
-                Cell geneNameCell = row.getCell(header.getNameIndex());
-                Assert.notNull(geneNameCell, "Gene Name column not found");
-                String geneName = getCellValue(geneNameCell);
-                Assert.isTrue(!TextUtils.isBlank(geneName), "Gene name should not be blank");
+            Cell geneNameCell = row.getCell(header.getNameIndex());
+            Assert.notNull(geneNameCell, "Gene Name column not found");
+            String geneName = getCellValue(geneNameCell);
+            Assert.isTrue(!TextUtils.isBlank(geneName), "Gene name should not be blank");
 
-                Cell taxIdCell = row.getCell(header.getTaxIdIndex());
-                Assert.notNull(taxIdCell, "Tax ID column not found");
-                Assert.isTrue(taxIdCell.getCellTypeEnum() == NUMERIC, "Tax ID should be numeric");
+            Cell taxIdCell = row.getCell(header.getTaxIdIndex());
+            Assert.notNull(taxIdCell, "Tax ID column not found");
+            Assert.isTrue(taxIdCell.getCellTypeEnum() == NUMERIC, "Tax ID should be numeric");
 
-                Cell speciesNameCell = row.getCell(header.getSpeciesNameIndex());
-                Assert.notNull(speciesNameCell, "Species name column not found");
-                String speciesName = getCellValue(speciesNameCell);
-                Assert.isTrue(!TextUtils.isBlank(speciesName), "Species name should not be blank");
+            Cell speciesNameCell = row.getCell(header.getSpeciesNameIndex());
+            Assert.notNull(speciesNameCell, "Species name column not found");
+            String speciesName = getCellValue(speciesNameCell);
+            Assert.isTrue(!TextUtils.isBlank(speciesName), "Species name should not be blank");
 
-                Map<String, String> metadata = new HashMap<>();
-                header.getMetadataIndexes().forEach((k, v) -> {
-                    Cell cell = row.getCell(v);
-                    if (cell != null) {
-                        String cellValue = getCellValue(cell);
-                        if (StringUtils.isNotBlank(cellValue)) {
-                            metadata.put(k, cellValue);
-                        }
+            Map<String, String> metadata = new HashMap<>();
+            header.getMetadataIndexes().forEach((k, v) -> {
+                Cell cell = row.getCell(v);
+                if (cell != null) {
+                    String cellValue = getCellValue(cell);
+                    if (StringUtils.isNotBlank(cellValue)) {
+                        metadata.put(k, cellValue);
                     }
-                });
+                }
+            });
 
-                TargetGene gene = TargetGene.builder()
-                        .targetId(targetId)
-                        .geneId(geneId)
-                        .geneName(geneName)
-                        .taxId((long) taxIdCell.getNumericCellValue())
-                        .speciesName(speciesName)
-                        .metadata(metadata)
-                        .build();
-                entries.add(gene);
-            }
+            TargetGene gene = TargetGene.builder()
+                    .targetId(targetId)
+                    .geneId(geneId)
+                    .geneName(geneName)
+                    .taxId((long) taxIdCell.getNumericCellValue())
+                    .speciesName(speciesName)
+                    .metadata(metadata)
+                    .build();
+            entries.add(gene);
         }
         return entries;
     }
