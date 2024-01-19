@@ -200,10 +200,11 @@ export default class ngbTargetsTabService {
         this.targetContext.setTargetsFormActionsVisibility(this.targetMode, this.targetModel);
     }
     addNewGene(finished) {
-        if (this.originalModel.type === this.targetType.PARASITE && finished) {
+        const model = this.isAddMode ? this.targetModel : this.originalModel;
+        if (model.type === this.targetType.PARASITE && finished) {
             this.addedGenes.push({...NEW_GENE});
             this.dispatcher.emit('target:form:gene:added');
-        } else if (this.originalModel.type === this.targetType.DEFAULT) {
+        } else if (model.type === this.targetType.DEFAULT) {
             this._targetModel.genes.push({...NEW_GENE});
         }
     }

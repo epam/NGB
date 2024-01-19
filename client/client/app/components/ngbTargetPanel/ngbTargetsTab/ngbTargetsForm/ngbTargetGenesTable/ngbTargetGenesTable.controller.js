@@ -189,7 +189,6 @@ export default class ngbTargetGenesTableController {
                     if (this.ngbTargetsTabService.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
-                            cellTemplate: inputCell,
                         };
                     } else {
                         columnSettings = {
@@ -202,7 +201,6 @@ export default class ngbTargetGenesTableController {
                     if (this.ngbTargetsTabService.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
-                            cellTemplate: listCell,
                         };
                     } else {
                         columnSettings = {
@@ -215,7 +213,6 @@ export default class ngbTargetGenesTableController {
                     if (this.ngbTargetsTabService.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
-                            cellTemplate: inputCell,
                         };
                     } else {
                         columnSettings = {
@@ -228,7 +225,6 @@ export default class ngbTargetGenesTableController {
                     if (this.ngbTargetsTabService.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
-                            cellTemplate: inputCell,
                         };
                     } else {
                         columnSettings = {
@@ -241,7 +237,6 @@ export default class ngbTargetGenesTableController {
                     if (this.ngbTargetsTabService.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
-                            cellTemplate: selectCell,
                         };
                     } else {
                         columnSettings = {
