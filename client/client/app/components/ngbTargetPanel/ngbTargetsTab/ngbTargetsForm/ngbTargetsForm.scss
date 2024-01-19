@@ -46,16 +46,16 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+    }
 
-        &.no-genes-info {
-            color: $form-warning-color;
-        }
+    .no-genes-info {
+        color: $form-warning-color;
     }
 
     .add-gene-link ,
     .upload-link,
     .import-link {
-        margin: 5px 0;
+        margin: 5px 20px;
         cursor: not-allowed;
         font-style: normal;
 
@@ -86,15 +86,23 @@
 
     .file-name {
         font-size: 13px;
-        text-align: center;
+        margin-top: 10px;
     }
 
     .radio-title {
         font-weight: bold;
-        font-size: 13px;
         color: #333333;
         min-width: 60px;
         margin-left: 5px;
+    }
+
+    .target-type {
+        text-transform: capitalize;
+        font-size: 13px;
+        line-height: 31px;
+        min-height: 31px;
+        height: 31px;
+        margin-top: 5px;
     }
 
     md-radio-button.radio-button {

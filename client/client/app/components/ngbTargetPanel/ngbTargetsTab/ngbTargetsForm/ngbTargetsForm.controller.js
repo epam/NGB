@@ -46,6 +46,9 @@ export default class ngbTargetsFormController {
     get isParasite() {
         return this.targetModel.type === this.targetType.PARASITE;
     }
+    get targetTypeName() {
+        return this.targetModel.type.toLowerCase()
+    }
 
     async backToTable() {
         this.ngbTargetsTabService.resetTarget();
