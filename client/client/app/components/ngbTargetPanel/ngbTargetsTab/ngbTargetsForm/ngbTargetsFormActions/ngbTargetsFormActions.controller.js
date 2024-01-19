@@ -12,8 +12,8 @@ export default class ngbTargetsFormActionsController {
         return 'ngbTargetsFormActionsController';
     }
 
-    constructor(dispatcher, ngbTargetGenesTableService, ngbTargetsFormService) {
-        Object.assign(this, {dispatcher, ngbTargetGenesTableService, ngbTargetsFormService});
+    constructor($scope, $timeout, dispatcher, ngbTargetGenesTableService, ngbTargetsFormService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetGenesTableService, ngbTargetsFormService});
     }
 
     $onInit() {
@@ -50,9 +50,17 @@ export default class ngbTargetsFormActionsController {
             });
     }
 
+    resetColumnsSelection() {
+        for (let i = 0; i < this.allColumns.length; i++) {
+            this.allColumns[i].selection = false;
+        }
+    }
+
     onClickRestore() {
-        this.ngbTargetGenesTableService.additionalColumns = [];
-        this.dispatcher.emit('target:genes:columns:changed');
+        this.ngbTargetGenesTableService.restoreView();
+        this.resetColumnsSelection();
+        this.dispatcher.emit('target:form:filters:display:changed');
+        this.$timeout(() => this.$scope.$apply());
     }
 
     onChangeColumn() {

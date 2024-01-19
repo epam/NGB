@@ -66,12 +66,14 @@ export default class ngbTargetGenesTableController {
         const getDataOnLastPage = this.getDataOnLastPage.bind(this);
         const refreshColumns = this.refreshColumns.bind(this);
         const filterChanged = this.filterChanged.bind(this);
+        const resetSorting = this.resetSorting.bind(this);
         dispatcher.on('target:form:gene:added', initialize);
         dispatcher.on('target:form:refreshed', getDataOnPage);
         dispatcher.on('target:form:add:gene', getDataOnLastPage);
         dispatcher.on('target:genes:columns:changed', initialize);
         dispatcher.on('target:form:filters:display:changed', refreshColumns);
         dispatcher.on('target:form:filters:changed', filterChanged);
+        dispatcher.on('target:form:sort:reset', resetSorting);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:gene:added', initialize);
             dispatcher.removeListener('target:form:refreshed', getDataOnPage);
@@ -79,6 +81,7 @@ export default class ngbTargetGenesTableController {
             dispatcher.removeListener('target:genes:columns:changed', initialize);
             dispatcher.removeListener('target:form:filters:display:changed', refreshColumns);
             dispatcher.removeListener('target:form:filters:changed', filterChanged);
+            dispatcher.removeListener('target:form:sort:reset', resetSorting);
         });
     }
 

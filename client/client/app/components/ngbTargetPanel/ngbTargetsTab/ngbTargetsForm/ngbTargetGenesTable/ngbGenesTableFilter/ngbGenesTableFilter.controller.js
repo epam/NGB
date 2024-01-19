@@ -19,10 +19,8 @@ export default class ngbGenesTableFilterController {
         this.input = $element.find('.ngb-filter-input')[0];
 
         this.dispatcher.on('target:form:filters:list', this.setList.bind(this));
-        this.dispatcher.on('target:form:filters:list:reset', this.resetFilters.bind(this));
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:filters:list', this.setList.bind(this));
-            dispatcher.removeListener('target:form:filters:list:reset', this.resetFilters.bind(this));
         });
     }
 
@@ -169,10 +167,5 @@ export default class ngbGenesTableFilterController {
         if (this.listElements) {
             this.listElements.refreshList(null);
         }
-    }
-
-    resetFilters() {
-        this.selectedItems = [];
-        this.displayText = '';
     }
 }

@@ -181,12 +181,27 @@ export default class ngbTargetGenesTableService {
         }
     }
 
+    restoreView() {
+        if (this._sortInfo || this._filterInfo) {
+            this._sortInfo = null;
+            this._filterInfo = null;
+            this.dispatcher.emit('target:form:sort:reset');
+            this._tableResults = null;
+            this.dispatcher.emit('target:form:filters:changed');
+        }
+        this.additionalColumns = [];
+        this._displayFilters = false;
+    }
+
     resetTargetModel() {
         this._tableResults = null;
         this._displayFilters = false;
         this._totalPages = 0;
         this._currentPage = 1;
         this._sortInfo = null;
+        this._filterInfo = null;
+        this.fieldList = {};
+        this.additionalColumns = [];
     }
 
     async onChangeShowFilters() {
