@@ -7,9 +7,10 @@ import controller from './ngbTargetGenesTable.controller';
 import service from './ngbTargetGenesTable.service';
 
 import ngbGenesTablePagination from './ngbGenesTablePagination';
+import ngbGenesTableFilter from './ngbGenesTableFilter';
 
 export default angular
-    .module('ngbTargetGenesTable', [ngbGenesTablePagination])
+    .module('ngbTargetGenesTable', [ngbGenesTablePagination, ngbGenesTableFilter])
     .controller(controller.UID, controller)
     .component('ngbTargetGenesTable', component)
     .service('ngbTargetGenesTableService', service.instance)

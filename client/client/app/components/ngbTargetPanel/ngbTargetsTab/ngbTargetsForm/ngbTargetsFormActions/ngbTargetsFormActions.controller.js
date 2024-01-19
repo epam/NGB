@@ -41,7 +41,13 @@ export default class ngbTargetsFormActionsController {
     }
 
     async onChangeShowFilters() {
-        await this.ngbTargetGenesTableService.onChangeShowFilters();
+        this.dispatcher.emit('target:form:filters:display:changed');
+        await this.ngbTargetGenesTableService.onChangeShowFilters()
+            .then(result => {
+                if (result) {
+                    this.dispatcher.emit('target:form:filters:list');
+                }
+            });
     }
 
     onClickRestore() {
@@ -60,6 +66,7 @@ export default class ngbTargetsFormActionsController {
             const columns = this.ngbTargetGenesTableService.additionalColumns;
             columns.push(added)
             this.ngbTargetGenesTableService.additionalColumns = columns;
+            this.ngbTargetGenesTableService.setFilterList(added);
         }
         if (removed) {
             const columns = this.ngbTargetGenesTableService.additionalColumns;

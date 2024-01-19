@@ -39,9 +39,9 @@
                  class="ui-grid-column-menu-button"
                  ng-click="toggleMenu($event)"
                  ng-if="grid.options.enableColumnMenus &&
-                    !col.isRowHeader &&
-                    col.colDef.enableColumnMenu !== false &&
-                    (!col.colDef.enableColumnMenuFn || col.colDef.enableColumnMenuFn())"
+                       !col.isRowHeader &&
+                       col.colDef.enableColumnMenu !== false &&
+                       (!col.colDef.enableColumnMenuFn || col.colDef.enableColumnMenuFn())"
                  role="button"
                  tabindex="0"
                  ui-grid-one-bind-aria-label="i18n.headerCell.aria.columnMenuButtonLabel"
@@ -53,7 +53,7 @@
             </div>
         </div>
     </div>
-    <ngb-drugs-table-filter column="col"
+    <ngb-genes-table-filter column="col"
                             ng-if="col.enableFiltering">
-    </ngb-drugs-table-filter>
+    </ngb-genes-table-filter>
 </div>

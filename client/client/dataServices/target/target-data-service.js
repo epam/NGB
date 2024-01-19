@@ -913,4 +913,18 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    getGenesFieldValue(targetId, field) {
+        return new Promise((resolve) => {
+            this.get(`target/genes/fieldValues/${targetId}?field=${field}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                })
+                .catch(err => resolve([]));
+        });
+    }
 }

@@ -52,6 +52,8 @@ export default class ngbTargetGenesTableService {
     additionalColumns = [];
 
     _sortInfo = null;
+    _filterInfo = null;
+    fieldList = {};
 
     get displayFilters() {
         return this._displayFilters;
@@ -77,6 +79,9 @@ export default class ngbTargetGenesTableService {
     set sortInfo(value) {
         this._sortInfo = value;
     }
+    get filterInfo() {
+        return this._filterInfo;
+    }
 
     get currentColumns () {
         return [...this.defaultColumns, ...this.additionalColumns, this.removeColumn];
@@ -85,12 +90,12 @@ export default class ngbTargetGenesTableService {
         return this.currentColumns.map(c => this.columnField[c] || c)
     }
 
-    static instance (dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetContext) {
-        return new ngbTargetGenesTableService(dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetContext);
+    static instance (dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetDataService, targetContext) {
+        return new ngbTargetGenesTableService(dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetDataService, targetContext);
     }
 
-    constructor(dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetContext) {
-        Object.assign(this, {dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetContext});
+    constructor(dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetDataService, targetContext) {
+        Object.assign(this, {dispatcher, ngbTargetsTabService, ngbTargetPanelService, targetDataService, targetContext});
         dispatcher.on('target:model:changed', this.resetTargetModel.bind(this));
     }
 
@@ -121,6 +126,13 @@ export default class ngbTargetGenesTableService {
         return field;
     }
 
+    getColumnField(name) {
+        if (Object.prototype.hasOwnProperty.call(this.columnField, name)) {
+            return this.columnField[name];
+        }
+        return name;
+    }
+
     getRequest() {
         const request = {
             page: this.currentPage,
@@ -131,6 +143,17 @@ export default class ngbTargetGenesTableService {
                 orderBy: this.getColumnName(i.field),
                 reverse: !i.ascending
             }))
+        }
+        if (this._filterInfo) {
+            const filters = Object.entries(this._filterInfo)
+                .filter(([key, values]) => values.length)
+                .map(([key, values]) => ({
+                    field: this.getColumnName(key),
+                    terms: values.map(v => v)
+                }));
+            if (filters && filters.length) {
+                request.filters = filters;
+            }
         }
         return request;
     }
@@ -166,5 +189,50 @@ export default class ngbTargetGenesTableService {
         this._sortInfo = null;
     }
 
-    async onChangeShowFilters() {}
+    async onChangeShowFilters() {
+        if (this.displayFilters) {
+            const promises = this.currentColumns
+                .filter(c => c !== this.removeColumn)
+                .map(field => this.getGeneFieldValues(field));
+            return Promise.allSettled(promises)
+                .then(values => values.some(v => v))
+                .catch(err => false)
+        }
+    }
+
+    getGeneFieldValues(field) {
+        const targetId = this.ngbTargetsTabService.targetModel.id;
+        const fieldName = this.getColumnField(field);
+        return new Promise(resolve => {
+            this.targetDataService.getGenesFieldValue(targetId, field)
+                .then((data) => {
+                    this.fieldList[fieldName] = data.filter(d => d);
+                    resolve(true);
+                })
+                .catch(err => {
+                    this.fieldList[fieldName] = [];
+                    resolve(false);
+                });
+        });
+    }
+
+    async setFilterList(column) {
+        if (!this.displayFilters) return;
+        await this.getGeneFieldValues(column)
+            .then(result => {
+                if (result) {
+                    this.dispatcher.emit('target:form:filters:list');
+                }
+            });
+    }
+
+    setFilter(field, value) {
+        const filter = {...(this._filterInfo || {})};
+        if (value && value.length) {
+            filter[field] = value;
+        } else {
+            delete filter[field];
+        }
+        this._filterInfo = filter;
+    }
 }

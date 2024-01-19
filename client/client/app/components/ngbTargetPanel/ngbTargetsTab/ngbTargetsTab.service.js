@@ -238,7 +238,7 @@ export default class ngbTargetsTabService {
 
     setParasiteTargetGenes(genes) {
         this._targetModel.genesTotal = genes.totalCount;
-        this._targetModel.genes = genes.items.map(g => ({
+        this._targetModel.genes = (genes.items || []).map(g => ({
             geneId: g.geneId,
             geneName: g.geneName,
             taxId: g.taxId,
@@ -246,7 +246,7 @@ export default class ngbTargetsTabService {
             priority: g.priority,
             ...g.metadata
         }));
-        this.originalModel.targetGenes = genes.items;
+        this.originalModel.targetGenes = genes.items || [];
     }
 
     async getTarget(id) {

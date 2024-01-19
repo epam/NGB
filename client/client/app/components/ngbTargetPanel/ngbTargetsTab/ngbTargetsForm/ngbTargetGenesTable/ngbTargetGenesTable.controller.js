@@ -15,11 +15,11 @@ export default class ngbTargetGenesTableController {
         showHeader: true,
         multiSelect: false,
         enableGridMenu: false,
-        enableSorting: false,
+        enableSorting: true,
         enableRowSelection: true,
         enableRowHeaderSelection: false,
         enableFiltering: false,
-        enableHorizontalScrollbar: true,
+        enableHorizontalScrollbar: 0,
         enablePinning: false,
         treeRowHeaderAlwaysVisible: false,
         saveWidths: true,
@@ -61,18 +61,24 @@ export default class ngbTargetGenesTableController {
             ngbTargetGenesTableService,
             ngbTargetsTabService
         });
-        const getDataOnLastPage = this.getDataOnLastPage.bind(this);
         const initialize = this.initialize.bind(this);
         const getDataOnPage = this.getDataOnPage.bind(this);
-        dispatcher.on('target:form:add:gene', getDataOnLastPage);
+        const getDataOnLastPage = this.getDataOnLastPage.bind(this);
+        const refreshColumns = this.refreshColumns.bind(this);
+        const filterChanged = this.filterChanged.bind(this);
         dispatcher.on('target:form:gene:added', initialize);
         dispatcher.on('target:form:refreshed', getDataOnPage);
+        dispatcher.on('target:form:add:gene', getDataOnLastPage);
         dispatcher.on('target:genes:columns:changed', initialize);
+        dispatcher.on('target:form:filters:display:changed', refreshColumns);
+        dispatcher.on('target:form:filters:changed', filterChanged);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:form:add:gene', getDataOnLastPage);
             dispatcher.removeListener('target:form:gene:added', initialize);
             dispatcher.removeListener('target:form:refreshed', getDataOnPage);
+            dispatcher.removeListener('target:form:add:gene', getDataOnLastPage);
             dispatcher.removeListener('target:genes:columns:changed', initialize);
+            dispatcher.removeListener('target:form:filters:display:changed', refreshColumns);
+            dispatcher.removeListener('target:form:filters:changed', filterChanged);
         });
     }
 
@@ -106,11 +112,15 @@ export default class ngbTargetGenesTableController {
     set sortInfo(value) {
         this.ngbTargetGenesTableService.sortInfo = value;
     }
+    get displayFilters() {
+        return this.ngbTargetGenesTableService.displayFilters;
+    }
 
     $onInit() {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
             columnDefs: [],
+            paginationPageSize: this.pageSize,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
@@ -132,6 +142,11 @@ export default class ngbTargetGenesTableController {
         this.gridOptions.columnDefs = this.getTableColumns();
     }
 
+    refreshColumns() {
+        this.gridOptions.columnDefs = this.getTableColumns();
+        this.$timeout(() => this.$scope.$apply());
+    }
+
     getTableColumns() {
         const headerCells = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_header.tpl.html');
         const inputCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_inputCell.tpl.html');
@@ -139,72 +154,120 @@ export default class ngbTargetGenesTableController {
         const listCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_listCell.tpl.html');
         const removeCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_removeCell.tpl.html');
 
-        const enableSorting = this.ngbTargetsTabService.isParasite ? true : false;
-        const enableColumnMenu = this.ngbTargetsTabService.isParasite ? true : false;
-
         const result = [];
         const columnsList = this.ngbTargetGenesTableService.currentColumnFields;
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
-            columnSettings = {
+            const settings = {
                 name: column,
                 displayName: this.ngbTargetGenesTableService.getColumnName(column),
                 enableHiding: false,
-                enableColumnMenu,
-                enableSorting,
-                enableFiltering: false,
                 field: column,
                 headerTooltip: column,
                 headerCellTemplate: headerCells,
                 minWidth: 40,
                 width: '*'
+            }
+            const defaultSettings = {
+                ...settings,
+                enableColumnMenu: false,
+                enableSorting: false,
+                enableFiltering: false,
+            };
+            const parasiteSettings = {
+                ...settings,
+                enableColumnMenu: true,
+                enableSorting: true,
+                enableFiltering: this.displayFilters,
             };
             switch (column) {
                 case 'geneId':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: inputCell,
-                    };
+                    if (this.ngbTargetsTabService.isParasite) {
+                        columnSettings = {
+                            ...parasiteSettings,
+                            cellTemplate: inputCell,
+                        };
+                    } else {
+                        columnSettings = {
+                            ...defaultSettings,
+                            cellTemplate: inputCell,
+                        };
+                    }
                     break;
                 case 'geneName':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: listCell,
-                    };
+                    if (this.ngbTargetsTabService.isParasite) {
+                        columnSettings = {
+                            ...parasiteSettings,
+                            cellTemplate: listCell,
+                        };
+                    } else {
+                        columnSettings = {
+                            ...defaultSettings,
+                            cellTemplate: listCell,
+                        };
+                    }
                     break;
                 case 'taxId':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: inputCell,
-                    };
+                    if (this.ngbTargetsTabService.isParasite) {
+                        columnSettings = {
+                            ...parasiteSettings,
+                            cellTemplate: inputCell,
+                        };
+                    } else {
+                        columnSettings = {
+                            ...defaultSettings,
+                            cellTemplate: inputCell,
+                        };
+                    }
                     break;
                 case 'speciesName':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: inputCell,
-                    };
+                    if (this.ngbTargetsTabService.isParasite) {
+                        columnSettings = {
+                            ...parasiteSettings,
+                            cellTemplate: inputCell,
+                        };
+                    } else {
+                        columnSettings = {
+                            ...defaultSettings,
+                            cellTemplate: inputCell,
+                        };
+                    }
                     break;
                 case 'priority':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: selectCell,
-                    };
+                    if (this.ngbTargetsTabService.isParasite) {
+                        columnSettings = {
+                            ...parasiteSettings,
+                            cellTemplate: selectCell,
+                        };
+                    } else {
+                        columnSettings = {
+                            ...defaultSettings,
+                            cellTemplate: selectCell,
+                        };
+                    }
                     break;
                 case 'remove':
                     columnSettings = {
-                        ...columnSettings,
+                        ...defaultSettings,
                         minWidth: 38,
                         maxWidth: 38,
                         cellTemplate: removeCell,
                         enableColumnMenu: false,
                         enableSorting: false,
+                        enableFiltering: false,
                     };
                     break;
                 default:
-                    columnSettings = {
-                        ...columnSettings,
-                    };
+                    if (this.ngbTargetsTabService.isParasite) {
+                        columnSettings = {
+                            ...parasiteSettings
+                        };
+                    } else {
+                        columnSettings = {
+                            ...defaultSettings
+                        };
+                    }
                     break;
             }
             if (columnSettings) {
@@ -329,6 +392,16 @@ export default class ngbTargetGenesTableController {
         });
         this.currentPage = 1;
         await this.loadData();
+    }
+
+    async filterChanged() {
+        if (!this.gridApi) {
+            return;
+        }
+        this.loadingData = true;
+        this.currentPage = 1;
+        await this.loadData();
+        this.$timeout(() => this.$scope.$apply());
     }
 
     resetSorting() {
