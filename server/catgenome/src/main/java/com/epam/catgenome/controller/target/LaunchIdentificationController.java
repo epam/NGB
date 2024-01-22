@@ -438,8 +438,8 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<GeneInfo>> report(@PathVariable final String prefix)
-            throws IOException, ParseException, ExternalDbUnavailableException {
+    public Result<List<GeneInfo>> getGenes(@PathVariable final String prefix)
+            throws IOException, ParseException {
         return Result.success(launchIdentificationSecurityService.getGenes(prefix));
     }
 
@@ -452,7 +452,7 @@ public class LaunchIdentificationController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<String>> getDrugs(@RequestParam final List<String> geneIds)
-            throws IOException, ParseException, ExternalDbUnavailableException {
+            throws IOException, ParseException {
         return Result.success(launchIdentificationSecurityService.getDrugs(geneIds));
     }
 }
