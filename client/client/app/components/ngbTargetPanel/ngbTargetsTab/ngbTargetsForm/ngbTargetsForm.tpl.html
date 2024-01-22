@@ -1,6 +1,6 @@
 <form class="add-target-form" name="target">
     <div class="loading-indicator"
-        ng-if="$ctrl.loading || $ctrl.launchLoading">
+         ng-if="$ctrl.loading || $ctrl.launchLoading">
         <md-progress-linear md-mode="query"></md-progress-linear>
     </div>
     <div ng-class="{'hidden': !$ctrl.failed || $ctrl.loading}">
@@ -19,8 +19,7 @@
                ng-class="{'error': !$ctrl.targetModel.name}"
                required
                placeholder="Target name"
-               ng-model="$ctrl.targetModel.name"
-        />
+               ng-model="$ctrl.targetModel.name"/>
         <md-button type="button"
                    class="md-primary md-raised md-accent target-button"
                    aria-label="Identify target"
@@ -45,115 +44,82 @@
         </md-button>
     </div>
     <div class="ngb-targets-form-section">
+        <div class="target-type">
+            <label id="targetType" class="radio-title">Type:</label>
+            <span ng-if="$ctrl.isEditMode">{{$ctrl.targetTypeName}}</span>
+            <md-radio-group ng-model="$ctrl.targetModel.type"
+                            aria-labelledby="targetType"
+                            ng-if="$ctrl.isAddMode">
+                <md-radio-button value="DEFAULT"
+                                 class="radio-button">
+                    Default
+                </md-radio-button>
+                <md-radio-button value="PARASITE"
+                                 class="radio-button">
+                    Parasite
+                </md-radio-button>
+            </md-radio-group>
+        </div>
         <ngb-tags class="ngb-target-diseases"
                   tag-title="'Diseases:'"
                   tags="$ctrl.targetModel.diseases"
                   add-label="'Add disease'"
-                  editable="true"
-        ></ngb-tags>
+                  editable="true">
+        </ngb-tags>
         <ngb-tags class="ngb-target-products"
                   tag-title="'Products:'"
                   tags="$ctrl.targetModel.products"
                   add-label="'Add product'"
-                  editable="true"
-        ></ngb-tags>
+                  editable="true">
+        </ngb-tags>
     </div>
     <div class="ngb-targets-form-section">
-        <div class="table-container">
-            <table class="ngb-targets-form-table">
-                <thead>
-                <tr>
-                    <th ng-repeat="column in $ctrl.genesColumns track by $index">
-                        {{column}}
-                    </th>
-                    <th class="button-column"></th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr ng-repeat="gene in $ctrl.targetModel.genes">
-                    <td>
-                        <input class="ngb-targets-form-table-input"
-                               spellcheck="false"
-                               required
-                               name="geneId"
-                               ng-model="$ctrl.targetModel.genes[$index].geneId">
-                    </td>
-                    <td>
-                        <ngb-targets-form-list model="geneName"
-                                               index="$index"
-                                               field="geneName">
-                        </ngb-targets-form-list>
-                    </td>
-                    <td>
-                        <input class="ngb-targets-form-table-input"
-                               spellcheck="false"
-                               required
-                               name="taxId"
-                               ng-model="$ctrl.targetModel.genes[$index].taxId">
-                    </td>
-                    <td>
-                        <input class="ngb-targets-form-table-input"
-                               spellcheck="false"
-                               required
-                               name="speciesName"
-                               ng-model="$ctrl.targetModel.genes[$index].speciesName">
-                    </td>
-                    <td class="priority-select-container">
-                        <md-select ng-model="$ctrl.targetModel.genes[$index].priority"
-                                   class="ngb-targets-form-table-select"
-                                   aria-label="Select priority"
-                                   md-container-class="priority-select">
-                            <md-option><em>None</em></md-option>
-                            <md-option ng-repeat="priority in $ctrl.priorityList"
-                                       ng-value="priority.value">
-                                {{priority.name}}
-                            </md-option>
-                        </md-select>
-                    </td>
-                    <td class="button-column">
-                        <md-button class="remove-btn md-warn"
-                                   ng-click="$ctrl.onClickRemove($index)"
-                                   aria-label="Remove"
-                                   title="Remove gene">
-                            <ng-md-icon icon="clear"
-                                        size="15"
-                                        style="fill: currentColor !important;">
-                            </ng-md-icon>
-                        </md-button>
-                    </td>
-                </tr>
-                <tr ng-if="!$ctrl.targetModel.genes || $ctrl.targetModel.genes.length === 0">
-                    <td colspan="6"
-                        class="full-width no-genes-info"
-                        style="padding-top: 8px; padding-bottom: 8px; text-align: center;">
-                        <span>
-                            At least one gene or transcript shall be specified.
+        <ngb-target-genes-table></ngb-target-genes-table>
+        <div >
+            <div class="full-width"
+                 style="padding-top: 8px; padding-bottom: 8px; text-align: center;">
+                <div class="no-genes-info"
+                     ng-if="!$ctrl.targetModel.genes || $ctrl.targetModel.genes.length === 0">
+                    At least one gene or transcript shall be specified.
+                </div>
+                <div class="table-buttons">
+                    <span class="add-gene-link"
+                          ng-class="{'disabled': $ctrl.isAddGeneDisabled}"
+                          ng-click="$ctrl.addGene()"
+                          ng-disabled="$ctrl.isAddGeneDisabled">
+                        Add gene
+                    </span>
+                    <span ng-if="$ctrl.targetModel.type ===  $ctrl.targetType.PARASITE">
+                        <span ng-if="!$ctrl.geneFile.name"
+                              class="upload-link">
+                              <label for="target-genes-file-id">
+                                Upload genes
+                            </label>
+                            <input accept=".csv"
+                                class="ng-hide"
+                                file-model
+                                id="target-genes-file-id"
+                                ng-change="$ctrl.uploadGenes()"
+                                ng-model="$ctrl.geneFile"
+                                required
+                                type="file">
                         </span>
-                        <br />
-                        <span class="add-gene-link"
-                              ng-class="{'disabled': $ctrl.isAddGeneDisabled}"
-                              ng-click="$ctrl.addGene()"
-                              ng-disabled="$ctrl.isAddGeneDisabled"
-                        >
-                            Add gene
+                        <span ng-if="$ctrl.geneFile.name">
+                            <span class="import-link"
+                                ng-click="$ctrl.importGenes()">
+                                Upload
+                            </span>
+                            <span class="cancel-link"
+                                ng-click="$ctrl.cancelImport()">
+                                Cancel
+                            </span>
                         </span>
-                    </td>
-                </tr>
-                <tr ng-if="$ctrl.targetModel.genes && $ctrl.targetModel.genes.length > 0">
-                    <td colspan="6"
-                        class="full-width"
-                        style="padding-top: 8px; padding-bottom: 8px; text-align: center">
-                        <span class="add-gene-link"
-                           ng-class="{'disabled': $ctrl.isAddGeneDisabled}"
-                           ng-click="$ctrl.addGene()"
-                           ng-disabled="$ctrl.isAddGeneDisabled"
-                        >
-                            Add gene
-                        </span>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+                    </span>
+                </div>
+                <div ng-if="$ctrl.geneFile.name" class="file-name">
+                    {{$ctrl.geneFile.name}}
+                </div>
+            </div>
         </div>
     </div>
 </form>

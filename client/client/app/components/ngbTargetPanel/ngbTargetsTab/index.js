@@ -6,8 +6,9 @@ import component from './ngbTargetsTab.component';
 import controller from './ngbTargetsTab.controller';
 import service from './ngbTargetsTab.service';
 
-import ngbTargetsForm from './ngbTargetsForm';
 import ngbTargetsTable from './ngbTargetsTable';
+import ngbTargetsForm from './ngbTargetsForm';
+
 
 export default angular
     .module('ngbTargetsTab', [ngbTargetsTable, ngbTargetsForm])

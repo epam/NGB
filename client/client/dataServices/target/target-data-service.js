@@ -135,7 +135,7 @@ export class TargetDataService extends DataService {
 
     searchGenes(prefix) {
         return new Promise((resolve) => {
-            this.get(`target/genes/${prefix}`)
+            this.get(`target/genes/${encodeURIComponent(prefix)}`)
                 .then(data => {
                     if (data) {
                         resolve(data);
@@ -860,6 +860,71 @@ export class TargetDataService extends DataService {
                     const message = 'Error generating TMAP';
                     reject(new Error((error && error.message) || message));
                 });
+        });
+    }
+
+    getTargetGenesById(targetId, request) {
+        return new Promise((resolve, reject) => {
+            this.post(`target/genes/filter/${targetId}`, request)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting target genes';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    postTargetGenes(targetId, request) {
+        return new Promise((resolve, reject) => {
+            this.post(`target/genes/${targetId}`, request)
+                .then(() => resolve(true))
+                .catch(error => {
+                    const message = 'Error adding target genes';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    putTargetGenes(request) {
+        return new Promise((resolve, reject) => {
+            this.put(`target/genes`, request)
+                .then(() => resolve(true))
+                .catch(error => {
+                    const message = 'Error updating target genes';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getTargetGenesFields(targetId) {
+        return new Promise(resolve => {
+            this.get(`target/genes/fields/${targetId}`)
+                .then(data => {
+                    resolve(data)
+                })
+                .catch(error => {
+                    resolve([]);
+                });
+        });
+    }
+
+    getGenesFieldValue(targetId, field) {
+        return new Promise((resolve) => {
+            this.get(`target/genes/fieldValues/${targetId}?field=${field}`)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve([]);
+                    }
+                })
+                .catch(err => resolve([]));
         });
     }
 }

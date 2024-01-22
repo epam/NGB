@@ -1,0 +1,39 @@
+<md-menu md-position-mode="target-right target">
+    <md-button aria-label="Open demo menu"
+               class="md-icon-button"
+               ng-click="$mdOpenMenu($event)">
+        <ng-md-icon icon="menu"></ng-md-icon>
+    </md-button>
+    <md-menu-content width="4" class="target-form-actions">
+        <md-menu-item>
+            <div class="for-md-tooltip-work restore-view-button"
+                 ng-click="$ctrl.onClickRestore()">
+                Restore view
+            </div>
+        </md-menu-item>
+        <md-divider></md-divider>
+        <md-menu-item>
+            <div class="for-md-tooltip-work">
+                <md-checkbox flex
+                             layout="row"
+                             class="text__sm menu-checkbox"
+                             ng-model="$ctrl.displayFilters"
+                             ng-change="$ctrl.onChangeShowFilters()">
+                    Show filters
+                </md-checkbox>
+            </div>
+        </md-menu-item>
+        <md-divider></md-divider>
+        <md-menu-item ng-repeat="column in $ctrl.columnsList | orderBy: 'name'">
+            <div class="for-md-tooltip-work">
+                <md-checkbox flex
+                             layout="row"
+                             class="text__sm menu-checkbox"
+                             ng-model="column.selection"
+                             ng-change="$ctrl.onChangeColumn()">
+                    {{column.name}}
+                </md-checkbox>
+            </div>
+        </md-menu-item>
+    </md-menu-content>
+</md-menu>

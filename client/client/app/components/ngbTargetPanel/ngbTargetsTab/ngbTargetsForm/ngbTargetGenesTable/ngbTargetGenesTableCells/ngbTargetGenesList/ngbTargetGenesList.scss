@@ -1,6 +1,6 @@
-@import "../ngbTargetsForm.variables";
+@import "../../../ngbTargetsForm.variables.scss";
 
-ngb-targets-form-list {
+ngb-target-genes-list {
     md-autocomplete.ngb-targets-form-autocomplete {
         min-width: 50px;
         border-radius: $table-control-border-radius;

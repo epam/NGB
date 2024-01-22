@@ -46,8 +46,8 @@ export default class ngbTargetsTableController {
         return 'ngbTargetsTableController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbTargetsTableService, ngbTargetsTabService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetsTableService, ngbTargetsTabService});
+    constructor($scope, $timeout, dispatcher, ngbTargetsTableService, ngbTargetsTabService, ngbTargetsFormService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetsTableService, ngbTargetsTabService, ngbTargetsFormService});
 
         const filterChanged = this.filterChanged.bind(this);
         const getDataOnPage = this.getDataOnPage.bind(this);
@@ -259,7 +259,7 @@ export default class ngbTargetsTableController {
             });
         this.gridOptions.data = results;
         this.loadingData = false;
-        this.dispatcher.emit('target:table:results:updated');
+        this.dispatcher.emit('target:table:results:updated', this.ngbTargetsTabService.targetMode, !this.ngbTargetsTableService.isFilterEmpty);
         this.$timeout(() => this.$scope.$apply());
     }
 
@@ -267,6 +267,7 @@ export default class ngbTargetsTableController {
         if (!this.gridApi) {
             return;
         }
+        this.loadingData = true;
         this.currentPage = page;
         this.gridOptions.data = [];
         const request = await this.ngbTargetsTableService.setGetTargetsRequest();
@@ -300,8 +301,12 @@ export default class ngbTargetsTableController {
 
     async openTarget (row, event) {
         event.stopPropagation();
-        await this.ngbTargetsTabService.getTarget(row.id);
-        this.$timeout(() => this.$scope.$apply());
+        this.loadingData = true;
+        await this.ngbTargetsFormService.getTarget(row.id);
+        this.$timeout(() => {
+            this.loadingData = false;
+            this.$scope.$apply();
+        });
     }
 
     showOthers(cell, event) {

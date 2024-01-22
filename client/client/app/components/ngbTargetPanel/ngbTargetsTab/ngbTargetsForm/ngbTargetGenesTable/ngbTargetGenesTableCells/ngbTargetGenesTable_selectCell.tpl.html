@@ -1,0 +1,13 @@
+<span class="select-cell"
+      ng-if="row.entity">
+    <md-select ng-model="row.entity[col.field]"
+               class="ngb-targets-form-table-select"
+               aria-label="Select priority"
+               md-container-class="priority-select">
+        <md-option><em>None</em></md-option>
+        <md-option ng-repeat="priority in grid.appScope.$ctrl.priorityList"
+                   ng-value="priority.value">
+            {{priority.name}}
+        </md-option>
+    </md-select>
+</span>

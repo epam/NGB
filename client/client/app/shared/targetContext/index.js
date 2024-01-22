@@ -6,15 +6,50 @@ export { TargetGenomicsResultEvents };
 
 const TARGET_STORAGE_NAME = 'targetState';
 
+const TARGET_TAB = {
+    TARGETS: 'TARGETS',
+    IDENTIFICATIONS: 'IDENTIFICATIONS',
+    DISEASES: 'DISEASES'
+};
+
+const MODE = {
+    TABLE: 'table',
+    ADD: 'add',
+    EDIT: 'edit'
+};
+
+const TARGET_TYPE = {
+    DEFAULT: 'DEFAULT',
+    PARASITE: 'PARASITE'
+};
+
 export default class TargetContext {
 
     get targetStorageName() {
         return TARGET_STORAGE_NAME;
     }
+    get targetTab() {
+        return TARGET_TAB;
+    }
+    get mode () {
+        return MODE;
+    }
+    get targetType() {
+        return TARGET_TYPE;
+    }
 
     _alignments = [];
     _featureCoords;
     _currentState = {};
+    _targetsTablePaginationIsVisible;
+    _targetsTableActionsIsVisible;
+    _targetsTableResetFilterIsVisible = false;
+
+    _targetsFormActionsIsVisible;
+
+    _targetTableTotalPages = 0;
+
+    _targetModelType = this.targetType.DEFAULT;
 
     get alignments () {
         return this._alignments;
@@ -58,6 +93,43 @@ export default class TargetContext {
         }
     }
 
+    get targetTableTotalPages() {
+        return this._targetTableTotalPages;
+    }
+    set targetTableTotalPages(value) {
+        this._targetTableTotalPages = value;
+    }
+    get targetsTablePaginationIsVisible() {
+        return this._targetsTablePaginationIsVisible;
+    }
+    set targetsTablePaginationIsVisible(value) {
+        this._targetsTablePaginationIsVisible = value;
+    }
+    get targetsTableActionsIsVisible() {
+        return this._targetsTableActionsIsVisible;
+    }
+    set targetsTableActionsIsVisible(value) {
+        this._targetsTableActionsIsVisible = value;
+    }
+    get targetsTableResetFilterIsVisible() {
+        return this._targetsTableResetFilterIsVisible;
+    }
+    set targetsTableResetFilterIsVisible(value) {
+        this._targetsTableResetFilterIsVisible = value;
+    }
+    get targetsFormActionsIsVisible() {
+        return this._targetsFormActionsIsVisible;
+    }
+    set targetsFormActionsIsVisible(value) {
+        this._targetsFormActionsIsVisible = value;
+    }
+    get targetModelType() {
+        return this._targetModelType;
+    }
+    set targetModelType(value) {
+        this._targetModelType = value;
+    }
+
     static instance(dispatcher) {
         return new TargetContext(dispatcher);
     }
@@ -67,12 +139,14 @@ export default class TargetContext {
         const clear = this.clear.bind(this);
         this.dispatcher.on('reference:change', () => clear(true));
         this.dispatcher.on('chromosome:change', () => clear(true));
+        this.dispatcher.on('target:table:results:updated', this.setTargetsTableActionsVisibility.bind(this));
     }
 
-    setCurrentTab(tab) {
+    setCurrentTab(tab, mode) {
         const state = {...this.currentState};
         state.tab = tab;
         this.currentState = state;
+        this.setTargetsTableActionsVisibility(mode);
     }
 
     setCurrentIdentification(target, scope) {
@@ -124,5 +198,24 @@ export default class TargetContext {
         if (!silent) {
             this.dispatcher.emitSimpleEvent(TargetGenomicsResultEvents.changed, []);
         }
+    }
+
+    setTargetsTableActionsVisibility(mode, resetFilterVisibility) {
+        const isTargetTab = this.currentState.tab === this.targetTab.TARGETS;
+        const isTableMode = mode === this.mode.TABLE;
+
+        this.targetsTablePaginationIsVisible = isTargetTab && isTableMode && this.targetTableTotalPages > 1;
+        this.targetsTableActionsIsVisible = isTargetTab && isTableMode;
+
+        resetFilterVisibility = (resetFilterVisibility !== undefined || (isTargetTab && isTableMode))
+            ? resetFilterVisibility : false;
+        if (resetFilterVisibility !== undefined) {
+            this.targetsTableResetFilterIsVisible = isTargetTab && isTableMode && resetFilterVisibility;
+        }
+    }
+
+    setTargetsFormActionsVisibility(mode) {
+        this.targetsFormActionsIsVisible = (mode === this.mode.EDIT &&
+            this.targetModelType === this.targetType.PARASITE);
     }
 }

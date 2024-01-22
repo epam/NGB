@@ -145,14 +145,19 @@ const coverageResetFilters = {
 const targetsTableActions = {
     name: 'targetsTableActions',
     isDefault: true,
-    isVisible: (context, appearance) => !appearance.embedded && appearance.targetsActions
+    isVisible: (context, appearance, bamCoverageContext, targetContext) => (
+        targetContext && targetContext.targetsTableActionsIsVisible
+    )
 };
 const targetsTablePagination = {
     name: 'targetsTablePagination',
     liStyle: {
         width: 'auto'
     },
-    isDefault: false
+    isDefault: false,
+    isVisible: (context, appearance, bamCoverageContext, targetContext) => (
+        targetContext && targetContext.targetsTablePaginationIsVisible
+    )
 };
 const targetsTableResetFilter = {
     name: 'targetsTableResetFilter',
@@ -160,7 +165,17 @@ const targetsTableResetFilter = {
     event: 'targets:filters:reset',
     icon: 'delete_sweep',
     label: 'Reset targets table filter',
-    isVisible: (context) => context.targetsTableFilterIsVisible
+    isVisible: (context, appearance, bamCoverageContext, targetContext) => (
+        targetContext && targetContext.targetsTableResetFilterIsVisible
+    )
+};
+
+const targetsFormActions = {
+    name: 'targetsFormActions',
+    isDefault: true,
+    isVisible: (context, appearance, bamCoverageContext, targetContext) => (
+        targetContext && targetContext.targetsFormActionsIsVisible
+    )
 };
 
 export default {
@@ -186,6 +201,7 @@ export default {
         targetsTableActions: targetsTableActions,
         targetsTablePagination: targetsTablePagination,
         targetsTableResetFilter: targetsTableResetFilter,
+        targetsFormActions: targetsFormActions,
     },
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
@@ -193,6 +209,6 @@ export default {
         ngbGenesTablePanel: [genesTableDownloadAction, genesResetFilterActions, genesTableColumnAction],
         ngbBookmarksPanel: [bookmarksTablePaginationAction, bookmarksResetFilterActions],
         ngbCoveragePanel: [coverageResetFilters, coverageTableActions],
-        ngbTargetPanel: [targetsTableResetFilter, targetsTablePagination, targetsTableActions],
+        ngbTargetPanel: [targetsTableResetFilter, targetsTablePagination, targetsTableActions, targetsFormActions],
     }
 };

@@ -22,6 +22,7 @@ $table-control-font-color: $common-font-color;
 $table-control-background: #fafafa;
 $table-control-hover-background: #f0f0f0;
 $table-control-padding: 0 calc($form-horizontal-offset - 1px);
+$table-border: $general-border;
 
 $tag-border-radius: 5px;
 $tag-font-size: $table-control-font-size;
@@ -31,10 +32,7 @@ $tag-size: calc($table-control-height - 2px);
 
 $table-header-cell-color: $common-accent-font-color;
 $table-header-cell-font-weight: bold;
-$table-header-cell-padding: 0 $form-horizontal-offset;
 $table-header-cell-font-size: $common-font-size;
-$table-header-cell-height: calc($table-control-height + 2px);
-$table-cell-padding: 3px 1px 0;
 $table-cell-full-width-padding: 3px $form-horizontal-offset;
 
 $form-warning-color: $general-warning-color;
