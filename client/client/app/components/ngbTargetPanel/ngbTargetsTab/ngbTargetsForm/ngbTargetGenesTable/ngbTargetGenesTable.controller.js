@@ -124,6 +124,12 @@ export default class ngbTargetGenesTableController {
     get isParasite() {
         return this.targetModel.type === this.ngbTargetsFormService.targetType.PARASITE;
     }
+    get addedGenes() {
+        return this.ngbTargetsFormService.addedGenes;
+    }
+    set addedGenes(value) {
+        this.ngbTargetsFormService.addedGenes = value;
+    }
 
     $onInit() {
         Object.assign(this.gridOptions, {
@@ -325,7 +331,7 @@ export default class ngbTargetGenesTableController {
         event.stopPropagation();
         const geneIndex = this.targetModel.genes.indexOf(row);
         if (!this.savedIdentificationGene(geneIndex)) {
-            this.targetModel.genes.splice(geneIndex, 1);
+            this.deleteGeneFromTarget(geneIndex, row);
         } else {
             this.openConfirmDialog(geneIndex);
         }
@@ -350,8 +356,33 @@ export default class ngbTargetGenesTableController {
 
         this.dispatcher.on('target:gene:delete', () => {
             this.updateForce = true;
-            this.targetModel.genes.splice(index, 1);
+            this.deleteGeneFromTarget(index);
         });
+    }
+
+    deleteGeneFromTarget(index, row) {
+        const updateTable = (i) => {
+            this.gridOptions.data = [];
+            this.targetModel.genes.splice(i, 1);
+            this.$timeout(() => {
+                this.$scope.$apply();
+                this.gridOptions.data = this.tableResults;
+                this.$timeout(() => this.$scope.$apply());
+            });
+        }
+
+        if (this.isParasite) {
+            if (index === -1) {
+                index = this.addedGenes.indexOf(row);
+                this.addedGenes.splice(index, 1);
+                this.gridOptions.data = this.tableResults;
+            } else {
+                this.ngbTargetsFormService.removedGenes.push({...this.targetModel.genes[index]});
+                updateTable(index);
+            }
+        } else {
+            updateTable(index);
+        }
     }
 
     async getDataOnPage(page) {

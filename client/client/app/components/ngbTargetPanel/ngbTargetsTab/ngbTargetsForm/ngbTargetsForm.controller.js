@@ -59,7 +59,7 @@ export default class ngbTargetsFormController {
         this.dispatcher.emit('show:targets:table');
     }
 
-    isGenesEmpty() {
+    isSomeGeneEmpty() {
         let {genes} = this.targetModel;
         if (this.isParasite) {
             genes = [...genes, ...this.ngbTargetsFormService.addedGenes]
@@ -77,7 +77,7 @@ export default class ngbTargetsFormController {
         if (this.loading || this.isAddMode) return true;
         const {name, genes} = this.targetModel;
         if (!name || !name.length || !genes || !genes.length) return true;
-        if (this.isGenesEmpty()) return true;
+        if (this.isSomeGeneEmpty()) return true;
         return (this.ngbTargetsFormService.targetModelChanged()
             || this.ngbTargetsFormService.targetGenesChanged()
             || this.ngbTargetsFormService.parasiteGenesAdded()
@@ -102,12 +102,28 @@ export default class ngbTargetsFormController {
         this.dispatcher.emit('target:launch:identification', target);
     }
 
+    areGenesEmpty() {
+        if (this.isParasite) {
+            if (this.isAddMode) {
+                if (!this.addedGenes || !this.addedGenes.length) return true;
+            } else {
+                if (this.targetModel.genesTotal <= this.ngbTargetsFormService.pageSize) {
+                    if (!this.targetModel.genes || !this.targetModel.genes.length) {
+                        if (!this.addedGenes || !this.addedGenes.length) return true;
+                    }
+                }
+            }
+        } else {
+            if (!this.targetModel.genes || !this.targetModel.genes.length) return true;
+        }
+    }
+
     isSaveDisabled() {
         if (this.loading) return true;
         const {name} = this.targetModel;
-        const genes = (this.isParasite && this.isAddMode) ? this.addedGenes : this.targetModel.genes;
-        if (!name || !name.length || !genes || !genes.length) return true;
-        if (this.isGenesEmpty()) return true;
+        if (!name || !name.length) return true;
+        if (this.areGenesEmpty()) return true;
+        if (this.isSomeGeneEmpty()) return true;
         if (!this.isAddMode) {
             return !(this.ngbTargetsFormService.targetModelChanged()
                 || this.ngbTargetsFormService.targetGenesChanged()
@@ -171,7 +187,7 @@ export default class ngbTargetsFormController {
         if (!block || !block.length) {
             return false;
         }
-        return this.isGenesEmpty();
+        return this.isSomeGeneEmpty();
     }
 
     addGene() {

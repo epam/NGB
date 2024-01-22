@@ -19,16 +19,12 @@ const COLUMN_FIELD = {
     'Remove': 'remove'
 };
 
-const PAGE_SIZE = 20;
+
 
 export default class ngbTargetGenesTableService {
 
     get defaultColumns() {
         return DEFAULT_COLUMNS;
-    }
-
-    get pageSize() {
-        return PAGE_SIZE;
     }
 
     get displayName() {
@@ -159,6 +155,10 @@ export default class ngbTargetGenesTableService {
     }
     get targetModel() {
         return this.ngbTargetsFormService.targetModel;
+    }
+
+    get pageSize() {
+        return this.ngbTargetsFormService.pageSize;
     }
 
     getColumnName(field) {

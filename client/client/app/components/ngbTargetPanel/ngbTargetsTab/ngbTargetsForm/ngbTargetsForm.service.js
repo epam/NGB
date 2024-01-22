@@ -6,6 +6,8 @@ const NEW_GENE = {
     priority: ''
 };
 
+const PAGE_SIZE = 20;
+
 const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'priority'];
 
 export default class ngbTargetsFormService {
@@ -14,10 +16,15 @@ export default class ngbTargetsFormService {
         return GENE_MODEL_PROPERTIES;
     }
 
+    get pageSize() {
+        return PAGE_SIZE;
+    }
+
     _targetModel;
     _originalModel;
     _updateForce = false;
     _addedGenes = [];
+    _removedGenes = [];
 
     _loading = false;
     _failed = false;
@@ -52,6 +59,12 @@ export default class ngbTargetsFormService {
     }
     set addedGenes(value) {
         this._addedGenes = value;
+    }
+    get removedGenes() {
+        return this._removedGenes;
+    }
+    set removedGenes(value) {
+        this._removedGenes = value;
     }
 
     get targetModel() {
@@ -104,6 +117,10 @@ export default class ngbTargetsFormService {
 
     parasiteGenesAdded() {
         return this.isParasite && !!this.addedGenes.length;
+    }
+
+    parasiteGenesRemoved() {
+        return this.removedGenes && this.removedGenes.length;
     }
 
     targetGenesChanged() {
@@ -440,6 +457,10 @@ export default class ngbTargetsFormService {
         if (this.parasiteGenesAdded()) {
             promises.push(await this.postNewParasiteTargetGenes(this.targetModel.id));
         }
+        if (this.parasiteGenesRemoved()) {
+            const geneIds = this.removedGenes.map(gene => gene.geneId);
+            promises.push(await this.deleteParasiteTargetGenes(this.targetModel.id, geneIds));
+        }
         if (this.targetGenesChanged()) {
             const request = this.getParasiteGenesMetadataRequest(this.targetModel);
             promises.push(await this.putParasiteGenes(request));
@@ -453,6 +474,7 @@ export default class ngbTargetsFormService {
                 this.failed = false;
                 this.errorMessageList = null;
                 this.addedGenes = [];
+                this.removedGenes = [];
             }
             this.loading = false;
             return true;
@@ -483,6 +505,14 @@ export default class ngbTargetsFormService {
                         resolve(true);
                     }
                 })
+                .catch(err => reject(err));
+        });
+    }
+
+    deleteParasiteTargetGenes(targetId, geneIds) {
+        return new Promise((resolve, reject) => {
+            this.targetDataService.deleteTargetGenes(targetId, geneIds)
+                .then(() => resolve(true))
                 .catch(err => reject(err));
         });
     }
@@ -537,6 +567,7 @@ export default class ngbTargetsFormService {
         this.failed = false;
         this.errorMessageList = null;
         this.addedGenes = [];
+        this.removedGenes = [];
     }
 
     setGeneModel(row, field, value) {
