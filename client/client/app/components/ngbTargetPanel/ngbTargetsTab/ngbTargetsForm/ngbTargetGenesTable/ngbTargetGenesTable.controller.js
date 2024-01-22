@@ -68,7 +68,7 @@ export default class ngbTargetGenesTableController {
         const filterChanged = this.filterChanged.bind(this);
         const resetSorting = this.resetSorting.bind(this);
         dispatcher.on('target:form:gene:added', initialize);
-        dispatcher.on('target:form:refreshed', getDataOnPage);
+        dispatcher.on('target:form:updated', getDataOnPage);
         dispatcher.on('target:form:add:gene', getDataOnLastPage);
         dispatcher.on('target:genes:columns:changed', initialize);
         dispatcher.on('target:form:filters:display:changed', refreshColumns);
@@ -76,7 +76,7 @@ export default class ngbTargetGenesTableController {
         dispatcher.on('target:form:sort:reset', resetSorting);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:gene:added', initialize);
-            dispatcher.removeListener('target:form:refreshed', getDataOnPage);
+            dispatcher.removeListener('target:form:updated', getDataOnPage);
             dispatcher.removeListener('target:form:add:gene', getDataOnLastPage);
             dispatcher.removeListener('target:genes:columns:changed', initialize);
             dispatcher.removeListener('target:form:filters:display:changed', refreshColumns);
@@ -195,6 +195,7 @@ export default class ngbTargetGenesTableController {
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
+                            cellTemplate: inputCell,
                         };
                     } else {
                         columnSettings = {
@@ -207,6 +208,7 @@ export default class ngbTargetGenesTableController {
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
+                            cellTemplate: listCell,
                         };
                     } else {
                         columnSettings = {
@@ -219,6 +221,7 @@ export default class ngbTargetGenesTableController {
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
+                            cellTemplate: inputCell,
                         };
                     } else {
                         columnSettings = {
@@ -231,6 +234,7 @@ export default class ngbTargetGenesTableController {
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
+                            cellTemplate: inputCell,
                         };
                     } else {
                         columnSettings = {
@@ -243,6 +247,7 @@ export default class ngbTargetGenesTableController {
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
+                            cellTemplate: selectCell,
                         };
                     } else {
                         columnSettings = {
@@ -265,11 +270,13 @@ export default class ngbTargetGenesTableController {
                 default:
                     if (this.isParasite) {
                         columnSettings = {
-                            ...parasiteSettings
+                            ...parasiteSettings,
+                            cellTemplate: inputCell,
                         };
                     } else {
                         columnSettings = {
-                            ...defaultSettings
+                            ...defaultSettings,
+                            cellTemplate: inputCell,
                         };
                     }
                     break;
@@ -360,7 +367,7 @@ export default class ngbTargetGenesTableController {
             if (this.currentPage !== this.totalPages) {
                 await this.getDataOnPage(this.totalPages);
             }
-            this.$timeout(() => this.ngbTargetsFormService.addNewGene(true));
+            this.$timeout(() => this.ngbTargetsFormService.addNewGene());
         }
     }
 

@@ -28,6 +28,9 @@ export default class ngbTargetsFormController {
     get targetModel() {
         return this.ngbTargetsFormService.targetModel;
     }
+    get originalModel() {
+        return this.ngbTargetsFormService.originalModel;
+    }
     get isAddMode() {
         return this.ngbTargetsTabService.isAddMode;
     }
@@ -101,7 +104,8 @@ export default class ngbTargetsFormController {
 
     isSaveDisabled() {
         if (this.loading) return true;
-        const {name, genes} = this.targetModel;
+        const {name} = this.targetModel;
+        const genes = (this.isParasite && this.isAddMode) ? this.addedGenes : this.targetModel.genes;
         if (!name || !name.length || !genes || !genes.length) return true;
         if (this.isGenesEmpty()) return true;
         if (!this.isAddMode) {
@@ -120,6 +124,100 @@ export default class ngbTargetsFormController {
             await this.updateTarget();
         }
         this.$timeout(() => this.$scope.$apply());
+    }
+
+    async addTarget() {
+        if (this.isParasite) {
+            await this.ngbTargetsFormService.postNewParasiteTarget()
+                .then(success => {
+                    if (success) {
+                        this.ngbTargetsTabService.setEditMode();
+                        this.dispatcher.emit('target:form:updated', 1);
+                        console.log(this.targetModel, this.addedGenes)
+                    }
+                });
+        } else {
+            await this.ngbTargetsFormService.postNewTarget()
+                .then((success) => {
+                    if (success) {
+                        this.ngbTargetsTabService.setEditMode();
+                    }
+                });
+        }
+    }
+
+    async updateTarget() {
+        if (this.isParasite) {
+            await this.ngbTargetsFormService.updateParasiteTarget()
+                .then(success => {
+                    if (success) {
+                        this.ngbTargetsTabService.setEditMode();
+                        this.dispatcher.emit('target:form:updated', 1);
+                    }
+                });
+        } else {
+            await this.ngbTargetsFormService.updateTarget()
+                .then((success) => {
+                    if (success) {
+                        this.ngbTargetsTabService.setEditMode();
+                    }
+                });
+        }
+    }
+
+    get isAddGeneDisabled () {
+        if (this.loading) return true;
+        const block = this.isParasite ? this.addedGenes : this.targetModel.genes;
+        if (!block || !block.length) {
+            return false;
+        }
+        return this.isGenesEmpty();
+    }
+
+    addGene() {
+        if (!this.isAddGeneDisabled) {
+            const model = this.isAddMode ? this.targetModel : this.originalModel;
+            if (model.type === this.targetType.PARASITE) {
+                if (this.isAddMode) {
+                    this.ngbTargetsFormService.addNewGene();
+                } else {
+                    this.dispatcher.emit('target:form:add:gene');
+                }
+            } else if (model.type === this.targetType.DEFAULT) {
+                this.ngbTargetsFormService.addNewGene();
+            }
+        }
+    }
+
+    uploadGenes() {
+        console.log('uploadGenes')
+    }
+
+    importGenes() {
+        console.log(this.geneFile)
+    }
+
+    cancelImport() {
+        this.geneFile = null;
+    }
+
+    get addedGenes() {
+        return this.ngbTargetsFormService.addedGenes;
+    }
+    set addedGenes(value) {
+        this.ngbTargetsFormService.addedGenes = value;
+    }
+
+    onChangeType() {
+        if (this.targetModel.type === this.targetType.DEFAULT) {
+            this.targetModel.genes = [...this.addedGenes];
+            this.addedGenes = [];
+        }
+        if (this.targetModel.type === this.targetType.PARASITE) {
+            this.addedGenes = [...this.targetModel.genes];
+            this.targetModel.genes = [];
+        }
+        this.dispatcher.emit('target:model:type:changed');
     }
 
     removeTarget() {
@@ -141,96 +239,5 @@ export default class ngbTargetsFormController {
             await this.ngbTargetsFormService.deleteTarget();
             this.$timeout(() => this.$scope.$apply());
         });
-    }
-
-    getUpdateParasiteTargetRequest() {
-        const {id, name, diseases, products, type} = this.targetModel;
-        const request = {
-            targetId: id,
-            targetName: name,
-            type,
-            diseases,
-            products,
-        };
-        return request;
-    }
-
-    async updateTarget() {
-        if (this.isParasite) {
-            await this.ngbTargetsFormService.updateParasiteTarget()
-                .then(success => {
-                    if (success) {
-                        this.ngbTargetsTabService.setEditMode();
-                    }
-                });
-        } else {
-            await this.ngbTargetsFormService.updateTarget()
-                .then((success) => {
-                    if (success) {
-                        this.ngbTargetsTabService.setEditMode();
-                    }
-                });
-        }
-    }
-
-    getAddRequest() {
-        const {name, diseases, products, genes, type} = this.targetModel;
-        const request = {
-            targetName: name,
-            type,
-            diseases,
-            products,
-            targetGenes: genes.map(g => {
-                const gene = {
-                    geneId: g.geneId,
-                    geneName: g.geneName,
-                    taxId: g.taxId,
-                    speciesName: g.speciesName,
-                };
-                if (g.priority && g.priority !== 'None') {
-                    gene.priority = g.priority;
-                }
-                return gene;
-            })
-        };
-        return request;
-    }
-
-    async addTarget() {
-        const request = this.getAddRequest();
-        await this.ngbTargetsFormService.postNewTarget(request)
-            .then((success) => {
-                if (success) {
-                    this.ngbTargetsTabService.setEditMode();
-                }
-            });
-    }
-
-    get isAddGeneDisabled () {
-        if (this.loading) return true;
-        const block = this.targetModel.genes;
-        if (!block || !block.length) {
-            return false;
-        }
-        return this.isGenesEmpty();
-    }
-
-    addGene() {
-        if (!this.isAddGeneDisabled) {
-            this.ngbTargetsFormService.addNewGene();
-            this.dispatcher.emit('target:form:add:gene');
-        }
-    }
-
-    uploadGenes() {
-        console.log('uploadGenes')
-    }
-
-    importGenes() {
-        console.log(this.geneFile)
-    }
-
-    cancelImport() {
-        this.geneFile = null;
     }
 }

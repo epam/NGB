@@ -107,15 +107,15 @@ export default class ngbTargetsFormService {
     }
 
     targetGenesChanged() {
-        const originalModel = this.originalModel.targetGenes;
-        const targetModel = this.targetModel.genes;
-        if (originalModel.length !== targetModel.length) {
+        const originalGenes = this.originalModel.targetGenes;
+        const targetGenes = this.targetModel.genes;
+        if (originalGenes.length !== targetGenes.length) {
             return true;
         }
-        return targetModel.some((gene, index) => (
+        return targetGenes.some((gene, index) => (
             Object.entries(gene).some(([key, value]) => {
                 if (!this.geneModelProperties.includes(key)) return false;
-                return String(value) !== String(originalModel[index][key]);
+                return String(value) !== String(originalGenes[index][key]);
             })
         ));
     }
@@ -225,9 +225,9 @@ export default class ngbTargetsFormService {
         });
     }
 
-    addNewGene(finished) {
+    addNewGene() {
         const model = this.isAddMode ? this.targetModel : this.originalModel;
-        if (model.type === this.targetType.PARASITE && finished) {
+        if (model.type === this.targetType.PARASITE) {
             this.addedGenes.push({...NEW_GENE});
             this.dispatcher.emit('target:form:gene:added');
         } else if (model.type === this.targetType.DEFAULT) {
@@ -235,7 +235,31 @@ export default class ngbTargetsFormService {
         }
     }
 
-    postNewTarget(request) {
+    getAddRequest() {
+        const {name, diseases, products, genes, type} = this.targetModel;
+        const request = {
+            targetName: name,
+            type,
+            diseases,
+            products,
+            targetGenes: genes.map(g => {
+                const gene = {
+                    geneId: g.geneId,
+                    geneName: g.geneName,
+                    taxId: g.taxId,
+                    speciesName: g.speciesName,
+                };
+                if (g.priority && g.priority !== 'None') {
+                    gene.priority = g.priority;
+                }
+                return gene;
+            })
+        };
+        return request;
+    }
+
+    postNewTarget() {
+        const request = this.getAddRequest();
         return new Promise(resolve => {
             this.targetDataService.postNewTarget(request)
                 .then(result => {
@@ -258,10 +282,21 @@ export default class ngbTargetsFormService {
         });
     }
 
-    getParasiteGenesRequest(genes) {
+    getAddParasiteRequest() {
+        const {name, diseases, products, type} = this.targetModel;
+        const request = {
+            targetName: name,
+            type,
+            diseases,
+            products,
+        };
+        return request;
+    }
+
+    getParasiteGenesRequest(genes, targetId) {
         const request = genes.map(g => {
             const gene = {
-                targetId: this.targetModel.id,
+                targetId: targetId,
                 geneId: g.geneId,
                 geneName: g.geneName,
                 taxId: g.taxId,
@@ -276,66 +311,42 @@ export default class ngbTargetsFormService {
         return request;
     }
 
-
-    putParasiteTarget(request) {
+    async postNewParasiteTargetGenes(targetId) {
+        const genesRequest = this.getParasiteGenesRequest(this.addedGenes, targetId);
         return new Promise((resolve, reject) => {
-            this.targetDataService.updateTarget(request)
-                .then(result => resolve(result))
-                .catch(err => reject(err));
-        });
-    }
-
-    putParasiteGenes(request) {
-        return new Promise((resolve, reject) => {
-            this.targetDataService.putTargetGenes(request)
+            this.targetDataService.postTargetGenes(targetId, genesRequest)
                 .then(() => resolve(true))
                 .catch(err => reject(err));
         });
     }
 
-    postParasiteGenes() {
-        const request = this.getParasiteGenesRequest(this.addedGenes);
-        const targetId = this.targetModel.id;
-        return new Promise((resolve, reject) => {
-            this.targetDataService.postTargetGenes(targetId, request)
-                .then(() => resolve(true))
-                .catch(err => reject(err));
+    async postNewParasiteTarget() {
+        const targetRequest = this.getAddParasiteRequest();
+        return new Promise(resolve => {
+            this.targetDataService.postNewTarget(targetRequest)
+                .then(async (target) => {
+                    if (target) {
+                        await this.postNewParasiteTargetGenes(target.targetId)
+                            .then(success => {
+                                if (success) {
+                                    this.failed = false;
+                                    this.errorMessageList = null;
+                                    this.addedGenes = [];
+                                    this.setTargetModel(target);
+                                    this.originalModel = target;
+                                }
+                            });
+                    }
+                    this.loading = false;
+                    resolve(true);
+                })
+                .catch(err => {
+                    this.failed = true;
+                    this.errorMessageList = [err.message];
+                    this.loading = false;
+                    resolve(false);
+                });
         });
-    }
-
-    getParasiteTargetRequest() {
-        const {id, name, diseases, products, type} = this.targetModel;
-        const request = {
-            targetId: id,
-            targetName: name,
-            type,
-            diseases,
-            products,
-        };
-        if (this.updateForce) {
-            request.force = true;
-        }
-        return request;
-    }
-
-    async updateParasiteTarget() {
-        const promises = [];
-        if (this.parasiteGenesAdded()) {
-            promises.push(await this.postParasiteGenes());
-        }
-        // if (this.targetGenesChanged()) {
-        //     const request = this.getParasiteGenesRequest(this.targetModel.genes);
-        //     promises.push(await this.putParasiteGenes(request));
-        // }
-        // if (this.targetModelChanged()) {
-        //     const request = this.getParasiteTargetRequest();
-        //     promises.push(await this.putParasiteTarget(request));
-        // }
-        Promise.all(promises).then(values => {
-            this.dispatcher.emit('target:form:refreshed', 1);
-            return true;
-        })
-            .catch(err => console.log(err))
     }
 
     getUpdateRequest() {
@@ -387,6 +398,92 @@ export default class ngbTargetsFormService {
                     this.loading = false;
                     resolve(false);
                 });
+        });
+    }
+
+    getParasiteGenesMetadataRequest(model) {
+        const {id, genes} = model;
+        const request = genes.map(g => {
+            const gene = {
+                targetId: id,
+                geneId: g.geneId,
+                geneName: g.geneName,
+                taxId: g.taxId,
+                speciesName: g.speciesName,
+                metadata: {}
+            };
+            if (g.priority && g.priority !== 'None') {
+                gene.priority = g.priority;
+            }
+            return gene;
+        });
+        return request;
+    }
+
+    getParasiteTargetRequest() {
+        const {id, name, diseases, products, type} = this.targetModel;
+        const request = {
+            targetId: id,
+            targetName: name,
+            type,
+            diseases,
+            products,
+        };
+        if (this.updateForce) {
+            request.force = true;
+        }
+        return request;
+    }
+
+    async updateParasiteTarget() {
+        const promises = [];
+        if (this.parasiteGenesAdded()) {
+            promises.push(await this.postNewParasiteTargetGenes(this.targetModel.id));
+        }
+        if (this.targetGenesChanged()) {
+            const request = this.getParasiteGenesMetadataRequest(this.targetModel);
+            promises.push(await this.putParasiteGenes(request));
+        }
+        if (this.targetModelChanged()) {
+            const request = this.getParasiteTargetRequest();
+            promises.push(await this.putParasiteTarget(request));
+        }
+        return await Promise.all(promises).then(values => {
+            if (values.every(v => v)) {
+                this.failed = false;
+                this.errorMessageList = null;
+                this.addedGenes = [];
+            }
+            this.loading = false;
+            return true;
+        })
+            .catch(err => {
+                this.failed = true;
+                this.errorMessageList = [err.message];
+                this.loading = false;
+                return false;
+            })
+    }
+
+    putParasiteGenes(request) {
+        return new Promise((resolve, reject) => {
+            this.targetDataService.putTargetGenes(request)
+                .then(() => resolve(true))
+                .catch(err => reject(err));
+        });
+    }
+
+    putParasiteTarget(request) {
+        return new Promise((resolve, reject) => {
+            this.targetDataService.updateTarget(request)
+                .then(target => {
+                    if (target) {
+                        this.setTargetModel(target);
+                        this.originalModel = target;
+                        resolve(true);
+                    }
+                })
+                .catch(err => reject(err));
         });
     }
 
@@ -457,6 +554,10 @@ export default class ngbTargetsFormService {
                 let index = this.addedGenes.indexOf(row);
                 if (index !== -1 && geneFields[field]) {
                     this.addedGenes[index][geneFields[field]] = value;
+                }
+            } else {
+                if (index !== -1 && geneFields[field]) {
+                    this._targetModel.genes[index][geneFields[field]] = value;
                 }
             }
         } else {

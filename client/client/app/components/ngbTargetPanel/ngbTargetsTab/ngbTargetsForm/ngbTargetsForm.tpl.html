@@ -49,7 +49,8 @@
             <span ng-if="$ctrl.isEditMode">{{$ctrl.targetTypeName}}</span>
             <md-radio-group ng-model="$ctrl.targetModel.type"
                             aria-labelledby="targetType"
-                            ng-if="$ctrl.isAddMode">
+                            ng-if="$ctrl.isAddMode"
+                            ng-change="$ctrl.onChangeType()">
                 <md-radio-button value="DEFAULT"
                                  class="radio-button">
                     Default
