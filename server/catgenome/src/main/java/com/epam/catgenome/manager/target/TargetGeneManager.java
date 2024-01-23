@@ -37,7 +37,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
@@ -121,7 +120,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         final InputStream inputStream = file != null ?  file.getInputStream() :
                 Files.newInputStream(Paths.get(path));
         final String extension = FilenameUtils.getExtension(file != null ? file.getOriginalFilename() : path);
-        final List<TargetGene> entries = readEntries(targetId, inputStream, extension);
+        final List<TargetGene> entries = readEntries(inputStream, extension);
+        setIds(targetId, entries);
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
@@ -130,6 +130,11 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 addDoc(writer, entry);
             }
         }
+    }
+
+    public List<TargetGene> load(final List<Long> targetGeneIds) throws ParseException, IOException {
+        return search(targetGeneIds.stream().map(Object::toString).collect(Collectors.toList()),
+                IndexField.TARGET_GENE_ID.getValue());
     }
 
     public Set<String> getFields(final Long targetId) throws ParseException, IOException {
@@ -152,7 +157,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         }
         final List<String> result = new ArrayList<>(fields).stream().sorted().collect(Collectors.toList());
         defaultColumns.addAll(result);
-        defaultColumns.remove("Target ID");
+        defaultColumns.remove(IndexField.TARGET_GENE_ID.getValue());
+        defaultColumns.remove(IndexField.TARGET_ID.getValue());
         return defaultColumns;
     }
 
@@ -176,21 +182,19 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return result.stream().limit(FIELD_VALUES_TOP_HITS).collect(Collectors.toList());
     }
 
-    public void delete(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
-        Query query;
-        if (CollectionUtils.isEmpty(geneIds)) {
-            query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
-        } else {
-            final List<String> terms = geneIds.stream()
-                    .map(g -> getPrimaryKey(targetId, g))
-                    .collect(Collectors.toList());
-            query = getByTermsQuery(terms, IndexField.TARGET_GENE_ID.getValue());
-        }
+    public void delete(final Long targetId) throws ParseException, IOException {
+        final Query query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
+        delete(query);
+    }
+
+    public void delete(final List<Long> targetGeneIds) throws ParseException, IOException {
+        final Query query = getByTermsQuery(targetGeneIds.stream().map(Object::toString).collect(Collectors.toList()),
+                IndexField.TARGET_GENE_ID.getValue());
         delete(query);
     }
 
     public void create(final long targetId, final List<TargetGene> targetGenes) throws IOException {
-        targetGenes.forEach(g -> g.setTargetId(targetId));
+        setIds(targetId, targetGenes);
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
@@ -207,8 +211,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             for (TargetGene g : targetGenes) {
-                Term term = new Term(IndexField.TARGET_GENE_ID.getValue(),
-                        getPrimaryKey(g.getTargetId(), g.getGeneId()));
+                Term term = new Term(IndexField.TARGET_GENE_ID.getValue(), g.getTargetGeneId().toString());
                 writer.updateDocument(term, docFromEntry(g));
             }
         }
@@ -279,6 +282,9 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         for (IndexableField field : fields) {
             IndexField indexField = IndexField.getByValue(field.name());
             switch (indexField) {
+                case TARGET_GENE_ID:
+                    targetGene.setTargetGeneId(Long.parseLong(field.stringValue()));
+                    break;
                 case TARGET_ID:
                     targetGene.setTargetId(Long.parseLong(field.stringValue()));
                     break;
@@ -307,11 +313,17 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return targetGene;
     }
 
+    private static void setIds(final long targetId, final List<TargetGene> targetGenes) {
+        targetGenes.forEach(g -> {
+            g.setTargetGeneId(getPrimaryKey());
+            g.setTargetId(targetId);
+        });
+    }
+
     private static Document docFromEntry(TargetGene entry) {
         final Document doc = new Document();
         doc.add(new StringField(IndexField.TARGET_GENE_ID.getValue(),
-                getPrimaryKey(entry.getTargetId(), entry.getGeneId()), Field.Store.NO));
-
+                entry.getTargetGeneId().toString(), Field.Store.YES));
         doc.add(new StringField(IndexField.TARGET_ID.getValue(), entry.getTargetId().toString(), Field.Store.YES));
 
         doc.add(new TextField(IndexField.GENE_ID.getValue(), entry.getGeneId(), Field.Store.YES));
@@ -339,14 +351,10 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return doc;
     }
 
-    private static String getPrimaryKey(final long targetId, final String geneId) {
-        return targetId + geneId.toLowerCase();
-    }
-
     @AllArgsConstructor
     @Getter
     private enum IndexField {
-        TARGET_GENE_ID("ID", FilterType.NONE),
+        TARGET_GENE_ID("ID", FilterType.TERM),
         TARGET_ID("Target ID", FilterType.TERM),
         GENE_ID("Gene ID", FilterType.TERM),
         GENE_NAME("Gene Name", FilterType.PHRASE),
@@ -359,6 +367,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         private final FilterType type;
         private static final Map<String, IndexField> VALUES_MAP = new LinkedHashMap<>();
         static {
+            VALUES_MAP.put("ID", TARGET_GENE_ID);
             VALUES_MAP.put("Target ID", TARGET_ID);
             VALUES_MAP.put("Gene ID", GENE_ID);
             VALUES_MAP.put("Gene Name", GENE_NAME);
@@ -370,22 +379,21 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         public static IndexField getByValue(String value) {
             return VALUES_MAP.getOrDefault(value, METADATA);
         }
-
     }
-    private List<TargetGene> readEntries(final long targetId, final InputStream inputStream, final String extension)
+
+    private List<TargetGene> readEntries(final InputStream inputStream, final String extension)
             throws IOException, TargetGenesException {
         if (extension.equalsIgnoreCase(EXCEL_EXTENSION)) {
-            return readExcel(inputStream, targetId);
+            return readExcel(inputStream);
         } else if (extension.equals(FileFormat.CSV.getExtension()) ||
                 extension.equals(FileFormat.TSV.getExtension())) {
-            return readCSV(inputStream, targetId, extension);
+            return readCSV(inputStream, extension);
         } else {
             throw new TargetGenesException(String.format("Unsupported file extension '%s'", extension));
         }
     }
 
-    private List<TargetGene> readCSV(final InputStream inputStream, final long targetId, final String fileExtension)
-            throws IOException {
+    private List<TargetGene> readCSV(final InputStream inputStream, final String fileExtension) throws IOException {
         final String separator = FileFormat.getSeparatorByExtension(fileExtension);
         String line;
         String[] cells;
@@ -416,7 +424,6 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                     }
                 }
                 TargetGene gene = TargetGene.builder()
-                        .targetId(targetId)
                         .geneId(geneId)
                         .geneName(geneName)
                         .taxId(taxId)
@@ -429,7 +436,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return entries;
     }
 
-    private List<TargetGene> readExcel(final InputStream inputStream, final long targetId) throws IOException {
+    private List<TargetGene> readExcel(final InputStream inputStream) throws IOException {
         final List<TargetGene> entries = new ArrayList<>();
         final Workbook workbook = new XSSFWorkbook(inputStream);
         final Sheet sheet = workbook.getSheetAt(0);
@@ -469,7 +476,6 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             });
 
             TargetGene gene = TargetGene.builder()
-                    .targetId(targetId)
                     .geneId(geneId)
                     .geneName(geneName)
                     .taxId((long) taxIdCell.getNumericCellValue())
@@ -479,6 +485,10 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             entries.add(gene);
         }
         return entries;
+    }
+
+    private static long getPrimaryKey() {
+        return System.nanoTime();
     }
 
     private static String getCellValue(final Cell cell) {

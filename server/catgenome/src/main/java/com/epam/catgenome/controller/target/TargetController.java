@@ -217,16 +217,28 @@ public class TargetController extends AbstractRESTController {
 
     @DeleteMapping(value = "/target/genes/{targetId}")
     @ApiOperation(
+            value = "Deletes all target genes",
+            notes = "Deletes all target genes",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> delete(@PathVariable final long targetId) throws IOException, ParseException {
+        targetGeneSecurityService.delete(targetId);
+        return Result.success(null);
+    }
+
+    @DeleteMapping(value = "/target/genes")
+    @ApiOperation(
             value = "Deletes target genes",
             notes = "Deletes target genes",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> delete(@PathVariable final long targetId,
-                                  @RequestParam(required = false) List<String> geneIds)
+    public Result<Boolean> delete(@RequestParam(required = false) List<Long> targetGeneIds)
             throws IOException, ParseException {
-        targetGeneSecurityService.delete(targetId, geneIds);
+        targetGeneSecurityService.delete(targetGeneIds);
         return Result.success(null);
     }
 
@@ -267,5 +279,18 @@ public class TargetController extends AbstractRESTController {
     public Result<List<String>> getFieldValues(@PathVariable final long targetId,
                                                @RequestParam final String field) throws ParseException, IOException {
         return Result.success(targetGeneSecurityService.getFieldValues(targetId, field));
+    }
+
+    @GetMapping(value = "/target/genes")
+    @ApiOperation(
+            value = "Returns target genes by ids.",
+            notes = "Returns target genes by ids.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<TargetGene>> load(@RequestParam final List<Long> targetGeneIds)
+            throws ParseException, IOException {
+        return Result.success(targetGeneSecurityService.load(targetGeneIds));
     }
 }

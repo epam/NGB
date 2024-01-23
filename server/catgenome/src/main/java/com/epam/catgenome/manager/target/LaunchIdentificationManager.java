@@ -76,11 +76,14 @@ import org.springframework.util.Assert;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.CharEncoding.UTF_8;
 
 
 @Service
@@ -263,7 +266,8 @@ public class LaunchIdentificationManager {
         return merged;
     }
 
-    public List<GeneInfo> getGenes(final String prefix) throws ParseException, IOException {
+    public List<GeneInfo> getGenes(String prefix) throws ParseException, IOException {
+        prefix = URLDecoder.decode(prefix, UTF_8);
         final List<GeneInfo> genes = geneInfoManager.searchBySymbol(prefix);
         final List<Long> taxIds = genes.stream().map(GeneInfo::getTaxId).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(taxIds)) {

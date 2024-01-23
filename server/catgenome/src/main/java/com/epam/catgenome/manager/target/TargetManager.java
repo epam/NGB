@@ -152,7 +152,7 @@ public class TargetManager {
         if (isDefault(target)) {
             targetGeneDao.deleteTargetGenes(targetId);
         } else {
-            targetGeneManager.delete(targetId, Collections.emptyList());
+            targetGeneManager.delete(targetId);
         }
         targetDao.deleteTarget(targetId);
     }
