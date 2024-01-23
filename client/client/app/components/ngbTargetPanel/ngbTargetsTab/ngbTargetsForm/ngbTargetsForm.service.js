@@ -9,6 +9,7 @@ const NEW_GENE = {
 const PAGE_SIZE = 20;
 
 const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'priority'];
+const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority'];
 
 export default class ngbTargetsFormService {
 
@@ -19,12 +20,16 @@ export default class ngbTargetsFormService {
     get pageSize() {
         return PAGE_SIZE;
     }
+    get defaultFields() {
+        return DEFAULT_FIELDS;
+    }
 
     _targetModel;
     _originalModel;
     _updateForce = false;
     _addedGenes = [];
     _removedGenes = [];
+    metadataFields = [];
 
     _loading = false;
     _failed = false;
@@ -137,7 +142,7 @@ export default class ngbTargetsFormService {
         ));
     }
 
-    targetModelChanged() {
+    targetInfoChanged() {
         const nameChanged = this.originalModel.targetName !== this.targetModel.name;
         const typeChanged = this.originalModel.type !== this.targetModel.type;
         const changed = (block) => {
@@ -149,6 +154,40 @@ export default class ngbTargetsFormService {
             ));
         };
         return nameChanged || typeChanged || changed('diseases') || changed('products');
+    }
+
+    isSomeGeneEmpty() {
+        let {genes} = this.targetModel;
+        if (this.isParasite) {
+            genes = [...genes, ...this.addedGenes]
+        }
+        const genesEmpty = genes.filter(gene => {
+            const {geneId, geneName, taxId, speciesName} = gene;
+            return [geneId, geneName, taxId, speciesName].some(field => (
+                !field || !String(field).length
+            ));
+        });
+        return genesEmpty.length;
+    }
+
+    areGenesEmpty() {
+        if (this.isParasite) {
+            if (this.isAddMode) {
+                if (!this.addedGenes || !this.addedGenes.length) return true;
+            } else {
+                if (this.targetModel.genesTotal <= this.pageSize) {
+                    if (!this.targetModel.genes || !this.targetModel.genes.length) {
+                        if (!this.addedGenes || !this.addedGenes.length) return true;
+                    }
+                }
+            }
+        } else {
+            if (!this.targetModel.genes || !this.targetModel.genes.length) return true;
+        }
+    }
+
+    needSaveGeneChanges () {
+        return !!(this.parasiteGenesRemoved() || this.parasiteGenesAdded() || this.targetGenesChanged());
     }
 
     setTargetModel(data) {
@@ -168,7 +207,6 @@ export default class ngbTargetsFormService {
             type: data.type,
         };
         this.targetContext.targetModelType = data.type;
-        this.dispatcher.emit('target:model:changed');
     }
 
     async getTarget(id) {
@@ -182,6 +220,7 @@ export default class ngbTargetsFormService {
                     this.errorMessageList = null;
                     this.setTargetModel(data);
                     this.originalModel = data;
+                    this.dispatcher.emit('target:model:changed');
                     this.ngbTargetsTabService.setEditMode();
                     this.loading = false;
                     resolve(true);
@@ -198,6 +237,7 @@ export default class ngbTargetsFormService {
     setParasiteTargetGenes(genes) {
         this._targetModel.genesTotal = genes.totalCount;
         this._targetModel.genes = (genes.items || []).map(g => ({
+            targetGeneId: g.geneId,
             geneId: g.geneId,
             geneName: g.geneName,
             taxId: g.taxId,
@@ -205,7 +245,15 @@ export default class ngbTargetsFormService {
             priority: g.priority,
             ...g.metadata
         }));
-        this.originalModel.targetGenes = genes.items || [];
+        this.originalModel.targetGenes = (genes.items || []).map(g => ({
+            targetGeneId: g.geneId,
+            geneId: g.geneId,
+            geneName: g.geneName,
+            taxId: g.taxId,
+            speciesName: g.speciesName,
+            priority: g.priority,
+            ...g.metadata
+        }));
     }
 
     getTargetGenes(id, request) {
@@ -285,6 +333,7 @@ export default class ngbTargetsFormService {
                         this.errorMessageList = null;
                         this.setTargetModel(result);
                         this.originalModel = result;
+                        this.dispatcher.emit('target:model:changed');
                         this.ngbTargetsTabService.setEditMode();
                     }
                     this.loading = false;
@@ -351,6 +400,7 @@ export default class ngbTargetsFormService {
                                     this.addedGenes = [];
                                     this.setTargetModel(target);
                                     this.originalModel = target;
+                                    this.dispatcher.emit('target:model:changed');
                                 }
                             });
                     }
@@ -403,6 +453,7 @@ export default class ngbTargetsFormService {
                         this.errorMessageList = null;
                         this.setTargetModel(result);
                         this.originalModel = result;
+                        this.dispatcher.emit('target:model:changed');
                         this.updateForce = false;
                         this.ngbTargetsTabService.setEditMode();
                     }
@@ -418,17 +469,27 @@ export default class ngbTargetsFormService {
         });
     }
 
-    getParasiteGenesMetadataRequest(model) {
-        const {id, genes} = model;
-        const request = genes.map(g => {
-            const gene = {
-                targetId: id,
-                geneId: g.geneId,
-                geneName: g.geneName,
-                taxId: g.taxId,
-                speciesName: g.speciesName,
-                metadata: {}
-            };
+    getParasiteGenesMetadataRequest() {
+        const {id, genes} = this.targetModel;
+        const original = this.originalModel.targetGenes;
+        const request = genes
+            .filter(gene => {
+                const {targetGeneId} = gene;
+                const originalGene = original.filter(o => o.targetGeneId === targetGeneId)[0];
+                return Object.entries(originalGene).some(([key, value]) => {
+                    return gene[key] !== value;
+                });
+            })
+            .map(g => {
+                const metadata = this.metadataFields.map(c => [c, g[c]]);
+                const gene = {
+                    targetId: id,
+                    geneId: g.geneId,
+                    geneName: g.geneName,
+                    taxId: g.taxId,
+                    speciesName: g.speciesName,
+                    metadata: Object.fromEntries(metadata)
+                };
             if (g.priority && g.priority !== 'None') {
                 gene.priority = g.priority;
             }
@@ -462,13 +523,14 @@ export default class ngbTargetsFormService {
             promises.push(await this.deleteParasiteTargetGenes(this.targetModel.id, geneIds));
         }
         if (this.targetGenesChanged()) {
-            const request = this.getParasiteGenesMetadataRequest(this.targetModel);
+            const request = this.getParasiteGenesMetadataRequest();
             promises.push(await this.putParasiteGenes(request));
         }
-        if (this.targetModelChanged()) {
+        if (this.targetInfoChanged()) {
             const request = this.getParasiteTargetRequest();
             promises.push(await this.putParasiteTarget(request));
         }
+        promises.push(this.getParasiteTarget());
         return await Promise.all(promises).then(values => {
             if (values.every(v => v)) {
                 this.failed = false;
@@ -485,6 +547,19 @@ export default class ngbTargetsFormService {
                 this.loading = false;
                 return false;
             })
+    }
+
+    getParasiteTarget() {
+        const id = this.targetModel.id;
+        return new Promise((resolve, reject) => {
+            this.targetDataService.getTargetById(id)
+                .then(data => {
+                    this.setTargetModel(data);
+                    this.originalModel = data;
+                    resolve(true);
+                })
+                .catch(err => reject(err));
+        });
     }
 
     putParasiteGenes(request) {
@@ -607,11 +682,18 @@ export default class ngbTargetsFormService {
         }
     }
 
+    setMetadataFields(fields) {
+        this.metadataFields = fields.filter(f => !this.defaultFields.includes(f));
+    }
+
     setColumnsList() {
         const targetId = this.targetModel.id;
         return new Promise(resolve => {
             this.targetDataService.getTargetGenesFields(targetId)
-                .then(columns => resolve(columns))
+                .then(columns => {
+                    this.setMetadataFields(columns);
+                    resolve(columns)
+                })
                 .catch(err => resolve([]));
         });
     }

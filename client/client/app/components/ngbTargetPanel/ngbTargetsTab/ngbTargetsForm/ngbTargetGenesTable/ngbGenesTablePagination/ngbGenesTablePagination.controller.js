@@ -36,7 +36,6 @@ export default class ngbGenesTablePaginationController {
             return;
         }
         await this.onChangePage({page: page});
-        this.currentPage = page;
         this.pages = this.getPages();
     }
 

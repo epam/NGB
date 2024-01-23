@@ -1,4 +1,3 @@
-const DEFAULT_COLUMNS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority'];
 const REMOVE = 'Remove';
 
 const DISPLAY_NAME = {
@@ -19,13 +18,7 @@ const COLUMN_FIELD = {
     'Remove': 'remove'
 };
 
-
-
 export default class ngbTargetGenesTableService {
-
-    get defaultColumns() {
-        return DEFAULT_COLUMNS;
-    }
 
     get displayName() {
         return DISPLAY_NAME;
@@ -77,6 +70,9 @@ export default class ngbTargetGenesTableService {
     }
     get filterInfo() {
         return this._filterInfo;
+    }
+    get defaultColumns() {
+        return this.ngbTargetsFormService.defaultFields;
     }
 
     get currentColumns () {

@@ -62,12 +62,14 @@ export default class ngbTargetGenesTableController {
             ngbTargetsFormService
         });
         const initialize = this.initialize.bind(this);
+        const reloadCurrentPage = this.loadData.bind(this);
         const getDataOnPage = this.getDataOnPage.bind(this);
         const getDataOnLastPage = this.getDataOnLastPage.bind(this);
         const refreshColumns = this.refreshColumns.bind(this);
         const filterChanged = this.filterChanged.bind(this);
         const resetSorting = this.resetSorting.bind(this);
         dispatcher.on('target:form:gene:added', initialize);
+        dispatcher.on('target:form:saved', reloadCurrentPage);
         dispatcher.on('target:form:updated', getDataOnPage);
         dispatcher.on('target:form:add:gene', getDataOnLastPage);
         dispatcher.on('target:genes:columns:changed', initialize);
@@ -76,6 +78,7 @@ export default class ngbTargetGenesTableController {
         dispatcher.on('target:form:sort:reset', resetSorting);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:gene:added', initialize);
+            dispatcher.removeListener('target:form:saved', reloadCurrentPage);
             dispatcher.removeListener('target:form:updated', getDataOnPage);
             dispatcher.removeListener('target:form:add:gene', getDataOnLastPage);
             dispatcher.removeListener('target:genes:columns:changed', initialize);
@@ -333,11 +336,11 @@ export default class ngbTargetGenesTableController {
         if (!this.savedIdentificationGene(geneIndex)) {
             this.deleteGeneFromTarget(geneIndex, row);
         } else {
-            this.openConfirmDialog(geneIndex);
+            this.openConfirmDeleteGeneDialog(geneIndex);
         }
     }
 
-    openConfirmDialog (index) {
+    openConfirmDeleteGeneDialog (index) {
         const gene = this.targetModel.genes[index];
         this.$mdDialog.show({
             template: require('./ngbGeneDeleteDlg.tpl.html'),
@@ -389,8 +392,38 @@ export default class ngbTargetGenesTableController {
         if (!this.gridApi) {
             return;
         }
-        this.currentPage = page;
-        await this.loadData();
+        if (this.ngbTargetsFormService.needSaveGeneChanges()) {
+            this.openConfirmChangesDialog(page);
+        } else {
+            this.currentPage = page;
+            await this.loadData();
+        }
+    }
+
+    openConfirmChangesDialog(page) {
+        const self = this;
+        this.$mdDialog.show({
+            template: require('./ngbConfirmChangesDlg.tpl.html'),
+            controller: function($scope, $mdDialog, dispatcher) {
+                $scope.save = async function () {
+                    if (self.ngbTargetsFormService.areGenesEmpty()
+                        || self.ngbTargetsFormService.isSomeGeneEmpty()
+                    ) {
+                        $mdDialog.hide();
+                    } else {
+                        dispatcher.emit('target:form:changes:save', true);
+                        $mdDialog.hide();
+                    }
+                };
+                $scope.cancel = async function () {
+                    self.ngbTargetsFormService.addedGenes = [];
+                    self.ngbTargetsFormService.removedGenes = [];
+                    self.currentPage = page;
+                    await self.loadData();
+                    $mdDialog.hide();
+                };
+            },
+        });
     }
 
     async getDataOnLastPage() {
