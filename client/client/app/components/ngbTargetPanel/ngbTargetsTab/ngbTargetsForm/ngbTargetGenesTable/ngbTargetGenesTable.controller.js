@@ -393,14 +393,14 @@ export default class ngbTargetGenesTableController {
             return;
         }
         if (this.ngbTargetsFormService.needSaveGeneChanges()) {
-            this.openConfirmChangesDialog(page);
+            this.openConfirmPageDialog(page);
         } else {
             this.currentPage = page;
             await this.loadData();
         }
     }
 
-    openConfirmChangesDialog(page) {
+    openConfirmPageDialog(page) {
         const self = this;
         this.$mdDialog.show({
             template: require('./ngbConfirmChangesDlg.tpl.html'),
@@ -411,7 +411,8 @@ export default class ngbTargetGenesTableController {
                     ) {
                         $mdDialog.hide();
                     } else {
-                        dispatcher.emit('target:form:changes:save', true);
+                        const getCurrentPage = true;
+                        dispatcher.emit('target:form:changes:save', getCurrentPage);
                         $mdDialog.hide();
                     }
                 };
@@ -420,18 +421,58 @@ export default class ngbTargetGenesTableController {
                     self.ngbTargetsFormService.removedGenes = [];
                     self.currentPage = page;
                     await self.loadData();
-                    $mdDialog.hide();
+                    $mdDialog.cancel()
                 };
-            },
+            }
+        });
+    }
+
+    openConfirmAddDialog(page) {
+        const self = this;
+        this.$mdDialog.show({
+            template: require('./ngbConfirmChangesDlg.tpl.html'),
+            controller: function($scope, $mdDialog, dispatcher) {
+                $scope.save = async function () {
+                    if (self.ngbTargetsFormService.areGenesEmpty()
+                        || self.ngbTargetsFormService.isSomeGeneEmpty()
+                    ) {
+                        $mdDialog.hide();
+                    } else {
+                        self.currentPage = page;
+                        const getCurrentPage = true;
+                        const addGene = true;
+                        dispatcher.emit('target:form:changes:save', getCurrentPage, addGene);
+                        $mdDialog.hide();
+                    }
+                };
+                $scope.cancel = async function () {
+                    self.ngbTargetsFormService.removedGenes = [];
+                    self.currentPage = page;
+                    await self.loadData();
+                    $mdDialog.cancel()
+                };
+            }
         });
     }
 
     async getDataOnLastPage() {
         if (this.totalPages) {
             if (this.currentPage !== this.totalPages) {
-                await this.getDataOnPage(this.totalPages);
+                if (this.ngbTargetsFormService.needSaveGeneChanges()) {
+                    this.openConfirmAddDialog(this.totalPages);
+                } else {
+                    if (!this.gridApi) return;
+                    this.currentPage = this.totalPages;
+                    await this.loadData();
+                    this.$timeout(() => {
+                        this.ngbTargetsFormService.addNewGene();
+                    });
+                }
+            } else {
+                this.$timeout(() => {
+                    this.ngbTargetsFormService.addNewGene();
+                });
             }
-            this.$timeout(() => this.ngbTargetsFormService.addNewGene());
         }
     }
 

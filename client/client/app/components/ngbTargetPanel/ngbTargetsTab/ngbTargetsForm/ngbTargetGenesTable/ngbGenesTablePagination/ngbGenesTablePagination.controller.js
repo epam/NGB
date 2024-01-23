@@ -7,8 +7,8 @@ export default class ngbGenesTablePaginationController {
         return 'ngbGenesTablePaginationController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbTargetGenesTableService, ) {
-        Object.assign(this, {$scope, $timeout, ngbTargetGenesTableService});
+    constructor($scope, $timeout, dispatcher, ngbTargetGenesTableService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetGenesTableService});
         this.pages = this.getPages();
         dispatcher.on('target:form:genes:results:updated', this.refresh.bind(this));
         $scope.$on('$destroy', () => {

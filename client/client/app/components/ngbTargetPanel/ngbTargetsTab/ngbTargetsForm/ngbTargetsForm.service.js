@@ -524,7 +524,9 @@ export default class ngbTargetsFormService {
         }
         if (this.targetGenesChanged()) {
             const request = this.getParasiteGenesMetadataRequest();
-            promises.push(await this.putParasiteGenes(request));
+            if (request && request.length) {
+                promises.push(await this.putParasiteGenes(request));
+            }
         }
         if (this.targetInfoChanged()) {
             const request = this.getParasiteTargetRequest();

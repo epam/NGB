@@ -136,7 +136,7 @@ export default class ngbTargetsFormController {
         }
     }
 
-    async updateTarget(getCurrentPage) {
+    async updateTarget(getCurrentPage, addGene) {
         if (this.isParasite) {
             await this.ngbTargetsFormService.updateParasiteTarget()
                 .then(success => {
@@ -146,6 +146,9 @@ export default class ngbTargetsFormController {
                             this.dispatcher.emit('target:form:updated', 1);
                         } else {
                             this.dispatcher.emit('target:form:saved');
+                            if (addGene) {
+                                this.ngbTargetsFormService.addNewGene();
+                            }
                         }
                     }
                 });
