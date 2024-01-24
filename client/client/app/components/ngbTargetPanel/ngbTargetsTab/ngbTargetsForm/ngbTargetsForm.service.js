@@ -11,6 +11,8 @@ const PAGE_SIZE = 20;
 const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'priority'];
 const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority'];
 
+const REQUIRED_FIELDS = ['geneId', 'geneName', 'taxId', 'speciesName'];
+
 export const encodeName = (name) => {
     if (name.includes('(') || name.includes(')')) {
         return name.replace('(', '_(').replace(')', ')_');
@@ -25,10 +27,11 @@ export const decodeName = (name) => {
     return name;
 };
 
-const encodedMetadata = (data) => (
-    Object.fromEntries(Object.entries(data)
+const encodedMetadata = (data) => {
+    if (!data) return {};
+    return Object.fromEntries(Object.entries(data)
         .map(([name, value]) => [encodeName(name), value]))
-);
+};
 
 export default class ngbTargetsFormService {
 
@@ -41,6 +44,9 @@ export default class ngbTargetsFormService {
     }
     get defaultFields() {
         return DEFAULT_FIELDS;
+    }
+    get requiredFields() {
+        return REQUIRED_FIELDS;
     }
 
     _targetModel;
@@ -157,14 +163,14 @@ export default class ngbTargetsFormService {
     targetGenesChanged() {
         const originalGenes = this.originalModel.targetGenes;
         const targetGenes = this.targetModel.genes;
-        if (originalGenes.length !== targetGenes.length) {
-            return true;
-        }
+        if (originalGenes.length !== targetGenes.length) return true;
+        const allFields = [...this.geneModelProperties, ...this.metadataFields];
         return targetGenes.some((gene, index) => (
-            Object.entries(gene).some(([key, value]) => {
-                if (!this.geneModelProperties.includes(key)) return false;
-                return String(value) !== String(originalGenes[index][key]);
-            })
+            Object.entries(gene)
+                .some(([key, value]) => {
+                    if (!allFields.includes(key)) return false;
+                    return String(value) !== String(originalGenes[index][key]);
+                })
         ));
     }
 
@@ -185,13 +191,12 @@ export default class ngbTargetsFormService {
     isSomeGeneEmpty() {
         let {genes} = this.targetModel;
         if (this.isParasite) {
-            genes = [...genes, ...this.addedGenes]
+            genes = [...genes, ...this.addedGenes];
         }
         const genesEmpty = genes.filter(gene => {
-            const {geneId, geneName, taxId, speciesName} = gene;
-            return [geneId, geneName, taxId, speciesName].some(field => (
-                !field || !String(field).length
-            ));
+            return this.requiredFields.some(field => (
+                !gene[field] || !String(field).length
+            ))
         });
         return genesEmpty.length;
     }
@@ -263,7 +268,7 @@ export default class ngbTargetsFormService {
     setParasiteTargetGenes(genes) {
         this._targetModel.genesTotal = genes.totalCount;
         this._targetModel.genes = (genes.items || []).map(g => ({
-            targetGeneId: g.geneId,
+            targetGeneId: g.targetGeneId,
             geneId: g.geneId,
             geneName: g.geneName,
             taxId: g.taxId,
@@ -272,7 +277,7 @@ export default class ngbTargetsFormService {
             ...encodedMetadata(g.metadata)
         }));
         this.originalModel.targetGenes = (genes.items || []).map(g => ({
-            targetGeneId: g.geneId,
+            targetGeneId: g.targetGeneId,
             geneId: g.geneId,
             geneName: g.geneName,
             taxId: g.taxId,
@@ -387,14 +392,11 @@ export default class ngbTargetsFormService {
 
     getParasiteGenesRequest(genes, targetId) {
         const request = genes.map(g => {
-            const gene = {
-                targetId: targetId,
-                geneId: g.geneId,
-                geneName: g.geneName,
-                taxId: g.taxId,
-                speciesName: g.speciesName,
-                metadata: {}
-            };
+            const gene = Object.fromEntries(this.requiredFields.map(field => (
+                [field, g[field]]
+            )));
+            gene.targetId = targetId;
+            gene.metadata = {};
             if (g.priority && g.priority !== 'None') {
                 gene.priority = g.priority;
             }
@@ -521,27 +523,25 @@ export default class ngbTargetsFormService {
         const original = this.originalModel.targetGenes;
         const request = genes
             .filter(gene => {
-                const {targetGeneId} = gene;
-                const originalGene = original.filter(o => o.targetGeneId === targetGeneId)[0];
-                return Object.entries(originalGene).some(([key, value]) => {
-                    return gene[key] !== value;
+                const allFields = [...this.geneModelProperties, ...this.metadataFields];
+                const originalGene = original.filter(o => o.targetGeneId === gene.targetGeneId)[0];
+                return Object.entries(gene).some(([key, value]) => {
+                    if (!allFields.includes(key)) return false;
+                    return String(value) !== String(originalGene[key]);
                 });
             })
             .map(g => {
-                const metadata = this.metadataFields.map(c => [c, g[c]]);
-                const gene = {
-                    targetId: id,
-                    geneId: g.geneId,
-                    geneName: g.geneName,
-                    taxId: g.taxId,
-                    speciesName: g.speciesName,
-                    metadata: Object.fromEntries(metadata)
-                };
-            if (g.priority && g.priority !== 'None') {
-                gene.priority = g.priority;
-            }
-            return gene;
-        });
+                const gene = Object.fromEntries(this.requiredFields.map(field => (
+                    [field, g[field]]
+                )));
+                gene.targetGeneId = g.targetGeneId;
+                gene.targetId = id;
+                gene.metadata = Object.fromEntries(this.metadataFields.map(c => [c, g[c]]));
+                if (g.priority && g.priority !== 'None') {
+                    gene.priority = g.priority;
+                }
+                return gene;
+            });
         return request;
     }
 
@@ -697,6 +697,7 @@ export default class ngbTargetsFormService {
         this.addedGenes = [];
         this.removedGenes = [];
         this._geneFile = null;
+        this.metadataFields = [];
     }
 
     setGeneModel(row, field, value) {

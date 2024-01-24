@@ -168,6 +168,7 @@ export default class ngbTargetGenesTableController {
         const selectCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_selectCell.tpl.html');
         const listCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_listCell.tpl.html');
         const removeCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_removeCell.tpl.html');
+        const additionalCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_additionalCell.tpl.html');
 
         const result = [];
         const columnsList = this.ngbTargetGenesTableService.currentColumnFields;
@@ -277,12 +278,12 @@ export default class ngbTargetGenesTableController {
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
-                            cellTemplate: inputCell,
+                            cellTemplate: additionalCell,
                         };
                     } else {
                         columnSettings = {
                             ...defaultSettings,
-                            cellTemplate: inputCell,
+                            cellTemplate: additionalCell,
                         };
                     }
                     break;
