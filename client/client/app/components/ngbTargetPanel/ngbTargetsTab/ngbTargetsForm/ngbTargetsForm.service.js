@@ -30,6 +30,7 @@ export default class ngbTargetsFormService {
     _addedGenes = [];
     _removedGenes = [];
     metadataFields = [];
+    _geneFile = null;
 
     _loading = false;
     _failed = false;
@@ -70,6 +71,12 @@ export default class ngbTargetsFormService {
     }
     set removedGenes(value) {
         this._removedGenes = value;
+    }
+    get geneFile() {
+        return this._geneFile;
+    }
+    set geneFile(value) {
+        this._geneFile = value;
     }
 
     get targetModel() {
@@ -386,23 +393,44 @@ export default class ngbTargetsFormService {
         });
     }
 
+    importFile(targetId) {
+        const formData = new FormData();
+        formData.append('file', this.geneFile);
+        return new Promise((resolve, reject) => {
+            this.targetDataService.importGenes(targetId, formData)
+                .then(() => resolve(true))
+                .catch(err => reject(err));
+        });
+    }
+
     async postNewParasiteTarget() {
         const targetRequest = this.getAddParasiteRequest();
         return new Promise(resolve => {
             this.targetDataService.postNewTarget(targetRequest)
                 .then(async (target) => {
                     if (target) {
-                        await this.postNewParasiteTargetGenes(target.targetId)
-                            .then(success => {
-                                if (success) {
-                                    this.failed = false;
-                                    this.errorMessageList = null;
-                                    this.addedGenes = [];
-                                    this.setTargetModel(target);
-                                    this.originalModel = target;
-                                    this.dispatcher.emit('target:model:changed');
-                                }
-                            });
+                        const promises = [];
+                        if (this.geneFile) {
+                            promises.push(await this.importFile(target.targetId));
+                        }
+                        if (this.parasiteGenesAdded()) {
+                            promises.push(await this.postNewParasiteTargetGenes(target.targetId));
+                        }
+                        await Promise.all(promises).then(values => {
+                            if (values.every(v => v)) {
+                                this.failed = false;
+                                this.errorMessageList = null;
+                                this.addedGenes = [];
+                                this.geneFile = null;
+                                this.setTargetModel(target);
+                                this.originalModel = target;
+                                this.dispatcher.emit('target:model:changed');
+                            }
+                        })
+                            .catch(err => {
+                                this.failed = true;
+                                this.errorMessageList = [err.message];
+                            })
                     }
                     this.loading = false;
                     resolve(true);
@@ -515,6 +543,9 @@ export default class ngbTargetsFormService {
 
     async updateParasiteTarget() {
         const promises = [];
+        if (this.geneFile) {
+            promises.push(await this.importFile(this.targetModel.id));
+        }
         if (this.parasiteGenesAdded()) {
             promises.push(await this.postNewParasiteTargetGenes(this.targetModel.id));
         }
@@ -539,6 +570,7 @@ export default class ngbTargetsFormService {
                 this.errorMessageList = null;
                 this.addedGenes = [];
                 this.removedGenes = [];
+                this.geneFile = null;
             }
             this.loading = false;
             return true;
@@ -645,6 +677,7 @@ export default class ngbTargetsFormService {
         this.errorMessageList = null;
         this.addedGenes = [];
         this.removedGenes = [];
+        this._geneFile = null;
     }
 
     setGeneModel(row, field, value) {

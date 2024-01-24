@@ -63,14 +63,12 @@ export default class ngbTargetGenesTableController {
         });
         const initialize = this.initialize.bind(this);
         const reloadCurrentPage = this.loadData.bind(this);
-        const getDataOnPage = this.getDataOnPage.bind(this);
         const getDataOnLastPage = this.getDataOnLastPage.bind(this);
         const refreshColumns = this.refreshColumns.bind(this);
         const filterChanged = this.filterChanged.bind(this);
         const resetSorting = this.resetSorting.bind(this);
         dispatcher.on('target:form:gene:added', initialize);
         dispatcher.on('target:form:saved', reloadCurrentPage);
-        dispatcher.on('target:form:updated', getDataOnPage);
         dispatcher.on('target:form:add:gene', getDataOnLastPage);
         dispatcher.on('target:genes:columns:changed', initialize);
         dispatcher.on('target:form:filters:display:changed', refreshColumns);
@@ -79,7 +77,6 @@ export default class ngbTargetGenesTableController {
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:gene:added', initialize);
             dispatcher.removeListener('target:form:saved', reloadCurrentPage);
-            dispatcher.removeListener('target:form:updated', getDataOnPage);
             dispatcher.removeListener('target:form:add:gene', getDataOnLastPage);
             dispatcher.removeListener('target:genes:columns:changed', initialize);
             dispatcher.removeListener('target:form:filters:display:changed', refreshColumns);
@@ -411,8 +408,7 @@ export default class ngbTargetGenesTableController {
                     ) {
                         $mdDialog.hide();
                     } else {
-                        const getCurrentPage = true;
-                        dispatcher.emit('target:form:changes:save', getCurrentPage);
+                        dispatcher.emit('target:form:changes:save');
                         $mdDialog.hide();
                     }
                 };
@@ -439,9 +435,8 @@ export default class ngbTargetGenesTableController {
                         $mdDialog.hide();
                     } else {
                         self.currentPage = page;
-                        const getCurrentPage = true;
                         const addGene = true;
-                        dispatcher.emit('target:form:changes:save', getCurrentPage, addGene);
+                        dispatcher.emit('target:form:changes:save', addGene);
                         $mdDialog.hide();
                     }
                 };

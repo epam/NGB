@@ -1,7 +1,5 @@
 export default class ngbTargetsFormController {
 
-    geneFile = null;
-
     static get UID() {
         return 'ngbTargetsFormController';
     }
@@ -12,6 +10,7 @@ export default class ngbTargetsFormController {
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:changes:save', this.updateTarget.bind(this));
         });
+        this.geneFile = null;
     }
 
     get loading() {
@@ -57,6 +56,13 @@ export default class ngbTargetsFormController {
         return this.targetModel.type.toLowerCase()
     }
 
+    get geneFile() {
+        return this.ngbTargetsFormService.geneFile;
+    }
+    set geneFile(value) {
+        this.ngbTargetsFormService.geneFile = value;
+    }
+
     async backToTable() {
         this.ngbTargetsFormService.resetTarget();
         this.ngbTargetsTabService.setTableMode();
@@ -72,6 +78,7 @@ export default class ngbTargetsFormController {
         return (this.ngbTargetsFormService.targetInfoChanged()
             || this.ngbTargetsFormService.targetGenesChanged()
             || this.ngbTargetsFormService.parasiteGenesAdded()
+            || this.geneFile
         );
     }
 
@@ -97,12 +104,17 @@ export default class ngbTargetsFormController {
         if (this.loading) return true;
         const {name} = this.targetModel;
         if (!name || !name.length) return true;
-        if (this.ngbTargetsFormService.areGenesEmpty()) return true;
+        if (this.ngbTargetsFormService.areGenesEmpty()) {
+            if (!(this.isParasite && this.geneFile)) {
+                return true;
+            }
+        }
         if (this.ngbTargetsFormService.isSomeGeneEmpty()) return true;
         if (!this.isAddMode) {
             return !(this.ngbTargetsFormService.targetInfoChanged()
                 || this.ngbTargetsFormService.targetGenesChanged()
                 || this.ngbTargetsFormService.parasiteGenesAdded()
+                || this.geneFile
             );
         }
     }
@@ -123,7 +135,9 @@ export default class ngbTargetsFormController {
                 .then(success => {
                     if (success) {
                         this.ngbTargetsTabService.setEditMode();
-                        this.dispatcher.emit('target:form:updated', 1);
+                        this.dispatcher.emit('target:form:saved');
+                        this.inputFile = undefined;
+                        this.$timeout(() => this.$scope.$apply());
                     }
                 });
         } else {
@@ -136,20 +150,18 @@ export default class ngbTargetsFormController {
         }
     }
 
-    async updateTarget(getCurrentPage, addGene) {
+    async updateTarget(addGene) {
         if (this.isParasite) {
             await this.ngbTargetsFormService.updateParasiteTarget()
                 .then(success => {
                     if (success) {
                         this.ngbTargetsTabService.setEditMode();
-                        if (!getCurrentPage) {
-                            this.dispatcher.emit('target:form:updated', 1);
-                        } else {
-                            this.dispatcher.emit('target:form:saved');
-                            if (addGene) {
-                                this.ngbTargetsFormService.addNewGene();
-                            }
+                        this.dispatcher.emit('target:form:saved');
+                        if (addGene) {
+                            this.ngbTargetsFormService.addNewGene();
                         }
+                        this.inputFile = undefined;
+                        this.$timeout(() => this.$scope.$apply());
                     }
                 });
         } else {
@@ -186,15 +198,16 @@ export default class ngbTargetsFormController {
         }
     }
 
-    uploadGenes() {
-        console.log('uploadGenes')
-    }
-
-    importGenes() {
-        console.log(this.geneFile)
+    async uploadFile() {
+        const input = document.getElementById('target-genes-file-input');
+        if (input.files.length > 0) {
+            this.geneFile = input.files[0];
+        }
     }
 
     cancelImport() {
+        if (this.loading) return;
+        this.inputFile = undefined;
         this.geneFile = null;
     }
 
@@ -209,6 +222,8 @@ export default class ngbTargetsFormController {
         if (this.targetModel.type === this.targetType.DEFAULT) {
             this.targetModel.genes = [...this.addedGenes];
             this.addedGenes = [];
+            this.geneFile = null;
+            this.inputFile = undefined;
         }
         if (this.targetModel.type === this.targetType.PARASITE) {
             this.addedGenes = [...this.targetModel.genes];

@@ -938,4 +938,17 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    importGenes(targetId, request) {
+        return new Promise((resolve, reject) => {
+            this.post(`target/genes/import/${targetId}`, request)
+                .then(() => {
+                    resolve(true)
+                })
+                .catch(error => {
+                    const message = 'Error uploading target genes';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }
