@@ -62,8 +62,18 @@ public class TargetGeneSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public void delete(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
-        targetGeneManager.delete(targetId, geneIds);
+    public List<TargetGene> load(final List<Long> targetGeneIds) throws ParseException, IOException {
+        return targetGeneManager.load(targetGeneIds);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public void delete(final Long targetId) throws ParseException, IOException {
+        targetGeneManager.delete(targetId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public void delete(final List<Long> targetGeneIds) throws ParseException, IOException {
+        targetGeneManager.delete(targetGeneIds);
     }
 
     @PreAuthorize(ROLE_USER)
