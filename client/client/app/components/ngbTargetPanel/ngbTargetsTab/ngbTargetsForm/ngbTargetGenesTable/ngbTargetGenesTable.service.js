@@ -1,3 +1,5 @@
+import {encodeName, decodeName} from '../ngbTargetsForm.service';
+
 const REMOVE = 'Remove';
 
 const DISPLAY_NAME = {
@@ -79,7 +81,10 @@ export default class ngbTargetGenesTableService {
         return [...this.defaultColumns, ...this.additionalColumns, this.removeColumn];
     }
     get currentColumnFields() {
-        return this.currentColumns.map(c => this.columnField[c] || c)
+        return this.currentColumns.map(c => {
+            if (this.columnField[c]) return this.columnField[c];
+            return encodeName(c);
+        })
     }
 
     static instance (
@@ -161,7 +166,7 @@ export default class ngbTargetGenesTableService {
         if (Object.prototype.hasOwnProperty.call(this.displayName, field)) {
             return this.displayName[field];
         }
-        return field;
+        return decodeName(field);
     }
 
     getColumnField(name) {

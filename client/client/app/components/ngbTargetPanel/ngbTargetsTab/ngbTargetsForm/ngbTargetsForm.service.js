@@ -11,6 +11,25 @@ const PAGE_SIZE = 20;
 const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'priority'];
 const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority'];
 
+export const encodeName = (name) => {
+    if (name.includes('(') || name.includes(')')) {
+        return name.replace('(', '_(').replace(')', ')_');
+    }
+    return name;
+};
+
+export const decodeName = (name) => {
+    if (name.includes('_(') || name.includes(')_')) {
+        return name.replace('_(', '(').replace(')_', ')');
+    }
+    return name;
+};
+
+const encodedMetadata = (data) => (
+    Object.fromEntries(Object.entries(data)
+        .map(([name, value]) => [encodeName(name), value]))
+);
+
 export default class ngbTargetsFormService {
 
     get geneModelProperties() {
@@ -250,7 +269,7 @@ export default class ngbTargetsFormService {
             taxId: g.taxId,
             speciesName: g.speciesName,
             priority: g.priority,
-            ...g.metadata
+            ...encodedMetadata(g.metadata)
         }));
         this.originalModel.targetGenes = (genes.items || []).map(g => ({
             targetGeneId: g.geneId,
@@ -259,7 +278,7 @@ export default class ngbTargetsFormService {
             taxId: g.taxId,
             speciesName: g.speciesName,
             priority: g.priority,
-            ...g.metadata
+            ...encodedMetadata(g.metadata)
         }));
     }
 
