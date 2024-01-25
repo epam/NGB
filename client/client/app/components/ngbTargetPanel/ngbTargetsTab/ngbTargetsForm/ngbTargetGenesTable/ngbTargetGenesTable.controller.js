@@ -67,6 +67,7 @@ export default class ngbTargetGenesTableController {
         const refreshColumns = this.refreshColumns.bind(this);
         const filterChanged = this.filterChanged.bind(this);
         const resetSorting = this.resetSorting.bind(this);
+        const confirmResetDialog = this.confirmResetDialog.bind(this);
         dispatcher.on('target:form:gene:added', initialize);
         dispatcher.on('target:form:saved', reloadCurrentPage);
         dispatcher.on('target:form:add:gene', getDataOnLastPage);
@@ -74,6 +75,7 @@ export default class ngbTargetGenesTableController {
         dispatcher.on('target:form:filters:display:changed', refreshColumns);
         dispatcher.on('target:form:filters:changed', filterChanged);
         dispatcher.on('target:form:sort:reset', resetSorting);
+        dispatcher.on('target:form:restore:view', confirmResetDialog);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:gene:added', initialize);
             dispatcher.removeListener('target:form:saved', reloadCurrentPage);
@@ -82,6 +84,7 @@ export default class ngbTargetGenesTableController {
             dispatcher.removeListener('target:form:filters:display:changed', refreshColumns);
             dispatcher.removeListener('target:form:filters:changed', filterChanged);
             dispatcher.removeListener('target:form:sort:reset', resetSorting);
+            dispatcher.removeListener('target:form:restore:view', confirmResetDialog);
         });
     }
 
@@ -419,6 +422,33 @@ export default class ngbTargetGenesTableController {
                     self.currentPage = page;
                     await self.loadData();
                     $mdDialog.cancel()
+                };
+            }
+        });
+    }
+
+    confirmResetDialog() {
+        const self = this;
+        this.$mdDialog.show({
+            template: require('./ngbConfirmChangesDlg.tpl.html'),
+            controller: function($scope, $mdDialog, dispatcher) {
+                $scope.save = async function () {
+                    if (self.ngbTargetsFormService.areGenesEmpty()
+                        || self.ngbTargetsFormService.isSomeGeneEmpty()
+                    ) {
+                        $mdDialog.hide();
+                    } else {
+                        dispatcher.emit('target:form:changes:save');
+                        $mdDialog.hide();
+                    }
+                };
+                $scope.cancel = async function () {
+                    self.ngbTargetsFormService.addedGenes = [];
+                    self.ngbTargetsFormService.removedGenes = [];
+                    self.ngbTargetGenesTableService.restoreView(true);
+                    self.dispatcher.emit('target:form:reset:columns');
+                    self.refreshColumns();
+                    $mdDialog.cancel();
                 };
             }
         });

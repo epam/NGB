@@ -224,13 +224,16 @@ export default class ngbTargetGenesTableService {
         }
     }
 
-    restoreView() {
+    restoreView(resetTable) {
         if (this._sortInfo || this._filterInfo) {
             this._sortInfo = null;
             this._filterInfo = null;
             this.dispatcher.emit('target:form:sort:reset');
             this._tableResults = null;
             this.dispatcher.emit('target:form:filters:changed');
+        }
+        if (resetTable) {
+            this._tableResults = null;
         }
         this.additionalColumns = [];
         this._displayFilters = false;
