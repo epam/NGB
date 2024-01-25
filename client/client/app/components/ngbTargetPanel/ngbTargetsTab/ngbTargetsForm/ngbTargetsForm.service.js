@@ -569,8 +569,8 @@ export default class ngbTargetsFormService {
             promises.push(await this.postNewParasiteTargetGenes(this.targetModel.id));
         }
         if (this.parasiteGenesRemoved()) {
-            const geneIds = this.removedGenes.map(gene => gene.geneId);
-            promises.push(await this.deleteParasiteTargetGenes(this.targetModel.id, geneIds));
+            const targetGeneIds = this.removedGenes.map(gene => gene.targetGeneId);
+            promises.push(await this.deleteParasiteTargetGenes(targetGeneIds));
         }
         if (this.targetGenesChanged()) {
             const request = this.getParasiteGenesMetadataRequest();
