@@ -12,6 +12,7 @@
                  md-selected-item-change="$ctrl.selectedItemChange(item)"
                  md-search-text-change="$ctrl.searchTextChange($ctrl.searchText)"
                  spellcheck="false"
+                 ng-class="{error: !$ctrl.searchText}"
                  class="ngb-targets-form-autocomplete">
     <md-item-template>
         <span md-highlight-text="$ctrl.searchText">{{item[$ctrl.field]}} {{item.speciesName}}</span>

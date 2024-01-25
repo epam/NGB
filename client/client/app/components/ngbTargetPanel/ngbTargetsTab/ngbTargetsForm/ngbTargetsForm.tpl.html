@@ -49,7 +49,8 @@
             <span ng-if="$ctrl.isEditMode">{{$ctrl.targetTypeName}}</span>
             <md-radio-group ng-model="$ctrl.targetModel.type"
                             aria-labelledby="targetType"
-                            ng-if="$ctrl.isAddMode">
+                            ng-if="$ctrl.isAddMode"
+                            ng-change="$ctrl.onChangeType()">
                 <md-radio-button value="DEFAULT"
                                  class="radio-button">
                     Default
@@ -79,7 +80,8 @@
             <div class="full-width"
                  style="padding-top: 8px; padding-bottom: 8px; text-align: center;">
                 <div class="no-genes-info"
-                     ng-if="!$ctrl.targetModel.genes || $ctrl.targetModel.genes.length === 0">
+                     ng-if="!$ctrl.inputFile && (
+                        !$ctrl.targetModel.genes || $ctrl.targetModel.genes.length === 0)">
                     At least one gene or transcript shall be specified.
                 </div>
                 <div class="table-buttons">
@@ -90,34 +92,30 @@
                         Add gene
                     </span>
                     <span ng-if="$ctrl.targetModel.type ===  $ctrl.targetType.PARASITE">
-                        <span ng-if="!$ctrl.geneFile.name"
+                        <span ng-if="!$ctrl.inputFile"
                               class="upload-link">
-                              <label for="target-genes-file-id">
+                            <label for="target-genes-file-input">
                                 Upload genes
                             </label>
-                            <input accept=".csv"
-                                class="ng-hide"
-                                file-model
-                                id="target-genes-file-id"
-                                ng-change="$ctrl.uploadGenes()"
-                                ng-model="$ctrl.geneFile"
-                                required
-                                type="file">
+                            <input accept=".csv,.tsv,.xlsx"
+                                   class="ng-hide"
+                                   file-model
+                                   id="target-genes-file-input"
+                                   ng-change="$ctrl.uploadFile()"
+                                   ng-model="$ctrl.inputFile"
+                                   required
+                                   type="file">
                         </span>
-                        <span ng-if="$ctrl.geneFile.name">
-                            <span class="import-link"
-                                ng-click="$ctrl.importGenes()">
-                                Upload
-                            </span>
-                            <span class="cancel-link"
-                                ng-click="$ctrl.cancelImport()">
-                                Cancel
-                            </span>
+                        <span class="cancel-link"
+                              ng-if="$ctrl.inputFile"
+                              ng-disabled="true"
+                              ng-click="$ctrl.loading">
+                            Cancel
                         </span>
                     </span>
                 </div>
-                <div ng-if="$ctrl.geneFile.name" class="file-name">
-                    {{$ctrl.geneFile.name}}
+                <div ng-if="$ctrl.inputFile.name" class="file-name">
+                    {{$ctrl.inputFile.name}}
                 </div>
             </div>
         </div>

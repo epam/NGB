@@ -1,4 +1,5 @@
-const DEFAULT_COLUMNS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority'];
+import {encodeName, decodeName} from '../ngbTargetsForm.service';
+
 const REMOVE = 'Remove';
 
 const DISPLAY_NAME = {
@@ -19,17 +20,7 @@ const COLUMN_FIELD = {
     'Remove': 'remove'
 };
 
-const PAGE_SIZE = 20;
-
 export default class ngbTargetGenesTableService {
-
-    get defaultColumns() {
-        return DEFAULT_COLUMNS;
-    }
-
-    get pageSize() {
-        return PAGE_SIZE;
-    }
 
     get displayName() {
         return DISPLAY_NAME;
@@ -82,30 +73,75 @@ export default class ngbTargetGenesTableService {
     get filterInfo() {
         return this._filterInfo;
     }
+    get defaultColumns() {
+        return this.ngbTargetsFormService.defaultFields;
+    }
 
     get currentColumns () {
         return [...this.defaultColumns, ...this.additionalColumns, this.removeColumn];
     }
     get currentColumnFields() {
-        return this.currentColumns.map(c => this.columnField[c] || c)
+        return this.currentColumns.map(c => {
+            if (this.columnField[c]) return this.columnField[c];
+            return encodeName(c);
+        })
     }
 
-    static instance (dispatcher, ngbTargetsFormService, ngbTargetPanelService, targetDataService, targetContext) {
-        return new ngbTargetGenesTableService(dispatcher, ngbTargetsFormService, ngbTargetPanelService, targetDataService, targetContext);
+    static instance (
+        dispatcher,
+        ngbTargetsFormService,
+        ngbTargetsTabService,
+        ngbTargetPanelService,
+        targetDataService,
+        targetContext,
+    ) {
+        return new ngbTargetGenesTableService(
+            dispatcher,
+            ngbTargetsFormService,
+            ngbTargetsTabService,
+            ngbTargetPanelService,
+            targetDataService,
+            targetContext,
+        );
     }
 
-    constructor(dispatcher, ngbTargetsFormService, ngbTargetPanelService, targetDataService, targetContext) {
-        Object.assign(this, {dispatcher, ngbTargetsFormService, ngbTargetPanelService, targetDataService, targetContext});
+    constructor(
+        dispatcher,
+        ngbTargetsFormService,
+        ngbTargetsTabService,
+        ngbTargetPanelService,
+        targetDataService,
+        targetContext,
+    ) {
+        Object.assign(this, {
+            dispatcher,
+            ngbTargetsFormService,
+            ngbTargetsTabService,
+            ngbTargetPanelService,
+            targetDataService,
+            targetContext,
+        });
         dispatcher.on('target:model:changed', this.resetTargetModel.bind(this));
+        dispatcher.on('target:model:type:changed', this.changeType.bind(this));
     }
 
     get isParasiteType() {
         return this.targetModel.type === this.targetType.PARASITE;
     }
 
+    get isAddMode() {
+        return this.ngbTargetsTabService.isAddMode;
+    }
+
     get tableResults() {
-        if (this.isParasiteType && this.currentPage === this.totalPages) {
-            return [...this._tableResults, ...this.ngbTargetsFormService.addedGenes];
+        if (this.isParasiteType) {
+            if (this.currentPage === this.totalPages) {
+                return [...this._tableResults, ...this.ngbTargetsFormService.addedGenes];
+            }
+            if (this.isAddMode && !this.totalPages && (this._tableResults && !this._tableResults.length)) {
+                return [...this.ngbTargetsFormService.addedGenes];
+            }
+            return this._tableResults;
         } else {
             return this._tableResults;
         }
@@ -122,11 +158,15 @@ export default class ngbTargetGenesTableService {
         return this.ngbTargetsFormService.targetModel;
     }
 
+    get pageSize() {
+        return this.ngbTargetsFormService.pageSize;
+    }
+
     getColumnName(field) {
         if (Object.prototype.hasOwnProperty.call(this.displayName, field)) {
             return this.displayName[field];
         }
-        return field;
+        return decodeName(field);
     }
 
     getColumnField(name) {
@@ -164,7 +204,7 @@ export default class ngbTargetGenesTableService {
     async getTableResults() {
         if (this.isParasiteType) {
             const request = this.getRequest();
-            const id = this.targetModel.id
+            const id = this.targetModel.id;
             this._tableResults = await this.ngbTargetsFormService.getTargetGenes(id, request)
                 .then(success => {
                     if (success) {
@@ -184,13 +224,16 @@ export default class ngbTargetGenesTableService {
         }
     }
 
-    restoreView() {
+    restoreView(resetTable) {
         if (this._sortInfo || this._filterInfo) {
             this._sortInfo = null;
             this._filterInfo = null;
             this.dispatcher.emit('target:form:sort:reset');
             this._tableResults = null;
             this.dispatcher.emit('target:form:filters:changed');
+        }
+        if (resetTable) {
+            this._tableResults = null;
         }
         this.additionalColumns = [];
         this._displayFilters = false;
@@ -252,5 +295,9 @@ export default class ngbTargetGenesTableService {
             delete filter[field];
         }
         this._filterInfo = filter;
+    }
+
+    changeType() {
+        this._tableResults = this.targetModel.genes;
     }
 }

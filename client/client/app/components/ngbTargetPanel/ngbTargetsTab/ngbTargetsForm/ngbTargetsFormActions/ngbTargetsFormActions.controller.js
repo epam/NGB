@@ -14,6 +14,11 @@ export default class ngbTargetsFormActionsController {
 
     constructor($scope, $timeout, dispatcher, ngbTargetGenesTableService, ngbTargetsFormService) {
         Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetGenesTableService, ngbTargetsFormService});
+        const resetColumnsSelection = this.resetColumnsSelection.bind(this);
+        dispatcher.on('target:form:reset:columns', resetColumnsSelection);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:form:reset:columns', resetColumnsSelection);
+        });
     }
 
     $onInit() {
@@ -57,10 +62,14 @@ export default class ngbTargetsFormActionsController {
     }
 
     onClickRestore() {
-        this.ngbTargetGenesTableService.restoreView();
-        this.resetColumnsSelection();
-        this.dispatcher.emit('target:form:filters:display:changed');
-        this.$timeout(() => this.$scope.$apply());
+        if (this.ngbTargetsFormService.needSaveGeneChanges()) {
+            this.dispatcher.emit('target:form:restore:view');
+        } else {
+            this.ngbTargetGenesTableService.restoreView();
+            this.resetColumnsSelection();
+            this.dispatcher.emit('target:form:filters:display:changed');
+            this.$timeout(() => this.$scope.$apply());
+        }
     }
 
     onChangeColumn() {
@@ -71,13 +80,13 @@ export default class ngbTargetsFormActionsController {
         const [added] = newSelectedColumns.filter(i => currentSelectedColumns.indexOf(i) === -1);
         const [removed] = currentSelectedColumns.filter(c => newSelectedColumns.indexOf(c) === -1);
         if (added) {
-            const columns = this.ngbTargetGenesTableService.additionalColumns;
+            const columns = [...currentSelectedColumns];
             columns.push(added)
             this.ngbTargetGenesTableService.additionalColumns = columns;
             this.ngbTargetGenesTableService.setFilterList(added);
         }
         if (removed) {
-            const columns = this.ngbTargetGenesTableService.additionalColumns;
+            const columns = [...currentSelectedColumns];
             const index = columns.indexOf(removed);
             if (index >= 0) {
                 columns.splice(index, 1);

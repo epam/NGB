@@ -927,4 +927,28 @@ export class TargetDataService extends DataService {
                 .catch(err => resolve([]));
         });
     }
+
+    deleteTargetGenes(targetGeneIds) {
+        return new Promise((resolve, reject) => {
+            this.delete(`target/genes?targetGeneIds=${targetGeneIds}`)
+                .then(() => resolve(true))
+                .catch((error) => {
+                    const message = 'Error removing genes';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    importGenes(targetId, request) {
+        return new Promise((resolve, reject) => {
+            this.post(`target/genes/import/${targetId}`, request)
+                .then(() => {
+                    resolve(true)
+                })
+                .catch(error => {
+                    const message = 'Error uploading target genes';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }
