@@ -237,17 +237,21 @@ export default class ngbTargetsFormService {
     }
 
     setOriginalModel(data) {
-        this._originalModel = {...data};
-        this._originalModel.identifications = data.identifications;
-        this._originalModel.diseases = (data.diseases || []).filter(d => d);
-        this._originalModel.products = (data.products || []).filter(p => p);
-        this._originalModel.genes = (data.targetGenes || []).map(gene => ({
-            geneId: gene.geneId,
-            geneName: gene.geneName,
-            taxId: gene.taxId,
-            speciesName: gene.speciesName,
-            priority: gene.priority
-        }));
+        this._originalModel = {
+            id: data.targetId,
+            name: data.targetName,
+            diseases: (data.diseases || []).filter(d => d),
+            products: (data.products || []).filter(p => p),
+            identifications: data.identifications,
+            type: data.type,
+            genes: (data.targetGenes || []).map(gene => ({
+                geneId: gene.geneId,
+                geneName: gene.geneName,
+                taxId: gene.taxId,
+                speciesName: gene.speciesName,
+                priority: gene.priority
+            }))
+        };
     }
 
     async getTarget(id) {

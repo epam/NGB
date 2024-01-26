@@ -22,11 +22,11 @@ export default class ngbTargetGenesTableController {
         enableHorizontalScrollbar: 0,
         enablePinning: false,
         treeRowHeaderAlwaysVisible: false,
-        saveWidths: true,
+        saveWidths: false,
         saveOrder: false,
         saveScroll: false,
         saveFocus: false,
-        saveVisible: true,
+        saveVisible: false,
         saveSort: true,
         saveFilter: false,
         savePinning: false,
@@ -160,6 +160,7 @@ export default class ngbTargetGenesTableController {
         } else {
             await this.loadData();
         }
+        this.saveSortConfiguration();
         this.gridOptions.columnDefs = this.getTableColumns();
     }
 
@@ -531,7 +532,87 @@ export default class ngbTargetGenesTableController {
         }
     }
 
+    openConfirmSortDialog(saveCallback, cancelCallback, closeCallback) {
+        const self = this;
+        this.$mdDialog.show({
+            template: require('./ngbConfirmChangesDlg.tpl.html'),
+            controller: function($scope, $mdDialog) {
+                $scope.save = async function () {
+                    if (self.ngbTargetsFormService.areGenesEmpty()
+                        || self.ngbTargetsFormService.isSomeGeneEmpty()
+                    ) {
+                        closeCallback();
+                        $mdDialog.hide();
+                    } else {
+                        saveCallback();
+                        $mdDialog.hide();
+                    }
+                };
+                $scope.cancel = async function () {
+                    self.ngbTargetsFormService.addedGenes = [];
+                    self.ngbTargetsFormService.removedGenes = [];
+                    cancelCallback();
+                    $mdDialog.cancel();
+                };
+            }
+        });
+    }
+
+    saveSortConfiguration() {
+        this.savedSortConfiguration = this.gridApi.grid.columns
+            .filter(column => !!column.sort)
+            .map((column, priority) => ({
+                field: column.field,
+                sort: ({
+                    ...column.sort,
+                    priority
+                })
+        }));
+    }
+
+    setSortFromConfiguration() {
+        if (!this.gridApi) return;
+        const {columns = []} = this.gridApi.grid || {};
+        columns.forEach(columnDef => {
+            const [sortingConfig] = this.savedSortConfiguration
+                .filter(c => c.field === columnDef.field);
+            if (sortingConfig) {
+                columnDef.sort = sortingConfig.sort;
+            }
+        });
+        this.saveSortConfiguration();
+    }
+
     async sortChanged(grid, sortColumns) {
+        if (this.ngbTargetsFormService.needSaveGeneChanges()) {
+            const closeCallback = () => this.setSortFromConfiguration();
+            const saveCallback = () => {
+                this.setSortFromConfiguration();
+                this.dispatcher.emit('target:form:changes:save');
+            };
+            const cancelCallback = () => this.sortChangeConfirmed(grid, sortColumns);
+            this.openConfirmSortDialog(saveCallback, cancelCallback, closeCallback);
+        } else {
+            await this.sortChangeConfirmed(grid, sortColumns);
+        }
+    }
+
+    toggleMenu(event, toggleMenuGrid) {
+        if (this.ngbTargetsFormService.needSaveGeneChanges()) {
+            const cancelCallback = () => {
+                this.ngbTargetGenesTableService.resetTableResults();
+                this.initialize();
+                this.$timeout(() => this.$scope.$apply());
+                toggleMenuGrid(event);
+            };
+            const saveCallback = () => {};
+            this.openConfirmSortDialog(saveCallback, cancelCallback);
+        } else {
+            toggleMenuGrid(event);
+        }
+    }
+
+    async sortChangeConfirmed(grid, sortColumns) {
         if (!this.gridApi) {
             return;
         }
@@ -561,6 +642,7 @@ export default class ngbTargetGenesTableController {
                 columnDef.sort = sortingConfig.sort;
             }
         });
+        this.saveSortConfiguration();
         this.currentPage = 1;
         await this.loadData();
     }

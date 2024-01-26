@@ -37,7 +37,7 @@
             </md-button>
             <div aria-haspopup="true"
                  class="ui-grid-column-menu-button"
-                 ng-click="toggleMenu($event)"
+                 ng-click="grid.appScope.$ctrl.toggleMenu($event, toggleMenu)"
                  ng-if="grid.options.enableColumnMenus &&
                        !col.isRowHeader &&
                        col.colDef.enableColumnMenu !== false &&
