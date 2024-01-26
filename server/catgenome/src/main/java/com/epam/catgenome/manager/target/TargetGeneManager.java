@@ -331,7 +331,6 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         doc.add(new TextField(IndexField.GENE_NAME.getValue(), entry.getGeneName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexField.GENE_NAME.getValue(), new BytesRef(entry.getGeneName())));
 
-//        doc.add(new LongPoint(IndexField.TAX_ID.getValue(), entry.getTaxId()));
         doc.add(new NumericDocValuesField(IndexField.TAX_ID.getValue(), entry.getTaxId()));
         doc.add(new StoredField(IndexField.TAX_ID.getValue(), entry.getTaxId()));
 
