@@ -114,11 +114,6 @@ export default class ngbTargetsFormService {
     get originalModel() {
         return this._originalModel;
     }
-    set originalModel(value) {
-        this._originalModel = value;
-        this._originalModel.diseases = (this._originalModel.diseases || []).filter(d => d);
-        this._originalModel.products = (this._originalModel.products || []).filter(p => p);
-    }
     get isParasite() {
         return this.targetModel.type === this.targetType.PARASITE;
     }
@@ -161,7 +156,7 @@ export default class ngbTargetsFormService {
     }
 
     targetGenesChanged() {
-        const originalGenes = this.originalModel.targetGenes;
+        const originalGenes = this.originalModel.genes;
         const targetGenes = this.targetModel.genes;
         if (originalGenes.length !== targetGenes.length) return true;
         const allFields = [...this.geneModelProperties, ...this.metadataFields];
@@ -175,7 +170,7 @@ export default class ngbTargetsFormService {
     }
 
     targetInfoChanged() {
-        const nameChanged = this.originalModel.targetName !== this.targetModel.name;
+        const nameChanged = this.originalModel.name !== this.targetModel.name;
         const typeChanged = this.originalModel.type !== this.targetModel.type;
         const changed = (block) => {
             const originalBlock = (this.originalModel[block] || []).sort();
@@ -237,7 +232,22 @@ export default class ngbTargetsFormService {
             identifications: data.identifications,
             type: data.type,
         };
+        this.setOriginalModel(data);
         this.targetContext.targetModelType = data.type;
+    }
+
+    setOriginalModel(data) {
+        this._originalModel = {...data};
+        this._originalModel.identifications = data.identifications;
+        this._originalModel.diseases = (data.diseases || []).filter(d => d);
+        this._originalModel.products = (data.products || []).filter(p => p);
+        this._originalModel.genes = (data.targetGenes || []).map(gene => ({
+            geneId: gene.geneId,
+            geneName: gene.geneName,
+            taxId: gene.taxId,
+            speciesName: gene.speciesName,
+            priority: gene.priority
+        }));
     }
 
     async getTarget(id) {
@@ -250,7 +260,6 @@ export default class ngbTargetsFormService {
                     this.failed = false;
                     this.errorMessageList = null;
                     this.setTargetModel(data);
-                    this.originalModel = data;
                     this.dispatcher.emit('target:model:changed');
                     this.ngbTargetsTabService.setEditMode();
                     this.loading = false;
@@ -276,7 +285,7 @@ export default class ngbTargetsFormService {
             priority: g.priority,
             ...encodedMetadata(g.metadata)
         }));
-        this.originalModel.targetGenes = (genes.items || []).map(g => ({
+        this._originalModel.genes = (genes.items || []).map(g => ({
             targetGeneId: g.targetGeneId,
             geneId: g.geneId,
             geneName: g.geneName,
@@ -363,7 +372,6 @@ export default class ngbTargetsFormService {
                         this.failed = false;
                         this.errorMessageList = null;
                         this.setTargetModel(result);
-                        this.originalModel = result;
                         this.dispatcher.emit('target:model:changed');
                         this.ngbTargetsTabService.setEditMode();
                     }
@@ -444,7 +452,6 @@ export default class ngbTargetsFormService {
                                 this.addedGenes = [];
                                 this.geneFile = null;
                                 this.setTargetModel(target);
-                                this.originalModel = target;
                                 this.dispatcher.emit('target:model:changed');
                             }
                         })
@@ -501,7 +508,6 @@ export default class ngbTargetsFormService {
                         this.failed = false;
                         this.errorMessageList = null;
                         this.setTargetModel(result);
-                        this.originalModel = result;
                         this.dispatcher.emit('target:model:changed');
                         this.updateForce = false;
                         this.ngbTargetsTabService.setEditMode();
@@ -520,7 +526,7 @@ export default class ngbTargetsFormService {
 
     getParasiteGenesMetadataRequest() {
         const {id, genes} = this.targetModel;
-        const original = this.originalModel.targetGenes;
+        const original = this.originalModel.genes;
         const request = genes
             .filter(gene => {
                 const allFields = [...this.geneModelProperties, ...this.metadataFields];
@@ -543,6 +549,26 @@ export default class ngbTargetsFormService {
                 return gene;
             });
         return request;
+    }
+
+    getChangedFields() {
+        const original = this.originalModel.genes;
+        const allFields = [...this.geneModelProperties, ...this.metadataFields];
+        const keys = this.targetModel.genes
+            .reduce((fields, gene) => {
+                const originalGene = original.filter(o => o.targetGeneId === gene.targetGeneId)[0];
+                const entries = Object.entries(gene);
+                for (let i = 0; i < entries.length; i++) {
+                    const [key, value] = entries[i];
+                    if (allFields.includes(key)) {
+                        if (String(value) !== String(originalGene[key])) {
+                            fields.push(key);
+                        }
+                    }
+                }
+                return fields;
+            }, []);
+        return new Set(keys)
     }
 
     getParasiteTargetRequest() {
@@ -608,7 +634,6 @@ export default class ngbTargetsFormService {
             this.targetDataService.getTargetById(id)
                 .then(data => {
                     this.setTargetModel(data);
-                    this.originalModel = data;
                     resolve(true);
                 })
                 .catch(err => reject(err));
@@ -629,7 +654,6 @@ export default class ngbTargetsFormService {
                 .then(target => {
                     if (target) {
                         this.setTargetModel(target);
-                        this.originalModel = target;
                         resolve(true);
                     }
                 })
