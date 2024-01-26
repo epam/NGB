@@ -234,7 +234,7 @@ export default class ngbTargetGenesTableService {
         this._originalResults = results.map(g => ({...g}))
     }
 
-    restoreView(resetTable) {
+    restoreView() {
         if (this._sortInfo || this._filterInfo) {
             this._sortInfo = null;
             this._filterInfo = null;
@@ -242,10 +242,6 @@ export default class ngbTargetGenesTableService {
             this._tableResults = null;
             this._originalResults = null;
             this.dispatcher.emit('target:form:filters:changed');
-        }
-        if (resetTable) {
-            this._tableResults = null;
-            this._originalResults = null;
         }
         this.additionalColumns = [];
         this._displayFilters = false;

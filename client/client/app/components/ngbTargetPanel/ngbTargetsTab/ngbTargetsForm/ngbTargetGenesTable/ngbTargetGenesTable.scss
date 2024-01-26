@@ -100,7 +100,8 @@ ngb-target-genes-table {
             border-bottom: 1px solid darken($table-control-background, 20%);
         
             &.error {
-                border-color: red;
+                border-bottom: 1px solid red;
+                margin: 1px 0;
             }
         
             &:hover:not(:focus) {
