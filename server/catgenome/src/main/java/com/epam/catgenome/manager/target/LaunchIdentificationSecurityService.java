@@ -164,7 +164,8 @@ public class LaunchIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<Structure> getStructures(final StructuresSearchRequest request) {
+    public SearchResult<Structure> getStructures(final StructuresSearchRequest request)
+            throws ParseException, IOException {
         return manager.getStructures(request);
     }
 

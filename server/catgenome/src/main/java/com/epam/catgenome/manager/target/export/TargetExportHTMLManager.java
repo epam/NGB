@@ -58,13 +58,10 @@ import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import static com.epam.catgenome.manager.target.export.TargetExportManager.getGeneIds;
 import static org.apache.commons.lang3.StringUtils.join;
 
 
@@ -97,14 +94,21 @@ public class TargetExportHTMLManager {
 
     public InputStream getHTMLSummary(final List<String> genesOfInterest,
                                       final List<String> translationalGenes,
-                                      final long targetId)
+                                      final Long targetId)
             throws ParseException, IOException, ExternalDbUnavailableException {
         final String template = getTemplate();
 
-        final Target target = targetManager.getTarget(targetId);
+        final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
 
-        final List<String> geneIds = Stream.concat(genesOfInterest.stream(), translationalGenes.stream())
-                .map(String::toLowerCase).distinct().collect(Collectors.toList());
+        String name;
+        if (targetId != null) {
+            final Target target = targetManager.getTarget(targetId);
+            name = target.getTargetName();
+        } else {
+            final List<String> geneNames = launchIdentificationManager.getGeneNames(geneIds);
+            name = geneNames.get(0);
+        }
+
         final Map<String, String> geneNamesMap = targetExportManager.getTargetGeneNames(geneIds);
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         final List<String> entrezIds = ncbiGeneIds.stream()
@@ -171,7 +175,7 @@ public class TargetExportHTMLManager {
         }
 
         final TargetExportHTML result = TargetExportHTML.builder()
-                .name(target.getTargetName())
+                .name(name)
                 .interest(interest)
                 .translational(translational)
                 .totalCounts(totalCounts)
@@ -187,69 +191,7 @@ public class TargetExportHTMLManager {
 
     public InputStream getHTMLSummary(final String geneId)
             throws ParseException, IOException, ExternalDbUnavailableException {
-        final String template = getTemplate();
-
-        final List<String> geneIds = Collections.singletonList(geneId);
-        final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneId);
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
-        final List<String> entrezIds = ncbiGeneIds.stream()
-                .map(g -> g.getEntrezId().toString())
-                .collect(Collectors.toList());
-
-        final List<SourceData<KnownDrugData>> knownDrugs = getKnownDrugs(geneIds, genesMap);
-        final List<PharmGKBDisease> pharmGKBDiseases = targetExportManager.getPharmGKBDiseases(geneIds, genesMap);
-        final List<DiseaseAssociation> diseaseAssociations = targetExportManager.getDiseaseAssociations(geneIds,
-                genesMap);
-        final List<SourceData<DiseaseData>> diseases = getDiseases(pharmGKBDiseases, diseaseAssociations);
-        final List<Sequence> sequences = getSequences(geneIds, genesMap);
-        final List<SourceData<StructureData>> structures = getStructures(geneIds);
-        final long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
-        final List<Publication> publications = getPublications(entrezIds, publicationsCount);
-        final List<ComparativeGenomics> comparativeGenomics = getComparativeGenomics(geneIds,
-                Collections.emptyList(), genesMap);
-        final long homologsCount = comparativeGenomics.size();
-        final DrugsCount drugsCount = launchIdentificationManager.getDrugsCount(geneIds);
-        final long structuresCount = structures.stream().mapToInt(d -> d.getData().size()).sum();
-
-        final SequencesSummary sequencesSummary = geneSequencesManager.getSequencesCount(ncbiGeneIds);
-        final KnownDrugsCount knownDrugsCount = KnownDrugsCount
-                .builder()
-                .drugs(drugsCount.getDistinctCount())
-                .records(drugsCount.getTotalCount())
-                .build();
-        final SequencesCount sequencesCount = SequencesCount
-                .builder()
-                .dnas(sequencesSummary.getDNAs())
-                .mrnas(sequencesSummary.getMRNAs())
-                .proteins(sequencesSummary.getProteins())
-                .build();
-        final TotalCounts totalCounts = TotalCounts.builder()
-                .knownDrugs(knownDrugsCount)
-                .sequences(sequencesCount)
-                .diseases((long) (pharmGKBDiseases.size() + diseaseAssociations.size()))
-                .genomics(homologsCount)
-                .structures(structuresCount)
-                .publications(publicationsCount)
-                .build();
-        final List<String> geneNames = launchIdentificationManager.getGeneNames(geneIds);
-        final Map<String, String> descriptions = launchIdentificationManager.getDescriptions(ncbiGeneIds);
-        GeneDetails details = GeneDetails.builder()
-                .id(geneId.toLowerCase())
-                .name(geneNames.get(0))
-                .description(descriptions.get(geneId.toLowerCase()))
-                .build();
-        final TargetExportHTML result = TargetExportHTML.builder()
-                .name(geneNames.get(0))
-                .interest(Collections.singletonList(details))
-                .totalCounts(totalCounts)
-                .knownDrugs(knownDrugs)
-                .associatedDiseases(diseases)
-                .sequences(sequences)
-                .structures(structures)
-                .publications(publications)
-                .comparativeGenomics(comparativeGenomics)
-                .build();
-        return fillTemplate(template, result);
+        return getHTMLSummary(Collections.singletonList(geneId), Collections.emptyList(), null);
     }
 
     private InputStream fillTemplate(final String template,
@@ -288,7 +230,8 @@ public class TargetExportHTMLManager {
                 reference.setLink(geneRefSection.getReference().getUrl());
             }
             List<SequenceData> sequencesData = new ArrayList<>();
-            for (GeneSequence geneSequence : geneRefSection.getSequences()) {
+            for (GeneSequence geneSequence :
+                    Optional.ofNullable(geneRefSection.getSequences()).orElse(Collections.emptyList())) {
                 LinkEntity transcript = new LinkEntity();
                 if (geneSequence.getMRNA() != null) {
                     transcript.setValue(geneSequence.getMRNA().getId());
@@ -365,8 +308,8 @@ public class TargetExportHTMLManager {
         return result;
     }
 
-    private List<SourceData<StructureData>> getStructures(final List<String> geneIds) {
-
+    private List<SourceData<StructureData>> getStructures(final List<String> geneIds)
+            throws ParseException, IOException {
         final List<Structure> pdbStructures = targetExportManager.getStructures(geneIds);
         final List<PdbFile> pdbFiles = targetExportManager.getPdbFiles(geneIds);
 

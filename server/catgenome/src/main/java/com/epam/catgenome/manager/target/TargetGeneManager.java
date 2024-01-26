@@ -37,17 +37,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.LongPoint;
-import org.apache.lucene.document.NumericDocValuesField;
-import org.apache.lucene.document.SortedDocValuesField;
-import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.*;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -99,6 +93,7 @@ import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 import static org.apache.poi.ss.usermodel.CellType.NUMERIC;
 
 @Service
+@Slf4j
 public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
     private static final List<String> GENE_IDS = Arrays.asList("gene id", "id", "gene", "gene_id");
@@ -132,9 +127,13 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         }
     }
 
-    public List<TargetGene> load(final List<Long> targetGeneIds) throws ParseException, IOException {
+    public List<TargetGene> loadByIds(final List<Long> targetGeneIds) throws ParseException, IOException {
         return search(targetGeneIds.stream().map(Object::toString).collect(Collectors.toList()),
                 IndexField.TARGET_GENE_ID.getValue());
+    }
+
+    public List<TargetGene> load(final List<String> geneIds) throws ParseException, IOException {
+        return search(geneIds, IndexField.GENE_ID.getValue());
     }
 
     public Set<String> getFields(final Long targetId) throws ParseException, IOException {
@@ -332,7 +331,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         doc.add(new TextField(IndexField.GENE_NAME.getValue(), entry.getGeneName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexField.GENE_NAME.getValue(), new BytesRef(entry.getGeneName())));
 
-        doc.add(new LongPoint(IndexField.TAX_ID.getValue(), entry.getTaxId()));
+//        doc.add(new LongPoint(IndexField.TAX_ID.getValue(), entry.getTaxId()));
         doc.add(new NumericDocValuesField(IndexField.TAX_ID.getValue(), entry.getTaxId()));
         doc.add(new StoredField(IndexField.TAX_ID.getValue(), entry.getTaxId()));
 
@@ -406,6 +405,11 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 cells = line.split(separator);
 
                 String geneId = cells[header.getIdIndex()].trim();
+                try {
+                    geneId = String.valueOf((long) Float.parseFloat(geneId));
+                } catch (NumberFormatException e) {
+                    break;
+                }
                 Assert.isTrue(!TextUtils.isBlank(geneId), "Gene ID should not be blank");
 
                 String geneName = cells[header.getNameIndex()].trim();
@@ -498,7 +502,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 cellValue = cell.getStringCellValue();
                 break;
             case NUMERIC:
-                cellValue = String.valueOf(cell.getNumericCellValue());
+                cellValue = String.valueOf((long) cell.getNumericCellValue());
                 break;
             case BOOLEAN:
                 cellValue = String.valueOf(cell.getBooleanCellValue());

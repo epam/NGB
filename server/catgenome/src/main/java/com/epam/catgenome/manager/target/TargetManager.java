@@ -235,20 +235,23 @@ public class TargetManager {
         }).collect(Collectors.toList());
     }
 
-    public List<String> getTargetGeneNames(final List<String> geneIds) {
+    public List<String> getTargetGeneNames(final List<String> geneIds) throws ParseException, IOException {
         final List<TargetGene> targetGenes = getTargetGenes(geneIds);
         return targetGenes.stream().map(TargetGene::getGeneName).distinct().collect(Collectors.toList());
     }
 
-    public List<Long> getTargetGeneSpecies(final List<String> geneIds) {
+    public List<Long> getTargetGeneSpecies(final List<String> geneIds) throws ParseException, IOException {
         final List<TargetGene> targetGenes = getTargetGenes(geneIds);
         return targetGenes.stream().map(TargetGene::getTaxId).distinct().collect(Collectors.toList());
     }
 
-    public List<TargetGene> getTargetGenes(final List<String> geneIds) {
+    public List<TargetGene> getTargetGenes(final List<String> geneIds) throws ParseException, IOException {
+        final List<TargetGene> indexTargetGenes = targetGeneManager.load(geneIds);
         final List<String> clauses = new ArrayList<>();
         clauses.add(getGeneIdsClause(geneIds));
-        return targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
+        final List<TargetGene> targetGenes =  targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
+        indexTargetGenes.addAll(targetGenes);
+        return indexTargetGenes;
     }
 
     private static String getFilterClause(final TargetQueryParams targetQueryParams) {

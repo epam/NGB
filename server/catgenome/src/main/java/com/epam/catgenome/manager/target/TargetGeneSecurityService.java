@@ -63,7 +63,7 @@ public class TargetGeneSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public List<TargetGene> load(final List<Long> targetGeneIds) throws ParseException, IOException {
-        return targetGeneManager.load(targetGeneIds);
+        return targetGeneManager.loadByIds(targetGeneIds);
     }
 
     @PreAuthorize(ROLE_USER)
