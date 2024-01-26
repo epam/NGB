@@ -41,6 +41,7 @@ import com.epam.catgenome.manager.export.ExcelExportUtils;
 import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.pdb.PdbEntriesManager;
+import com.epam.catgenome.manager.externaldb.pdb.PdbStructureField;
 import com.epam.catgenome.manager.externaldb.sequence.NCBISequenceManager;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBField;
@@ -121,8 +122,8 @@ public class TargetExportXLSManager {
                     targetExportManager.getPharmGKBDrugs(geneIds, targetNames), workbook);
             writeSheet("Known Drugs(DGIdb)", getAssociationFields(DGIDBField.values()),
                     targetExportManager.getDGIDBDrugs(geneIds, targetNames), workbook);
-//            writeSheet("Structures (PDB)", Arrays.asList(PdbStructureField.values()),
-//                    targetExportManager.getStructures(geneIds), workbook);
+            writeSheet("Structures (PDB)", Arrays.asList(PdbStructureField.values()),
+                    targetExportManager.getStructures(geneIds), workbook);
             writeSheet("Structures (Local)", Arrays.asList(PdbFileField.values()),
                     targetExportManager.getPdbFiles(geneIds), workbook);
             writeSheet("Sequences", Arrays.asList(GeneSequenceField.values()),
