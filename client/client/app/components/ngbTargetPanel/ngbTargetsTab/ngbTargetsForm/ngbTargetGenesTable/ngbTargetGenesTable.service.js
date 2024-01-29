@@ -35,6 +35,7 @@ export default class ngbTargetGenesTableService {
     }
 
     _tableResults = null;
+    _originalResults = null;
     _displayFilters = false;
 
     _totalPages = 0;
@@ -162,6 +163,10 @@ export default class ngbTargetGenesTableService {
         return this.ngbTargetsFormService.pageSize;
     }
 
+    resetTableResults() {
+        this._tableResults = this._originalResults.map(g => ({...g}));
+    }
+
     getColumnName(field) {
         if (Object.prototype.hasOwnProperty.call(this.displayName, field)) {
             return this.displayName[field];
@@ -212,6 +217,7 @@ export default class ngbTargetGenesTableService {
                     }
                     return [];
                 });
+            this.setOriginalResults(this._tableResults);
             this.totalPages = Math.ceil(this.targetModel.genesTotal/this.pageSize);
             this.loading = false;
             return Promise.resolve(true);
@@ -224,16 +230,18 @@ export default class ngbTargetGenesTableService {
         }
     }
 
-    restoreView(resetTable) {
+    setOriginalResults(results) {
+        this._originalResults = results.map(g => ({...g}))
+    }
+
+    restoreView() {
         if (this._sortInfo || this._filterInfo) {
             this._sortInfo = null;
             this._filterInfo = null;
             this.dispatcher.emit('target:form:sort:reset');
             this._tableResults = null;
+            this._originalResults = null;
             this.dispatcher.emit('target:form:filters:changed');
-        }
-        if (resetTable) {
-            this._tableResults = null;
         }
         this.additionalColumns = [];
         this._displayFilters = false;
@@ -241,6 +249,7 @@ export default class ngbTargetGenesTableService {
 
     resetTargetModel() {
         this._tableResults = null;
+        this._originalResults = null;
         this._displayFilters = false;
         this._totalPages = 0;
         this._currentPage = 1;
@@ -299,5 +308,6 @@ export default class ngbTargetGenesTableService {
 
     changeType() {
         this._tableResults = this.targetModel.genes;
+        this.setOriginalResults(this.targetModel.genes);
     }
 }

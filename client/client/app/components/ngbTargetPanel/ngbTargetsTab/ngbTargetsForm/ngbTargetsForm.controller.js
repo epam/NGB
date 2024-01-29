@@ -151,7 +151,9 @@ export default class ngbTargetsFormController {
     }
 
     async updateTarget(addGene) {
+        const geneWasChanged = this.ngbTargetsFormService.needSaveGeneChanges();
         if (this.isParasite) {
+            const updateFilterList = geneWasChanged ? this.ngbTargetsFormService.getChangedFields() : false;
             await this.ngbTargetsFormService.updateParasiteTarget()
                 .then(success => {
                     if (success) {
@@ -159,6 +161,9 @@ export default class ngbTargetsFormController {
                         this.dispatcher.emit('target:form:saved');
                         if (addGene) {
                             this.ngbTargetsFormService.addNewGene();
+                        }
+                        if (updateFilterList && updateFilterList.length) {
+                            updateFilterList.map(field => this.ngbTargetGenesTableService.setFilterList(field));
                         }
                         this.inputFile = undefined;
                         this.$timeout(() => this.$scope.$apply());
