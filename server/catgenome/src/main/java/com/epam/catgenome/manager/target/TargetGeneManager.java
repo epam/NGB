@@ -206,7 +206,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         delete(query);
     }
 
-    public void create(final long targetId, final List<TargetGene> targetGenes) throws IOException, ParseException {
+    public void create(final long targetId, final List<TargetGene> targetGenes)
+            throws IOException, ParseException, TargetGenesException {
         final Map<String, TargetGeneField> targetGeneFields = processMetadata(targetGenes, targetId);
         setIds(targetId, targetGenes);
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
@@ -219,7 +220,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         }
     }
 
-    public void update(final List<TargetGene> targetGenes) throws IOException, ParseException {
+    public void update(final List<TargetGene> targetGenes) throws IOException, ParseException, TargetGenesException {
         final Map<String, TargetGeneField> targetGeneFields = processMetadata(targetGenes,
                 targetGenes.get(0).getTargetId());
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
@@ -314,7 +315,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
     public void addDoc(final IndexWriter writer,
                        final TargetGene entry,
-                       final Map<String, TargetGeneField> targetGeneFields) throws IOException {
+                       final Map<String, TargetGeneField> targetGeneFields) throws IOException, TargetGenesException {
         final Document doc = docFromEntry(entry, targetGeneFields);
         writer.addDocument(doc);
     }
@@ -466,7 +467,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     private static Document docFromEntry(final TargetGene entry,
-                                         final Map<String, TargetGeneField> targetGeneFields) {
+                                         final Map<String, TargetGeneField> targetGeneFields) throws TargetGenesException {
         final Document doc = new Document();
         doc.add(new StringField(IndexField.TARGET_GENE_ID.getValue(),
                 entry.getTargetGeneId().toString(), Field.Store.YES));
@@ -491,20 +492,26 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             doc.add(new StoredField(IndexField.PRIORITY.getValue(), entry.getPriority().getValue()));
         }
 
-        entry.getMetadata().forEach((k, v) -> {
+        for (Map.Entry<String, String> mapEntry : entry.getMetadata().entrySet()) {
+            String k = mapEntry.getKey();
+            String v = mapEntry.getValue();
             TargetGeneField targetGeneField = targetGeneFields.get(k);
             if (targetGeneField.getFilterType() == FilterType.RANGE) {
-                float value = Float.parseFloat(v);
-                doc.add(new FloatPoint(k, value));
-                doc.add(new FloatDocValuesField(k, value));
-                doc.add(new StoredField(k, value));
+                try {
+                    float value = Float.parseFloat(v);
+                    doc.add(new FloatPoint(k, value));
+                    doc.add(new FloatDocValuesField(k, value));
+                    doc.add(new StoredField(k, value));
+                } catch (NumberFormatException e) {
+                    throw new TargetGenesException(String.format("Can't add string value to numerical field '%s'", k));
+                }
             } else {
                 doc.add(new TextField(k, v, Field.Store.YES));
                 if (targetGeneField.getSortType() != SortType.NONE) {
                     doc.add(new SortedDocValuesField(k, new BytesRef(v)));
                 }
             }
-        });
+        }
         return doc;
     }
 
