@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.manager.index;
 
+import com.epam.catgenome.entity.index.FilterType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,7 +31,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class OrderInfo {
-    private String orderBy;
-    private boolean reverse;
+public class FieldInfo {
+    private String fieldName;
+    private FilterType filterType;
+    private boolean sort;
 }

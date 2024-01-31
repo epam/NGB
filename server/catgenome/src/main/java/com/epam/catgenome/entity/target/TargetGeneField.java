@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 EPAM Systems
+ * Copyright (c) 2023-2024 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,8 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.index;
+package com.epam.catgenome.entity.target;
 
+import com.epam.catgenome.entity.index.FilterType;
+import com.epam.catgenome.entity.index.SortType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,7 +32,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class OrderInfo {
-    private String orderBy;
-    private boolean reverse;
+public class TargetGeneField {
+    private Long targetId;
+    private String field;
+    private FilterType filterType;
+    private SortType sortType;
 }

@@ -24,36 +24,26 @@
 package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.entity.index.FilterType;
+import com.epam.catgenome.entity.index.SortType;
 import com.epam.catgenome.entity.target.TargetGene;
+import com.epam.catgenome.entity.target.TargetGeneField;
 import com.epam.catgenome.entity.target.TargetGenePriority;
 import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.CaseInsensitiveWhitespaceAnalyzer;
+import com.epam.catgenome.manager.index.FieldInfo;
 import com.epam.catgenome.manager.index.Filter;
+import com.epam.catgenome.manager.index.OrderInfo;
 import com.epam.catgenome.manager.index.SearchRequest;
 import com.epam.catgenome.util.FileFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.LongPoint;
-import org.apache.lucene.document.NumericDocValuesField;
-import org.apache.lucene.document.SortedDocValuesField;
-import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.index.Term;
+import org.apache.lucene.document.*;
+import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -85,17 +75,17 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
+import static com.epam.catgenome.util.IndexUtils.*;
 import static org.apache.poi.ss.usermodel.CellType.NUMERIC;
 
 @Service
@@ -108,10 +98,17 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             "species_name", "organism");
     private static final int FIELD_VALUES_TOP_HITS = 200;
     private static final String EXCEL_EXTENSION = "xlsx";
+    private static final float OPTIONS_RATIO = 0.5F;
+    private int keywordMaxLength;
+    private final TargetGeneFieldManager targetGeneFieldManager;
 
     public TargetGeneManager(final @Value("${targets.index.directory}") String indexDirectory,
-                             final @Value("${targets.top.hits:10000}") int targetsTopHits) {
+                             final @Value("${targets.top.hits:10000}") int targetsTopHits,
+                             final @Value("${targets.keyword.max.length:100}") int keywordMaxLength,
+                             final TargetGeneFieldManager targetGeneFieldManager) {
         super(Paths.get(indexDirectory, "genes").toString(), targetsTopHits);
+        this.targetGeneFieldManager = targetGeneFieldManager;
+        this.keywordMaxLength = keywordMaxLength;
     }
 
     public void importData(final long targetId, final String path, final MultipartFile file)
@@ -121,13 +118,14 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 Files.newInputStream(Paths.get(path));
         final String extension = FilenameUtils.getExtension(file != null ? file.getOriginalFilename() : path);
         final List<TargetGene> entries = readEntries(inputStream, extension);
+        final Map<String, TargetGeneField> targetGeneFields = processMetadata(entries, targetId);
         setIds(targetId, entries);
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             for (TargetGene entry: entries) {
-                addDoc(writer, entry);
+                addDoc(writer, entry, targetGeneFields);
             }
         }
     }
@@ -137,39 +135,53 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 IndexField.TARGET_GENE_ID.getValue());
     }
 
-    public Set<String> getFields(final Long targetId) throws ParseException, IOException {
-        final Set<String> defaultColumns = new LinkedHashSet<>(IndexField.VALUES_MAP.keySet());
-        final Set<String> fields = new HashSet<>();
-        final Query query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
-            IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, topHits);
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                final List<IndexableField> docFields = doc.getFields();
-                for (IndexableField field : docFields) {
-                    if (field.fieldType().stored()) {
-                        fields.add(field.name());
-                    }
-                }
-            }
-        }
-        final List<String> result = new ArrayList<>(fields).stream().sorted().collect(Collectors.toList());
-        defaultColumns.addAll(result);
-        defaultColumns.remove(IndexField.TARGET_GENE_ID.getValue());
-        defaultColumns.remove(IndexField.TARGET_ID.getValue());
+    public List<TargetGeneField> getFields(final Long targetId) throws ParseException, IOException {
+        final Set<IndexField> indexFields = new LinkedHashSet<>(IndexField.VALUES_MAP.values());
+        indexFields.remove(IndexField.TARGET_GENE_ID);
+        indexFields.remove(IndexField.TARGET_ID);
+        final List<TargetGeneField> defaultColumns = indexFields.stream()
+                .map(d -> TargetGeneField.builder()
+                        .field(d.getValue())
+                        .filterType(d.getType())
+                        .sortType(d.getSortType())
+                        .build())
+                .collect(Collectors.toList());
+        final List<TargetGeneField> targetGeneFields = targetGeneFieldManager.load(targetId);
+        defaultColumns.addAll(targetGeneFields);
         return defaultColumns;
     }
 
-    public List<String> getFieldValues(final Long targetId, final String field) throws ParseException, IOException {
+    public List<FieldInfo> getFieldInfos(final Long targetId) throws ParseException, IOException {
+        final List<TargetGeneField> targetGeneFields = getFields(targetId);
+        final List<FieldInfo> fieldInfos = new ArrayList<>();
+        targetGeneFields.forEach(f -> {
+            FieldInfo fieldInfo = FieldInfo.builder()
+                    .fieldName(f.getField())
+                    .filterType(f.getFilterType())
+                    .sort(f.getSortType() != SortType.NONE)
+                    .build();
+            fieldInfos.add(fieldInfo);
+        });
+        return fieldInfos;
+    }
+
+    public List<String> getOptions(final Long targetId, final String field) throws ParseException, IOException {
+        final Map<String, TargetGeneField> targetGeneFields = getFieldsMap(targetId);
+        TargetGeneField targetGeneField = targetGeneFields.get(field);
+        if (targetGeneField.getFilterType() != FilterType.OPTIONS) {
+            return Collections.emptyList();
+        }
         final Set<String> values = new LinkedHashSet<>();
         final Query query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            final Sort sort = new Sort(new SortField(field, SortField.Type.STRING, false));
-            TopDocs topDocs = searcher.search(query, topHits, sort);
+            final OrderInfo orderInfo = OrderInfo.builder()
+                    .orderBy(field)
+                    .reverse(false)
+                    .build();
+            final Sort sort = getSort(Collections.singletonList(orderInfo), targetGeneFields);
+            TopDocs topDocs = sort != null ? searcher.search(query, topHits, sort) : searcher.search(query, topHits);
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
                 Document doc = searcher.doc(scoreDoc.doc);
                 IndexableField indexableField = doc.getField(field);
@@ -185,6 +197,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     public void delete(final Long targetId) throws ParseException, IOException {
         final Query query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
         delete(query);
+        targetGeneFieldManager.delete(targetId);
     }
 
     public void delete(final List<Long> targetGeneIds) throws ParseException, IOException {
@@ -193,34 +206,38 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         delete(query);
     }
 
-    public void create(final long targetId, final List<TargetGene> targetGenes) throws IOException {
+    public void create(final long targetId, final List<TargetGene> targetGenes) throws IOException, ParseException {
+        final Map<String, TargetGeneField> targetGeneFields = processMetadata(targetGenes, targetId);
         setIds(targetId, targetGenes);
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             for (TargetGene g : targetGenes) {
-                addDoc(writer, g);
+                addDoc(writer, g, targetGeneFields);
             }
         }
     }
 
     public void update(final List<TargetGene> targetGenes) throws IOException, ParseException {
+        final Map<String, TargetGeneField> targetGeneFields = processMetadata(targetGenes,
+                targetGenes.get(0).getTargetId());
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             for (TargetGene g : targetGenes) {
                 Term term = new Term(IndexField.TARGET_GENE_ID.getValue(), g.getTargetGeneId().toString());
-                writer.updateDocument(term, docFromEntry(g));
+                writer.updateDocument(term, docFromEntry(g, targetGeneFields));
             }
         }
     }
 
     public SearchResult<TargetGene> filter(final long targetId, final SearchRequest request)
             throws ParseException, IOException {
-        final Query query = buildQuery(targetId, request.getFilters());
-        return search(request, query);
+        final Map<String, TargetGeneField> fieldsMap = getFieldsMap(targetId);
+        final Query query = buildQuery(targetId, request.getFilters(), fieldsMap);
+        return search(request, query, getSort(request.getOrderInfos(), fieldsMap));
     }
 
     public List<TargetGene> search(final String geneName, final Long taxId) throws ParseException, IOException {
@@ -234,16 +251,41 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return search(mainBuilder.build(), null);
     }
 
-    public Query buildQuery(final long targetId, final List<Filter> filters) throws ParseException {
+    public Query buildQuery(final long targetId,
+                            final List<Filter> filters,
+                            final Map<String, TargetGeneField> fieldsMap) throws ParseException {
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
         final Query query = getByTermQuery(String.valueOf(targetId), IndexField.TARGET_ID.getValue());
         mainBuilder.add(query, BooleanClause.Occur.MUST);
-        if (filters != null) {
+        if (CollectionUtils.isNotEmpty(filters)) {
             for (Filter filter: filters) {
-                addFieldQuery(mainBuilder, filter);
+                addFieldQuery(mainBuilder, filter, fieldsMap.get(filter.getField()).getFilterType());
             }
         }
         return mainBuilder.build();
+    }
+
+    public void addFieldQuery(final BooleanQuery.Builder builder,
+                              final Filter filter,
+                              final FilterType filterType) throws ParseException {
+        Query query;
+        switch (filterType) {
+            case PHRASE:
+                query = getByPhraseQuery(filter.getTerms().get(0), filter.getField());
+                break;
+            case TERM:
+                query = getByTermsQuery(filter.getTerms(), filter.getField());
+                break;
+            case OPTIONS:
+                query = getByOptionsQuery(filter.getTerms(), filter.getField());
+                break;
+            case RANGE:
+                query = getByRangeQuery(filter.getRange(), filter.getField());
+                break;
+            default:
+                return;
+        }
+        builder.add(query, BooleanClause.Occur.MUST);
     }
 
     @Override
@@ -267,8 +309,13 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     @Override
-    public void addDoc(final IndexWriter writer, final TargetGene entry) throws IOException {
-        final Document doc = docFromEntry(entry);
+    public void addDoc(IndexWriter writer, TargetGene entry) throws IOException {
+    }
+
+    public void addDoc(final IndexWriter writer,
+                       final TargetGene entry,
+                       final Map<String, TargetGeneField> targetGeneFields) throws IOException {
+        final Document doc = docFromEntry(entry, targetGeneFields);
         writer.addDocument(doc);
     }
 
@@ -313,6 +360,104 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return targetGene;
     }
 
+    private Sort getSort(final List<OrderInfo> orderInfos, final Map<String, TargetGeneField> fieldsMap) {
+        if (CollectionUtils.isEmpty(orderInfos)) {
+            return null;
+        }
+        final List<SortField> sortFields = new ArrayList<>();
+        for (OrderInfo orderInfo : orderInfos) {
+            SortField sortField;
+            switch (fieldsMap.get(orderInfo.getOrderBy()).getSortType()) {
+                case LONG:
+                    sortField = new SortField(orderInfo.getOrderBy(), SortField.Type.LONG, orderInfo.isReverse());
+                    sortFields.add(sortField);
+                    break;
+                case FLOAT:
+                    sortField = new SortField(orderInfo.getOrderBy(), SortField.Type.FLOAT, orderInfo.isReverse());
+                    sortFields.add(sortField);
+                    break;
+                case STRING:
+                    sortField = new SortField(orderInfo.getOrderBy(), SortField.Type.STRING, orderInfo.isReverse());
+                    sortFields.add(sortField);
+                    break;
+                default:
+                    break;
+            }
+        }
+        return CollectionUtils.isNotEmpty(sortFields) ?
+                new Sort(sortFields.toArray(new SortField[sortFields.size()])) :
+                null;
+    }
+
+    private Map<String, TargetGeneField> getFieldsMap(final long targetId) throws ParseException, IOException {
+        final List<TargetGeneField> targetGeneFields = getFields(targetId);
+        return targetGeneFields.stream()
+                .collect(Collectors.toMap(TargetGeneField::getField, Function.identity()));
+    }
+
+    private Map<String, TargetGeneField> processMetadata(final List<TargetGene> entries, final Long targetId)
+            throws IOException, ParseException {
+        final Map<String, List<String>> metadataMap = new HashMap<>();
+        for (TargetGene g: entries) {
+            Map<String, String> metadata = g.getMetadata();
+            metadata.forEach((k, v) -> {
+                if (metadataMap.containsKey(k)) {
+                    metadataMap.get(k).add(v);
+                } else {
+                    metadataMap.put(k, new ArrayList<>(Collections.singletonList(v)));
+                }
+            });
+        }
+        final List<TargetGeneField> targetGeneFields = targetGeneFieldManager.load(targetId);
+        final List<String> targetGeneFieldNames = targetGeneFields.stream()
+                .map(TargetGeneField::getField)
+                .collect(Collectors.toList());
+        final List<TargetGeneField> newTargetGeneFields = new ArrayList<>();
+        metadataMap.forEach((k, v) -> {
+            if (!targetGeneFieldNames.contains(k)) {
+                newTargetGeneFields.add(getTargetGeneField(targetId, k, v));
+            }
+        });
+        if (CollectionUtils.isNotEmpty(newTargetGeneFields)) {
+            targetGeneFieldManager.create(newTargetGeneFields);
+            targetGeneFields.addAll(newTargetGeneFields);
+        }
+        return targetGeneFields.stream()
+                .collect(Collectors.toMap(TargetGeneField::getField, Function.identity()));
+    }
+
+    private TargetGeneField getTargetGeneField(final Long targetId, final String field,
+                                                      final List<String> filedValues) {
+        final TargetGeneField targetGeneField = TargetGeneField.builder()
+                .targetId(targetId)
+                .field(field)
+                .build();
+        FilterType filterType;
+        SortType sortType;
+        try {
+            filedValues.stream().map(Float::parseFloat).collect(Collectors.toList());
+            filterType = FilterType.RANGE;
+            sortType = SortType.FLOAT;
+        } catch (NumberFormatException e) {
+            for (String v : filedValues) {
+                if (Arrays.stream(v.split(" ")).anyMatch(a -> a.length() > keywordMaxLength)) {
+                    targetGeneField.setFilterType(FilterType.TERM);
+                    targetGeneField.setSortType(SortType.NONE);
+                    return targetGeneField;
+                }
+            }
+            filterType = isOptions(filedValues) ? FilterType.OPTIONS : FilterType.TERM;
+            sortType = SortType.STRING;
+        }
+        targetGeneField.setFilterType(filterType);
+        targetGeneField.setSortType(sortType);
+        return targetGeneField;
+    }
+
+    private static boolean isOptions(final List<String> filedValues) {
+        return filedValues.stream().distinct().count() / filedValues.size() < OPTIONS_RATIO;
+    }
+
     private static void setIds(final long targetId, final List<TargetGene> targetGenes) {
         targetGenes.forEach(g -> {
             g.setTargetGeneId(getPrimaryKey());
@@ -320,7 +465,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         });
     }
 
-    private static Document docFromEntry(TargetGene entry) {
+    private static Document docFromEntry(final TargetGene entry,
+                                         final Map<String, TargetGeneField> targetGeneFields) {
         final Document doc = new Document();
         doc.add(new StringField(IndexField.TARGET_GENE_ID.getValue(),
                 entry.getTargetGeneId().toString(), Field.Store.YES));
@@ -332,7 +478,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         doc.add(new TextField(IndexField.GENE_NAME.getValue(), entry.getGeneName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexField.GENE_NAME.getValue(), new BytesRef(entry.getGeneName())));
 
-        doc.add(new LongPoint(IndexField.TAX_ID.getValue(), entry.getTaxId()));
+        doc.add(new TextField(IndexField.TAX_ID.getValue(), entry.getTaxId().toString(), Field.Store.NO));
         doc.add(new NumericDocValuesField(IndexField.TAX_ID.getValue(), entry.getTaxId()));
         doc.add(new StoredField(IndexField.TAX_ID.getValue(), entry.getTaxId()));
 
@@ -340,13 +486,24 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         doc.add(new SortedDocValuesField(IndexField.SPECIES_NAME.getValue(), new BytesRef(entry.getSpeciesName())));
 
         if (entry.getPriority() != null) {
+            doc.add(new TextField(IndexField.PRIORITY.getValue(), entry.getPriority().toString(), Field.Store.NO));
             doc.add(new NumericDocValuesField(IndexField.PRIORITY.getValue(), entry.getPriority().getValue()));
             doc.add(new StoredField(IndexField.PRIORITY.getValue(), entry.getPriority().getValue()));
         }
 
         entry.getMetadata().forEach((k, v) -> {
-            doc.add(new TextField(k, v, Field.Store.YES));
-            doc.add(new SortedDocValuesField(k, new BytesRef(v)));
+            TargetGeneField targetGeneField = targetGeneFields.get(k);
+            if (targetGeneField.getFilterType() == FilterType.RANGE) {
+                float value = Float.parseFloat(v);
+                doc.add(new FloatPoint(k, value));
+                doc.add(new FloatDocValuesField(k, value));
+                doc.add(new StoredField(k, value));
+            } else {
+                doc.add(new TextField(k, v, Field.Store.YES));
+                if (targetGeneField.getSortType() != SortType.NONE) {
+                    doc.add(new SortedDocValuesField(k, new BytesRef(v)));
+                }
+            }
         });
         return doc;
     }
@@ -354,17 +511,18 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     @AllArgsConstructor
     @Getter
     private enum IndexField {
-        TARGET_GENE_ID("ID", FilterType.TERM),
-        TARGET_ID("Target ID", FilterType.TERM),
-        GENE_ID("Gene ID", FilterType.TERM),
-        GENE_NAME("Gene Name", FilterType.PHRASE),
-        TAX_ID("Tax ID", FilterType.TERM),
-        SPECIES_NAME("Species Name", FilterType.PHRASE),
-        PRIORITY("Priority", FilterType.OPTIONS),
-        METADATA("Metadata", FilterType.PHRASE);
+        TARGET_GENE_ID("ID", FilterType.TERM, SortType.NONE),
+        TARGET_ID("Target ID", FilterType.TERM, SortType.LONG),
+        GENE_ID("Gene ID", FilterType.TERM, SortType.STRING),
+        GENE_NAME("Gene Name", FilterType.PHRASE, SortType.STRING),
+        TAX_ID("Tax ID", FilterType.OPTIONS, SortType.LONG),
+        SPECIES_NAME("Species Name", FilterType.PHRASE, SortType.STRING),
+        PRIORITY("Priority", FilterType.OPTIONS, SortType.LONG),
+        METADATA("Metadata", FilterType.NONE, SortType.NONE);
 
         private final String value;
         private final FilterType type;
+        private final SortType sortType;
         private static final Map<String, IndexField> VALUES_MAP = new LinkedHashMap<>();
         static {
             VALUES_MAP.put("ID", TARGET_GENE_ID);
@@ -495,7 +653,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         String cellValue = "";
         switch (cell.getCellTypeEnum()) {
             case STRING:
-                cellValue = cell.getStringCellValue();
+                cellValue = cell.getStringCellValue().trim();
                 break;
             case NUMERIC:
                 cellValue = String.valueOf(cell.getNumericCellValue());
