@@ -14,28 +14,23 @@ export default class ngbTargetsFormActionsController {
 
     constructor($scope, $timeout, dispatcher, ngbTargetGenesTableService, ngbTargetsFormService) {
         Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetGenesTableService, ngbTargetsFormService});
-        const resetColumnsSelection = this.resetColumnsSelection.bind(this);
-        dispatcher.on('target:form:reset:columns', resetColumnsSelection);
+
+        dispatcher.on('target:form:reset:columns', this.resetColumnsSelection.bind(this));
+        dispatcher.on('target:form:table:columns', this.setColumnsList.bind(this));
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:form:reset:columns', resetColumnsSelection);
+            dispatcher.removeListener('target:form:reset:columns', this.resetColumnsSelection.bind(this));
+            dispatcher.removeListener('target:form:table:columns', this.setColumnsList.bind(this));
         });
     }
 
-    $onInit() {
-        this.setColumnsList();
-    }
-
-    async setColumnsList() {
-        await this.ngbTargetsFormService.setColumnsList()
-            .then(columns => {
-                this.allColumns = columns.map(c => {
-                    const column = { name: c };
-                    if (this.ngbTargetGenesTableService.currentColumns.includes(c)) {
-                        column.selection = true;
-                    }
-                    return column;
-                });
-            })
+    setColumnsList() {
+        this.allColumns = this.ngbTargetGenesTableService.allColumns.map(c => {
+            const column = { name: c };
+            if (this.ngbTargetGenesTableService.currentColumns.includes(c)) {
+                column.selection = true;
+            }
+            return column;
+        });
     }
 
     get displayFilters() {
@@ -65,6 +60,8 @@ export default class ngbTargetsFormActionsController {
         if (this.ngbTargetsFormService.needSaveGeneChanges()) {
             this.dispatcher.emit('target:form:restore:view');
         } else {
+            localStorage.setItem('targetGenesColumnsOrder', null);
+            localStorage.setItem('targetGenesColumns', null);
             this.ngbTargetGenesTableService.restoreView();
             this.resetColumnsSelection();
             this.dispatcher.emit('target:form:filters:display:changed');
@@ -82,7 +79,7 @@ export default class ngbTargetsFormActionsController {
         if (added) {
             const columns = [...currentSelectedColumns];
             columns.push(added)
-            this.ngbTargetGenesTableService.additionalColumns = columns;
+            this.ngbTargetGenesTableService.setAdditionalColumns(columns);
             this.ngbTargetGenesTableService.setFilterList(added);
         }
         if (removed) {
@@ -90,7 +87,7 @@ export default class ngbTargetsFormActionsController {
             const index = columns.indexOf(removed);
             if (index >= 0) {
                 columns.splice(index, 1);
-                this.ngbTargetGenesTableService.additionalColumns = columns;
+                this.ngbTargetGenesTableService.setAdditionalColumns(columns);
             }
         }
         this.dispatcher.emit('target:genes:columns:changed');

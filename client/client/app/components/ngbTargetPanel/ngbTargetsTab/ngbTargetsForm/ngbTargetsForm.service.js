@@ -769,15 +769,17 @@ export default class ngbTargetsFormService {
         this.metadataFields = fields.filter(f => !this.defaultFields.includes(f));
     }
 
-    setColumnsList() {
-        const targetId = this.targetModel.id;
+    setTargetGenesFields() {
         return new Promise(resolve => {
-            this.targetDataService.getTargetGenesFields(targetId)
+            this.targetDataService.getTargetGenesFields(this.targetModel.id)
                 .then(columns => {
                     this.setMetadataFields(columns);
-                    resolve(columns)
+                    resolve(columns);
                 })
-                .catch(err => resolve([]));
-        });
+                .catch(err => {
+                    this.setMetadataFields([]);
+                    resolve([]);
+                })
+        })
     }
 }

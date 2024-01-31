@@ -23,7 +23,7 @@ export default class ngbTargetGenesTableController {
         enablePinning: false,
         treeRowHeaderAlwaysVisible: false,
         saveWidths: false,
-        saveOrder: false,
+        saveOrder: true,
         saveScroll: false,
         saveFocus: false,
         saveVisible: false,
@@ -146,9 +146,19 @@ export default class ngbTargetGenesTableController {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
+                this.gridApi.colMovable.on.columnPositionChanged(this.$scope, this.onColumnMoved.bind(this));
             }
         });
         (this.initialize)();
+    }
+
+    onColumnMoved() {
+        if (!this.gridApi) {
+            return;
+        }
+        const {columns} = this.gridApi.saveState.save();
+        const orderedColumns = columns.map(c => c.name);
+        localStorage.setItem('targetGenesColumnsOrder', JSON.stringify(orderedColumns));
     }
 
     async initialize() {
@@ -158,15 +168,37 @@ export default class ngbTargetGenesTableController {
         if (this.tableResults) {
             this.gridOptions.data = this.tableResults;
         } else {
+            await this.ngbTargetGenesTableService.initAdditionalColumns();
             await this.loadData();
         }
         this.saveSortConfiguration();
         this.gridOptions.columnDefs = this.getTableColumns();
     }
 
+    async setTargetGenesFields() {
+        await this.ngbTargetsFormService.setTargetGenesFields();
+    }
+
     refreshColumns() {
         this.gridOptions.columnDefs = this.getTableColumns();
         this.$timeout(() => this.$scope.$apply());
+    }
+
+    getSortedColumns() {
+        const columnsList = [...this.ngbTargetGenesTableService.currentColumnFields];
+        const ordered = JSON.parse(localStorage.getItem('targetGenesColumnsOrder'));
+        if (ordered && ordered.length) {
+            columnsList.sort((c2, c1) => {
+                if (ordered.includes(c2) && ordered.includes(c1)) {
+                    return ordered.indexOf(c2) < ordered.indexOf(c1) ? -1 : 1;
+                } else if (ordered.includes(c2) || ordered.includes(c1)) {
+                    if (ordered.includes(c2)) return -1;
+                    if (ordered.includes(c1)) return 1;
+                }
+                return 0;
+            })
+        }
+        return columnsList;
     }
 
     getTableColumns() {
@@ -178,7 +210,8 @@ export default class ngbTargetGenesTableController {
         const additionalCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_additionalCell.tpl.html');
 
         const result = [];
-        const columnsList = this.ngbTargetGenesTableService.currentColumnFields;
+        const columnsList = this.getSortedColumns();
+
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
