@@ -185,7 +185,7 @@ export default class ngbTargetGenesTableController {
     }
 
     getSortedColumns() {
-        const columnsList = this.ngbTargetGenesTableService.currentColumnFields;
+        const columnsList = [...this.ngbTargetGenesTableService.currentColumnFields];
         const ordered = JSON.parse(localStorage.getItem('targetGenesColumnsOrder'));
         if (ordered && ordered.length) {
             columnsList.sort((c2, c1) => {

@@ -60,6 +60,8 @@ export default class ngbTargetsFormActionsController {
         if (this.ngbTargetsFormService.needSaveGeneChanges()) {
             this.dispatcher.emit('target:form:restore:view');
         } else {
+            localStorage.setItem('targetGenesColumnsOrder', null);
+            localStorage.setItem('targetGenesColumns', null);
             this.ngbTargetGenesTableService.restoreView();
             this.resetColumnsSelection();
             this.dispatcher.emit('target:form:filters:display:changed');
