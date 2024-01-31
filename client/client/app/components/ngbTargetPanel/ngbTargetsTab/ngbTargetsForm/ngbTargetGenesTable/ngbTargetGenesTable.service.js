@@ -42,6 +42,7 @@ export default class ngbTargetGenesTableService {
     _currentPage = 1;
 
     additionalColumns = [];
+    allColumns = [];
 
     _sortInfo = null;
     _filterInfo = null;
@@ -81,11 +82,35 @@ export default class ngbTargetGenesTableService {
     get currentColumns () {
         return [...this.defaultColumns, ...this.additionalColumns, this.removeColumn];
     }
+
     get currentColumnFields() {
         return this.currentColumns.map(c => {
             if (this.columnField[c]) return this.columnField[c];
             return encodeName(c);
         })
+    }
+
+    async initAdditionalColumns() {
+        const savedColumns = JSON.parse(localStorage.getItem('targetGenesColumns'));
+        const availableColumns = await this.getMetadataColumns();
+        if (savedColumns && savedColumns.length) {
+            const columns = savedColumns.filter(c => availableColumns.includes(c));
+            this.setAdditionalColumns(columns);
+        }
+        this.dispatcher.emit('target:form:table:columns');
+    }
+
+    async getMetadataColumns() {
+        return await this.ngbTargetsFormService.setTargetGenesFields()
+            .then(columns => {
+                this.allColumns = columns;
+                return this.ngbTargetsFormService.metadataFields;
+            })
+    }
+
+    setAdditionalColumns(columns) {
+        this.additionalColumns = [...columns];
+        localStorage.setItem('targetGenesColumns', JSON.stringify(columns));
     }
 
     static instance (
@@ -244,6 +269,7 @@ export default class ngbTargetGenesTableService {
             this.dispatcher.emit('target:form:filters:changed');
         }
         this.additionalColumns = [];
+        this.allColumns = [];
         this._displayFilters = false;
     }
 
@@ -257,6 +283,7 @@ export default class ngbTargetGenesTableService {
         this._filterInfo = null;
         this.fieldList = {};
         this.additionalColumns = [];
+        this.allColumns = [];
     }
 
     async onChangeShowFilters() {
