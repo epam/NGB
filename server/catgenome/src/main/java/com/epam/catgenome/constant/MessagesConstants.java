@@ -95,6 +95,7 @@ public final class MessagesConstants {
     public static final String ERROR_FILE_PARSING = "error.file.parsing.exception";
     public static final String ERROR_INCORRECT_JSON_FORMAT = "error.incorrect.json.format";
 
+    public static final String INFO_INDEX_NOT_FOUND = "info.index.not.found";
     //Track validation errors
     public static final String ERROR_INVALID_PARAM_TRACK_INDEXES_BELOW_ZERO = "error.invalid.param.track.indexes." +
             "below.zero";
