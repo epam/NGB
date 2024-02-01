@@ -197,7 +197,8 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> create(@PathVariable final long targetId,
-                                  @RequestBody final List<TargetGene> targetGenes) throws IOException, ParseException {
+                                  @RequestBody final List<TargetGene> targetGenes)
+            throws IOException, ParseException, TargetGenesException {
         targetGeneSecurityService.create(targetId, targetGenes);
         return Result.success(null);
     }
@@ -210,7 +211,8 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> update(@RequestBody final List<TargetGene> targetGenes) throws IOException, ParseException {
+    public Result<Boolean> update(@RequestBody final List<TargetGene> targetGenes)
+            throws IOException, ParseException, TargetGenesException {
         targetGeneSecurityService.update(targetGenes);
         return Result.success(null);
     }
@@ -245,7 +247,7 @@ public class TargetController extends AbstractRESTController {
     @PostMapping(value = "/target/genes/filter/{targetId}")
     @ApiOperation(
             value = "Filters targets genes",
-            notes = "Filters targets genes. Result can be sorted by target_name field.",
+            notes = "Filters targets genes. Available fields info is available by GET /target/genes/fields/{targetId}.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
@@ -271,8 +273,8 @@ public class TargetController extends AbstractRESTController {
 
     @GetMapping(value = "/target/genes/fieldValues/{targetId}")
     @ApiOperation(
-            value = "Returns field values for target genes",
-            notes = "Returns field values for target genes",
+            value = "Returns values for OPTIONAL target genes table filed",
+            notes = "Returns values for OPTIONAL target genes table filed",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
