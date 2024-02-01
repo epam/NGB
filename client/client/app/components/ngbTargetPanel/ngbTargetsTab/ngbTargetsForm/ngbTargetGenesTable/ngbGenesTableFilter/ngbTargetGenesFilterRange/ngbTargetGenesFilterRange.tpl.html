@@ -3,14 +3,14 @@
            type="text"
            placeholder="From"
            style="margin-bottom: 1px"
-           ng-blur="$ctrl.apply()"
-           ng-key-bind="{enter: '$ctrl.apply()'}"
+           ng-blur="$ctrl.onBlur()"
+           ng-keydown="$ctrl.onKeyPress($event)"
            ng-model="$ctrl.valueFrom">
     <input class="ui-grid-filter-input ngb-filter-input"
            type="text"
            placeholder="To"
            style="margin-bottom: 1px"
-           ng-blur="$ctrl.apply()"
-           ng-key-bind="{enter: '$ctrl.apply()'}"
+           ng-blur="$ctrl.onBlur()"
+           ng-keydown="$ctrl.onKeyPress($event)"
            ng-model="$ctrl.valueTo">
 </div>

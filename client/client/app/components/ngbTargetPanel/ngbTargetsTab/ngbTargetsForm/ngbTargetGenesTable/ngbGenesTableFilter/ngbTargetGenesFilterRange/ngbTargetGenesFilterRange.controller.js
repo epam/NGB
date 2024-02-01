@@ -17,24 +17,37 @@ export default class ngbTargetGenesFilterRangeController {
         this.prevValueTo = this.valueTo = isNaN(range[1]) || range[1] === null ? null : range[1];
     }
 
+    onBlur() {
+        if (this.applying) {
+            return;
+        }
+        this.apply();
+    }
+
+    onKeyPress (event) {
+        switch ((event.code || '').toLowerCase()) {
+            case 'enter':
+                this.applying = true;
+                this.apply();
+                break;
+            default:
+                break;
+        }
+    }
+
     apply() {
         let shouldUpdate = false;
-        const range = [this.prevValueFrom, this.prevValueTo];
         if (this.prevValueFrom !== this.valueFrom) {
             if (!this.valueFrom || !this.valueFrom.length) {
                 this.valueFrom = null;
             }
-            this.prevValueFrom = this.valueFrom;
             shouldUpdate = true;
-            range[0] = this.valueFrom;
         }
         if (this.prevValueTo !== this.valueTo) {
             if (!this.valueTo || !this.valueTo.length) {
                 this.valueTo = null;
             }
-            this.prevValueTo = this.valueTo;
             shouldUpdate = true;
-            range[1] = this.valueTo;
         }
         if (shouldUpdate) {
             if (this.ngbTargetsFormService.needSaveGeneChanges()) {
@@ -43,17 +56,29 @@ export default class ngbTargetGenesFilterRangeController {
                     cancel: this.applyConfirmed.bind(this)
                 });
             } else {
-                this.ngbTargetGenesTableService.setFilter(this.column.field, '');
-                this.dispatcher.emit('target:form:filters:changed');
+                this.applyConfirmed();
             }
         }
     }
 
     applyCanceled() {
+        this.applying = false;
+        this.valueFrom = this.prevValueFrom;
+        this.valueTo = this.prevValueTo;
     }
 
     applyConfirmed() {
-        this.ngbTargetGenesTableService.setFilter(this.column.field, '');
+        this.applying = false;
+        if (this.prevValueFrom !== this.valueFrom) {
+            this.prevValueFrom = this.valueFrom;
+        }
+        if (this.prevValueTo !== this.valueTo) {
+            this.prevValueTo = this.valueTo;
+        }
+        this.ngbTargetGenesTableService.setFilter(this.column.field, [{
+            from: this.valueFrom,
+            to: this.valueTo
+        }]);
         this.dispatcher.emit('target:form:filters:changed');
     }
 

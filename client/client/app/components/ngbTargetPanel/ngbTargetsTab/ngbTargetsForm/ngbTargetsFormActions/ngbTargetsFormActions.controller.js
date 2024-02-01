@@ -25,8 +25,8 @@ export default class ngbTargetsFormActionsController {
 
     setColumnsList() {
         this.allColumns = this.ngbTargetGenesTableService.allColumns.map(c => {
-            const column = { name: c };
-            if (this.ngbTargetGenesTableService.currentColumns.includes(c)) {
+            const column = { name: c.fieldName };
+            if (this.ngbTargetGenesTableService.currentColumns.includes(c.fieldName)) {
                 column.selection = true;
             }
             return column;

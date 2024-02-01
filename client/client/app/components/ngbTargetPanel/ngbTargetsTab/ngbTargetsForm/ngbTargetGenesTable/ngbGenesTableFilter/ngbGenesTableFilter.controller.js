@@ -7,30 +7,27 @@ export default class ngbGenesTableFilterController {
     isRange = false;
     isString = false;
     isList = false;
-    list = [];
 
-    constructor($scope) {
+    constructor($scope, ngbTargetGenesTableService) {
         this.scope = $scope;
+        this.ngbTargetGenesTableService = ngbTargetGenesTableService;
+    }
+
+    get type() {
+        return this.ngbTargetGenesTableService.filterType;
     }
 
     $onInit() {
-        if (this.column.field === 'taxId') {
-            this.column.type = 'string';
-        }
-        if (this.column.field === 'geneName') {
-            this.column.type = 'list';
-        }
-        if (this.column.field === 'Chromosome') {
-            this.column.type = 'range';
-        }
-        switch (this.column.type) {
-            case 'range':
+        const filterType = this.ngbTargetGenesTableService.getColumnFilterType(this.column.displayName);
+        switch (filterType) {
+            case this.type.RANGE:
                 this.isRange = true;
                 break;
-            case 'string':
+            case this.type.RANGE,
+                 this.type.PHRASE:
                 this.isString = true;
                 break;
-            case 'list':
+            case this.type.OPTIONS:
                 this.isList = true;
                 break;
             default:

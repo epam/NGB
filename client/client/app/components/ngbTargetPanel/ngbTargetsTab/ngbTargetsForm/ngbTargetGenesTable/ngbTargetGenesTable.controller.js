@@ -175,10 +175,6 @@ export default class ngbTargetGenesTableController {
         this.gridOptions.columnDefs = this.getTableColumns();
     }
 
-    async setTargetGenesFields() {
-        await this.ngbTargetsFormService.setTargetGenesFields();
-    }
-
     refreshColumns() {
         this.gridOptions.columnDefs = this.getTableColumns();
         this.$timeout(() => this.$scope.$apply());
@@ -215,9 +211,11 @@ export default class ngbTargetGenesTableController {
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
+            const columnName = this.ngbTargetGenesTableService.getColumnName(column);
+            const isColumnSort = this.ngbTargetGenesTableService.getIsColumnSort(columnName);
             const settings = {
                 name: column,
-                displayName: this.ngbTargetGenesTableService.getColumnName(column),
+                displayName: columnName,
                 enableHiding: false,
                 field: column,
                 headerTooltip: column,
@@ -234,7 +232,7 @@ export default class ngbTargetGenesTableController {
             const parasiteSettings = {
                 ...settings,
                 enableColumnMenu: true,
-                enableSorting: true,
+                enableSorting: isColumnSort,
                 enableFiltering: this.displayFilters,
             };
             switch (column) {
@@ -495,6 +493,8 @@ export default class ngbTargetGenesTableController {
                 .filter(c => c.field === columnDef.field);
             if (sortingConfig) {
                 columnDef.sort = sortingConfig.sort;
+            } else {
+                columnDef.sort = {};
             }
         });
         this.saveSortConfiguration();
@@ -614,6 +614,7 @@ export default class ngbTargetGenesTableController {
                 !this.ngbTargetsFormService.isSomeGeneEmpty()
             ) {
                 callback.save();
+                this.dispatcher.emit('target:form:changes:save');
             }
         };
         const cancelCallback = async () => {
