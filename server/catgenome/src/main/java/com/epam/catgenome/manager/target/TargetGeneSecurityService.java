@@ -52,12 +52,13 @@ public class TargetGeneSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public void create(final long targetId, final List<TargetGene> targetGenes) throws IOException, ParseException {
+    public void create(final long targetId, final List<TargetGene> targetGenes)
+            throws IOException, ParseException, TargetGenesException {
         targetGeneManager.create(targetId, targetGenes);
     }
 
     @PreAuthorize(ROLE_USER)
-    public void update(final List<TargetGene> targetGenes) throws IOException, ParseException {
+    public void update(final List<TargetGene> targetGenes) throws IOException, ParseException, TargetGenesException {
         targetGeneManager.update(targetGenes);
     }
 
