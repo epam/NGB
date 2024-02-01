@@ -258,7 +258,7 @@ export default class ngbTargetGenesTableService {
                         const range = {};
                         if (from) range.from = from;
                         if (to) range.to = to;
-                        return { field,range };
+                        return { field, range };
                     }
                     if (type === this.filterType.OPTIONS) {
                         return {

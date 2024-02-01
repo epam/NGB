@@ -152,12 +152,20 @@ export default class ngbTargetGenesTableController {
         (this.initialize)();
     }
 
-    onColumnMoved() {
+    get removeColumnName() {
+        const {columnField, removeColumn} = this.ngbTargetGenesTableService;
+        return columnField[removeColumn];
+    }
+
+    onColumnMoved(movedColumn) {
         if (!this.gridApi) {
             return;
         }
         const {columns} = this.gridApi.saveState.save();
-        const orderedColumns = columns.map(c => c.name);
+        let orderedColumns = columns.map(c => c.name);
+        if (movedColumn.name !== this.removeColumnName) {
+            orderedColumns = orderedColumns.filter(c => c !== this.removeColumnName);
+        }
         localStorage.setItem('targetGenesColumnsOrder', JSON.stringify(orderedColumns));
     }
 
@@ -185,6 +193,9 @@ export default class ngbTargetGenesTableController {
         const ordered = JSON.parse(localStorage.getItem('targetGenesColumnsOrder'));
         if (ordered && ordered.length) {
             columnsList.sort((c2, c1) => {
+                if (!ordered.includes(this.removeColumnName) &&
+                    (c2 === this.removeColumnName || c1 === this.removeColumnName)
+                ) { return 0; }
                 if (ordered.includes(c2) && ordered.includes(c1)) {
                     return ordered.indexOf(c2) < ordered.indexOf(c1) ? -1 : 1;
                 } else if (ordered.includes(c2) || ordered.includes(c1)) {
