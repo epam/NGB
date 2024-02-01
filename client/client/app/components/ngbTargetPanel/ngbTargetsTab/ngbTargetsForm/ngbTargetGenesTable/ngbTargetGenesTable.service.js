@@ -222,7 +222,7 @@ export default class ngbTargetGenesTableService {
                 .filter(([key, values]) => values.length)
                 .map(([key, values]) => ({
                     field: this.getColumnName(key),
-                    terms: values.map(v => v)
+                    terms: Array.isArray(values) ? values.map(v => v) : values
                 }));
             if (filters && filters.length) {
                 request.filters = filters;
