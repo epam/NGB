@@ -608,12 +608,18 @@ export default class ngbTargetGenesTableController {
         this.openConfirmDialog(saveCallback, cancelCallback);
     }
 
-    confirmFilterDialog() {
-        const saveCallback = this.saveChangesCallBack();
+    confirmFilterDialog(callback) {
+        const saveCallback = () => {
+            if (!this.ngbTargetsFormService.areGenesEmpty() &&
+                !this.ngbTargetsFormService.isSomeGeneEmpty()
+            ) {
+                callback.save();
+            }
+        };
         const cancelCallback = async () => {
             this.ngbTargetsFormService.addedGenes = [];
             this.ngbTargetsFormService.removedGenes = [];
-            this.dispatcher.emit('target:form:filter:confirmed');
+            callback.cancel();
             await this.loadData();
         };
         this.openConfirmDialog(saveCallback, cancelCallback);

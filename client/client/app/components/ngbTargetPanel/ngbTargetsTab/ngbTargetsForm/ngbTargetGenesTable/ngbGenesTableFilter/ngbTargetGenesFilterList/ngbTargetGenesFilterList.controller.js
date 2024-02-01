@@ -19,12 +19,8 @@ export default class ngbTargetGenesFilterListController {
         this.input = $element.find('.ngb-filter-input')[0];
 
         this.dispatcher.on('target:form:filters:list', this.setList.bind(this));
-        this.dispatcher.on('target:form:filter:confirmed', this.applyConfirmed.bind(this));
-        this.dispatcher.on('target:form:changes:save', this.applyCanceled.bind(this));
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:filters:list', this.setList.bind(this));
-            dispatcher.removeListener('target:form:filter:confirmed', this.applyConfirmed.bind(this));
-            dispatcher.removeListener('target:form:changes:save', this.applyCanceled.bind(this));
         });
     }
 
@@ -179,7 +175,10 @@ export default class ngbTargetGenesFilterListController {
         const currValueStr = JSON.stringify(currValue).toUpperCase();
         if (currValueStr !== prevValueStr) {
             if (this.ngbTargetsFormService.needSaveGeneChanges()) {
-                this.dispatcher.emit('target:form:confirm:filter');
+                this.dispatcher.emit('target:form:confirm:filter', {
+                    save: this.applyCanceled.bind(this),
+                    cancel: this.applyConfirmed.bind(this)
+                });
             } else {
                 this.applying = false;
                 this.selectedItems = selectedItems;

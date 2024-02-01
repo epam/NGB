@@ -24,17 +24,12 @@ export default class ngbTargetGenesFilterInputController {
     }
 
     onBlur() {
-        if (this.applying) {
-            this.$scope.$apply();
-            return;
-        }
         this.apply();
     }
 
     onKeyPress (event) {
         switch ((event.code || '').toLowerCase()) {
             case 'enter':
-                this.applying = true;
                 this.apply();
                 break;
             default:
@@ -45,9 +40,11 @@ export default class ngbTargetGenesFilterInputController {
     apply() {
         if (this.prevValue !== this.displayText) {
             if (this.ngbTargetsFormService.needSaveGeneChanges()) {
-                this.dispatcher.emit('target:form:confirm:filter');
+                this.dispatcher.emit('target:form:confirm:filter', {
+                    save: this.applyCanceled.bind(this),
+                    cancel: this.applyConfirmed.bind(this)
+                });
             } else {
-                this.applying = false;
                 this.ngbTargetGenesTableService.setFilter(this.column.field, this.displayText);
                 this.prevValue = this.displayText;
                 this.dispatcher.emit('target:form:filters:changed');
@@ -56,12 +53,12 @@ export default class ngbTargetGenesFilterInputController {
     }
 
     applyCanceled() {
-        this.applying = false;
-        this.displayText = (this.filterInfo || {})[this.column.field] || '';
+        this.displayText = this.prevValue;
     }
 
     applyConfirmed() {
-        this.applying = false;
+        this.ngbTargetGenesTableService.setFilter(this.column.field, this.displayText);
         this.prevValue = this.displayText;
+        this.dispatcher.emit('target:form:filters:changed');
     }
 }

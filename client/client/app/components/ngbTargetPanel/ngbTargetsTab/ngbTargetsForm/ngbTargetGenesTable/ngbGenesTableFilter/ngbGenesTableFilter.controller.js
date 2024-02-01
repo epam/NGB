@@ -14,6 +14,15 @@ export default class ngbGenesTableFilterController {
     }
 
     $onInit() {
+        if (this.column.field === 'taxId') {
+            this.column.type = 'string';
+        }
+        if (this.column.field === 'geneName') {
+            this.column.type = 'list';
+        }
+        if (this.column.field === 'Chromosome') {
+            this.column.type = 'range';
+        }
         switch (this.column.type) {
             case 'range':
                 this.isRange = true;
@@ -21,11 +30,11 @@ export default class ngbGenesTableFilterController {
             case 'string':
                 this.isString = true;
                 break;
-            case 'geneNames':
+            case 'list':
                 this.isList = true;
                 break;
             default:
-                this.isRange = true;
+                this.isString = true;
                 break;
         }
     }

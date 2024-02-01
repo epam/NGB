@@ -12,7 +12,7 @@ export default class ngbTargetGenesFilterRangeController {
     constructor($scope, dispatcher, ngbTargetGenesTableService, ngbTargetsFormService) {
         Object.assign(this, {$scope, dispatcher, ngbTargetGenesTableService, ngbTargetsFormService});
 
-        const range = [0, 100];
+        const range = [null, null];
         this.prevValueFrom = this.valueFrom = isNaN(range[0]) || range[0] === null ? null : range[0];
         this.prevValueTo = this.valueTo = isNaN(range[1]) || range[1] === null ? null : range[1];
     }
@@ -38,12 +38,23 @@ export default class ngbTargetGenesFilterRangeController {
         }
         if (shouldUpdate) {
             if (this.ngbTargetsFormService.needSaveGeneChanges()) {
-                this.dispatcher.emit('target:form:confirm:filter');
+                this.dispatcher.emit('target:form:confirm:filter', {
+                    save: this.applyCanceled.bind(this),
+                    cancel: this.applyConfirmed.bind(this)
+                });
             } else {
                 this.ngbTargetGenesTableService.setFilter(this.column.field, '');
                 this.dispatcher.emit('target:form:filters:changed');
             }
         }
+    }
+
+    applyCanceled() {
+    }
+
+    applyConfirmed() {
+        this.ngbTargetGenesTableService.setFilter(this.column.field, '');
+        this.dispatcher.emit('target:form:filters:changed');
     }
 
     convertToNumber(value) {
