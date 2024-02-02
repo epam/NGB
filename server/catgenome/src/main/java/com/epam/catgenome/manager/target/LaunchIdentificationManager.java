@@ -251,7 +251,8 @@ public class LaunchIdentificationManager {
         return geneSequencesManager.getGeneSequencesTable(entrezMap, getComments);
     }
 
-    public SearchResult<Structure> getStructures(final StructuresSearchRequest request) {
+    public SearchResult<Structure> getStructures(final StructuresSearchRequest request)
+            throws ParseException, IOException {
         final List<String> geneNames = getGeneNames(request.getGeneIds());
         return pdbEntriesManager.getStructures(request, geneNames);
     }
@@ -296,7 +297,7 @@ public class LaunchIdentificationManager {
         return genes;
     }
 
-    public long getStructuresCount(final List<String> geneIds) {
+    public long getStructuresCount(final List<String> geneIds) throws ParseException, IOException {
         long localPdbFiles = pdbFileManager.totalCount(geneIds);
         final List<String> geneNames = getGeneNames(geneIds);
         long structuresCount = pdbEntriesManager.getStructuresCount(geneNames);
@@ -457,9 +458,9 @@ public class LaunchIdentificationManager {
                 .collect(Collectors.toMap(Disease::getId, Function.identity()));
     }
 
-    public List<String> getGeneNames(final List<String> geneIds) {
+    public List<String> getGeneNames(final List<String> geneIds) throws ParseException, IOException {
         final List<String> geneNames = new ArrayList<>();
-        geneIds.forEach(g -> {
+        for (String g : geneIds) {
             List<String> targetGeneNames = targetManager.getTargetGeneNames(Collections.singletonList(g));
             if (CollectionUtils.isEmpty(targetGeneNames)) {
                 List<TargetDetails> targetDetails = Collections.emptyList();
@@ -473,13 +474,13 @@ public class LaunchIdentificationManager {
             if (CollectionUtils.isNotEmpty(targetGeneNames)) {
                 geneNames.addAll(targetGeneNames);
             }
-        });
+        }
         return geneNames;
     }
 
-    public Map<String, String> getGeneNamesMap(final List<String> geneIds) {
+    public Map<String, String> getGeneNamesMap(final List<String> geneIds) throws ParseException, IOException {
         final Map<String, String> geneNames = new HashMap<>();
-        geneIds.forEach(g -> {
+        for (String g : geneIds) {
             List<String> targetGeneNames = targetManager.getTargetGeneNames(Collections.singletonList(g));
             if (CollectionUtils.isEmpty(targetGeneNames)) {
                 List<TargetDetails> targetDetails = Collections.emptyList();
@@ -493,7 +494,7 @@ public class LaunchIdentificationManager {
             if (CollectionUtils.isNotEmpty(targetGeneNames)) {
                 geneNames.put(g.toLowerCase(), targetGeneNames.get(0));
             }
-        });
+        }
         return geneNames;
     }
 }

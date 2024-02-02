@@ -138,9 +138,12 @@ public class NCBISequenceManager {
         final Map<String, List<GeneRefSection>> refSectionsMap = refSections.stream()
                 .collect(groupingBy(GeneRefSection::getGeneId));
         final Map<String, SequencesSummary> summaries = new HashMap<>();
-        refSectionsMap.forEach((k, v) -> {
+        for (Map.Entry<String, List<GeneRefSection>> entry : refSectionsMap.entrySet()) {
+            String k = entry.getKey();
+            List<GeneRefSection> v = entry.getValue();
             List<GeneSequence> sequences = v.stream()
-                    .map(GeneRefSection::getSequences)
+                    .map(geneRefSection -> geneRefSection.getSequences() == null ? null : geneRefSection.getSequences())
+                    .filter(Objects::nonNull)
                     .flatMap(List::stream)
                     .collect(Collectors.toList());
             List<String> genomic = sequences.stream()
@@ -148,6 +151,7 @@ public class NCBISequenceManager {
                     .collect(Collectors.toList());
             List<String> references = v.stream()
                     .map(s -> s.getReference() == null ? null : s.getReference().getId())
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             genomic.addAll(references);
             long dNAs = genomic.stream().filter(Objects::nonNull).distinct().count();
@@ -163,7 +167,7 @@ public class NCBISequenceManager {
                     .proteins(proteins)
                     .build();
             summaries.put(k, summary);
-        });
+        }
         return summaries;
     }
 

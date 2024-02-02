@@ -62,6 +62,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Service
@@ -179,7 +180,7 @@ public class TargetExportManager {
         return homology;
     }
 
-    public Map<String, String> getTargetGeneNames(final List<String> geneIds) {
+    public Map<String, String> getTargetGeneNames(final List<String> geneIds) throws ParseException, IOException {
         final Map<String, String> genesMap = new HashMap<>();
         final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
         for (TargetGene gene: genes) {
@@ -189,7 +190,7 @@ public class TargetExportManager {
         return genesMap;
     }
 
-    public Map<String, String> getTargetGeneNames(final String geneId) {
+    public Map<String, String> getTargetGeneNames(final String geneId) throws ParseException, IOException {
         final Map<String, String> genesMap = new HashMap<>();
         final List<String> geneNames = identificationManager.getGeneNames(Collections.singletonList(geneId));
         for (String geneName: geneNames) {
@@ -206,7 +207,7 @@ public class TargetExportManager {
         return genesMap;
     }
 
-    public Map<String, TargetGene> getTargetGenesMap(final List<String> geneIds) {
+    public Map<String, TargetGene> getTargetGenesMap(final List<String> geneIds) throws ParseException, IOException {
         final Map<String, TargetGene> genesMap = new HashMap<>();
         final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
         for (TargetGene gene: genes) {
@@ -261,7 +262,7 @@ public class TargetExportManager {
         return dgidbDrugAssociations;
     }
 
-    public List<Structure> getStructures(final List<String> geneIds) {
+    public List<Structure> getStructures(final List<String> geneIds) throws ParseException, IOException {
         final List<String> geneNames = identificationManager.getGeneNames(geneIds);
         return pdbEntriesManager.getAllStructures(geneNames);
     }
@@ -276,7 +277,8 @@ public class TargetExportManager {
                 false);
         final List<GeneSequence> result = new ArrayList<>();
         for (GeneRefSection geneRefSection : sequencesTable) {
-            for (com.epam.catgenome.entity.target.GeneSequence sequence : geneRefSection.getSequences()){
+            for (com.epam.catgenome.entity.target.GeneSequence sequence :
+                    Optional.ofNullable(geneRefSection.getSequences()).orElse(Collections.emptyList())){
                 GeneSequence sequenceExport = new GeneSequence();
                 sequenceExport.setGeneId(geneRefSection.getGeneId());
                 if (MapUtils.isNotEmpty(genesMap)) {
@@ -298,5 +300,13 @@ public class TargetExportManager {
             }
         }
         return result;
+    }
+
+    public static List<String> getGeneIds(final List<String> genesOfInterest, final List<String> translationalGenes) {
+        return Stream.concat(genesOfInterest.stream(),
+                        Optional.ofNullable(translationalGenes).orElse(Collections.emptyList()).stream())
+                .map(String::toLowerCase)
+                .distinct()
+                .collect(Collectors.toList());
     }
 }

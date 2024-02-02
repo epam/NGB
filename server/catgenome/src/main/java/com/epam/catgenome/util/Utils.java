@@ -521,7 +521,7 @@ public final class Utils {
     }
 
     public static List<String> dataToList(final String data) {
-        return Arrays.asList(data.split(SEPARATOR));
+        return data != null ? Arrays.asList(data.split(SEPARATOR)) : new ArrayList<>();
     }
 
     public static String listToData(final List<String> data) {

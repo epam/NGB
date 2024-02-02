@@ -325,7 +325,8 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<Structure>> getStructures(@RequestBody final StructuresSearchRequest request) {
+    public Result<SearchResult<Structure>> getStructures(@RequestBody final StructuresSearchRequest request)
+            throws ParseException, IOException {
         return Result.success(launchIdentificationSecurityService.getStructures(request));
     }
 
@@ -338,7 +339,7 @@ public class LaunchIdentificationController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public void export(@RequestParam final List<String> genesOfInterest,
-                       @RequestParam final List<String> translationalGenes,
+                       @RequestParam(required = false) final List<String> translationalGenes,
                        @RequestParam final FileFormat format,
                        @RequestParam final TargetExportTable source,
                        @RequestParam final boolean includeHeader,
@@ -378,7 +379,7 @@ public class LaunchIdentificationController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public void report(@RequestParam final List<String> genesOfInterest,
-                       @RequestParam final List<String> translationalGenes,
+                       @RequestParam(required = false) final List<String> translationalGenes,
                        HttpServletResponse response)
             throws IOException, ParseException, ExternalDbUnavailableException {
         final InputStream inputStream = exportSecurityService.report(genesOfInterest, translationalGenes);
@@ -408,7 +409,7 @@ public class LaunchIdentificationController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public void html(@RequestParam final List<String> genesOfInterest,
-                     @RequestParam final List<String> translationalGenes,
+                     @RequestParam(required = false) final List<String> translationalGenes,
                      @RequestParam final long targetId,
                      HttpServletResponse response)
             throws IOException, ParseException, ExternalDbUnavailableException {

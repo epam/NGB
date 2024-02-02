@@ -37,6 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -55,7 +56,7 @@ public class TargetAlignmentTest extends TestCase {
 
     @Test
     @Ignore
-    public void generateAlignmentTest() {
+    public void generateAlignmentTest() throws IOException {
         final Target target = createTarget();
         alignmentManager.generateAlignment();
         final Target alignedTarget = targetManager.getTarget(target.getTargetId());
@@ -63,7 +64,7 @@ public class TargetAlignmentTest extends TestCase {
         assertEquals(AlignmentStatus.ALIGNED, alignedTarget.getAlignmentStatus());
     }
 
-    private Target createTarget() {
+    private Target createTarget() throws IOException {
         final TargetGene targetGene = TargetGene.builder()
                 .geneId("ENSG00000133703")
                 .geneName("KRAS")

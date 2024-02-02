@@ -46,11 +46,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static com.epam.catgenome.manager.target.export.TargetExportManager.getAssociationFields;
-import static com.epam.catgenome.manager.target.export.TargetExportManager.getAssociationFieldsDiseaseView;
+import static com.epam.catgenome.manager.target.export.TargetExportManager.*;
 
 
 @Service
@@ -86,8 +83,7 @@ public class TargetExportCSVManager {
                          final TargetExportTable source,
                          final boolean includeHeader)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        final List<String> geneIds = Stream.concat(genesOfInterest.stream(), translationalGenes.stream())
-                .distinct().collect(Collectors.toList());
+        final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
         final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneIds);
         return export(genesOfInterest, translationalGenes, format, source, includeHeader, genesMap);
     }
@@ -104,8 +100,7 @@ public class TargetExportCSVManager {
                           final FileFormat format, final TargetExportTable source, final boolean includeHeader,
                           final Map<String, String> genesMap)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        final List<String> geneIds = Stream.concat(genesOfInterest.stream(), translationalGenes.stream())
-                .distinct().collect(Collectors.toList());
+        final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
         byte[] result = null;
         switch (source) {
             case OPEN_TARGETS_DISEASES:

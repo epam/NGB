@@ -30,20 +30,24 @@ import com.epam.catgenome.entity.target.TargetGeneField;
 import com.epam.catgenome.entity.target.TargetGenePriority;
 import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.index.AbstractIndexManager;
-import com.epam.catgenome.manager.index.CaseInsensitiveWhitespaceAnalyzer;
-import com.epam.catgenome.manager.index.FieldInfo;
-import com.epam.catgenome.manager.index.Filter;
-import com.epam.catgenome.manager.index.OrderInfo;
-import com.epam.catgenome.manager.index.SearchRequest;
+import com.epam.catgenome.manager.index.*;
 import com.epam.catgenome.util.FileFormat;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.*;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -73,15 +77,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -89,6 +85,7 @@ import static com.epam.catgenome.util.IndexUtils.*;
 import static org.apache.poi.ss.usermodel.CellType.NUMERIC;
 
 @Service
+@Slf4j
 public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
     private static final List<String> GENE_IDS = Arrays.asList("gene id", "id", "gene", "gene_id");
@@ -130,9 +127,13 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         }
     }
 
-    public List<TargetGene> load(final List<Long> targetGeneIds) throws ParseException, IOException {
+    public List<TargetGene> loadByIds(final List<Long> targetGeneIds) throws ParseException, IOException {
         return search(targetGeneIds.stream().map(Object::toString).collect(Collectors.toList()),
                 IndexField.TARGET_GENE_ID.getValue());
+    }
+
+    public List<TargetGene> load(final List<String> geneIds) throws ParseException, IOException {
+        return search(geneIds, IndexField.GENE_ID.getValue());
     }
 
     public List<TargetGeneField> getFields(final Long targetId) throws ParseException, IOException {
@@ -258,7 +259,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
         final Query query = getByTermQuery(String.valueOf(targetId), IndexField.TARGET_ID.getValue());
         mainBuilder.add(query, BooleanClause.Occur.MUST);
-        if (CollectionUtils.isNotEmpty(filters)) {
+        if (filters != null) {
             for (Filter filter: filters) {
                 addFieldQuery(mainBuilder, filter, fieldsMap.get(filter.getField()).getFilterType());
             }
@@ -467,7 +468,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     private static Document docFromEntry(final TargetGene entry,
-                                         final Map<String, TargetGeneField> targetGeneFields) throws TargetGenesException {
+                                         final Map<String, TargetGeneField> targetGeneFields)
+            throws TargetGenesException {
         final Document doc = new Document();
         doc.add(new StringField(IndexField.TARGET_GENE_ID.getValue(),
                 entry.getTargetGeneId().toString(), Field.Store.YES));
@@ -571,6 +573,11 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 cells = line.split(separator);
 
                 String geneId = cells[header.getIdIndex()].trim();
+                try {
+                    geneId = String.valueOf((long) Float.parseFloat(geneId));
+                } catch (NumberFormatException e) {
+                    break;
+                }
                 Assert.isTrue(!TextUtils.isBlank(geneId), "Gene ID should not be blank");
 
                 String geneName = cells[header.getNameIndex()].trim();
@@ -663,7 +670,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 cellValue = cell.getStringCellValue().trim();
                 break;
             case NUMERIC:
-                cellValue = String.valueOf(cell.getNumericCellValue());
+                cellValue = String.valueOf((long) cell.getNumericCellValue());
                 break;
             case BOOLEAN:
                 cellValue = String.valueOf(cell.getBooleanCellValue());

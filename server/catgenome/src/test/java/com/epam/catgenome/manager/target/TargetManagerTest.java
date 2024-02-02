@@ -23,14 +23,12 @@
  */
 package com.epam.catgenome.manager.target;
 
-import com.epam.catgenome.entity.target.Target;
-import com.epam.catgenome.entity.target.TargetGene;
-import com.epam.catgenome.entity.target.TargetGenePriority;
-import com.epam.catgenome.entity.target.TargetQueryParams;
+import com.epam.catgenome.entity.target.*;
 import com.epam.catgenome.exception.TargetUpdateException;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.PagingInfo;
 import junit.framework.TestCase;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -58,7 +57,7 @@ public class TargetManagerTest extends TestCase {
     private TargetManager targetManager;
 
     @Test
-    public void createTargetTest(){
+    public void createTargetTest() throws IOException {
         final Target target = createTarget(TARGET);
         final Target createdTarget = targetManager.load(target.getTargetId());
         assertNotNull(createdTarget);
@@ -66,7 +65,7 @@ public class TargetManagerTest extends TestCase {
     }
 
     @Test
-    public void updateTargetTest() throws TargetUpdateException {
+    public void updateTargetTest() throws TargetUpdateException, IOException {
         final Target target = createTarget(TARGET);
         target.setTargetName("New Target");
         final Target updatedTarget = targetManager.update(target);
@@ -74,7 +73,7 @@ public class TargetManagerTest extends TestCase {
     }
 
     @Test
-    public void loadTargetsTest(){
+    public void loadTargetsTest() throws IOException {
         createTarget(TARGET);
         createTarget(TARGET_1);
         createTarget(TARGET_2);
@@ -87,7 +86,7 @@ public class TargetManagerTest extends TestCase {
     }
 
     @Test
-    public void filterTargetsByNameTest(){
+    public void filterTargetsByNameTest() throws IOException {
         createTarget(TARGET);
         createTarget(TARGET_1);
         final TargetQueryParams targetQueryParams = TargetQueryParams.builder()
@@ -99,7 +98,7 @@ public class TargetManagerTest extends TestCase {
     }
 
     @Test
-    public void filterTargetsByProductTest(){
+    public void filterTargetsByProductTest() throws IOException {
         createTarget(TARGET, Arrays.asList("product1", "product2"), DISEASES);
         createTarget(TARGET_1, Arrays.asList("product3", "product4"), DISEASES);
         createTarget(TARGET_2, Arrays.asList("product5", "product6"), DISEASES);
@@ -112,7 +111,7 @@ public class TargetManagerTest extends TestCase {
     }
 
     @Test
-    public void filterTargetsByOwnerTest(){
+    public void filterTargetsByOwnerTest() throws IOException {
         createTarget(TARGET, PRODUCTS, DISEASES);
         final TargetQueryParams targetQueryParams = TargetQueryParams.builder()
                 .owner("owner")
@@ -127,7 +126,7 @@ public class TargetManagerTest extends TestCase {
     }
 
     @Test
-    public void loadFiledValuesTest(){
+    public void loadFiledValuesTest() throws IOException {
         createTarget(TARGET);
         final List<String> diseases = targetManager.loadFieldValues(TargetField.DISEASES);
         assertEquals(3, diseases.size());
@@ -138,7 +137,7 @@ public class TargetManagerTest extends TestCase {
     }
 
     @Test
-    public void deleteTargetTest() {
+    public void deleteTargetTest() throws ParseException, IOException {
         final Target target = createTarget(TARGET);
         final Target createdTarget = targetManager.load(target.getTargetId());
         assertNotNull(createdTarget);
@@ -146,7 +145,8 @@ public class TargetManagerTest extends TestCase {
         assertNull(targetManager.load(target.getTargetId()));
     }
 
-    private Target createTarget(final String name, final List<String> products, final List<String> diseases) {
+    private Target createTarget(final String name, final List<String> products, final List<String> diseases)
+            throws IOException {
         final TargetGene targetGene = TargetGene.builder()
                 .geneId("ENSG00000133703")
                 .geneName("KRAS")
@@ -166,12 +166,13 @@ public class TargetManagerTest extends TestCase {
                 .owner("OWNER")
                 .products(products)
                 .diseases(diseases)
+                .type(TargetType.DEFAULT)
                 .targetGenes(Arrays.asList(targetGene, targetGene1))
                 .build();
         return targetManager.create(target);
     }
 
-    private Target createTarget(final String name) {
+    private Target createTarget(final String name) throws IOException {
         return createTarget(name, PRODUCTS, DISEASES);
     }
 }
