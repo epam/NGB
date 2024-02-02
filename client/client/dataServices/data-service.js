@@ -211,6 +211,7 @@ export function $http(method, url, data, config) {
                 return xhr.send();
             case data instanceof ArrayBuffer:
             case data instanceof Blob:
+            case data instanceof FormData:
             case typeof data === 'string':
                 return xhr.send(data);
             default:

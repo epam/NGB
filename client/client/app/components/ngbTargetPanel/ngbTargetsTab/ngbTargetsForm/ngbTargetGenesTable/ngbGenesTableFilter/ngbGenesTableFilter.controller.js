@@ -14,13 +14,17 @@ export default class ngbGenesTableFilterController {
         return 'ngbGenesTableFilterController';
     }
 
-    constructor($scope, $element, dispatcher, ngbTargetGenesTableService) {
-        Object.assign(this, {$scope, dispatcher, ngbTargetGenesTableService});
+    constructor($scope, $element, dispatcher, ngbTargetGenesTableService, ngbTargetsFormService) {
+        Object.assign(this, {$scope, dispatcher, ngbTargetGenesTableService, ngbTargetsFormService});
         this.input = $element.find('.ngb-filter-input')[0];
 
         this.dispatcher.on('target:form:filters:list', this.setList.bind(this));
+        this.dispatcher.on('target:form:filter:confirmed', this.applyConfirmed.bind(this));
+        this.dispatcher.on('target:form:changes:save', this.applyCanceled.bind(this));
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:filters:list', this.setList.bind(this));
+            dispatcher.removeListener('target:form:filter:confirmed', this.applyConfirmed.bind(this));
+            dispatcher.removeListener('target:form:changes:save', this.applyCanceled.bind(this));
         });
     }
 
@@ -74,8 +78,23 @@ export default class ngbGenesTableFilterController {
             return;
         }
         this.listIsDisplayed = false;
+        if (this.applying) {
+            this.$scope.$apply();
+            return;
+        }
         this.apply();
         this.$scope.$apply();
+    }
+
+    onKeyPress (event) {
+        switch ((event.code || '').toLowerCase()) {
+            case 'enter':
+                this.applying = true;
+                this.apply();
+                break;
+            default:
+                break;
+        }
     }
 
     onChange() {
@@ -149,6 +168,45 @@ export default class ngbGenesTableFilterController {
     }
 
     apply() {
+        const parts = this.displayText.split('; ')
+            .map(part => part.trim());
+        const selectedItems = parts.filter(part => part !== '');
+        const prevValue = (this.filterInfo || {})[this.column.field] || [];
+        prevValue.sort();
+        const prevValueStr = JSON.stringify(prevValue).toUpperCase();
+        const currValue = (this.selectedItems || []);
+        currValue.sort();
+        const currValueStr = JSON.stringify(currValue).toUpperCase();
+        if (currValueStr !== prevValueStr) {
+            if (this.ngbTargetsFormService.needSaveGeneChanges()) {
+                this.dispatcher.emit('target:form:confirm:filter');
+            } else {
+                this.applying = false;
+                this.selectedItems = selectedItems;
+                this.displayText = this.selectedItems.join('; ');
+                this.listIsDisplayed = false;
+                this.ngbTargetGenesTableService.setFilter(this.column.field, currValue);
+                this.dispatcher.emit('target:form:filters:changed');
+            }
+        } else {
+            this.selectedItems = selectedItems;
+            this.displayText = this.selectedItems.join('; ');
+            this.listIsDisplayed = false;
+        }
+        if (this.listElements) {
+            this.listElements.refreshList(null);
+        }
+    }
+
+    applyCanceled() {
+        this.applying = false;
+        this.selectedItems = ((this.filterInfo || {})[this.column.field] || []).map(i => i);
+        this.displayText = [...this.selectedItems].join('; ');
+        this.setList();
+    }
+
+    applyConfirmed() {
+        this.applying = false;
         const parts = this.displayText.split('; ')
             .map(part => part.trim());
         this.selectedItems = parts.filter(part => part !== '');

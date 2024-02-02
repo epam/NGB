@@ -21,16 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.index;
+package com.epam.catgenome.entity.index;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
+@AllArgsConstructor
 @Getter
-@Setter
-@Builder
-public class OrderInfo {
-    private String orderBy;
-    private boolean reverse;
+public enum SortType {
+    LONG,
+    FLOAT,
+    STRING,
+    RANGE,
+    NONE;
 }

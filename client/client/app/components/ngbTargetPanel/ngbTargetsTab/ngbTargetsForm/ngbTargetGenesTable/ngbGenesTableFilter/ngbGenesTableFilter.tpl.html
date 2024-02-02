@@ -6,7 +6,7 @@
            ng-change="$ctrl.onChange()"
            ng-mousedown="$ctrl.displayList()"
            ng-blur="$ctrl.hideListDelayed()"
-           ng-key-bind="{enter: '$ctrl.apply()'}">
+           ng-keydown="$ctrl.onKeyPress($event)">
 </div>
 <div class="ngb-filter-list-container"
      md-whiteframe="4"

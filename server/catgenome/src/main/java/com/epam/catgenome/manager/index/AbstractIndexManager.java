@@ -23,14 +23,13 @@
  */
 package com.epam.catgenome.manager.index;
 
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -49,9 +48,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.epam.catgenome.util.IndexUtils.*;
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.util.IndexUtils.getByOptionsQuery;
+import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
+import static com.epam.catgenome.util.IndexUtils.getByRangeQuery;
+import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
+@Slf4j
 public abstract class AbstractIndexManager<T> {
 
     private static final Integer BATCH_SIZE = 1000;
@@ -63,7 +67,11 @@ public abstract class AbstractIndexManager<T> {
         this.topHits = topHits;
     }
 
-    public SearchResult<T> search(final SearchRequest request, final Query query)
+    public SearchResult<T> search(final SearchRequest request, final Query query) throws IOException, ParseException {
+        return search(request, query, getSort(request.getOrderInfos()));
+    }
+
+    public SearchResult<T> search(final SearchRequest request, final Query query, final Sort sort)
             throws IOException, ParseException {
         final List<T> entries = new ArrayList<>();
         final SearchResult<T> searchResult = new SearchResult<>();
@@ -75,7 +83,7 @@ public abstract class AbstractIndexManager<T> {
         try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, hits, getSort(request.getOrderInfos()));
+            TopDocs topDocs = sort != null ? searcher.search(query, hits, sort) : searcher.search(query, topHits);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
             final int from = (page - 1) * pageSize;
@@ -87,6 +95,8 @@ public abstract class AbstractIndexManager<T> {
             }
             searchResult.setItems(entries);
             searchResult.setTotalCount(topDocs.totalHits);
+        } catch (IndexNotFoundException e) {
+            log.info(getMessage(MessagesConstants.INFO_INDEX_NOT_FOUND, indexDirectory));
         }
         return searchResult;
     }
@@ -104,6 +114,9 @@ public abstract class AbstractIndexManager<T> {
                 T entry = entryFromDoc(doc);
                 entries.add(entry);
             }
+        } catch (IndexNotFoundException e) {
+            log.info(getMessage(MessagesConstants.INFO_INDEX_NOT_FOUND, indexDirectory));
+            return new ArrayList<>();
         }
         return entries;
     }
@@ -123,6 +136,9 @@ public abstract class AbstractIndexManager<T> {
                     T entry = entryFromDoc(doc);
                     result.add(entry);
                 }
+            } catch (IndexNotFoundException e) {
+                log.info(getMessage(MessagesConstants.INFO_INDEX_NOT_FOUND, indexDirectory));
+                return new ArrayList<>();
             }
         }
         return result;

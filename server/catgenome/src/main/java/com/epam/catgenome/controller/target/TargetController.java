@@ -32,6 +32,7 @@ import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.exception.TargetUpdateException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.manager.index.FieldInfo;
 import com.epam.catgenome.manager.index.SearchRequest;
 import com.epam.catgenome.manager.target.AlignmentSecurityService;
 import com.epam.catgenome.manager.target.TargetField;
@@ -59,7 +60,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @Api(value = "target", description = "Target Management")
@@ -197,7 +197,8 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> create(@PathVariable final long targetId,
-                                  @RequestBody final List<TargetGene> targetGenes) throws IOException {
+                                  @RequestBody final List<TargetGene> targetGenes)
+            throws IOException, ParseException, TargetGenesException {
         targetGeneSecurityService.create(targetId, targetGenes);
         return Result.success(null);
     }
@@ -210,7 +211,8 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> update(@RequestBody final List<TargetGene> targetGenes) throws IOException, ParseException {
+    public Result<Boolean> update(@RequestBody final List<TargetGene> targetGenes)
+            throws IOException, ParseException, TargetGenesException {
         targetGeneSecurityService.update(targetGenes);
         return Result.success(null);
     }
@@ -245,7 +247,7 @@ public class TargetController extends AbstractRESTController {
     @PostMapping(value = "/target/genes/filter/{targetId}")
     @ApiOperation(
             value = "Filters targets genes",
-            notes = "Filters targets genes. Result can be sorted by target_name field.",
+            notes = "Filters targets genes. Available fields info is available by GET /target/genes/fields/{targetId}.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
@@ -264,14 +266,15 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Set<String>> getFields(@PathVariable final long targetId) throws ParseException, IOException {
-        return Result.success(targetGeneSecurityService.getFields(targetId));
+    public Result<List<FieldInfo>> getFields(@PathVariable final long targetId)
+            throws ParseException, IOException {
+        return Result.success(targetGeneSecurityService.getFieldInfos(targetId));
     }
 
     @GetMapping(value = "/target/genes/fieldValues/{targetId}")
     @ApiOperation(
-            value = "Returns field values for target genes",
-            notes = "Returns field values for target genes",
+            value = "Returns values for OPTIONAL target genes table filed",
+            notes = "Returns values for OPTIONAL target genes table filed",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)

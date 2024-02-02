@@ -1,5 +1,7 @@
 @import "../../../ngbTargetsForm.variables.scss";
 
+$list-control-height: calc($table-control-height + 2px);
+
 ngb-target-genes-list {
     md-autocomplete.ngb-targets-form-autocomplete {
         min-width: 50px;
@@ -9,8 +11,14 @@ ngb-target-genes-list {
         height: $table-control-height;
         color: $table-control-font-color;
         box-sizing: border-box;
+
         &:hover {
             background: $table-control-hover-background;
+        }
+
+        &.error {
+            border-bottom: 1px solid red;
+            margin: 1px 0;
         }
     }
 
@@ -27,13 +35,13 @@ ngb-target-genes-list {
         background: transparent;
         width: 100%;
         padding: $table-control-padding;
-        line-height: $table-control-height;
-        height: $table-control-height;
+        line-height: $list-control-height;
+        height: $list-control-height;
         color: $table-control-font-color;
     }
 
     md-autocomplete.ngb-targets-form-autocomplete md-autocomplete-wrap {
-        height: $table-control-height;
+        height: $list-control-height;
         box-sizing: border-box;
     }
 

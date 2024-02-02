@@ -22,11 +22,11 @@ export default class ngbTargetGenesTableController {
         enableHorizontalScrollbar: 0,
         enablePinning: false,
         treeRowHeaderAlwaysVisible: false,
-        saveWidths: true,
-        saveOrder: false,
+        saveWidths: false,
+        saveOrder: true,
         saveScroll: false,
         saveFocus: false,
-        saveVisible: true,
+        saveVisible: false,
         saveSort: true,
         saveFilter: false,
         savePinning: false,
@@ -62,26 +62,32 @@ export default class ngbTargetGenesTableController {
             ngbTargetsFormService
         });
         const initialize = this.initialize.bind(this);
-        const getDataOnPage = this.getDataOnPage.bind(this);
+        const reloadCurrentPage = this.loadData.bind(this);
         const getDataOnLastPage = this.getDataOnLastPage.bind(this);
         const refreshColumns = this.refreshColumns.bind(this);
         const filterChanged = this.filterChanged.bind(this);
         const resetSorting = this.resetSorting.bind(this);
+        const confirmRestoreDialog = this.confirmRestoreDialog.bind(this);
+        const confirmFilterDialog = this.confirmFilterDialog.bind(this);
         dispatcher.on('target:form:gene:added', initialize);
-        dispatcher.on('target:form:refreshed', getDataOnPage);
+        dispatcher.on('target:form:saved', reloadCurrentPage);
         dispatcher.on('target:form:add:gene', getDataOnLastPage);
         dispatcher.on('target:genes:columns:changed', initialize);
         dispatcher.on('target:form:filters:display:changed', refreshColumns);
         dispatcher.on('target:form:filters:changed', filterChanged);
         dispatcher.on('target:form:sort:reset', resetSorting);
+        dispatcher.on('target:form:restore:view', confirmRestoreDialog);
+        dispatcher.on('target:form:confirm:filter', confirmFilterDialog);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:gene:added', initialize);
-            dispatcher.removeListener('target:form:refreshed', getDataOnPage);
+            dispatcher.removeListener('target:form:saved', reloadCurrentPage);
             dispatcher.removeListener('target:form:add:gene', getDataOnLastPage);
             dispatcher.removeListener('target:genes:columns:changed', initialize);
             dispatcher.removeListener('target:form:filters:display:changed', refreshColumns);
             dispatcher.removeListener('target:form:filters:changed', filterChanged);
             dispatcher.removeListener('target:form:sort:reset', resetSorting);
+            dispatcher.removeListener('target:form:restore:view', confirmRestoreDialog);
+            dispatcher.removeListener('target:form:confirm:filter', confirmFilterDialog);
         });
     }
 
@@ -124,6 +130,12 @@ export default class ngbTargetGenesTableController {
     get isParasite() {
         return this.targetModel.type === this.ngbTargetsFormService.targetType.PARASITE;
     }
+    get addedGenes() {
+        return this.ngbTargetsFormService.addedGenes;
+    }
+    set addedGenes(value) {
+        this.ngbTargetsFormService.addedGenes = value;
+    }
 
     $onInit() {
         Object.assign(this.gridOptions, {
@@ -134,9 +146,19 @@ export default class ngbTargetGenesTableController {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
+                this.gridApi.colMovable.on.columnPositionChanged(this.$scope, this.onColumnMoved.bind(this));
             }
         });
         (this.initialize)();
+    }
+
+    onColumnMoved() {
+        if (!this.gridApi) {
+            return;
+        }
+        const {columns} = this.gridApi.saveState.save();
+        const orderedColumns = columns.map(c => c.name);
+        localStorage.setItem('targetGenesColumnsOrder', JSON.stringify(orderedColumns));
     }
 
     async initialize() {
@@ -146,14 +168,37 @@ export default class ngbTargetGenesTableController {
         if (this.tableResults) {
             this.gridOptions.data = this.tableResults;
         } else {
+            await this.ngbTargetGenesTableService.initAdditionalColumns();
             await this.loadData();
         }
+        this.saveSortConfiguration();
         this.gridOptions.columnDefs = this.getTableColumns();
+    }
+
+    async setTargetGenesFields() {
+        await this.ngbTargetsFormService.setTargetGenesFields();
     }
 
     refreshColumns() {
         this.gridOptions.columnDefs = this.getTableColumns();
         this.$timeout(() => this.$scope.$apply());
+    }
+
+    getSortedColumns() {
+        const columnsList = [...this.ngbTargetGenesTableService.currentColumnFields];
+        const ordered = JSON.parse(localStorage.getItem('targetGenesColumnsOrder'));
+        if (ordered && ordered.length) {
+            columnsList.sort((c2, c1) => {
+                if (ordered.includes(c2) && ordered.includes(c1)) {
+                    return ordered.indexOf(c2) < ordered.indexOf(c1) ? -1 : 1;
+                } else if (ordered.includes(c2) || ordered.includes(c1)) {
+                    if (ordered.includes(c2)) return -1;
+                    if (ordered.includes(c1)) return 1;
+                }
+                return 0;
+            })
+        }
+        return columnsList;
     }
 
     getTableColumns() {
@@ -162,9 +207,11 @@ export default class ngbTargetGenesTableController {
         const selectCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_selectCell.tpl.html');
         const listCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_listCell.tpl.html');
         const removeCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_removeCell.tpl.html');
+        const additionalCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_additionalCell.tpl.html');
 
         const result = [];
-        const columnsList = this.ngbTargetGenesTableService.currentColumnFields;
+        const columnsList = this.getSortedColumns();
+
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
@@ -195,6 +242,7 @@ export default class ngbTargetGenesTableController {
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
+                            cellTemplate: inputCell,
                         };
                     } else {
                         columnSettings = {
@@ -207,6 +255,7 @@ export default class ngbTargetGenesTableController {
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
+                            cellTemplate: listCell,
                         };
                     } else {
                         columnSettings = {
@@ -219,6 +268,7 @@ export default class ngbTargetGenesTableController {
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
+                            cellTemplate: inputCell,
                         };
                     } else {
                         columnSettings = {
@@ -231,6 +281,7 @@ export default class ngbTargetGenesTableController {
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
+                            cellTemplate: inputCell,
                         };
                     } else {
                         columnSettings = {
@@ -243,6 +294,7 @@ export default class ngbTargetGenesTableController {
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
+                            cellTemplate: selectCell,
                         };
                     } else {
                         columnSettings = {
@@ -265,11 +317,13 @@ export default class ngbTargetGenesTableController {
                 default:
                     if (this.isParasite) {
                         columnSettings = {
-                            ...parasiteSettings
+                            ...parasiteSettings,
+                            cellTemplate: additionalCell,
                         };
                     } else {
                         columnSettings = {
-                            ...defaultSettings
+                            ...defaultSettings,
+                            cellTemplate: additionalCell,
                         };
                     }
                     break;
@@ -318,13 +372,13 @@ export default class ngbTargetGenesTableController {
         event.stopPropagation();
         const geneIndex = this.targetModel.genes.indexOf(row);
         if (!this.savedIdentificationGene(geneIndex)) {
-            this.targetModel.genes.splice(geneIndex, 1);
+            this.deleteGeneFromTarget(geneIndex, row);
         } else {
-            this.openConfirmDialog(geneIndex);
+            this.openConfirmDeleteGeneDialog(geneIndex);
         }
     }
 
-    openConfirmDialog (index) {
+    openConfirmDeleteGeneDialog (index) {
         const gene = this.targetModel.genes[index];
         this.$mdDialog.show({
             template: require('./ngbGeneDeleteDlg.tpl.html'),
@@ -343,28 +397,150 @@ export default class ngbTargetGenesTableController {
 
         this.dispatcher.on('target:gene:delete', () => {
             this.updateForce = true;
-            this.targetModel.genes.splice(index, 1);
+            this.deleteGeneFromTarget(index);
         });
+    }
+
+    deleteGeneFromTarget(index, row) {
+        const updateTable = (i) => {
+            this.gridOptions.data = [];
+            this.targetModel.genes.splice(i, 1);
+            this.$timeout(() => {
+                this.$scope.$apply();
+                this.gridOptions.data = this.tableResults;
+                this.$timeout(() => this.$scope.$apply());
+            });
+        }
+
+        if (this.isParasite) {
+            if (index === -1) {
+                index = this.addedGenes.indexOf(row);
+                this.addedGenes.splice(index, 1);
+                this.gridOptions.data = this.tableResults;
+            } else {
+                this.ngbTargetsFormService.removedGenes.push({...this.targetModel.genes[index]});
+                updateTable(index);
+            }
+        } else {
+            updateTable(index);
+        }
     }
 
     async getDataOnPage(page) {
         if (!this.gridApi) {
             return;
         }
-        this.currentPage = page;
-        await this.loadData();
+        if (this.ngbTargetsFormService.needSaveGeneChanges()) {
+            const saveCallback = this.saveChangesCallBack();
+            const cancelCallback = async () => {
+                this.ngbTargetsFormService.addedGenes = [];
+                this.ngbTargetsFormService.removedGenes = [];
+                this.currentPage = page;
+                await this.loadData();
+            };
+            this.openConfirmDialog(saveCallback, cancelCallback);
+        } else {
+            this.currentPage = page;
+            await this.loadData();
+        }
     }
 
     async getDataOnLastPage() {
         if (this.totalPages) {
             if (this.currentPage !== this.totalPages) {
-                await this.getDataOnPage(this.totalPages);
+                if (this.ngbTargetsFormService.needSaveGeneChanges()) {
+                    const saveCallback = () => {
+                        if (!this.ngbTargetsFormService.areGenesEmpty() &&
+                            !this.ngbTargetsFormService.isSomeGeneEmpty()
+                        ) {
+                            this.currentPage = this.totalPages;
+                            this.dispatcher.emit('target:form:changes:save', true);
+                        }
+                    };
+                    const cancelCallback = async () => {
+                        this.ngbTargetsFormService.removedGenes = [];
+                        this.currentPage = this.totalPages;
+                        await this.loadData();
+                    };
+                    this.openConfirmDialog(saveCallback, cancelCallback);
+                } else {
+                    if (!this.gridApi) return;
+                    this.currentPage = this.totalPages;
+                    await this.loadData();
+                    this.$timeout(() => this.ngbTargetsFormService.addNewGene());
+                }
+            } else {
+                this.$timeout(() => this.ngbTargetsFormService.addNewGene());
             }
-            this.$timeout(() => this.ngbTargetsFormService.addNewGene(true));
         }
     }
 
+    saveSortConfiguration() {
+        this.savedSortConfiguration = this.gridApi.grid.columns
+            .filter(column => !!column.sort)
+            .map((column, priority) => ({
+                field: column.field,
+                sort: ({
+                    ...column.sort,
+                    priority
+                })
+        }));
+    }
+
+    setSortFromConfiguration() {
+        if (!this.gridApi) return;
+        const {columns = []} = this.gridApi.grid || {};
+        columns.forEach(columnDef => {
+            const [sortingConfig] = this.savedSortConfiguration
+                .filter(c => c.field === columnDef.field);
+            if (sortingConfig) {
+                columnDef.sort = sortingConfig.sort;
+            }
+        });
+        this.saveSortConfiguration();
+    }
+
     async sortChanged(grid, sortColumns) {
+        if (this.ngbTargetsFormService.needSaveGeneChanges()) {
+            const saveCallback = () => {
+                if (this.ngbTargetsFormService.areGenesEmpty() ||
+                    this.ngbTargetsFormService.isSomeGeneEmpty()
+                ) {
+                    this.setSortFromConfiguration();
+                } else {
+                    this.setSortFromConfiguration();
+                    this.dispatcher.emit('target:form:changes:save');
+                }
+            };
+            const cancelCallback = () => {
+                this.ngbTargetsFormService.addedGenes = [];
+                this.ngbTargetsFormService.removedGenes = [];
+                this.sortChangeConfirmed(grid, sortColumns);
+            };
+            this.openConfirmDialog(saveCallback, cancelCallback);
+        } else {
+            await this.sortChangeConfirmed(grid, sortColumns);
+        }
+    }
+
+    toggleMenu(event, toggleMenuGrid) {
+        if (this.ngbTargetsFormService.needSaveGeneChanges()) {
+            const saveCallback = () => {};
+            const cancelCallback = () => {
+                this.ngbTargetsFormService.addedGenes = [];
+                this.ngbTargetsFormService.removedGenes = [];
+                this.ngbTargetGenesTableService.resetTableResults();
+                this.initialize();
+                this.$timeout(() => this.$scope.$apply());
+                toggleMenuGrid(event);
+            };
+            this.openConfirmDialog(saveCallback, cancelCallback);
+        } else {
+            toggleMenuGrid(event);
+        }
+    }
+
+    async sortChangeConfirmed(grid, sortColumns) {
         if (!this.gridApi) {
             return;
         }
@@ -394,6 +570,7 @@ export default class ngbTargetGenesTableController {
                 columnDef.sort = sortingConfig.sort;
             }
         });
+        this.saveSortConfiguration();
         this.currentPage = 1;
         await this.loadData();
     }
@@ -416,5 +593,56 @@ export default class ngbTargetGenesTableController {
         for (let i = 0 ; i < columns.length; i++) {
             columns[i].sort = {};
         }
+    }
+
+    confirmRestoreDialog() {
+        const saveCallback = this.saveChangesCallBack();
+        const cancelCallback = async () => {
+            this.ngbTargetsFormService.addedGenes = [];
+            this.ngbTargetsFormService.removedGenes = [];
+            this.ngbTargetGenesTableService.resetTableResults();
+            this.ngbTargetGenesTableService.restoreView();
+            this.dispatcher.emit('target:form:reset:columns');
+            this.refreshColumns();
+        };
+        this.openConfirmDialog(saveCallback, cancelCallback);
+    }
+
+    confirmFilterDialog() {
+        const saveCallback = this.saveChangesCallBack();
+        const cancelCallback = async () => {
+            this.ngbTargetsFormService.addedGenes = [];
+            this.ngbTargetsFormService.removedGenes = [];
+            this.dispatcher.emit('target:form:filter:confirmed');
+            await this.loadData();
+        };
+        this.openConfirmDialog(saveCallback, cancelCallback);
+    }
+
+    saveChangesCallBack() {
+        const saveCallback = () => {
+            if (!this.ngbTargetsFormService.areGenesEmpty() &&
+                !this.ngbTargetsFormService.isSomeGeneEmpty()
+            ) {
+                this.dispatcher.emit('target:form:changes:save');
+            }
+        };
+        return saveCallback;
+    }
+
+    openConfirmDialog(saveCallback, cancelCallback) {
+        this.$mdDialog.show({
+            template: require('./ngbConfirmChangesDlg.tpl.html'),
+            controller: function($scope, $mdDialog) {
+                $scope.save = async function () {
+                    saveCallback();
+                    $mdDialog.hide();
+                };
+                $scope.cancel = async function () {
+                    cancelCallback();
+                    $mdDialog.cancel();
+                };
+            }
+        });
     }
 }
