@@ -24,30 +24,24 @@
 package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.entity.index.FilterType;
+import com.epam.catgenome.entity.index.SortType;
 import com.epam.catgenome.entity.target.TargetGene;
+import com.epam.catgenome.entity.target.TargetGeneField;
 import com.epam.catgenome.entity.target.TargetGenePriority;
 import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.index.AbstractIndexManager;
-import com.epam.catgenome.manager.index.CaseInsensitiveWhitespaceAnalyzer;
-import com.epam.catgenome.manager.index.Filter;
-import com.epam.catgenome.manager.index.SearchRequest;
+import com.epam.catgenome.manager.index.*;
 import com.epam.catgenome.util.FileFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.LongPoint;
-import org.apache.lucene.document.NumericDocValuesField;
-import org.apache.lucene.document.SortedDocValuesField;
-import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.*;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -83,19 +77,11 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
+import static com.epam.catgenome.util.IndexUtils.*;
 import static org.apache.poi.ss.usermodel.CellType.NUMERIC;
 
 @Service
@@ -150,28 +136,6 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return search(geneIds, IndexField.GENE_ID.getValue());
     }
 
-    public Set<String> getFields(final Long targetId) throws ParseException, IOException {
-        final Set<String> defaultColumns = new LinkedHashSet<>(IndexField.VALUES_MAP.keySet());
-        final Set<String> fields = new HashSet<>();
-        final Query query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
-            IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, topHits);
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                final List<IndexableField> docFields = doc.getFields();
-                for (IndexableField field : docFields) {
-                    if (field.fieldType().stored()) {
-                        fields.add(field.name());
-                    }
-                }
-            }
-        }
-        final List<String> result = new ArrayList<>(fields).stream().sorted().collect(Collectors.toList());
-        defaultColumns.addAll(result);
-        defaultColumns.remove(IndexField.TARGET_GENE_ID.getValue());
-        defaultColumns.remove(IndexField.TARGET_ID.getValue());
     public List<TargetGeneField> getFields(final Long targetId) throws ParseException, IOException {
         final Set<IndexField> indexFields = new LinkedHashSet<>(IndexField.VALUES_MAP.values());
         indexFields.remove(IndexField.TARGET_GENE_ID);
@@ -504,7 +468,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     private static Document docFromEntry(final TargetGene entry,
-                                         final Map<String, TargetGeneField> targetGeneFields) throws TargetGenesException {
+                                         final Map<String, TargetGeneField> targetGeneFields)
+            throws TargetGenesException {
         final Document doc = new Document();
         doc.add(new StringField(IndexField.TARGET_GENE_ID.getValue(),
                 entry.getTargetGeneId().toString(), Field.Store.YES));

@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetIdentification;
 import com.epam.catgenome.entity.target.IdentificationQueryParams;
+import com.epam.catgenome.entity.target.TargetType;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.PagingInfo;
 import junit.framework.TestCase;
@@ -37,6 +38,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -54,14 +56,14 @@ public class TargetIdentificationManagerTest extends TestCase {
     private TargetIdentificationManager manager;
 
     @Test
-    public void createIdentificationTest(){
+    public void createIdentificationTest() throws IOException {
         final TargetIdentification identification = createIdentification(IDENTIFICATION);
         final TargetIdentification identification1 = manager.load(identification.getId());
         assertNotNull(identification1);
     }
 
     @Test
-    public void updateIdentificationTest(){
+    public void updateIdentificationTest() throws IOException {
         final TargetIdentification identification = createIdentification(IDENTIFICATION);
         identification.setName("New Identification");
         identification.setOwner("Owner");
@@ -71,7 +73,7 @@ public class TargetIdentificationManagerTest extends TestCase {
     }
 
     @Test
-    public void loadIdentificationsTest(){
+    public void loadIdentificationsTest() throws IOException {
         createIdentification(IDENTIFICATION);
         createIdentification(IDENTIFICATION1);
         createIdentification(IDENTIFICATION2);
@@ -85,7 +87,7 @@ public class TargetIdentificationManagerTest extends TestCase {
     }
 
     @Test
-    public void loadAllIdentificationsTest(){
+    public void loadAllIdentificationsTest() throws IOException {
         createIdentification(IDENTIFICATION);
         createIdentification(IDENTIFICATION1);
         createIdentification(IDENTIFICATION2);
@@ -94,7 +96,7 @@ public class TargetIdentificationManagerTest extends TestCase {
     }
 
     @Test
-    public void deleteIdentificationTest() {
+    public void deleteIdentificationTest() throws IOException {
         final TargetIdentification identification = createIdentification(IDENTIFICATION);
         final TargetIdentification identification1 = manager.load(identification.getId());
         assertNotNull(identification1);
@@ -102,11 +104,12 @@ public class TargetIdentificationManagerTest extends TestCase {
         assertNull(manager.load(identification.getId()));
     }
 
-    private TargetIdentification createIdentification(final String name) {
+    private TargetIdentification createIdentification(final String name) throws IOException {
         final Target target = Target.builder()
                 .targetName("Target")
                 .products(Collections.emptyList())
                 .diseases(Collections.emptyList())
+                .type(TargetType.DEFAULT)
                 .targetGenes(Collections.emptyList())
                 .build();
         final Target target1 = targetManager.create(target);
