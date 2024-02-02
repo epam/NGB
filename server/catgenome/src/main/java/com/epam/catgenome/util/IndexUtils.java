@@ -32,15 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -635,7 +627,9 @@ public final class IndexUtils {
     }
 
     public static Query getByRangeQuery(final Interval<Float> interval, final String fieldName) {
-        return FloatPoint.newRangeQuery(fieldName, interval.getFrom(), interval.getTo());
+        return FloatPoint.newRangeQuery(fieldName,
+                Optional.ofNullable(interval.getFrom()).orElse(Float.NEGATIVE_INFINITY),
+                Optional.ofNullable(interval.getTo()).orElse(Float.POSITIVE_INFINITY));
     }
 
     public static Query buildTermQuery(final String term, final String fieldName) {
