@@ -152,12 +152,20 @@ export default class ngbTargetGenesTableController {
         (this.initialize)();
     }
 
-    onColumnMoved() {
+    get removeColumnName() {
+        const {columnField, removeColumn} = this.ngbTargetGenesTableService;
+        return columnField[removeColumn];
+    }
+
+    onColumnMoved(movedColumn) {
         if (!this.gridApi) {
             return;
         }
         const {columns} = this.gridApi.saveState.save();
-        const orderedColumns = columns.map(c => c.name);
+        let orderedColumns = columns.map(c => c.name);
+        if (movedColumn.name !== this.removeColumnName) {
+            orderedColumns = orderedColumns.filter(c => c !== this.removeColumnName);
+        }
         localStorage.setItem('targetGenesColumnsOrder', JSON.stringify(orderedColumns));
     }
 
@@ -175,10 +183,6 @@ export default class ngbTargetGenesTableController {
         this.gridOptions.columnDefs = this.getTableColumns();
     }
 
-    async setTargetGenesFields() {
-        await this.ngbTargetsFormService.setTargetGenesFields();
-    }
-
     refreshColumns() {
         this.gridOptions.columnDefs = this.getTableColumns();
         this.$timeout(() => this.$scope.$apply());
@@ -189,6 +193,9 @@ export default class ngbTargetGenesTableController {
         const ordered = JSON.parse(localStorage.getItem('targetGenesColumnsOrder'));
         if (ordered && ordered.length) {
             columnsList.sort((c2, c1) => {
+                if (!ordered.includes(this.removeColumnName) &&
+                    (c2 === this.removeColumnName || c1 === this.removeColumnName)
+                ) { return 0; }
                 if (ordered.includes(c2) && ordered.includes(c1)) {
                     return ordered.indexOf(c2) < ordered.indexOf(c1) ? -1 : 1;
                 } else if (ordered.includes(c2) || ordered.includes(c1)) {
@@ -215,9 +222,11 @@ export default class ngbTargetGenesTableController {
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
+            const columnName = this.ngbTargetGenesTableService.getColumnName(column);
+            const isColumnSort = this.ngbTargetGenesTableService.getIsColumnSort(columnName);
             const settings = {
                 name: column,
-                displayName: this.ngbTargetGenesTableService.getColumnName(column),
+                displayName: columnName,
                 enableHiding: false,
                 field: column,
                 headerTooltip: column,
@@ -234,7 +243,7 @@ export default class ngbTargetGenesTableController {
             const parasiteSettings = {
                 ...settings,
                 enableColumnMenu: true,
-                enableSorting: true,
+                enableSorting: isColumnSort,
                 enableFiltering: this.displayFilters,
             };
             switch (column) {
@@ -495,6 +504,8 @@ export default class ngbTargetGenesTableController {
                 .filter(c => c.field === columnDef.field);
             if (sortingConfig) {
                 columnDef.sort = sortingConfig.sort;
+            } else {
+                columnDef.sort = {};
             }
         });
         this.saveSortConfiguration();
@@ -608,12 +619,19 @@ export default class ngbTargetGenesTableController {
         this.openConfirmDialog(saveCallback, cancelCallback);
     }
 
-    confirmFilterDialog() {
-        const saveCallback = this.saveChangesCallBack();
+    confirmFilterDialog(callback) {
+        const saveCallback = () => {
+            if (!this.ngbTargetsFormService.areGenesEmpty() &&
+                !this.ngbTargetsFormService.isSomeGeneEmpty()
+            ) {
+                callback.save();
+                this.dispatcher.emit('target:form:changes:save');
+            }
+        };
         const cancelCallback = async () => {
             this.ngbTargetsFormService.addedGenes = [];
             this.ngbTargetsFormService.removedGenes = [];
-            this.dispatcher.emit('target:form:filter:confirmed');
+            callback.cancel();
             await this.loadData();
         };
         this.openConfirmDialog(saveCallback, cancelCallback);

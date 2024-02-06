@@ -766,7 +766,8 @@ export default class ngbTargetsFormService {
     }
 
     setMetadataFields(fields) {
-        this.metadataFields = fields.filter(f => !this.defaultFields.includes(f));
+        this.metadataFields = fields.map(f => f.fieldName)
+            .filter(name => !this.defaultFields.includes(name));
     }
 
     setTargetGenesFields() {

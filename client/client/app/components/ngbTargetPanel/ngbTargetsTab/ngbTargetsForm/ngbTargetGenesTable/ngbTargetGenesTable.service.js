@@ -20,6 +20,13 @@ const COLUMN_FIELD = {
     'Remove': 'remove'
 };
 
+const FILTER_TYPE = {
+    TERM: 'TERM',
+    PHRASE: 'PHRASE',
+    OPTIONS: 'OPTIONS',
+    RANGE: 'RANGE',
+};
+
 export default class ngbTargetGenesTableService {
 
     get displayName() {
@@ -34,6 +41,10 @@ export default class ngbTargetGenesTableService {
         return REMOVE;
     }
 
+    get filterType() {
+        return FILTER_TYPE;
+    }
+
     _tableResults = null;
     _originalResults = null;
     _displayFilters = false;
@@ -43,6 +54,7 @@ export default class ngbTargetGenesTableService {
 
     additionalColumns = [];
     allColumns = [];
+    _columnsInfo = {};
 
     _sortInfo = null;
     _filterInfo = null;
@@ -90,6 +102,23 @@ export default class ngbTargetGenesTableService {
         })
     }
 
+    get columnsInfo() {
+        return this._columnsInfo;
+    }
+    set columnsInfo(value) {
+        if (!value || !value.length) return;
+        if (!this._columnsInfo) {
+            this._columnsInfo = {};
+        }
+        for (let i = 0; i < value.length; i++) {
+            const column = value[i];
+            this._columnsInfo[column.fieldName] = {
+                filterType: value[i].filterType,
+                sort: value[i].sort,
+            };
+        }
+    }
+
     async initAdditionalColumns() {
         const savedColumns = JSON.parse(localStorage.getItem('targetGenesColumns'));
         const availableColumns = await this.getMetadataColumns();
@@ -104,6 +133,7 @@ export default class ngbTargetGenesTableService {
         return await this.ngbTargetsFormService.setTargetGenesFields()
             .then(columns => {
                 this.allColumns = columns;
+                this.columnsInfo = columns;
                 return this.ngbTargetsFormService.metadataFields;
             })
     }
@@ -220,10 +250,26 @@ export default class ngbTargetGenesTableService {
         if (this._filterInfo) {
             const filters = Object.entries(this._filterInfo)
                 .filter(([key, values]) => values.length)
-                .map(([key, values]) => ({
-                    field: this.getColumnName(key),
-                    terms: values.map(v => v)
-                }));
+                .map(([key, values]) => {
+                    const field = this.getColumnName(key);
+                    const type = this.getColumnFilterType(field);
+                    if (type === this.filterType.RANGE) {
+                        const {from, to} = values[0];
+                        const range = {};
+                        if (from) range.from = from;
+                        if (to) range.to = to;
+                        return { field, range };
+                    }
+                    if (type === this.filterType.OPTIONS) {
+                        return {
+                            field,
+                            terms: values.map(v => v)
+                        };
+                    }
+                    if (type === this.filterType.TERM || type === this.filterType.PHRASE) {
+                        return { field, terms: [values]}
+                    }
+            });
             if (filters && filters.length) {
                 request.filters = filters;
             }
@@ -270,6 +316,7 @@ export default class ngbTargetGenesTableService {
         }
         this.additionalColumns = [];
         this.allColumns = [];
+        this._columnsInfo = {};
         this._displayFilters = false;
     }
 
@@ -284,6 +331,7 @@ export default class ngbTargetGenesTableService {
         this.fieldList = {};
         this.additionalColumns = [];
         this.allColumns = [];
+        this._columnsInfo = {};
     }
 
     async onChangeShowFilters() {
@@ -297,9 +345,23 @@ export default class ngbTargetGenesTableService {
         }
     }
 
+    getIsColumnSort(columnName) {
+        const column = this.columnsInfo[columnName];
+        return column ? column.sort : false;
+    }
+
+    getColumnFilterType(columnName) {
+        const column = this.columnsInfo[columnName];
+        return column ? column.filterType : 'TERM';
+    }
+
     getGeneFieldValues(field) {
         const targetId = this.targetModel.id;
         const fieldName = this.getColumnField(field);
+        const filterType = this.getColumnFilterType(field);
+        if (filterType !== this.filterType.OPTIONS) {
+            return Promise.resolve(false);
+        }
         return new Promise(resolve => {
             this.targetDataService.getGenesFieldValue(targetId, field)
                 .then((data) => {
@@ -325,8 +387,18 @@ export default class ngbTargetGenesTableService {
 
     setFilter(field, value) {
         const filter = {...(this._filterInfo || {})};
+        const filterType = this.getColumnFilterType(this.getColumnName(field));
         if (value && value.length) {
-            filter[field] = value;
+            if (filterType === this.filterType.RANGE) {
+                const {from, to} = value[0];
+                if (!from && !to) {
+                    delete filter[field];
+                } else {
+                    filter[field] = value;
+                }
+            } else {
+                filter[field] = value;
+            }
         } else {
             delete filter[field];
         }
