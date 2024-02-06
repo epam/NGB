@@ -33,10 +33,14 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
             }
 
             $scope.onClickItem = (gene) => {
-                $scope.onChangeGene(gene);
-                $scope.inputModel = '';
-                $scope.input.value = '';
-                $timeout(() => $scope.$apply());
+                if (gene.selected) {
+                    return;
+                } else {
+                    $scope.onChangeGene(gene);
+                    $scope.inputModel = '';
+                    $scope.input.value = '';
+                    $timeout(() => $scope.$apply());
+                }
             }
 
             $scope.openMenu = async (mdOpenMenu, event) => {

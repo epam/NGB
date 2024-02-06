@@ -1,7 +1,9 @@
 import {
-    groupedBySpecies,
+    getGenes,
     createFilterFor,
 } from '../utilities/autocompleteFunctions';
+
+const PARASITE = 'PARASITE';
 
 export default function run(
     $mdDialog,
@@ -18,10 +20,11 @@ export default function run(
             controller: function ($scope) {
                 $scope.target = target;
                 $scope.name = target.name;
+                $scope.parasite = PARASITE;
 
                 $scope.genesOfInterest = [];
                 $scope.translationalGenes = [];
-                $scope.genes = groupedBySpecies(target.species.value);
+                $scope.genes = getGenes(target.species.value, $scope.target.type, $scope.genesOfInterest, $scope.translationalGenes);
 
                 $scope.identifyDisabled = () => (
                     !$scope.genesOfInterest.length || !$scope.translationalGenes.length
@@ -137,7 +140,7 @@ export default function run(
                 };
 
                 $scope.setTargetGenes = (genes) => {
-                    $scope.genes = groupedBySpecies(genes, $scope.target.type);
+                    $scope.genes = getGenes(genes, $scope.target.type, $scope.genesOfInterest, $scope.translationalGenes);
                 }
 
                 $scope.onLoadTargetGenes = (request) => {

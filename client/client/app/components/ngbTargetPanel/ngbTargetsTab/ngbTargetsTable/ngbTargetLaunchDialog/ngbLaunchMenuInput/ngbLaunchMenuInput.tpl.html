@@ -36,7 +36,7 @@
                 <md-menu-item ng-repeat="(index, gene) in listElements track by $index"
                               ng-click="onClickItem(gene)">
                     <span class="list-item"
-                          ng-class="{'span-padding': gene.item}"
+                          ng-class="{'span-padding': gene.item, 'selected': gene.selected}"
                           md-highlight-text="inputModel"
                           md-highlight-flags="gi">
                         {{gene.span}}

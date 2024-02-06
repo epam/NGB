@@ -3,8 +3,16 @@ const TYPE = {
     DEFAULT: 'DEFAULT'
 };
 
-export function groupedBySpecies (species, type = 'DEFAULT') {
+export function getGenes (species, type = 'DEFAULT', genesOfInterest, translationalGenes) {
     const isParasite = type === TYPE.PARASITE;
+    if (isParasite) {
+        return getParasiteGenes(species, genesOfInterest, translationalGenes);
+    } else {
+        return groupedBySpecies(species);
+    }
+}
+
+function groupedBySpecies (species) {
     const groups = species.reduce((acc, curr) => {
         if (!acc[curr.speciesName]) {
             acc[curr.speciesName] = {
@@ -26,53 +34,32 @@ export function groupedBySpecies (species, type = 'DEFAULT') {
         });
         if (curr.count === 1) {
             const group = curr.value[0];
-            const span = isParasite
-                ? `${group.geneName} (${group.speciesName}) (${group.geneId})`
-                : `${group.geneName} (${group.speciesName})`;
-            const chip = isParasite
-                ?`${group.geneName} (${group.speciesName}) (${group.geneId})`
-                : `${group.geneName} (${group.speciesName})`;
-            const hidden = isParasite
-                ?`${group.geneName} ${group.speciesName} ${group.geneId}`
-                : `${group.geneName} ${group.speciesName}`;
-
             acc.push({
                 group: false,
                 item: false,
-                span,
-                chip,
-                hidden,
+                span: `${group.geneName} (${group.speciesName})`,
+                chip: `${group.geneName} (${group.speciesName})`,
+                hidden: `${group.geneName} ${group.speciesName}`,
                 ...getItem(group)
             });
         }
         if (curr.count > 1) {
             const sumChip = curr.value.map(g => g.geneName);
-            const sumId = curr.value.map(g => g.geneId);
             const head = curr.value[0];
-            const hidden = isParasite
-                    ?`${sumChip.join(' ')} ${sumId.join(' ')} ${head.speciesName}`
-                    : `${sumChip.join(' ')} ${head.speciesName}`;
             acc.push({
                 group: true,
                 item: false,
                 span: `${head.speciesName}`,
-                hidden,
+                hidden: `${sumChip.join(' ')} ${head.speciesName}`,
                 ...getItem(head)
             });
             acc = [...acc, ...curr.value.map(group => {
-                const span = isParasite ? `${group.geneName} (${group.geneId})` : group.geneName;
-                const chip = isParasite
-                    ?`${group.geneName} (${group.speciesName}) (${group.geneId})`
-                    : `${group.geneName} (${group.speciesName})`;
-                const hidden = isParasite
-                    ?`${group.geneName} ${group.speciesName} ${group.geneId}`
-                    : `${group.geneName} ${group.speciesName}`;
                 return {
                     group: false,
                     item: true,
-                    span,
-                    chip,
-                    hidden,
+                    span: group.geneName,
+                    chip: `${group.geneName} (${group.speciesName})`,
+                    hidden: `${group.geneName} ${group.speciesName}`,
                     ...getItem(group)
                 };
             })];
@@ -80,6 +67,26 @@ export function groupedBySpecies (species, type = 'DEFAULT') {
         return acc;
     }, []);
     return grouped;
+}
+
+function getParasiteGenes (species, genesOfInterest, translationalGenes) {
+    return species.map(gene => {
+        const selected = [...genesOfInterest, ...translationalGenes]
+            .filter(g => g.targetGeneId === gene.targetGeneId);
+        return {
+            group: false,
+            item: false,
+            span: `${gene.geneName} (${gene.speciesName}) (${gene.geneId})`,
+            chip: `${gene.geneName} (${gene.speciesName}) (${gene.geneId})`,
+            hidden: `${gene.geneName} ${gene.speciesName} ${gene.geneId}`,
+            speciesName: gene.speciesName,
+            geneId: gene.geneId,
+            geneName: gene.geneName,
+            taxId: gene.taxId,
+            targetGeneId: gene.targetGeneId,
+            selected: selected && selected.length,
+        };
+    });
 }
 
 export function createFilterFor(text) {
