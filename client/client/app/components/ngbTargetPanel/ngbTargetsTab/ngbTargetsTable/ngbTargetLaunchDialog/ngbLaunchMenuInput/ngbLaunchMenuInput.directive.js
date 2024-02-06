@@ -22,20 +22,27 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
         controller: function($scope, $element, $timeout, $mdMenu) {
             $scope.input = $element[0].getElementsByClassName('launch-input')[0];
             $scope.inputModel = '';
+            $scope.highlightText;
             $scope.parasite = PARASITE;
 
             $scope.loading = false;
             $scope.pageSize = PAGE_SIZE;
 
-            $scope.onChange = (text) => {
+            $scope.onChange = async (text, mdOpenMenu, event) => {
                 $scope.inputModel = text;
-                $scope.listElements = $scope.getGenesList(text);
+                $scope.highlightText = text;
+                if ($scope.target.type === $scope.parasite) {
+                    $scope.openMenu(mdOpenMenu, event);
+                } else {
+                    $scope.listElements = $scope.getGenesList(text);
+                }
             }
 
             $scope.onClickItem = (gene) => {
                 if (gene.selected) {
                     return;
                 } else {
+                    $scope.highlightText = undefined;
                     $scope.onChangeGene(gene);
                     $scope.inputModel = '';
                     $scope.input.value = '';
@@ -44,11 +51,11 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
             }
 
             $scope.openMenu = async (mdOpenMenu, event) => {
-                $scope.currentPage = 1;
-                $scope.firstPage = 1;
-                $scope.lastPage = 1;
                 mdOpenMenu(event);
                 if ($scope.target.type === $scope.parasite) {
+                    $scope.currentPage = 1;
+                    $scope.firstPage = 1;
+                    $scope.lastPage = 1;
                     $scope.setScroll();
                     await $scope.onLoadGenesList()
                         .then((list) => {
@@ -97,11 +104,22 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
                 }
             }
 
-            $scope.onLoadGenesList = async () => {
+            function getGenesRequest() {
                 const request = {
                     page: $scope.currentPage,
                     pageSize: $scope.pageSize
                 };
+                if ($scope.inputModel && $scope.inputModel.length) {
+                    request.filters = [{
+                        "field": "Gene Name",
+                        "terms": [$scope.inputModel]
+                    }];
+                }
+                return request;
+            }
+
+            $scope.onLoadGenesList = async () => {
+                const request = getGenesRequest();
                 $scope.loading = true;
                 return new Promise(resolve => {
                     $scope.onLoadGenes(request)
