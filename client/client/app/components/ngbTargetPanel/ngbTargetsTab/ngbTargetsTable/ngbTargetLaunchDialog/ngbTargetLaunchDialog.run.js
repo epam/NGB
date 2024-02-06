@@ -10,13 +10,15 @@ export default function run(
     ngbTargetsTabService,
     ngbTargetPanelService,
     targetContext,
+    targetDataService
 ) {
     const displayLaunchDialog = async (target) => {
         $mdDialog.show({
             template: require('./ngbTargetLaunchDialog.tpl.html'),
             controller: function ($scope) {
-                $scope.name = target.name;
                 $scope.target = target;
+                $scope.name = target.name;
+
                 $scope.genesOfInterest = [];
                 $scope.translationalGenes = [];
                 $scope.genes = groupedBySpecies(target.species.value);
@@ -133,6 +135,30 @@ export default function run(
                     getIdentificationData($scope);
                     $mdDialog.hide();
                 };
+
+                $scope.setTargetGenes = (genes) => {
+                    $scope.genes = groupedBySpecies(genes, $scope.target.type);
+                }
+
+                $scope.onLoadTargetGenes = (request) => {
+                    const id = $scope.target.id;
+                    return new Promise(resolve => {
+                        targetDataService.getTargetGenesById(id, request)
+                            .then(({items, totalCount}) => {
+                                if (items && totalCount) {
+                                    $scope.target.genesTotal = totalCount;
+                                    $scope.setTargetGenes(items);
+                                } else {
+                                    $scope.target.genesTotal = 0;
+                                    $scope.setTargetGenes([]);
+                                }
+                                resolve(true)
+                            })
+                            .catch(err => {
+                                resolve(false);
+                            });
+                    });
+                }
 
                 $scope.close = () => {
                     $mdDialog.hide();

@@ -1,4 +1,10 @@
-export function groupedBySpecies (species) {
+const TYPE = {
+    PARASITE: 'PARASITE',
+    DEFAULT: 'DEFAULT'
+};
+
+export function groupedBySpecies (species, type = 'DEFAULT') {
+    const isParasite = type === TYPE.PARASITE;
     const groups = species.reduce((acc, curr) => {
         if (!acc[curr.speciesName]) {
             acc[curr.speciesName] = {
@@ -20,33 +26,56 @@ export function groupedBySpecies (species) {
         });
         if (curr.count === 1) {
             const group = curr.value[0];
+            const span = isParasite
+                ? `${group.geneName} (${group.speciesName}) (${group.geneId})`
+                : `${group.geneName} (${group.speciesName})`;
+            const chip = isParasite
+                ?`${group.geneName} (${group.speciesName}) (${group.geneId})`
+                : `${group.geneName} (${group.speciesName})`;
+            const hidden = isParasite
+                ?`${group.geneName} ${group.speciesName} ${group.geneId}`
+                : `${group.geneName} ${group.speciesName}`;
+
             acc.push({
                 group: false,
                 item: false,
-                span: `${group.geneName} (${group.speciesName})`,
-                chip: `${group.geneName} (${group.speciesName})`,
-                hidden: `${group.geneName} ${group.speciesName}`,
+                span,
+                chip,
+                hidden,
                 ...getItem(group)
             });
         }
         if (curr.count > 1) {
             const sumChip = curr.value.map(g => g.geneName);
+            const sumId = curr.value.map(g => g.geneId);
             const head = curr.value[0];
+            const hidden = isParasite
+                    ?`${sumChip.join(' ')} ${sumId.join(' ')} ${head.speciesName}`
+                    : `${sumChip.join(' ')} ${head.speciesName}`;
             acc.push({
                 group: true,
                 item: false,
                 span: `${head.speciesName}`,
-                hidden: `${sumChip.join(' ')} ${head.speciesName}`,
+                hidden,
                 ...getItem(head)
             });
-            acc = [...acc, ...curr.value.map(group => ({
-                group: false,
-                item: true,
-                span: `${group.geneName}`,
-                chip: `${group.geneName} (${group.speciesName})`,
-                hidden: `${group.geneName} ${group.speciesName}`,
-                ...getItem(group)
-            }))];
+            acc = [...acc, ...curr.value.map(group => {
+                const span = isParasite ? `${group.geneName} (${group.geneId})` : group.geneName;
+                const chip = isParasite
+                    ?`${group.geneName} (${group.speciesName}) (${group.geneId})`
+                    : `${group.geneName} (${group.speciesName})`;
+                const hidden = isParasite
+                    ?`${group.geneName} ${group.speciesName} ${group.geneId}`
+                    : `${group.geneName} ${group.speciesName}`;
+                return {
+                    group: false,
+                    item: true,
+                    span,
+                    chip,
+                    hidden,
+                    ...getItem(group)
+                };
+            })];
         }
         return acc;
     }, []);

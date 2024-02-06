@@ -4,7 +4,8 @@ import './ngbLaunchMenuInput.scss';
 
 import ngbLaunchMenuPagination from '../ngbLaunchMenuPagination';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 30;
+const PARASITE = 'PARASITE';
 
 const ngbLaunchMenuInput = angular.module('ngbLaunchMenuInput', [ngbLaunchMenuPagination]);
 
@@ -16,17 +17,18 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
           selectedGenes: '=',
           getGenesList: '=',
           onChangeGene: '=',
+          onLoadGenes: '=',
           target: '<',
         },
         template: require('./ngbLaunchMenuInput.tpl.html'),
         controller: function($scope, $element, $timeout, $mdMenu) {
             $scope.input = $element[0].getElementsByClassName('launch-input')[0];
             $scope.inputModel = '';
+            $scope.parasite = PARASITE;
 
             $scope.loading = false;
             $scope.pageSize = PAGE_SIZE;
             $scope.currentPage = 1;
-            $scope.totalPages = Math.ceil($scope.target.genesTotal/$scope.pageSize) || 0;
 
             $scope.onChange = (text) => {
                 $scope.inputModel = text;
@@ -40,9 +42,14 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
                 $timeout(() => $scope.$apply());
             }
 
-            $scope.openMenu = (mdOpenMenu, event) => {
+            $scope.openMenu = async (mdOpenMenu, event) => {
                 mdOpenMenu(event);
-                $scope.listElements = $scope.getGenesList($scope.inputModel);
+                if ($scope.target.type === $scope.parasite) {
+                    await $scope.onLoadGenesList();
+                    $timeout(() => $scope.$apply());
+                } else {
+                    $scope.listElements = $scope.getGenesList($scope.inputModel);
+                }
             }
 
             $scope.onRemoveClicked = (gene) => {
@@ -82,10 +89,32 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
                 }
             }
 
-            $scope.onChangePage = (page) => {
+            $scope.onChangePage = async (page) => {
+                $scope.currentPage = page;
+                await $scope.onLoadGenesList()
+                    .then(() => $scope.$apply());
+            }
+
+            $scope.onLoadGenesList = async () => {
+                const request = {
+                    page: $scope.currentPage,
+                    pageSize: $scope.pageSize
+                };
                 $scope.loading = true;
-                $scope.listElements = $scope.getGenesList($scope.inputModel);
-                $timeout(() => $scope.$apply());
+                return new Promise(resolve => {
+                    $scope.onLoadGenes(request)
+                        .then(success => {
+                            if (success) {
+                                $scope.listElements = $scope.getGenesList($scope.inputModel);
+                                $scope.totalPages = Math.ceil($scope.target.genesTotal/$scope.pageSize) || 0;
+                            } else {
+                                $scope.listElements = [];
+                                $scope.totalPages = 0;
+                            }
+                            $scope.loading = false;
+                            resolve(true);
+                        });
+                });
             }
         }
     };

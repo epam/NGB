@@ -26,7 +26,8 @@
                        ng-blur="onBlur()"
                        ng-keydown="onKeyPress($event)">
             </div>
-            <md-menu-content width="4" class="launch-list">
+            <md-menu-content width="4"
+                             class="launch-list">
                 <span class="loading-indicator"
                         ng-if="loading">
                     <md-progress-linear md-mode="query"></md-progress-linear>
@@ -34,17 +35,19 @@
                 <md-menu-item ng-repeat="(index, gene) in listElements track by $index"
                               ng-click="onClickItem(gene)">
                     <span class="list-item"
-                          ng-class="{'span-padding': gene.item}">
+                          ng-class="{'span-padding': gene.item}"
+                          md-highlight-text="inputModel"
+                          md-highlight-flags="gi">
                         {{gene.span}}
                     </span>
                 </md-menu-item>
-                <md-menu-item ng-if="!listElements.length">
+                <md-menu-item ng-if="!listElements.length && !loading">
                     <span class="list-item"
                           ng-if="!listElements.length">
                         Not found
                     </span>
                 </md-menu-item>
-                <md-menu-item ng-if="target.type === 'PARASITE' && totalPages > 1">
+                <md-menu-item ng-if="target.type === parasite && totalPages > 1">
                     <span class="list-item">
                         <ngb-launch-menu-pagination current-page="currentPage"
                                                     total-pages="totalPages"
