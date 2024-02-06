@@ -16,12 +16,14 @@
                 <ngb-launch-menu-input label="Genes of interest:"
                                        get-genes-list="getFilteredGenes"
                                        selected-genes="genesOfInterest"
-                                       on-change-gene="genesOfInterestChanged">
+                                       on-change-gene="genesOfInterestChanged"
+                                       target="target">
                 </ngb-launch-menu-input>
                 <ngb-launch-menu-input label="Translational genes:"
                                        get-genes-list="getFilteredGenes"
                                        selected-genes="translationalGenes"
-                                       on-change-gene="translationalGenesChanged">
+                                       on-change-gene="translationalGenesChanged"
+                                       target="target">
                 </ngb-launch-menu-input>
             </div>
         </md-dialog-content>

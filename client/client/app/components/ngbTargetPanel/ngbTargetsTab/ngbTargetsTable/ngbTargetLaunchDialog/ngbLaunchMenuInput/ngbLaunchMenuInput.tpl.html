@@ -27,6 +27,10 @@
                        ng-keydown="onKeyPress($event)">
             </div>
             <md-menu-content width="4" class="launch-list">
+                <span class="loading-indicator"
+                        ng-if="loading">
+                    <md-progress-linear md-mode="query"></md-progress-linear>
+                </span>
                 <md-menu-item ng-repeat="(index, gene) in listElements track by $index"
                               ng-click="onClickItem(gene)">
                     <span class="list-item"
@@ -36,8 +40,16 @@
                 </md-menu-item>
                 <md-menu-item ng-if="!listElements.length">
                     <span class="list-item"
-                        ng-if="!listElements.length">
+                          ng-if="!listElements.length">
                         Not found
+                    </span>
+                </md-menu-item>
+                <md-menu-item ng-if="target.type === 'PARASITE' && totalPages > 1">
+                    <span class="list-item">
+                        <ngb-launch-menu-pagination current-page="currentPage"
+                                                    total-pages="totalPages"
+                                                    on-change-page="onChangePage(page)">
+                        </ngb-launch-menu-pagination>
                     </span>
                 </md-menu-item>
             </md-menu-content>

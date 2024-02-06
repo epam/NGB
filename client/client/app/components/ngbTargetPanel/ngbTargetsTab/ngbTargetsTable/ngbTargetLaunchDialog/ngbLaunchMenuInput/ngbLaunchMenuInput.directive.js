@@ -2,7 +2,11 @@ import angular from 'angular';
 
 import './ngbLaunchMenuInput.scss';
 
-const ngbLaunchMenuInput = angular.module('ngbLaunchMenuInput', []);
+import ngbLaunchMenuPagination from '../ngbLaunchMenuPagination';
+
+const PAGE_SIZE = 20;
+
+const ngbLaunchMenuInput = angular.module('ngbLaunchMenuInput', [ngbLaunchMenuPagination]);
 
 ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
     return {
@@ -12,11 +16,17 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
           selectedGenes: '=',
           getGenesList: '=',
           onChangeGene: '=',
+          target: '<',
         },
         template: require('./ngbLaunchMenuInput.tpl.html'),
         controller: function($scope, $element, $timeout, $mdMenu) {
             $scope.input = $element[0].getElementsByClassName('launch-input')[0];
             $scope.inputModel = '';
+
+            $scope.loading = false;
+            $scope.pageSize = PAGE_SIZE;
+            $scope.currentPage = 1;
+            $scope.totalPages = Math.ceil($scope.target.genesTotal/$scope.pageSize) || 0;
 
             $scope.onChange = (text) => {
                 $scope.inputModel = text;
@@ -70,6 +80,12 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
                         $scope.removedGeneIndex = undefined;
                         break;
                 }
+            }
+
+            $scope.onChangePage = (page) => {
+                $scope.loading = true;
+                $scope.listElements = $scope.getGenesList($scope.inputModel);
+                $timeout(() => $scope.$apply());
             }
         }
     };

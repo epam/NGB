@@ -16,6 +16,7 @@ export default function run(
             template: require('./ngbTargetLaunchDialog.tpl.html'),
             controller: function ($scope) {
                 $scope.name = target.name;
+                $scope.target = target;
                 $scope.genesOfInterest = [];
                 $scope.translationalGenes = [];
                 $scope.genes = groupedBySpecies(target.species.value);
