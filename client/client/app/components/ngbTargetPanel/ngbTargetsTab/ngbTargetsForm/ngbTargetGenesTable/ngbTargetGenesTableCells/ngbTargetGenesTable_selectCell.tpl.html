@@ -1,5 +1,10 @@
 <span class="select-cell"
       ng-if="row.entity">
+    <md-tooltip class="target-genes-table-tooltip"
+                ng-if="grid.appScope.$ctrl.isParasite && row.entity[col.field]"
+                md-direction="top">
+        {{row.entity[col.field]}}
+    </md-tooltip>
     <md-select ng-model="row.entity[col.field]"
                class="ngb-targets-form-table-select"
                aria-label="Select priority"

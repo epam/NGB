@@ -12,6 +12,11 @@
                 <div class="ui-grid-header-cell-label-container">
                     <span class="ui-grid-header-cell-label"
                           ui-grid-one-bind-id-grid="col.uid + '-header-text'">
+                        <md-tooltip class="target-genes-table-tooltip"
+                                    ng-if="grid.appScope.$ctrl.isParasite"
+                                    md-direction="top">
+                            {{col.displayName}}
+                        </md-tooltip>
                         {{ col.displayName }}
                     </span>
                 </div>

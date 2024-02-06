@@ -209,3 +209,17 @@ ngb-target-genes-table {
         margin: 15px;
     }
 }
+
+md-tooltip.target-genes-table-tooltip {
+    max-width: 50%;
+    font-size: 13px;
+
+    .md-content {
+        height: auto;
+        line-break: auto;
+        text-wrap: wrap;
+        line-height: 13px;
+        padding: 5px;
+        margin: 0;
+    }
+}
