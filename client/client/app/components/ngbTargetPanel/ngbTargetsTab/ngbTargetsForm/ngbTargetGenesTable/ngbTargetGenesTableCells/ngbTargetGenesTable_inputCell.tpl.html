@@ -1,5 +1,10 @@
 <span class="input-cell"
       ng-if="row.entity">
+    <md-tooltip class="target-genes-table-tooltip"
+                ng-if="grid.appScope.$ctrl.isParasite && row.entity[col.field]"
+                md-direction="top">
+        {{row.entity[col.field]}}
+    </md-tooltip>
     <input class="ngb-targets-form-table-input"
            spellcheck="false"
            ng-class="{error: !row.entity[col.field]}"
