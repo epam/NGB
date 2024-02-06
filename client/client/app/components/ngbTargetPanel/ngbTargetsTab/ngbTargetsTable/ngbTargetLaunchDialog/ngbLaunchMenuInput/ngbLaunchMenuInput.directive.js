@@ -2,12 +2,10 @@ import angular from 'angular';
 
 import './ngbLaunchMenuInput.scss';
 
-import ngbLaunchMenuPagination from '../ngbLaunchMenuPagination';
-
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 20;
 const PARASITE = 'PARASITE';
 
-const ngbLaunchMenuInput = angular.module('ngbLaunchMenuInput', [ngbLaunchMenuPagination]);
+const ngbLaunchMenuInput = angular.module('ngbLaunchMenuInput', []);
 
 ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
     return {
@@ -28,7 +26,6 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
 
             $scope.loading = false;
             $scope.pageSize = PAGE_SIZE;
-            $scope.currentPage = 1;
 
             $scope.onChange = (text) => {
                 $scope.inputModel = text;
@@ -43,10 +40,17 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
             }
 
             $scope.openMenu = async (mdOpenMenu, event) => {
+                $scope.currentPage = 1;
+                $scope.firstPage = 1;
+                $scope.lastPage = 1;
                 mdOpenMenu(event);
                 if ($scope.target.type === $scope.parasite) {
-                    await $scope.onLoadGenesList();
-                    $timeout(() => $scope.$apply());
+                    $scope.setScroll();
+                    await $scope.onLoadGenesList()
+                        .then((list) => {
+                            $scope.listElements = list;
+                            $timeout(() => $scope.$apply());
+                        });
                 } else {
                     $scope.listElements = $scope.getGenesList($scope.inputModel);
                 }
@@ -89,12 +93,6 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
                 }
             }
 
-            $scope.onChangePage = async (page) => {
-                $scope.currentPage = page;
-                await $scope.onLoadGenesList()
-                    .then(() => $scope.$apply());
-            }
-
             $scope.onLoadGenesList = async () => {
                 const request = {
                     page: $scope.currentPage,
@@ -104,17 +102,101 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
                 return new Promise(resolve => {
                     $scope.onLoadGenes(request)
                         .then(success => {
+                            let list;
                             if (success) {
-                                $scope.listElements = $scope.getGenesList($scope.inputModel);
+                                list = $scope.getGenesList($scope.inputModel);
                                 $scope.totalPages = Math.ceil($scope.target.genesTotal/$scope.pageSize) || 0;
                             } else {
-                                $scope.listElements = [];
+                                list = [];
                                 $scope.totalPages = 0;
                             }
                             $scope.loading = false;
-                            resolve(true);
+                            resolve(list);
                         });
                 });
+            }
+
+            $scope.setScroll = () => {
+                let requested = false;
+                const pageDeep = 3;
+                const itemHeight = 30;
+                const maxSize = $scope.pageSize * pageDeep;
+                let previousScroll = 0;
+                angular.element(document.getElementById($scope.label))
+                    .on('scroll', async (event) => {
+                        const {clientHeight, scrollHeight} = event.currentTarget;
+                        let {scrollTop} = event.currentTarget;
+                        if (previousScroll < scrollTop) {
+                            if (!requested && ($scope.listElements.length > maxSize)) {
+                                requested = true;
+                                const start = $scope.pageSize;
+                                const end = (pageDeep + 1) * $scope.pageSize;
+                                $scope.listElements = $scope.listElements.slice(start, end);
+                                $scope.firstPage += 1;
+                                $scope.$apply();
+                                if ($scope.listElements.length === maxSize) {
+                                    const newScollPosition = scrollTop - ($scope.pageSize * itemHeight);
+                                    event.currentTarget.scrollTo(0, newScollPosition);
+                                    scrollTop = newScollPosition;
+                                    previousScroll = newScollPosition;
+                                }
+                                $timeout(() => {
+                                    requested = false;
+                                });
+                            }
+                            if (!requested &&
+                                $scope.lastPage < $scope.totalPages &&
+                                (scrollTop + (clientHeight * 2) >= scrollHeight)
+                            ) {
+                                requested = true;
+                                $scope.lastPage += 1;
+                                $scope.currentPage = $scope.lastPage;
+                                await $scope.onLoadGenesList()
+                                    .then((list) => {
+                                        $scope.listElements = $scope.listElements.concat(list);
+                                        $timeout(() => {
+                                            requested = false;
+                                            $scope.$apply();
+                                        });
+                                    })
+                            }
+                        } else {
+                            if (!requested && ($scope.listElements.length > maxSize)) {
+                                requested = true;
+                                const start = 0;
+                                const end = pageDeep * $scope.pageSize;
+                                $scope.listElements = $scope.listElements.slice(start, end);
+                                $scope.lastPage -= 1;
+                                $scope.$apply();
+                                if ($scope.listElements.length === maxSize) {
+                                    const newScollPosition = scrollTop + ($scope.pageSize * itemHeight);
+                                    event.currentTarget.scrollTo(0, newScollPosition);
+                                    scrollTop = newScollPosition;
+                                    previousScroll = newScollPosition;
+                                }
+                                $timeout(() => {
+                                    requested = false;
+                                });
+                            }
+                            if (!requested &&
+                                $scope.currentPage > 1 &&
+                                (scrollTop < clientHeight)
+                            ) {
+                                requested = true;
+                                $scope.firstPage -= 1;
+                                $scope.currentPage = $scope.firstPage;
+                                await $scope.onLoadGenesList()
+                                    .then((list) => {
+                                        $scope.listElements = list.concat($scope.listElements);
+                                        $timeout(() => {
+                                            requested = false;
+                                            $scope.$apply();
+                                        });
+                                    })
+                            }
+                        }
+                        previousScroll = scrollTop;
+                    })
             }
         }
     };

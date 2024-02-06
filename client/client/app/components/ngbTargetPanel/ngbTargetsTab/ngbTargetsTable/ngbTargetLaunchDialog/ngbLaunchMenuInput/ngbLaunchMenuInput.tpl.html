@@ -27,6 +27,7 @@
                        ng-keydown="onKeyPress($event)">
             </div>
             <md-menu-content width="4"
+                             id={{label}}
                              class="launch-list">
                 <span class="loading-indicator"
                         ng-if="loading">
@@ -45,14 +46,6 @@
                     <span class="list-item"
                           ng-if="!listElements.length">
                         Not found
-                    </span>
-                </md-menu-item>
-                <md-menu-item ng-if="target.type === parasite && totalPages > 1">
-                    <span class="list-item">
-                        <ngb-launch-menu-pagination current-page="currentPage"
-                                                    total-pages="totalPages"
-                                                    on-change-page="onChangePage(page)">
-                        </ngb-launch-menu-pagination>
                     </span>
                 </md-menu-item>
             </md-menu-content>
