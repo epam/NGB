@@ -69,7 +69,7 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
     public List<TargetGene> saveTargetGenes(final List<TargetGene> targetGenes, final long targetId) {
         final List<TargetGene> genes = new ArrayList<>();
         if (!CollectionUtils.isEmpty(targetGenes)) {
-            final List<Long> newIds = daoHelper.createIds(targetGeneSequenceName, targetGenes.size());
+            final List<Long> newIds = getIds(targetGenes.size());
             final MapSqlParameterSource[] params = new MapSqlParameterSource[targetGenes.size()];
             for (int i = 0; i < newIds.size(); i++) {
                 final TargetGene targetGene = targetGenes.get(i);
@@ -81,6 +81,11 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
             getNamedParameterJdbcTemplate().batchUpdate(insertTargetGeneQuery, params);
         }
         return genes;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public List<Long> getIds(final int count) {
+        return daoHelper.createIds(targetGeneSequenceName, count);
     }
 
     public List<TargetGene> loadTargetGenes(final Set<Long> targetIds) {

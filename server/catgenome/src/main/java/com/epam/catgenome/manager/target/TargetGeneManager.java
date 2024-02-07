@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.manager.target;
 
+import com.epam.catgenome.dao.target.TargetGeneDao;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.entity.index.SortType;
 import com.epam.catgenome.entity.target.TargetGene;
@@ -99,14 +100,17 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     private static final float OPTIONS_RATIO = 0.5F;
     private int keywordMaxLength;
     private final TargetGeneFieldManager targetGeneFieldManager;
+    private final TargetGeneDao targetGeneDao;
 
     public TargetGeneManager(final @Value("${targets.index.directory}") String indexDirectory,
                              final @Value("${targets.top.hits:10000}") int targetsTopHits,
                              final @Value("${targets.keyword.max.length:100}") int keywordMaxLength,
-                             final TargetGeneFieldManager targetGeneFieldManager) {
+                             final TargetGeneFieldManager targetGeneFieldManager,
+                             final TargetGeneDao targetGeneDao) {
         super(Paths.get(indexDirectory, "genes").toString(), targetsTopHits);
         this.targetGeneFieldManager = targetGeneFieldManager;
         this.keywordMaxLength = keywordMaxLength;
+        this.targetGeneDao = targetGeneDao;
     }
 
     public void importData(final long targetId, final String path, final MultipartFile file)
@@ -471,7 +475,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return filedValues.stream().distinct().count() / filedValues.size() < OPTIONS_RATIO;
     }
 
-    private static void setIds(final long targetId, final List<TargetGene> targetGenes) {
+    private void setIds(final long targetId, final List<TargetGene> targetGenes) {
         targetGenes.forEach(g -> {
             g.setTargetGeneId(getPrimaryKey());
             g.setTargetId(targetId);
@@ -607,12 +611,14 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 Assert.isTrue(!TextUtils.isBlank(speciesName), "Species name should not be blank");
 
                 TargetGenePriority targetGenePriority = null;
-                String priority = cells[header.getPriorityIndex()].trim();
-                if (!TextUtils.isBlank(priority)) {
-                    try {
-                        targetGenePriority = TargetGenePriority.getByValue(Integer.parseInt(priority));
-                    } catch (NumberFormatException e) {
-                        throw new TargetGenesException("Priority should be numeric");
+                if (header.getPriorityIndex() != null) {
+                    String priority = cells[header.getPriorityIndex()].trim();
+                    if (!TextUtils.isBlank(priority)) {
+                        try {
+                            targetGenePriority = TargetGenePriority.getByValue(Integer.parseInt(priority));
+                        } catch (NumberFormatException e) {
+                            throw new TargetGenesException("Priority should be numeric");
+                        }
                     }
                 }
 
@@ -666,10 +672,12 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             Assert.isTrue(!TextUtils.isBlank(speciesName), "Species name should not be blank");
 
             TargetGenePriority priority = null;
-            Cell priorityCell = row.getCell(header.getPriorityIndex());
-            if (priorityCell != null) {
-                Assert.isTrue(priorityCell.getCellTypeEnum() == NUMERIC, "Priority should be numeric");
-                priority = TargetGenePriority.getByValue((int) priorityCell.getNumericCellValue());
+            if (header.getPriorityIndex() != null) {
+                Cell priorityCell = row.getCell(header.getPriorityIndex());
+                if (priorityCell != null) {
+                    Assert.isTrue(priorityCell.getCellTypeEnum() == NUMERIC, "Priority should be numeric");
+                    priority = TargetGenePriority.getByValue((int) priorityCell.getNumericCellValue());
+                }
             }
 
             Map<String, String> metadata = new HashMap<>();
@@ -696,8 +704,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return entries;
     }
 
-    private static long getPrimaryKey() {
-        return System.nanoTime();
+    private long getPrimaryKey() {
+        return targetGeneDao.getIds(1).get(0);
     }
 
     private static String getCellValue(final Cell cell) {
