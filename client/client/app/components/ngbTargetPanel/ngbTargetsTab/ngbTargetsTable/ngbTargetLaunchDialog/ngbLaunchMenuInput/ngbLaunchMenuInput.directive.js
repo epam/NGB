@@ -2,6 +2,9 @@ import angular from 'angular';
 
 import './ngbLaunchMenuInput.scss';
 
+const PAGE_SIZE = 20;
+const PARASITE = 'PARASITE';
+
 const ngbLaunchMenuInput = angular.module('ngbLaunchMenuInput', []);
 
 ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
@@ -12,27 +15,56 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
           selectedGenes: '=',
           getGenesList: '=',
           onChangeGene: '=',
+          onLoadGenes: '=',
+          target: '<',
         },
         template: require('./ngbLaunchMenuInput.tpl.html'),
         controller: function($scope, $element, $timeout, $mdMenu) {
             $scope.input = $element[0].getElementsByClassName('launch-input')[0];
             $scope.inputModel = '';
+            $scope.highlightText;
+            $scope.parasite = PARASITE;
 
-            $scope.onChange = (text) => {
+            $scope.loading = false;
+            $scope.pageSize = PAGE_SIZE;
+
+            $scope.onChange = async (text, mdOpenMenu, event) => {
                 $scope.inputModel = text;
-                $scope.listElements = $scope.getGenesList(text);
+                $scope.highlightText = text;
+                if ($scope.target.type === $scope.parasite) {
+                    $scope.openMenu(mdOpenMenu, event);
+                } else {
+                    $scope.listElements = $scope.getGenesList(text);
+                }
             }
 
             $scope.onClickItem = (gene) => {
-                $scope.onChangeGene(gene);
-                $scope.inputModel = '';
-                $scope.input.value = '';
-                $timeout(() => $scope.$apply());
+                if (gene.selected) {
+                    return;
+                } else {
+                    $scope.highlightText = undefined;
+                    $scope.onChangeGene(gene);
+                    $scope.inputModel = '';
+                    $scope.input.value = '';
+                    $timeout(() => $scope.$apply());
+                }
             }
 
-            $scope.openMenu = (mdOpenMenu, event) => {
+            $scope.openMenu = async (mdOpenMenu, event) => {
                 mdOpenMenu(event);
-                $scope.listElements = $scope.getGenesList($scope.inputModel);
+                if ($scope.target.type === $scope.parasite) {
+                    $scope.currentPage = 1;
+                    $scope.firstPage = 1;
+                    $scope.lastPage = 1;
+                    $scope.setScroll();
+                    await $scope.onLoadGenesList()
+                        .then((list) => {
+                            $scope.listElements = list;
+                            $timeout(() => $scope.$apply());
+                        });
+                } else {
+                    $scope.listElements = $scope.getGenesList($scope.inputModel);
+                }
             }
 
             $scope.onRemoveClicked = (gene) => {
@@ -70,6 +102,123 @@ ngbLaunchMenuInput.directive('ngbLaunchMenuInput', function() {
                         $scope.removedGeneIndex = undefined;
                         break;
                 }
+            }
+
+            function getGenesRequest() {
+                const request = {
+                    page: $scope.currentPage,
+                    pageSize: $scope.pageSize
+                };
+                if ($scope.inputModel && $scope.inputModel.length) {
+                    request.filters = [{
+                        "field": "Gene Name",
+                        "terms": [$scope.inputModel]
+                    }];
+                }
+                return request;
+            }
+
+            $scope.onLoadGenesList = async () => {
+                const request = getGenesRequest();
+                $scope.loading = true;
+                return new Promise(resolve => {
+                    $scope.onLoadGenes(request)
+                        .then(success => {
+                            let list;
+                            if (success) {
+                                list = $scope.getGenesList($scope.inputModel);
+                                $scope.totalPages = Math.ceil($scope.target.genesTotal/$scope.pageSize) || 0;
+                            } else {
+                                list = [];
+                                $scope.totalPages = 0;
+                            }
+                            $scope.loading = false;
+                            resolve(list);
+                        });
+                });
+            }
+
+            $scope.setScroll = () => {
+                let requested = false;
+                const pageDeep = 3;
+                const itemHeight = 30;
+                const maxSize = $scope.pageSize * pageDeep;
+                let previousScroll = 0;
+                angular.element(document.getElementById($scope.label))
+                    .on('scroll', async (event) => {
+                        const {clientHeight, scrollHeight} = event.currentTarget;
+                        let {scrollTop} = event.currentTarget;
+                        if (previousScroll < scrollTop) {
+                            if (!requested && ($scope.listElements.length > maxSize)) {
+                                requested = true;
+                                const start = $scope.pageSize;
+                                const end = (pageDeep + 1) * $scope.pageSize;
+                                $scope.listElements = $scope.listElements.slice(start, end);
+                                $scope.firstPage += 1;
+                                $scope.$apply();
+                                if ($scope.listElements.length === maxSize) {
+                                    const newScollPosition = scrollTop - ($scope.pageSize * itemHeight);
+                                    event.currentTarget.scrollTo(0, newScollPosition);
+                                    scrollTop = newScollPosition;
+                                    previousScroll = newScollPosition;
+                                }
+                                $timeout(() => {
+                                    requested = false;
+                                });
+                            }
+                            if (!requested &&
+                                $scope.lastPage < $scope.totalPages &&
+                                (scrollTop + (clientHeight * 2) >= scrollHeight)
+                            ) {
+                                requested = true;
+                                $scope.lastPage += 1;
+                                $scope.currentPage = $scope.lastPage;
+                                await $scope.onLoadGenesList()
+                                    .then((list) => {
+                                        $scope.listElements = $scope.listElements.concat(list);
+                                        $timeout(() => {
+                                            requested = false;
+                                            $scope.$apply();
+                                        });
+                                    })
+                            }
+                        } else {
+                            if (!requested && ($scope.listElements.length > maxSize)) {
+                                requested = true;
+                                const start = 0;
+                                const end = pageDeep * $scope.pageSize;
+                                $scope.listElements = $scope.listElements.slice(start, end);
+                                $scope.lastPage -= 1;
+                                $scope.$apply();
+                                if ($scope.listElements.length === maxSize) {
+                                    const newScollPosition = scrollTop + ($scope.pageSize * itemHeight);
+                                    event.currentTarget.scrollTo(0, newScollPosition);
+                                    scrollTop = newScollPosition;
+                                    previousScroll = newScollPosition;
+                                }
+                                $timeout(() => {
+                                    requested = false;
+                                });
+                            }
+                            if (!requested &&
+                                $scope.currentPage > 1 &&
+                                (scrollTop < clientHeight)
+                            ) {
+                                requested = true;
+                                $scope.firstPage -= 1;
+                                $scope.currentPage = $scope.firstPage;
+                                await $scope.onLoadGenesList()
+                                    .then((list) => {
+                                        $scope.listElements = list.concat($scope.listElements);
+                                        $timeout(() => {
+                                            requested = false;
+                                            $scope.$apply();
+                                        });
+                                    })
+                            }
+                        }
+                        previousScroll = scrollTop;
+                    })
             }
         }
     };

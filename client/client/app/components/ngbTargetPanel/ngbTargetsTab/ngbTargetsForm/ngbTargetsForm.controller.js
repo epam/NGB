@@ -83,11 +83,13 @@ export default class ngbTargetsFormController {
     }
 
     identifyTarget() {
-        const {id, name, genes} = this.targetModel;
+        const {id, name, genes, type, genesTotal} = this.targetModel;
         if (!id || !name || !genes || !genes.length) return;
         const target = {
             id,
             name,
+            type,
+            genesTotal,
             species: {
                 value: this.targetModel.genes.map(g => ({
                     geneId: g.geneId,

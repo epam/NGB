@@ -1,6 +1,7 @@
 @import "../../../ngbTargetsTab.variables.scss";
 
 $label-width: 150px;
+$chip-height: 20px;
 
 ngb-launch-menu-input {
     display: flex;
@@ -63,7 +64,7 @@ ngb-launch-menu-input {
     }
 
     .gene-chip {
-        height: 20px;
+        height: $chip-height;
         line-height: $md-chip-font-size;
         font-size: $md-chip-font-size;
         background: #eeeeee;
@@ -92,9 +93,9 @@ ngb-launch-menu-input {
 
         .md-button {
             cursor: pointer;
-            height: $table-control-height;
-            min-height: $table-control-height;
-            line-height: $table-control-height;
+            height: $chip-height;
+            min-height: $chip-height;
+            line-height: $chip-height;
             min-width: 10px;
             padding: 0;
 
@@ -139,6 +140,8 @@ md-menu-content.launch-list {
         margin: 0;
         line-height: $md-chip-option-size;
         height: $md-chip-option-size;
+        text-overflow: ellipsis;
+        overflow: hidden;
 
         &:hover {
             cursor: pointer;
@@ -148,5 +151,19 @@ md-menu-content.launch-list {
         &.span-padding {
             padding: 0 20px;
         }
+
+        &.selected {
+            background-color: rgba(0,0,0,0.12);
+            color: rgba(0,0,0,0.38);
+        }
+
+        .highlight {
+            background-color: lightblue;
+        }
+    }
+
+    .loading-indicator {
+        padding: 0;
+        height: 6px;
     }
 }

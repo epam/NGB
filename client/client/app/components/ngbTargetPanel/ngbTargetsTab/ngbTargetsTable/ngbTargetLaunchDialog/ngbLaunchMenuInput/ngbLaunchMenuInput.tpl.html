@@ -22,21 +22,29 @@
                 <input type="text"
                        class="launch-input"
                        ng-model="inputModel"
-                       ng-change="onChange(inputModel)"
+                       ng-change="onChange(inputModel, $mdOpenMenu, $event)"
                        ng-blur="onBlur()"
                        ng-keydown="onKeyPress($event)">
             </div>
-            <md-menu-content width="4" class="launch-list">
+            <md-menu-content width="4"
+                             id={{label}}
+                             class="launch-list">
+                <span class="loading-indicator"
+                        ng-if="loading">
+                    <md-progress-linear md-mode="query"></md-progress-linear>
+                </span>
                 <md-menu-item ng-repeat="(index, gene) in listElements track by $index"
                               ng-click="onClickItem(gene)">
                     <span class="list-item"
-                          ng-class="{'span-padding': gene.item}">
+                          ng-class="{'span-padding': gene.item, 'selected': gene.selected}"
+                          md-highlight-text="highlightText"
+                          md-highlight-flags="gi">
                         {{gene.span}}
                     </span>
                 </md-menu-item>
-                <md-menu-item ng-if="!listElements.length">
+                <md-menu-item ng-if="!listElements.length && !loading">
                     <span class="list-item"
-                        ng-if="!listElements.length">
+                          ng-if="!listElements.length">
                         Not found
                     </span>
                 </md-menu-item>

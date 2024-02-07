@@ -1,7 +1,9 @@
 import {
-    groupedBySpecies,
+    getGenes,
     createFilterFor,
 } from '../utilities/autocompleteFunctions';
+
+const PARASITE = 'PARASITE';
 
 export default function run(
     $mdDialog,
@@ -10,18 +12,22 @@ export default function run(
     ngbTargetsTabService,
     ngbTargetPanelService,
     targetContext,
+    targetDataService
 ) {
     const displayLaunchDialog = async (target) => {
         $mdDialog.show({
             template: require('./ngbTargetLaunchDialog.tpl.html'),
             controller: function ($scope) {
+                $scope.target = target;
                 $scope.name = target.name;
+                $scope.parasite = PARASITE;
+
                 $scope.genesOfInterest = [];
                 $scope.translationalGenes = [];
-                $scope.genes = groupedBySpecies(target.species.value);
+                $scope.genes = getGenes(target.species.value, $scope.target.type, $scope.genesOfInterest, $scope.translationalGenes);
 
                 $scope.identifyDisabled = () => (
-                    !$scope.genesOfInterest.length || !$scope.translationalGenes.length
+                    !$scope.genesOfInterest.length
                 );
 
                 function getGroupItems (item) {
@@ -132,6 +138,30 @@ export default function run(
                     getIdentificationData($scope);
                     $mdDialog.hide();
                 };
+
+                $scope.setTargetGenes = (genes) => {
+                    $scope.genes = getGenes(genes, $scope.target.type, $scope.genesOfInterest, $scope.translationalGenes);
+                }
+
+                $scope.onLoadTargetGenes = (request) => {
+                    const id = $scope.target.id;
+                    return new Promise(resolve => {
+                        targetDataService.getTargetGenesById(id, request)
+                            .then(({items, totalCount}) => {
+                                if (items && totalCount) {
+                                    $scope.target.genesTotal = totalCount;
+                                    $scope.setTargetGenes(items);
+                                } else {
+                                    $scope.target.genesTotal = 0;
+                                    $scope.setTargetGenes([]);
+                                }
+                                resolve(true)
+                            })
+                            .catch(err => {
+                                resolve(false);
+                            });
+                    });
+                }
 
                 $scope.close = () => {
                     $mdDialog.hide();
