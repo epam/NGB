@@ -192,7 +192,11 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 }
             }
         }
-
+        if (field.equals(IndexField.PRIORITY.getValue())) {
+            return values.stream()
+                    .map(v -> TargetGenePriority.getByValue(Integer.parseInt(v)).toString())
+                    .collect(Collectors.toList());
+        }
         final List<String> result = new ArrayList<>(values);
         return result.stream().limit(FIELD_VALUES_TOP_HITS).collect(Collectors.toList());
     }
@@ -281,7 +285,12 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 query = getByTermsQuery(filter.getTerms(), filter.getField());
                 break;
             case OPTIONS:
-                query = getByOptionsQuery(filter.getTerms(), filter.getField());
+                final List<String> terms = filter.getField().equals(IndexField.PRIORITY.getValue()) ?
+                        filter.getTerms().stream()
+                                .map(t -> String.valueOf(TargetGenePriority.valueOf(t).getValue()))
+                                .collect(Collectors.toList()) :
+                        filter.getTerms();
+                query = getByOptionsQuery(terms, filter.getField());
                 break;
             case RANGE:
                 query = getByRangeQuery(filter.getRange(), filter.getField());
