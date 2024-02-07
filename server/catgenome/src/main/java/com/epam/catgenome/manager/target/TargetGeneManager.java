@@ -192,6 +192,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 }
             }
         }
+
         final List<String> result = new ArrayList<>(values);
         return result.stream().limit(FIELD_VALUES_TOP_HITS).collect(Collectors.toList());
     }
@@ -490,7 +491,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         doc.add(new SortedDocValuesField(IndexField.SPECIES_NAME.getValue(), new BytesRef(entry.getSpeciesName())));
 
         if (entry.getPriority() != null) {
-            doc.add(new TextField(IndexField.PRIORITY.getValue(), entry.getPriority().toString(), Field.Store.NO));
+            doc.add(new TextField(IndexField.PRIORITY.getValue(), String.valueOf(entry.getPriority().getValue()),
+                    Field.Store.NO));
             doc.add(new NumericDocValuesField(IndexField.PRIORITY.getValue(), entry.getPriority().getValue()));
             doc.add(new StoredField(IndexField.PRIORITY.getValue(), entry.getPriority().getValue()));
         }
