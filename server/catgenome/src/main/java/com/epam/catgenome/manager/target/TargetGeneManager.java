@@ -561,7 +561,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         }
     }
 
-    private List<TargetGene> readCSV(final InputStream inputStream, final String fileExtension) throws IOException, TargetGenesException {
+    private List<TargetGene> readCSV(final InputStream inputStream, final String fileExtension)
+            throws IOException, TargetGenesException {
         final String separator = FileFormat.getSeparatorByExtension(fileExtension);
         String line;
         String[] cells;
