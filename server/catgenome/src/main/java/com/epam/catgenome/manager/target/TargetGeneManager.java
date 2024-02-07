@@ -93,6 +93,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     private static final List<String> TAX_IDS = Arrays.asList("tax id", "tax_id", "organism_id");
     private static final List<String> SPECIES_NAMES = Arrays.asList("species", "species name",
             "species_name", "organism");
+    private static final List<String> PRIORITY_NAMES = Arrays.asList("priority");
     private static final int FIELD_VALUES_TOP_HITS = 200;
     private static final String EXCEL_EXTENSION = "xlsx";
     private static final float OPTIONS_RATIO = 0.5F;
@@ -429,7 +430,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     private TargetGeneField getTargetGeneField(final Long targetId, final String field,
-                                                      final List<String> filedValues) {
+                                               final List<String> filedValues) {
         final TargetGeneField targetGeneField = TargetGeneField.builder()
                 .targetId(targetId)
                 .field(field)
@@ -560,7 +561,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         }
     }
 
-    private List<TargetGene> readCSV(final InputStream inputStream, final String fileExtension) throws IOException {
+    private List<TargetGene> readCSV(final InputStream inputStream, final String fileExtension) throws IOException, TargetGenesException {
         final String separator = FileFormat.getSeparatorByExtension(fileExtension);
         String line;
         String[] cells;
@@ -583,10 +584,25 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 String geneName = cells[header.getNameIndex()].trim();
                 Assert.isTrue(!TextUtils.isBlank(geneName), "Gene name should not be blank");
 
-                Long taxId = Long.parseLong(cells[header.getTaxIdIndex()].trim());
+                long taxId;
+                try {
+                    taxId = Long.parseLong(cells[header.getTaxIdIndex()].trim());
+                } catch (NumberFormatException e) {
+                    throw new TargetGenesException("Tax ID should be numeric");
+                }
 
                 String speciesName = cells[header.getSpeciesNameIndex()].trim();
                 Assert.isTrue(!TextUtils.isBlank(speciesName), "Species name should not be blank");
+
+                TargetGenePriority targetGenePriority = null;
+                String priority = cells[header.getPriorityIndex()].trim();
+                if (!TextUtils.isBlank(priority)) {
+                    try {
+                        targetGenePriority = TargetGenePriority.getByValue(Integer.parseInt(priority));
+                    } catch (NumberFormatException e) {
+                        throw new TargetGenesException("Priority should be numeric");
+                    }
+                }
 
                 Map<String, String> metadata = new HashMap<>();
                 for (Map.Entry<String, Integer> entry : header.getMetadataIndexes().entrySet()) {
@@ -600,6 +616,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                         .geneName(geneName)
                         .taxId(taxId)
                         .speciesName(speciesName)
+                        .priority(targetGenePriority)
                         .metadata(metadata)
                         .build();
                 entries.add(gene);
@@ -636,6 +653,13 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             String speciesName = getCellValue(speciesNameCell);
             Assert.isTrue(!TextUtils.isBlank(speciesName), "Species name should not be blank");
 
+            TargetGenePriority priority = null;
+            Cell priorityCell = row.getCell(header.getPriorityIndex());
+            if (priorityCell != null) {
+                Assert.isTrue(priorityCell.getCellTypeEnum() == NUMERIC, "Priority should be numeric");
+                priority = TargetGenePriority.getByValue((int) priorityCell.getNumericCellValue());
+            }
+
             Map<String, String> metadata = new HashMap<>();
             header.getMetadataIndexes().forEach((k, v) -> {
                 Cell cell = row.getCell(v);
@@ -652,6 +676,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                     .geneName(geneName)
                     .taxId((long) taxIdCell.getNumericCellValue())
                     .speciesName(speciesName)
+                    .priority(priority)
                     .metadata(metadata)
                     .build();
             entries.add(gene);
@@ -687,6 +712,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         Integer nameIndex = null;
         Integer taxIdIndex = null;
         Integer speciesNameIndex = null;
+        Integer priorityIndex = null;
         final Map<String, Integer> metadataIndexes = new HashMap<>();
         for (String value : line.split(separator)) {
             if (TextUtils.isBlank(value)) {
@@ -700,6 +726,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 taxIdIndex = index;
             } else if (SPECIES_NAMES.stream().anyMatch(value::equalsIgnoreCase)) {
                 speciesNameIndex = index;
+            } else if (PRIORITY_NAMES.stream().anyMatch(value::equalsIgnoreCase)) {
+                priorityIndex = index;
             } else {
                 metadataIndexes.put(value, index);
             }
@@ -714,6 +742,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 .nameIndex(nameIndex)
                 .taxIdIndex(taxIdIndex)
                 .speciesNameIndex(speciesNameIndex)
+                .priorityIndex(priorityIndex)
                 .metadataIndexes(metadataIndexes)
                 .build();
     }
@@ -724,6 +753,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         Integer nameIndex = null;
         Integer taxIdIndex = null;
         Integer speciesNameIndex = null;
+        Integer priorityIndex = null;
         final Map<String, Integer> metadataIndexes = new HashMap<>();
         for (Cell cell : headerRow) {
             String cellValue = cell.getStringCellValue();
@@ -738,6 +768,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 taxIdIndex = index;
             } else if (SPECIES_NAMES.stream().anyMatch(cellValue::equalsIgnoreCase)) {
                 speciesNameIndex = index;
+            } else if (PRIORITY_NAMES.stream().anyMatch(cellValue::equalsIgnoreCase)) {
+                priorityIndex = index;
             } else {
                 metadataIndexes.put(cellValue, index);
             }
@@ -752,6 +784,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 .nameIndex(nameIndex)
                 .taxIdIndex(taxIdIndex)
                 .speciesNameIndex(speciesNameIndex)
+                .priorityIndex(priorityIndex)
                 .metadataIndexes(metadataIndexes)
                 .build();
     }
@@ -764,6 +797,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         private Integer nameIndex;
         private Integer taxIdIndex;
         private Integer speciesNameIndex;
+        private Integer priorityIndex;
         private Map<String, Integer> metadataIndexes;
     }
 }
