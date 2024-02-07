@@ -291,7 +291,7 @@ export default class ngbPatentsSequencesTabService {
             }
             return acc;
         }, []);
-        this.selectedProtein = this.proteins[0];
+        this.selectedProtein = this.proteins[0] || {};
         this.loadingProteins = false;
         this.dispatcher.emit('target:identification:patents:proteins:updated');
     }

@@ -27,7 +27,7 @@ export default function run(
                 $scope.genes = getGenes(target.species.value, $scope.target.type, $scope.genesOfInterest, $scope.translationalGenes);
 
                 $scope.identifyDisabled = () => (
-                    !$scope.genesOfInterest.length || !$scope.translationalGenes.length
+                    !$scope.genesOfInterest.length
                 );
 
                 function getGroupItems (item) {
