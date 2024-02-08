@@ -476,10 +476,11 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     private void setIds(final long targetId, final List<TargetGene> targetGenes) {
-        targetGenes.forEach(g -> {
-            g.setTargetGeneId(getPrimaryKey());
-            g.setTargetId(targetId);
-        });
+        final List<Long> ids = targetGeneDao.getIds(targetGenes.size());
+        for (int i = 0; i < ids.size(); i++) {
+            targetGenes.get(i).setTargetGeneId(ids.get(i));
+            targetGenes.get(i).setTargetId(targetId);
+        }
     }
 
     private static Document docFromEntry(final TargetGene entry,
@@ -702,10 +703,6 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             entries.add(gene);
         }
         return entries;
-    }
-
-    private long getPrimaryKey() {
-        return targetGeneDao.getIds(1).get(0);
     }
 
     private static String getCellValue(final Cell cell) {
