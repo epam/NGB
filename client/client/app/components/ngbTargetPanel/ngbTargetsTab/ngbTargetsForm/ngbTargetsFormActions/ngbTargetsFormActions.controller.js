@@ -14,12 +14,13 @@ export default class ngbTargetsFormActionsController {
 
     constructor($scope, $timeout, dispatcher, ngbTargetGenesTableService, ngbTargetsFormService) {
         Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetGenesTableService, ngbTargetsFormService});
-
-        dispatcher.on('target:form:reset:columns', this.resetColumnsSelection.bind(this));
-        dispatcher.on('target:form:table:columns', this.setColumnsList.bind(this));
-        $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:form:reset:columns', this.resetColumnsSelection.bind(this));
-            dispatcher.removeListener('target:form:table:columns', this.setColumnsList.bind(this));
+        const resetColumnsSelection = this.resetColumnsSelection.bind(this);
+        const setColumnsList = this.setColumnsList.bind(this);
+        this.dispatcher.on('target:form:reset:columns', resetColumnsSelection);
+        this.dispatcher.on('target:form:table:columns', setColumnsList);
+        this.$scope.$on('$destroy', () => {
+            this.dispatcher.removeListener('target:form:reset:columns', resetColumnsSelection);
+            this.dispatcher.removeListener('target:form:table:columns', setColumnsList);
         });
     }
 
