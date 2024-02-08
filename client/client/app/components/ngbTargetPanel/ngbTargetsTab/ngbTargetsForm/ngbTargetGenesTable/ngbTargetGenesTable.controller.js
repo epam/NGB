@@ -62,7 +62,7 @@ export default class ngbTargetGenesTableController {
             ngbTargetsFormService
         });
         const initialize = this.initialize.bind(this);
-        const reloadCurrentPage = this.loadData.bind(this);
+        const reloadCurrentPage = this.reloadCurrentPage.bind(this);
         const getDataOnLastPage = this.getDataOnLastPage.bind(this);
         const refreshColumns = this.refreshColumns.bind(this);
         const filterChanged = this.filterChanged.bind(this);
@@ -180,6 +180,12 @@ export default class ngbTargetGenesTableController {
             await this.loadData();
         }
         this.saveSortConfiguration();
+        this.gridOptions.columnDefs = this.getTableColumns();
+    }
+
+    async reloadCurrentPage() {
+        await this.ngbTargetGenesTableService.initAdditionalColumns();
+        await this.loadData();
         this.gridOptions.columnDefs = this.getTableColumns();
     }
 
