@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.manager.target;
 
+import com.epam.catgenome.dao.target.TargetGeneDao;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.entity.index.SortType;
 import com.epam.catgenome.entity.target.TargetGene;
@@ -93,19 +94,23 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     private static final List<String> TAX_IDS = Arrays.asList("tax id", "tax_id", "organism_id");
     private static final List<String> SPECIES_NAMES = Arrays.asList("species", "species name",
             "species_name", "organism");
+    private static final List<String> PRIORITY_NAMES = Arrays.asList("priority");
     private static final int FIELD_VALUES_TOP_HITS = 200;
     private static final String EXCEL_EXTENSION = "xlsx";
     private static final float OPTIONS_RATIO = 0.5F;
     private int keywordMaxLength;
     private final TargetGeneFieldManager targetGeneFieldManager;
+    private final TargetGeneDao targetGeneDao;
 
     public TargetGeneManager(final @Value("${targets.index.directory}") String indexDirectory,
                              final @Value("${targets.top.hits:10000}") int targetsTopHits,
                              final @Value("${targets.keyword.max.length:100}") int keywordMaxLength,
-                             final TargetGeneFieldManager targetGeneFieldManager) {
+                             final TargetGeneFieldManager targetGeneFieldManager,
+                             final TargetGeneDao targetGeneDao) {
         super(Paths.get(indexDirectory, "genes").toString(), targetsTopHits);
         this.targetGeneFieldManager = targetGeneFieldManager;
         this.keywordMaxLength = keywordMaxLength;
+        this.targetGeneDao = targetGeneDao;
     }
 
     public void importData(final long targetId, final String path, final MultipartFile file)
@@ -190,6 +195,11 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                     values.add(indexableField.stringValue());
                 }
             }
+        }
+        if (field.equals(IndexField.PRIORITY.getValue())) {
+            return values.stream()
+                    .map(v -> TargetGenePriority.getByValue(Integer.parseInt(v)).toString())
+                    .collect(Collectors.toList());
         }
         final List<String> result = new ArrayList<>(values);
         return result.stream().limit(FIELD_VALUES_TOP_HITS).collect(Collectors.toList());
@@ -279,7 +289,12 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 query = getByTermsQuery(filter.getTerms(), filter.getField());
                 break;
             case OPTIONS:
-                query = getByOptionsQuery(filter.getTerms(), filter.getField());
+                final List<String> terms = filter.getField().equals(IndexField.PRIORITY.getValue()) ?
+                        filter.getTerms().stream()
+                                .map(t -> String.valueOf(TargetGenePriority.valueOf(t).getValue()))
+                                .collect(Collectors.toList()) :
+                        filter.getTerms();
+                query = getByOptionsQuery(terms, filter.getField());
                 break;
             case RANGE:
                 query = getByRangeQuery(filter.getRange(), filter.getField());
@@ -429,7 +444,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     private TargetGeneField getTargetGeneField(final Long targetId, final String field,
-                                                      final List<String> filedValues) {
+                                               final List<String> filedValues) {
         final TargetGeneField targetGeneField = TargetGeneField.builder()
                 .targetId(targetId)
                 .field(field)
@@ -460,11 +475,12 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return filedValues.stream().distinct().count() / filedValues.size() < OPTIONS_RATIO;
     }
 
-    private static void setIds(final long targetId, final List<TargetGene> targetGenes) {
-        targetGenes.forEach(g -> {
-            g.setTargetGeneId(getPrimaryKey());
-            g.setTargetId(targetId);
-        });
+    private void setIds(final long targetId, final List<TargetGene> targetGenes) {
+        final List<Long> ids = targetGeneDao.getIds(targetGenes.size());
+        for (int i = 0; i < ids.size(); i++) {
+            targetGenes.get(i).setTargetGeneId(ids.get(i));
+            targetGenes.get(i).setTargetId(targetId);
+        }
     }
 
     private static Document docFromEntry(final TargetGene entry,
@@ -489,7 +505,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         doc.add(new SortedDocValuesField(IndexField.SPECIES_NAME.getValue(), new BytesRef(entry.getSpeciesName())));
 
         if (entry.getPriority() != null) {
-            doc.add(new TextField(IndexField.PRIORITY.getValue(), entry.getPriority().toString(), Field.Store.NO));
+            doc.add(new TextField(IndexField.PRIORITY.getValue(), String.valueOf(entry.getPriority().getValue()),
+                    Field.Store.NO));
             doc.add(new NumericDocValuesField(IndexField.PRIORITY.getValue(), entry.getPriority().getValue()));
             doc.add(new StoredField(IndexField.PRIORITY.getValue(), entry.getPriority().getValue()));
         }
@@ -560,7 +577,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         }
     }
 
-    private List<TargetGene> readCSV(final InputStream inputStream, final String fileExtension) throws IOException {
+    private List<TargetGene> readCSV(final InputStream inputStream, final String fileExtension)
+            throws IOException, TargetGenesException {
         final String separator = FileFormat.getSeparatorByExtension(fileExtension);
         String line;
         String[] cells;
@@ -583,10 +601,27 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 String geneName = cells[header.getNameIndex()].trim();
                 Assert.isTrue(!TextUtils.isBlank(geneName), "Gene name should not be blank");
 
-                Long taxId = Long.parseLong(cells[header.getTaxIdIndex()].trim());
+                long taxId;
+                try {
+                    taxId = Long.parseLong(cells[header.getTaxIdIndex()].trim());
+                } catch (NumberFormatException e) {
+                    throw new TargetGenesException("Tax ID should be numeric");
+                }
 
                 String speciesName = cells[header.getSpeciesNameIndex()].trim();
                 Assert.isTrue(!TextUtils.isBlank(speciesName), "Species name should not be blank");
+
+                TargetGenePriority targetGenePriority = null;
+                if (header.getPriorityIndex() != null) {
+                    String priority = cells[header.getPriorityIndex()].trim();
+                    if (!TextUtils.isBlank(priority)) {
+                        try {
+                            targetGenePriority = TargetGenePriority.getByValue(Integer.parseInt(priority));
+                        } catch (NumberFormatException e) {
+                            throw new TargetGenesException("Priority should be numeric");
+                        }
+                    }
+                }
 
                 Map<String, String> metadata = new HashMap<>();
                 for (Map.Entry<String, Integer> entry : header.getMetadataIndexes().entrySet()) {
@@ -600,6 +635,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                         .geneName(geneName)
                         .taxId(taxId)
                         .speciesName(speciesName)
+                        .priority(targetGenePriority)
                         .metadata(metadata)
                         .build();
                 entries.add(gene);
@@ -636,6 +672,15 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             String speciesName = getCellValue(speciesNameCell);
             Assert.isTrue(!TextUtils.isBlank(speciesName), "Species name should not be blank");
 
+            TargetGenePriority priority = null;
+            if (header.getPriorityIndex() != null) {
+                Cell priorityCell = row.getCell(header.getPriorityIndex());
+                if (priorityCell != null) {
+                    Assert.isTrue(priorityCell.getCellTypeEnum() == NUMERIC, "Priority should be numeric");
+                    priority = TargetGenePriority.getByValue((int) priorityCell.getNumericCellValue());
+                }
+            }
+
             Map<String, String> metadata = new HashMap<>();
             header.getMetadataIndexes().forEach((k, v) -> {
                 Cell cell = row.getCell(v);
@@ -652,15 +697,12 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                     .geneName(geneName)
                     .taxId((long) taxIdCell.getNumericCellValue())
                     .speciesName(speciesName)
+                    .priority(priority)
                     .metadata(metadata)
                     .build();
             entries.add(gene);
         }
         return entries;
-    }
-
-    private static long getPrimaryKey() {
-        return System.nanoTime();
     }
 
     private static String getCellValue(final Cell cell) {
@@ -687,6 +729,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         Integer nameIndex = null;
         Integer taxIdIndex = null;
         Integer speciesNameIndex = null;
+        Integer priorityIndex = null;
         final Map<String, Integer> metadataIndexes = new HashMap<>();
         for (String value : line.split(separator)) {
             if (TextUtils.isBlank(value)) {
@@ -700,6 +743,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 taxIdIndex = index;
             } else if (SPECIES_NAMES.stream().anyMatch(value::equalsIgnoreCase)) {
                 speciesNameIndex = index;
+            } else if (PRIORITY_NAMES.stream().anyMatch(value::equalsIgnoreCase)) {
+                priorityIndex = index;
             } else {
                 metadataIndexes.put(value, index);
             }
@@ -714,6 +759,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 .nameIndex(nameIndex)
                 .taxIdIndex(taxIdIndex)
                 .speciesNameIndex(speciesNameIndex)
+                .priorityIndex(priorityIndex)
                 .metadataIndexes(metadataIndexes)
                 .build();
     }
@@ -724,6 +770,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         Integer nameIndex = null;
         Integer taxIdIndex = null;
         Integer speciesNameIndex = null;
+        Integer priorityIndex = null;
         final Map<String, Integer> metadataIndexes = new HashMap<>();
         for (Cell cell : headerRow) {
             String cellValue = cell.getStringCellValue();
@@ -738,6 +785,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 taxIdIndex = index;
             } else if (SPECIES_NAMES.stream().anyMatch(cellValue::equalsIgnoreCase)) {
                 speciesNameIndex = index;
+            } else if (PRIORITY_NAMES.stream().anyMatch(cellValue::equalsIgnoreCase)) {
+                priorityIndex = index;
             } else {
                 metadataIndexes.put(cellValue, index);
             }
@@ -752,6 +801,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 .nameIndex(nameIndex)
                 .taxIdIndex(taxIdIndex)
                 .speciesNameIndex(speciesNameIndex)
+                .priorityIndex(priorityIndex)
                 .metadataIndexes(metadataIndexes)
                 .build();
     }
@@ -764,6 +814,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         private Integer nameIndex;
         private Integer taxIdIndex;
         private Integer speciesNameIndex;
+        private Integer priorityIndex;
         private Map<String, Integer> metadataIndexes;
     }
 }
