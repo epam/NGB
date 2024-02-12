@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 EPAM Systems
+ * Copyright (c) 2024 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,24 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb.sequence;
+package com.epam.catgenome.controller.vo.sequence;
 
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.externaldb.ncbi.util.NCBISequenceDatabase;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
+import lombok.Getter;
+import lombok.Setter;
 
-import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
-
-@Service
-@RequiredArgsConstructor
-public class NCBISequenceSecurityService {
-
-    private final NCBISequenceManager manager;
-
-    @PreAuthorize(ROLE_USER)
-    public String getFasta(final NCBISequenceDatabase database, final String id) throws ExternalDbUnavailableException {
-        return manager.getFasta(database, id);
-    }
+@Getter
+@Setter
+public class LocalSequenceRequest {
+    private SequenceDatabase database;
+    private Long referenceId;
+    private Long featureFileId;
+    private Long chromosomeId;
+    private Long begin;
+    private Long end;
 }

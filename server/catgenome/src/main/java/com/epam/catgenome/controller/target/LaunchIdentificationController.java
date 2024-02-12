@@ -312,9 +312,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<GeneRefSection>> getGeneSequencesTable(@RequestParam final List<String> geneIds,
-                                                              @RequestParam final Boolean getComments)
+                                                              @RequestParam final Boolean getComments,
+                                                              @RequestParam final Boolean includeLocal)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return Result.success(launchIdentificationSecurityService.getGeneSequencesTable(geneIds, getComments));
+        return Result.success(launchIdentificationSecurityService.getGeneSequencesTable(geneIds, getComments,
+                includeLocal));
     }
 
     @PostMapping(value = "/target/structures")
