@@ -28,6 +28,7 @@ import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.FieldInfo;
 import com.epam.catgenome.manager.index.SearchRequest;
+import com.opencsv.exceptions.CsvValidationException;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,7 +48,7 @@ public class TargetGeneSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public void importGenes(final long targetId, final String path, final MultipartFile multipart)
-            throws IOException, ParseException, TargetGenesException {
+            throws IOException, ParseException, TargetGenesException, CsvValidationException {
         targetGeneManager.importData(targetId, path, multipart);
     }
 

@@ -33,6 +33,8 @@ import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.*;
 import com.epam.catgenome.util.FileFormat;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -114,7 +116,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     public void importData(final long targetId, final String path, final MultipartFile file)
-            throws IOException, ParseException, TargetGenesException {
+            throws IOException, ParseException, TargetGenesException, CsvValidationException {
         Assert.isTrue(path != null || file != null, "Genes file path or content should be defined");
         final InputStream inputStream = file != null ?  file.getInputStream() :
                 Files.newInputStream(Paths.get(path));
@@ -566,82 +568,99 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     private List<TargetGene> readEntries(final InputStream inputStream, final String extension)
-            throws IOException, TargetGenesException {
+            throws IOException, TargetGenesException, CsvValidationException {
         if (extension.equalsIgnoreCase(EXCEL_EXTENSION)) {
             return readExcel(inputStream);
-        } else if (extension.equals(FileFormat.CSV.getExtension()) ||
-                extension.equals(FileFormat.TSV.getExtension())) {
-            return readCSV(inputStream, extension);
+        } else if (extension.equals(FileFormat.CSV.getExtension())) {
+            return readCSV(inputStream);
+        } else if (extension.equals(FileFormat.TSV.getExtension())) {
+            return readTSV(inputStream);
         } else {
             throw new TargetGenesException(String.format("Unsupported file extension '%s'", extension));
         }
     }
 
-    private List<TargetGene> readCSV(final InputStream inputStream, final String fileExtension)
-            throws IOException, TargetGenesException {
-        final String separator = FileFormat.getSeparatorByExtension(fileExtension);
+    private List<TargetGene> readTSV(final InputStream inputStream) throws IOException, TargetGenesException {
+        final String separator = FileFormat.TSV.getSeparator();
         String line;
-        String[] cells;
         final List<TargetGene> entries = new ArrayList<>();
         try (Reader reader = new InputStreamReader(inputStream);
              BufferedReader bufferedReader = new BufferedReader(reader)) {
             line = bufferedReader.readLine();
-            final Header header = getHeader(line, separator);
+            final Header header = getHeader(line.split(separator));
             while ((line = bufferedReader.readLine()) != null) {
-                cells = line.split(separator);
-
-                String geneId = cells[header.getIdIndex()].trim();
-                try {
-                    geneId = String.valueOf((long) Float.parseFloat(geneId));
-                } catch (NumberFormatException e) {
-                    break;
-                }
-                Assert.isTrue(!TextUtils.isBlank(geneId), "Gene ID should not be blank");
-
-                String geneName = cells[header.getNameIndex()].trim();
-                Assert.isTrue(!TextUtils.isBlank(geneName), "Gene name should not be blank");
-
-                long taxId;
-                try {
-                    taxId = Long.parseLong(cells[header.getTaxIdIndex()].trim());
-                } catch (NumberFormatException e) {
-                    throw new TargetGenesException("Tax ID should be numeric");
-                }
-
-                String speciesName = cells[header.getSpeciesNameIndex()].trim();
-                Assert.isTrue(!TextUtils.isBlank(speciesName), "Species name should not be blank");
-
-                TargetGenePriority targetGenePriority = null;
-                if (header.getPriorityIndex() != null) {
-                    String priority = cells[header.getPriorityIndex()].trim();
-                    if (!TextUtils.isBlank(priority)) {
-                        try {
-                            targetGenePriority = TargetGenePriority.getByValue(Integer.parseInt(priority));
-                        } catch (NumberFormatException e) {
-                            throw new TargetGenesException("Priority should be numeric");
-                        }
-                    }
-                }
-
-                Map<String, String> metadata = new HashMap<>();
-                for (Map.Entry<String, Integer> entry : header.getMetadataIndexes().entrySet()) {
-                    String value = cells[entry.getValue()].trim();
-                    if (StringUtils.isNotBlank(value)) {
-                        metadata.put(entry.getKey(), value);
-                    }
-                }
-                TargetGene gene = TargetGene.builder()
-                        .geneId(geneId)
-                        .geneName(geneName)
-                        .taxId(taxId)
-                        .speciesName(speciesName)
-                        .priority(targetGenePriority)
-                        .metadata(metadata)
-                        .build();
-                entries.add(gene);
+                processLine(line.split(separator), entries, header);
             }
         }
         return entries;
+    }
+
+    private List<TargetGene> readCSV(final InputStream inputStream)
+            throws IOException, TargetGenesException, CsvValidationException {
+        String[] cells;
+        final List<TargetGene> entries = new ArrayList<>();
+        try (Reader reader = new InputStreamReader(inputStream);
+             CSVReader csvReader = new CSVReader(reader)) {
+            cells = csvReader.readNext();
+            final Header header = getHeader(cells);
+            while ((cells = csvReader.readNext()) != null) {
+                processLine(cells, entries, header);
+            }
+        }
+        return entries;
+    }
+
+    private static void processLine(final String[] cells, final List<TargetGene> entries, final Header header)
+            throws TargetGenesException {
+        String geneId = cells[header.getIdIndex()].trim();
+        try {
+            geneId = String.valueOf((long) Float.parseFloat(geneId));
+        } catch (NumberFormatException e) {
+            log.info("Gene ID is not numerical");
+        }
+        Assert.isTrue(!TextUtils.isBlank(geneId), "Gene ID should not be blank");
+
+        final String geneName = cells[header.getNameIndex()].trim();
+        Assert.isTrue(!TextUtils.isBlank(geneName), "Gene name should not be blank");
+
+        final long taxId;
+        try {
+            taxId = Long.parseLong(cells[header.getTaxIdIndex()].trim());
+        } catch (NumberFormatException e) {
+            throw new TargetGenesException("Tax ID should be numeric");
+        }
+
+        final String speciesName = cells[header.getSpeciesNameIndex()].trim();
+        Assert.isTrue(!TextUtils.isBlank(speciesName), "Species name should not be blank");
+
+        TargetGenePriority targetGenePriority = null;
+        if (header.getPriorityIndex() != null) {
+            String priority = cells[header.getPriorityIndex()].trim();
+            if (!TextUtils.isBlank(priority)) {
+                try {
+                    targetGenePriority = TargetGenePriority.getByValue(Integer.parseInt(priority));
+                } catch (NumberFormatException e) {
+                    throw new TargetGenesException("Priority should be numeric");
+                }
+            }
+        }
+
+        final Map<String, String> metadata = new HashMap<>();
+        for (Map.Entry<String, Integer> entry : header.getMetadataIndexes().entrySet()) {
+            String value = cells[entry.getValue()].trim();
+            if (StringUtils.isNotBlank(value)) {
+                metadata.put(entry.getKey(), value);
+            }
+        }
+        final TargetGene gene = TargetGene.builder()
+                .geneId(geneId)
+                .geneName(geneName)
+                .taxId(taxId)
+                .speciesName(speciesName)
+                .priority(targetGenePriority)
+                .metadata(metadata)
+                .build();
+        entries.add(gene);
     }
 
     private List<TargetGene> readExcel(final InputStream inputStream) throws IOException {
@@ -723,7 +742,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return cellValue;
     }
 
-    private Header getHeader(final String line, final String separator) {
+    private Header getHeader(final String[] cells) {
         int index = 0;
         Integer idIndex = null;
         Integer nameIndex = null;
@@ -731,7 +750,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         Integer speciesNameIndex = null;
         Integer priorityIndex = null;
         final Map<String, Integer> metadataIndexes = new HashMap<>();
-        for (String value : line.split(separator)) {
+        for (String value : cells) {
             if (TextUtils.isBlank(value)) {
                 break;
             }
