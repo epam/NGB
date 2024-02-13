@@ -143,7 +143,7 @@ export default class ngbTargetsTabService {
                         this._launchFailed = false;
                         this._launchErrorMessageList = null;
                         this.dispatcher.emit('target:launch:failed:refresh');
-                    }, 5000);
+                    }, 20000);
                 }
                 return result;
             });
