@@ -68,6 +68,7 @@ public final class MessageConstants {
     public static final String ERROR_FAILED_TO_LOAD_USER = "Failed to load current user";
     public static final String INFO_SORT_SUCCESS = "File is successfully sorted and placed to [%s].";
     public static final String ERROR_ROLE_MODEL_IS_NOT_SUPPORTED = "Role model is not supported on the server!";
+    public static final String ERROR_INCORRECT_FILE_FORMAT = "Incorrect file format";
 
 
     private MessageConstants(){
