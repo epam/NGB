@@ -4,8 +4,20 @@ export default class ngbTargetsTabController {
         return 'ngbTargetsTabController';
     }
 
-    constructor(ngbTargetsTabService) {
-        Object.assign(this, {ngbTargetsTabService});
+    constructor($scope, $timeout, dispatcher, ngbTargetsTabService) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetsTabService});
+
+        const refreshTable = this.refreshTable.bind(this);
+        dispatcher.on('target:launch:failed', refreshTable);
+        dispatcher.on('target:launch:failed:refresh', refreshTable);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('target:launch:failed', refreshTable);
+            dispatcher.removeListener('target:launch:failed:refresh', refreshTable);
+        });
+    }
+
+    refreshTable() {
+        this.$timeout(() => this.$scope.$apply());
     }
 
     get isTableMode() {

@@ -134,10 +134,10 @@ export default class ngbTargetsTabService {
         this._launchLoading = true;
         const result = await this.launchTargetIdentification(params)
             .then(result => {
-                this._launchLoading = false;
                 if (result) {
                     this.dispatcher.emit('target:launch:finished', result, info);
                 } else {
+                    this.setTableMode();
                     this.dispatcher.emit('target:launch:failed');
                     this.$timeout(() => {
                         this._launchFailed = false;
@@ -159,11 +159,13 @@ export default class ngbTargetsTabService {
                         this._launchFailed = false;
                         this._launchErrorMessageList = null;
                     }
+                    this._launchLoading = false;
                     resolve(result);
                 })
                 .catch(err => {
                     this._launchFailed = true;
                     this._launchErrorMessageList = [err.message];
+                    this._launchLoading = false;
                     resolve(false);
                 });
         });
