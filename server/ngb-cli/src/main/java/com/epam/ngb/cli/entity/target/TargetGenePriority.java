@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 EPAM Systems
+ * Copyright (c) 2024 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,23 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package com.epam.ngb.cli.entity.target;
 
-import com.epam.ngb.cli.entity.RequestPayload;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+@AllArgsConstructor
 @Getter
-@Setter
-@Builder
-public class TargetRegistrationRequest implements RequestPayload {
-    private String targetName;
-    private List<String> products;
-    private List<String> diseases;
-    private List<TargetGene> targetGenes;
-    private TargetType type;
+public enum TargetGenePriority {
+    HIGH(100, "High"),
+    LOW(0, "Low");
+
+    private final int value;
+    private final String name;
+    private static final int HIGH_VALUE = 100;
+    private static final Map<Integer, TargetGenePriority> VALUES_MAP = new HashMap<>();
+
+    static {
+        VALUES_MAP.put(0, LOW);
+        VALUES_MAP.put(HIGH_VALUE, HIGH);
+    }
+
+    public static TargetGenePriority getByValue(int id) {
+        return VALUES_MAP.get(id);
+    }
 }

@@ -35,13 +35,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -75,6 +78,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
     private String loadAllTargetsQuery;
     private String totalCountQuery;
     private String productsQuery;
+    private String updateOwnerQuery;
 
     /**
      * Creates new Target record or updates an existing.
@@ -82,8 +86,8 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public Target saveTarget(final Target target) {
-        if (target.getTargetId() == null) {
-            target.setTargetId(daoHelper.createId(targetSequenceName));
+        if (target.getId() == null) {
+            target.setId(daoHelper.createId(targetSequenceName));
             getNamedParameterJdbcTemplate().update(insertTargetQuery, TargetParameters.getParameters(target));
         } else {
             getNamedParameterJdbcTemplate().update(updateTargetQuery, TargetParameters.getParameters(target));
@@ -99,6 +103,17 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public void updatePatentsSearchStatus(final Target target) {
         getNamedParameterJdbcTemplate().update(updatePatentsSearchQuery, TargetParameters.getParameters(target));
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateOwner(final long targetId, final String owner) {
+        Assert.isTrue(StringUtils.isNotBlank(owner), "Owner cannot be empty");
+        final MapSqlParameterSource params = new MapSqlParameterSource();
+
+        params.addValue(TargetParameters.TARGET_ID.name(), targetId);
+        params.addValue(TargetParameters.OWNER.name(), owner);
+
+        getNamedParameterJdbcTemplate().update(updateOwnerQuery, params);
     }
 
     /**
@@ -124,12 +139,14 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
      * Loads {@code Targets} from a database.
      * @return a {@code Page<Target>} from the database
      */
+    @PostFilter("isAllowed('READ', filterObject)")
     public List<Target> loadTargets(final String clause, final PagingInfo pagingInfo, final List<SortInfo> sortInfos) {
         final String query = addPagingInfoToQuery(addSortInfoToQuery(addClauseToQuery(loadTargetsQuery, clause),
                 sortInfos), pagingInfo);
         return getJdbcTemplate().query(query, TargetParameters.getRowMapper());
     }
 
+    @PostFilter("isAllowed('READ', filterObject)")
     public List<Target> loadTargets(final String clause, final List<SortInfo> sortInfos) {
         final String query = addSortInfoToQuery(addClauseToQuery(loadTargetsQuery, clause), sortInfos);
         return getJdbcTemplate().query(query, TargetParameters.getRowMapper());
@@ -164,7 +181,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
 
         static MapSqlParameterSource getParameters(final Target target) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(TARGET_ID.name(), target.getTargetId());
+            params.addValue(TARGET_ID.name(), target.getId());
             params.addValue(TARGET_NAME.name(), target.getTargetName());
             params.addValue(OWNER.name(), target.getOwner());
             params.addValue(ALIGNMENT_STATUS.name(), target.getAlignmentStatus().getValue());
@@ -180,8 +197,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
         }
 
         static Target parseTarget(final ResultSet rs) throws SQLException {
-            return Target.builder()
-                    .targetId(rs.getLong(TARGET_ID.name()))
+            final Target target = Target.builder()
                     .targetName(rs.getString(TARGET_NAME.name()))
                     .owner(rs.getString(OWNER.name()))
                     .alignmentStatus(AlignmentStatus.getByValue(rs.getInt(ALIGNMENT_STATUS.name())))
@@ -190,6 +206,8 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
                     .products(dataToList(rs.getString(PRODUCTS.name())))
                     .type(TargetType.getByValue(rs.getInt(TYPE.name())))
                     .build();
+            target.setId(rs.getLong(TARGET_ID.name()));
+            return target;
         }
         static ResultSetExtractor<List<Target>> getExtendedRowExtractor() {
             return (rs) -> {

@@ -219,6 +219,9 @@ public class Application {
     @Option(name = "-fl", usage = "Files for permission update",  aliases = {"--files"})
     private String files;
 
+    @Option(name = "-tg", usage = "Targets for permission update",  aliases = {"--targets"})
+    private String targets;
+
     @Option(name = "-u", usage = "Users for permission update",  aliases = {"--users"})
     private String users;
 
@@ -370,6 +373,7 @@ public class Application {
         options.setUsers(users);
         options.setGroups(groups);
         options.setFiles(files);
+        options.setTargets(targets);
         options.setDatasets(datasets);
         if (doNotCreateTabixIndex) {
             options.setCreateTabixIndex(false);

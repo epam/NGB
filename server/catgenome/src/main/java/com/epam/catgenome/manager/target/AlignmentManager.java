@@ -101,7 +101,7 @@ public class AlignmentManager {
                                                 final String secondSequenceId) {
         final Target target = targetManager.getTarget(targetId);
         Assert.isTrue(target.getAlignmentStatus().equals(AlignmentStatus.ALIGNED), "Sequences are not aligned yet.");
-        final String targetDirectory = getTargetDirectory(target.getTargetId());
+        final String targetDirectory = getTargetDirectory(target.getId());
         final String outputPath = getOutputPath(targetDirectory, firstSequenceId, secondSequenceId);
         final File file = new File(outputPath);
         Assert.isTrue(file.exists(), getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND, outputPath));
@@ -130,7 +130,7 @@ public class AlignmentManager {
             return;
         }
 
-        final String targetDirectory = getTargetDirectory(target.getTargetId());
+        final String targetDirectory = getTargetDirectory(target.getId());
         final File dirFile = new File(targetDirectory);
         if (dirFile.exists()) {
             FileUtils.deleteDirectory(dirFile);

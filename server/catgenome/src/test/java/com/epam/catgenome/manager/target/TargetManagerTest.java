@@ -59,7 +59,7 @@ public class TargetManagerTest extends TestCase {
     @Test
     public void createTargetTest() throws IOException {
         final Target target = createTarget(TARGET);
-        final Target createdTarget = targetManager.load(target.getTargetId());
+        final Target createdTarget = targetManager.load(target.getId());
         assertNotNull(createdTarget);
         assertNotNull(createdTarget.getTargetGenes());
     }
@@ -139,10 +139,10 @@ public class TargetManagerTest extends TestCase {
     @Test
     public void deleteTargetTest() throws ParseException, IOException {
         final Target target = createTarget(TARGET);
-        final Target createdTarget = targetManager.load(target.getTargetId());
+        final Target createdTarget = targetManager.load(target.getId());
         assertNotNull(createdTarget);
-        targetManager.delete(target.getTargetId());
-        assertNull(targetManager.load(target.getTargetId()));
+        targetManager.delete(target.getId());
+        assertNull(targetManager.load(target.getId()));
     }
 
     private Target createTarget(final String name, final List<String> products, final List<String> diseases)

@@ -114,7 +114,7 @@ public class TargetIdentificationManagerTest extends TestCase {
                 .build();
         final Target target1 = targetManager.create(target);
         final TargetIdentification identification = TargetIdentification.builder()
-                .targetId(target1.getTargetId())
+                .targetId(target1.getId())
                 .genesOfInterest(Collections.singletonList("ENSG00000133703"))
                 .translationalGenes(Collections.singletonList("ENSFCAG00000011704"))
                 .build();

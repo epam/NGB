@@ -38,5 +38,6 @@ public enum AclClass {
     MAF,
     SEG,
     WIG,
-    BUCKET
+    BUCKET,
+    TARGET
 }

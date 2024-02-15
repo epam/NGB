@@ -27,9 +27,7 @@ package com.epam.ngb.cli.manager.command.handler.http.target;
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.ResponseResult;
-import com.epam.ngb.cli.entity.target.Target;
-import com.epam.ngb.cli.entity.target.TargetGene;
-import com.epam.ngb.cli.entity.target.TargetRegistrationRequest;
+import com.epam.ngb.cli.entity.target.*;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
@@ -63,9 +61,9 @@ public class TargetRegistrationHandler extends AbstractHTTPCommandHandler {
      */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.size() != 4) {
+        if (arguments.size() != 5) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
-                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 4, arguments.size()));
+                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 5, arguments.size()));
         }
 
         final String targetGenesPath = arguments.get(3);
@@ -74,6 +72,7 @@ public class TargetRegistrationHandler extends AbstractHTTPCommandHandler {
                 .products(argToList(arguments.get(1)))
                 .diseases(argToList(arguments.get(2)))
                 .targetGenes(readTargetGenes(targetGenesPath))
+                .type(TargetType.valueOf(arguments.get(4)))
                 .build();
     }
 
@@ -90,7 +89,7 @@ public class TargetRegistrationHandler extends AbstractHTTPCommandHandler {
                 throw new ApplicationException(responseResult.getMessage());
             }
             log.info("Target was successfully registered. ID: " +
-                    responseResult.getPayload().getTargetId() + ".");
+                    responseResult.getPayload().getId() + ".");
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
@@ -119,7 +118,7 @@ public class TargetRegistrationHandler extends AbstractHTTPCommandHandler {
                         .geneName(cells[1])
                         .taxId(Long.parseLong(cells[2]))
                         .speciesName(cells[3])
-                        .priority(Integer.parseInt(cells[4]))
+                        .priority(TargetGenePriority.getByValue(Integer.parseInt(cells[4])))
                         .build();
                 targetGenes.add(targetGene);
             }

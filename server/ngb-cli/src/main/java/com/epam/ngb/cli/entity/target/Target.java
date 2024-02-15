@@ -38,8 +38,10 @@ import java.util.stream.Collectors;
 @Setter
 @Builder
 public class Target implements Printable<Target> {
-    private Long targetId;
+    private Long id;
     private String targetName;
+    private String owner;
+    private TargetType type;
     private List<String> diseases;
     private List<String> products;
     private List<TargetGene> targetGenes;
@@ -70,8 +72,9 @@ public class Target implements Printable<Target> {
     @Override
     public String formatItem(String formatString) {
         return String.format(formatString,
-                targetId,
+                id,
                 targetName,
+                type,
                 products,
                 diseases
         );
@@ -85,8 +88,9 @@ public class Target implements Printable<Target> {
 
     private void getItemFormat(List<Target> table, Map<Target.FieldFormat, Integer> formatMap) {
         for (Target dbs : table) {
-            calculateFieldWidth(formatMap, FieldFormat.TARGET_ID, String.valueOf(dbs.getTargetId()));
+            calculateFieldWidth(formatMap, FieldFormat.TARGET_ID, String.valueOf(dbs.getId()));
             calculateFieldWidth(formatMap, FieldFormat.TARGET_NAME, dbs.getTargetName());
+            calculateFieldWidth(formatMap, FieldFormat.TYPE, dbs.getType().name());
             calculateFieldWidth(formatMap, FieldFormat.PRODUCTS, String.valueOf(dbs.getProducts()));
             calculateFieldWidth(formatMap, FieldFormat.DISEASES, String.valueOf(dbs.getDiseases()));
         }
@@ -108,6 +112,7 @@ public class Target implements Printable<Target> {
     private enum FieldFormat {
         TARGET_ID,
         TARGET_NAME,
+        TYPE,
         PRODUCTS,
         DISEASES;
     }

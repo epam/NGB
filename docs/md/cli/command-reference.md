@@ -1291,6 +1291,68 @@ Deletes a specified PDB file from NGB server.
 $ ngb del_pdb 2
 ```
 
+## Target commands
+### Register target
+```
+ngb reg_target|rt [<NAME>] [<PRODUCTS>] [<DISEASES>] [<TARGET_GENES_PATH>] [<TYPE>]
+
+```
+*Description*
+
+Registers a target. Five arguments have to be specified:
+* Target name
+* Target products
+* Target diseases
+* Target genes path
+* Target type
+
+Products and diseases should be specified as a list of items, separated by comma.
+Target genes should be specified in CSV format:
+```bash
+geneId,geneName,taxId,speciesName,priority
+ENSG00000133703,KRAS,9606,Homo Sapiens,0
+```
+
+*Example*
+```bash
+# Create new target with name "Target", 
+# products "Product1" and "Product2", 
+# diseases "Disease1" and "Disease2" 
+# and genes file path "genes.csv"
+# and type DEFAULT
+$ ngb reg_target "Target" "Product1,Product2" "Disease1,Disease2" "genes.csv" "DEFAULT"
+```
+
+### List targets
+```
+ngb list_targets|lt
+```
+
+*Description*
+
+List all targets registered on NGB server.
+
+*Example*
+```bash
+# List all targets registered on NGB server
+$ ngb list_targets
+```
+
+### Delete target
+```
+ngb del_target|dt [<ID>]
+```
+*Description*
+
+Deletes a specified target from NGB server. One argument has to be specified:
+* target id
+
+*Example*
+```bash
+# Delete target with id 1
+$ ngb del_target 1
+```
+
 ***
 
 ## BAM coverage commands
@@ -1538,6 +1600,7 @@ ngb chmod {mod} [options]
 //Options:
 //-ds|--datasets <DATASET_NAME>[,<DATASET_NAME>...]
 //-fl|--files <FILE_NAME>[,<FILE_NAME>...]
+//-tg|--targets <TARGET_ID>[,<TARGET_ID>...]
 //-u|--users <USER_NAME>[,<USER_NAME>...]
 //-gr|--groups <GROUP_NAME>[,<GROUP_NAME>...]
 ```
@@ -1548,9 +1611,9 @@ Grants or denies permissions on the objects (files and datasets) for specific us
 
 > **Notes**:
 >
-> - One of or both `--datasets`/`--files` shall be specified
+> - One of or all `--datasets`/`--files`/`--targets` shall be specified
 > - One of or both `--users`/`--groups` shall be specified
-> - Operation is NOT recursive, applied only to the specified `--datasets`/`--files`
+> - Operation is NOT recursive, applied only to the specified `--datasets`/`--files`/`--targets`
 
 *Example*
 

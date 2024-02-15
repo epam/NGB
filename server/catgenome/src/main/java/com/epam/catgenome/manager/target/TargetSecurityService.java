@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 
-import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
 @Service
 @RequiredArgsConstructor
@@ -59,11 +59,16 @@ public class TargetSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
+    public List<Target> loadTargets() throws ParseException, IOException {
+        return targetManager.load();
+    }
+
+    @PreAuthorize(ROLE_USER)
     public Target createTarget(final Target target) throws IOException {
         return targetManager.create(target);
     }
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize(ROLE_TARGET_MANAGER + OR + "hasPermissionOnTarget(#targetId, 'WRITE')")
     public void deleteTarget(final long targetId) throws ParseException, IOException {
         targetManager.delete(targetId);
     }
@@ -73,7 +78,7 @@ public class TargetSecurityService {
         return targetManager.loadFieldValues(field);
     }
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize(ROLE_TARGET_MANAGER + OR + "isAllowed('WRITE', filterObject)")
     public Target updateTarget(final Target target) throws TargetUpdateException, IOException {
         return targetManager.update(target);
     }

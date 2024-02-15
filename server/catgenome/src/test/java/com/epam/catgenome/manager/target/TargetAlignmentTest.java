@@ -59,7 +59,7 @@ public class TargetAlignmentTest extends TestCase {
     public void generateAlignmentTest() throws IOException {
         final Target target = createTarget();
         alignmentManager.generateAlignment();
-        final Target alignedTarget = targetManager.getTarget(target.getTargetId());
+        final Target alignedTarget = targetManager.getTarget(target.getId());
         assertNotNull(alignedTarget);
         assertEquals(AlignmentStatus.ALIGNED, alignedTarget.getAlignmentStatus());
     }

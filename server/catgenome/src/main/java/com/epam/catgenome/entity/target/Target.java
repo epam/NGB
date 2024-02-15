@@ -35,7 +35,6 @@ import java.util.List;
 @Setter
 @Builder
 public class Target extends AbstractSecuredEntity {
-    private Long targetId;
     private String targetName;
     private String owner;
     private AlignmentStatus alignmentStatus;

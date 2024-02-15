@@ -31,6 +31,7 @@ import com.epam.ngb.cli.entity.AclSecuredEntry;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.PermissionGrantRequest;
 import com.epam.ngb.cli.entity.Project;
+import com.epam.ngb.cli.entity.target.Target;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.request.RequestManager;
@@ -84,6 +85,7 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
     private List<String> users = Collections.emptyList();
     private List<String> groups = Collections.emptyList();
     private List<BiologicalDataItem> files = Collections.emptyList();
+    private List<Target> targets = Collections.emptyList();
     private List<Project> datasets = Collections.emptyList();
     private String action;
     private String permission;
@@ -131,6 +133,13 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
                     .collect(Collectors.toList());
         }
 
+        if (options.getTargets() != null) {
+            targets = Arrays.stream(options.getTargets().split(","))
+                    .map(f -> loadSilentlyOrWarn(() -> loadTarget(Long.parseLong(f))))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+
         if (options.getDatasets() != null) {
             datasets = Arrays.stream(options.getDatasets().split(","))
                     .map(d -> loadSilentlyOrWarn(() -> loadProjectByName(d)))
@@ -157,6 +166,14 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
                     dataset.getId(), dataset.getClass(), user, true));
             groups.forEach(group -> grantOrDeletePermission(permissions, mask, aclClass,
                     dataset.getId(), dataset.getClass(), group, false));
+        });
+        targets.forEach(target -> {
+            AclClass aclClass = AclClass.TARGET;
+            AclSecuredEntry permissions = loadPermissions(target.getId(), aclClass);
+            users.forEach(user -> grantOrDeletePermission(permissions, mask, aclClass,
+                    target.getId(), target.getClass(), user, true));
+            groups.forEach(group -> grantOrDeletePermission(permissions, mask, aclClass,
+                    target.getId(), target.getClass(), group, false));
         });
         return 0;
     }

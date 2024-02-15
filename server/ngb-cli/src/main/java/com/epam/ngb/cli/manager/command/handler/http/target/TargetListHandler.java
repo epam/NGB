@@ -26,11 +26,13 @@ package com.epam.ngb.cli.manager.command.handler.http.target;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.AclClass;
 import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.entity.target.Target;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
+import com.epam.ngb.cli.manager.command.handler.http.PrintPermissionsHelper;
 import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +52,7 @@ public class TargetListHandler extends AbstractHTTPCommandHandler {
      * json format will be used
      */
     private boolean printTable;
+    private boolean permissionsRequired;
 
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
@@ -58,6 +61,7 @@ public class TargetListHandler extends AbstractHTTPCommandHandler {
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 0, arguments.size()));
         }
         this.printTable = options.isPrintTable();
+        permissionsRequired = options.isShowPermissions();
     }
 
     @Override public int runCommand() {
@@ -83,9 +87,27 @@ public class TargetListHandler extends AbstractHTTPCommandHandler {
             final List<Target> targets = responseResult.getPayload();
             AbstractResultPrinter printer = AbstractResultPrinter
                     .getPrinter(printTable, targets.get(0).getFormatString(targets));
+            if (permissionsRequired) {
+                if (isRoleModelEnable() && isCurrentUserIsAdmin()) {
+                    printWithPermissions(targets, printer);
+                    return 0;
+                } else {
+                    log.info("You are not authorized as admin. --permissions option will be ignored.");
+                }
+            }
             printer.printHeader(targets.get(0));
             targets.forEach(printer::printItem);
         }
         return 0;
+    }
+
+    private void printWithPermissions(final List<Target> targets, final AbstractResultPrinter printer) {
+        targets.forEach(target -> {
+            printer.printHeader(target);
+            printer.printItem(target);
+
+            PrintPermissionsHelper permissionsHelper = new PrintPermissionsHelper(this, printTable);
+            permissionsHelper.print(target.getId(), AclClass.TARGET.name());
+        });
     }
 }
