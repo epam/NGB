@@ -50,6 +50,7 @@ import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.entity.SpeciesEntity;
 import com.epam.ngb.cli.entity.UserContext;
+import com.epam.ngb.cli.entity.target.Target;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -683,7 +684,23 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         } catch (IOException e) {
             throw new ApplicationException(getMessage(ERROR_PROJECT_NOT_FOUND, datasetId));
         }
+    }
 
+    protected Target loadTarget(final Long targetId) {
+        HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
+                + String.format(serverParameters.getTargetLoadByIdUrl(), targetId));
+        String result = RequestManager.executeRequest(request);
+        try {
+            ResponseResult<Target> responseResult = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructParametrizedType(
+                            ResponseResult.class, ResponseResult.class, Target.class));
+            if (responseResult == null || responseResult.getPayload() == null) {
+                throw new ApplicationException(getMessage(ERROR_TARGET_NOT_FOUND, targetId));
+            }
+            return responseResult.getPayload();
+        } catch (IOException e) {
+            throw new ApplicationException(getMessage(ERROR_TARGET_NOT_FOUND, targetId));
+        }
     }
 
     /**

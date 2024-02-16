@@ -45,7 +45,8 @@ public enum DefaultRoles {
     ROLE_BED_MANAGER(new Role(7L, "ROLE_BED_MANAGER", true, false)),
     ROLE_WIG_MANAGER(new Role(8L, "ROLE_WIG_MANAGER", true, false)),
     ROLE_SEG_MANAGER(new Role(9L, "ROLE_SEG_MANAGER", true, false)),
-    ROLE_HEATMAP_MANAGER(new Role(null, "ROLE_HEATMAP_MANAGER", true, false));
+    ROLE_HEATMAP_MANAGER(new Role(null, "ROLE_HEATMAP_MANAGER", true, false)),
+    ROLE_TARGET_MANAGER(new Role(null, "ROLE_TARGET_MANAGER", true, false));
     private Role role;
 
     public Long getId() {

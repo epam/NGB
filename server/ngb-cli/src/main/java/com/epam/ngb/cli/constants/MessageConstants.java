@@ -60,6 +60,7 @@ public final class MessageConstants {
     public static final String SEVERAL_RESULTS_FOR_QUERY =  "Found several results for a query \"%s\".";
     public static final String ERROR_FILE_NOT_FOUND = "Failed to find a file by name: %s.";
     public static final String ERROR_PROJECT_NOT_FOUND = "Failed to find a dataset by ID: %d.";
+    public static final String ERROR_TARGET_NOT_FOUND = "Failed to find a target by ID: %d.";
     public static final String ERROR_DATAITEM_FORMATS_NOT_FOUND = "Failed to load available DataItemFormats.";
     public static final String ERROR_FILES_NOT_REGISTERED = "Failed to register files: %s.";
     public static final String ERROR_NEGATIVE_MEMORY = "Max memory value must be positive";
@@ -68,6 +69,7 @@ public final class MessageConstants {
     public static final String ERROR_FAILED_TO_LOAD_USER = "Failed to load current user";
     public static final String INFO_SORT_SUCCESS = "File is successfully sorted and placed to [%s].";
     public static final String ERROR_ROLE_MODEL_IS_NOT_SUPPORTED = "Role model is not supported on the server!";
+    public static final String ERROR_INCORRECT_FILE_FORMAT = "Incorrect file format";
 
 
     private MessageConstants(){

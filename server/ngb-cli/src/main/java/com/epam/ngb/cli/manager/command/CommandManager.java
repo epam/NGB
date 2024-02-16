@@ -56,6 +56,7 @@ public class CommandManager {
     private static final String REGISTRATION_URL_PROPERTY = "register_url";
     private static final String PROJECT_URL_PROPERTY = "project_url";
     private static final String PROJECT_URL_BY_ID_PROPERTY = "project_load_url";
+    private static final String TARGET_URL_BY_ID_PROPERTY = "target_load_url";
     private static final String FIND_FILE_URL_PROPERTY = "find_url";
     private static final String PROJECT_TREE_URL_PROPERTY = "project_load_tree";
     private static final String VERSION_URL_PROPERTY = "version_url";
@@ -148,6 +149,7 @@ public class CommandManager {
         parameters.setRegistrationUrl(serverProperties.getProperty(REGISTRATION_URL_PROPERTY));
         parameters.setProjectLoadUrl(serverProperties.getProperty(PROJECT_URL_PROPERTY));
         parameters.setProjectLoadByIdUrl(serverProperties.getProperty(PROJECT_URL_BY_ID_PROPERTY));
+        parameters.setTargetLoadByIdUrl(serverProperties.getProperty(TARGET_URL_BY_ID_PROPERTY));
         parameters.setFileFindUrl(serverProperties.getProperty(FIND_FILE_URL_PROPERTY));
         parameters.setVersionUrl(serverProperties.getProperty(VERSION_URL_PROPERTY));
         parameters.setServerVersion(serverProperties.getProperty(SERVER_VERSION_PROPERTY));

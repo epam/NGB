@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2018 EPAM Systems
+ * Copyright (c) 2024 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,23 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.epam.ngb.cli.entity.target;
 
-package com.epam.ngb.cli.entity;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-/**
- * Represents an supported acl classes
- */
-public enum AclClass {
-    REFERENCE,
-    SPECIES,
-    PROJECT,
-    BAM,
-    BED,
-    VCF,
-    GENE,
-    MAF,
-    SEG,
-    WIG,
-    BUCKET,
-    TARGET
+import java.util.HashMap;
+import java.util.Map;
+
+@AllArgsConstructor
+@Getter
+public enum TargetGenePriority {
+    HIGH(100, "High"),
+    LOW(0, "Low");
+
+    private final int value;
+    private final String name;
+    private static final int HIGH_VALUE = 100;
+    private static final Map<Integer, TargetGenePriority> VALUES_MAP = new HashMap<>();
+
+    static {
+        VALUES_MAP.put(0, LOW);
+        VALUES_MAP.put(HIGH_VALUE, HIGH);
+    }
+
+    public static TargetGenePriority getByValue(int id) {
+        return VALUES_MAP.get(id);
+    }
 }

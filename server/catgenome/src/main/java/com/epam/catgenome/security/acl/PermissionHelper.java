@@ -44,6 +44,7 @@ import com.epam.catgenome.manager.lineage.LineageTreeManager;
 import com.epam.catgenome.manager.project.ProjectDescriptionService;
 import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.manager.target.TargetManager;
 import com.epam.catgenome.manager.user.UserManager;
 import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.security.UserContext;
@@ -121,6 +122,9 @@ public class PermissionHelper {
 
     @Autowired
     private LineageTreeManager lineageTreeManager;
+
+    @Autowired
+    private TargetManager targetManager;
 
     @Autowired
     private ProjectDescriptionService projectDescriptionService;

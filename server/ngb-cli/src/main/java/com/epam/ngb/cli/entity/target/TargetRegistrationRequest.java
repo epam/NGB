@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2018 EPAM Systems
+ * Copyright (c) 2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,22 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.entity;
+package com.epam.ngb.cli.entity.target;
 
-/**
- * Represents an supported acl classes
- */
-public enum AclClass {
-    REFERENCE,
-    SPECIES,
-    PROJECT,
-    BAM,
-    BED,
-    VCF,
-    GENE,
-    MAF,
-    SEG,
-    WIG,
-    BUCKET,
-    TARGET
+import com.epam.ngb.cli.entity.RequestPayload;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+
+@Getter
+@Setter
+@Builder
+public class TargetRegistrationRequest implements RequestPayload {
+    private String targetName;
+    private List<String> products;
+    private List<String> diseases;
+    private List<TargetGene> targetGenes;
+    private TargetType type;
 }

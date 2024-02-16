@@ -120,7 +120,7 @@ public class ProteinPatentsManager {
 
         proteins.forEach((k, v) -> {
             try {
-                blastTaskManager.create(getTaskVO(getTaskName(target.getTargetId(), k), v, databaseId));
+                blastTaskManager.create(getTaskVO(getTaskName(target.getId(), k), v, databaseId));
             } catch (BlastRequestException e) {
                 log.error("Can't create protein patents search task", e);
             }

@@ -178,5 +178,14 @@
                 ]]>
             </value>
         </property>
+        <property name="updateOwnerQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.target_id
+                    SET owner = :OWNER
+                    WHERE target_id = :TARGET_ID
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>

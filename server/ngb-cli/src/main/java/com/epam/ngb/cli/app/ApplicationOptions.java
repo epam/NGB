@@ -104,6 +104,8 @@ public class ApplicationOptions {
 
     private String files;
 
+    private String targets;
+
     private String users;
 
     private String groups;

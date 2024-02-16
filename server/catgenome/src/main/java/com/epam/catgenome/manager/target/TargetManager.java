@@ -28,9 +28,13 @@ import com.epam.catgenome.dao.target.TargetDao;
 import com.epam.catgenome.dao.target.TargetGeneDao;
 import com.epam.catgenome.dao.target.TargetIdentificationDao;
 import com.epam.catgenome.entity.BaseEntity;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.entity.target.*;
 import com.epam.catgenome.exception.TargetUpdateException;
 import com.epam.catgenome.manager.AuthManager;
+import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.security.acl.aspect.AclSync;
 import com.epam.catgenome.util.db.Condition;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
@@ -59,9 +63,10 @@ import static com.epam.catgenome.util.Utils.*;
 import static com.epam.catgenome.util.db.DBQueryUtils.*;
 import static org.apache.commons.lang3.StringUtils.join;
 
+@AclSync
 @Service
 @RequiredArgsConstructor
-public class TargetManager {
+public class TargetManager implements SecuredEntityManager {
 
     private static final String TARGET_NAME = "target_name";
     private static final String TARGET_ID = "t.target_id";
@@ -86,8 +91,7 @@ public class TargetManager {
         target.setPatentsSearchStatus(PatentsSearchStatus.NOT_STARTED);
         final Target createdTarget = targetDao.saveTarget(target);
         if (isDefault(target)) {
-            final List<TargetGene> targetGenes = targetGeneDao.saveTargetGenes(target.getTargetGenes(),
-                    target.getTargetId());
+            final List<TargetGene> targetGenes = targetGeneDao.saveTargetGenes(target.getTargetGenes(), target.getId());
             createdTarget.setTargetGenes(targetGenes);
         }
         return createdTarget;
@@ -96,7 +100,7 @@ public class TargetManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public Target update(final Target target) throws TargetUpdateException, IOException {
         if (isDefault(target)) {
-            final Target oldTarget = getTarget(target.getTargetId());
+            final Target oldTarget = getTarget(target.getId());
             final List<String> genesToDelete = getGenesToDelete(target, oldTarget);
             if (!CollectionUtils.isEmpty(genesToDelete)) {
                 final List<TargetIdentification> targetIdentifications = oldTarget.getIdentifications();
@@ -127,11 +131,10 @@ public class TargetManager {
                     }
                 }
             }
-            targetGeneDao.deleteTargetGenes(target.getTargetId());
+            targetGeneDao.deleteTargetGenes(target.getId());
         }
         final Target updatedTarget = create(target);
-        updatedTarget.setIdentifications(
-                targetIdentificationDao.loadTargetIdentifications(updatedTarget.getTargetId()));
+        updatedTarget.setIdentifications(targetIdentificationDao.loadTargetIdentifications(updatedTarget.getId()));
         return updatedTarget;
     }
 
@@ -146,7 +149,7 @@ public class TargetManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void delete(final long targetId) throws ParseException, IOException {
+    public Target delete(final long targetId) throws ParseException, IOException {
         final Target target = getTarget(targetId);
         targetIdentificationDao.deleteTargetIdentifications(targetId);
         if (isDefault(target)) {
@@ -155,27 +158,34 @@ public class TargetManager {
             targetGeneManager.delete(targetId);
         }
         targetDao.deleteTarget(targetId);
-    }
-
-    public Target getTarget(final long targetId) {
-        final Target target = load(targetId);
-        Assert.notNull(target, getMessage(MessagesConstants.ERROR_TARGET_NOT_FOUND, targetId));
         return target;
     }
 
-    public Target load(final long targetId) {
-        final Target target = targetDao.loadTarget(targetId);
+    public Target getTarget(final long id) {
+        final Target target = load(id);
+        Assert.notNull(target, getMessage(MessagesConstants.ERROR_TARGET_NOT_FOUND, id));
+        return target;
+    }
+
+    @Override
+    public Target load(final Long id) {
+        final Target target = targetDao.loadTarget(id);
         if (target != null) {
             final List<TargetIdentification> identifications =
-                    targetIdentificationDao.loadTargetIdentifications(target.getTargetId());
+                    targetIdentificationDao.loadTargetIdentifications(target.getId());
             target.setIdentifications(identifications);
         }
-        return target;
+        return targetDao.loadTarget(id);
+    }
+
+    public List<Target> load() {
+        return targetDao.loadAllTargets();
     }
 
     public Page<Target> load(final TargetQueryParams targetQueryParams) {
         final String clause = getFilterClause(targetQueryParams);
-        final long totalCount = targetDao.getTotalCount(clause);
+        final List<Target> allTargets = targetDao.loadTargets(clause, null);
+        final long totalCount = allTargets.size();
         final SortInfo sortInfo = targetQueryParams.getSortInfo() != null ?
                 targetQueryParams.getSortInfo() : SortInfo.builder()
                 .field(TARGET_NAME)
@@ -184,15 +194,15 @@ public class TargetManager {
         final List<Target> targets = targetDao.loadTargets(clause,
                 targetQueryParams.getPagingInfo(),
                 Collections.singletonList(sortInfo));
-        final Set<Long> targetIds = targets.stream().map(Target::getTargetId).collect(Collectors.toSet());
+        final Set<Long> targetIds = targets.stream().map(Target::getId).collect(Collectors.toSet());
         final List<TargetGene> targetGenes = targetGeneDao.loadTargetGenes(targetIds);
         final List<TargetIdentification> identifications = getIdentifications(targetIds);
         for (Target t: targets) {
             t.setTargetGenes(targetGenes.stream()
-                    .filter(g -> g.getTargetId().equals(t.getTargetId()))
+                    .filter(g -> g.getTargetId().equals(t.getId()))
                     .collect(Collectors.toList()));
             t.setIdentifications(identifications.stream()
-                    .filter(g -> g.getTargetId().equals(t.getTargetId()))
+                    .filter(g -> g.getTargetId().equals(t.getId()))
                     .collect(Collectors.toList()));
         }
         return Page.<Target>builder()
@@ -350,5 +360,18 @@ public class TargetManager {
 
     private static boolean isDefault(final Target target) {
         return target.getType() == TargetType.DEFAULT;
+    }
+
+    @Override
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+        final Target target = load(id);
+        targetDao.updateOwner(id, owner);
+        target.setOwner(owner);
+        return target;
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.TARGET;
     }
 }

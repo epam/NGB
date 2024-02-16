@@ -40,6 +40,7 @@ public class ServerParameters {
     private String projectTreeUrl;
     private String versionUrl;
     private String projectLoadByIdUrl;
+    private String targetLoadByIdUrl;
     private String fileFindUrl;
     private String allRolesUrl;
     private String roleUrl;

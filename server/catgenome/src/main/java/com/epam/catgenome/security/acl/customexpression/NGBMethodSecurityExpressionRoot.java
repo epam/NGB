@@ -62,6 +62,15 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         return permissionHelper.isAllowed(permission, item);
     }
 
+    public boolean isAllowed(String permissionName, Object target) {
+        AbstractSecuredEntity entity = (AbstractSecuredEntity) target;
+        List<Sid> sids = permissionHelper.getSids();
+        if (permissionHelper.isAdmin(sids) || permissionHelper.isOwner(entity)) {
+            return true;
+        }
+        return permissionHelper.isAllowed(permissionName, entity.getId(), entity.getClass().getCanonicalName());
+    }
+
     public boolean isAllowed(final Long entityId, final AclClass entityClass, final String permission) {
         return permissionHelper.isAllowed(permission, entityId, entityClass);
     }
@@ -200,6 +209,10 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
 
     public boolean hasPermissionByBioItemId(Long bioItemId, String permission) {
         return permissionHelper.isAllowedByBioItemId(permission, bioItemId);
+    }
+
+    public boolean hasPermissionOnTarget(final long targetId, final String permission) {
+        return isAllowed(targetId, AclClass.TARGET, permission);
     }
 
     @Override

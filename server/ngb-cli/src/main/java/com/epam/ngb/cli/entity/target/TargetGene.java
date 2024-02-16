@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2018 EPAM Systems
+ * Copyright (c) 2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,23 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.epam.ngb.cli.entity.target;
 
-package com.epam.ngb.cli.entity;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * Represents an supported acl classes
- */
-public enum AclClass {
-    REFERENCE,
-    SPECIES,
-    PROJECT,
-    BAM,
-    BED,
-    VCF,
-    GENE,
-    MAF,
-    SEG,
-    WIG,
-    BUCKET,
-    TARGET
+@Getter
+@Setter
+@Builder
+public class TargetGene {
+    private Long targetGeneId;
+    private Long targetId;
+    private String geneId;
+    private String geneName;
+    private Long taxId;
+    private String speciesName;
+    private TargetGenePriority priority;
 }

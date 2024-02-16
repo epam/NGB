@@ -33,6 +33,7 @@ public final class SecurityExpressions {
     public static final String ROLE_USER = "hasRole('USER')";
     public static final String ROLE_ADMIN = "hasRole('ADMIN')";
     public static final String ROLE_HEATMAP_MANAGER = "hasRole('ROLE_HEATMAP_MANAGER')";
+    public static final String ROLE_TARGET_MANAGER = "hasRole('ROLE_TARGET_MANAGER')";
     public static final String ROLE_LINEAGE_TREE_MANAGER = "hasRole('ROLE_LINEAGE_TREE_MANAGER')";
     public static final String ROLE_PATHWAY_MANAGER = "hasRole('ROLE_PATHWAY_MANAGER')";
     public static final String ROLE_PROJECT_MANAGER = "hasRole('PROJECT_MANAGER')";
