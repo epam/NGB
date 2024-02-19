@@ -41,7 +41,6 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -139,14 +138,12 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
      * Loads {@code Targets} from a database.
      * @return a {@code Page<Target>} from the database
      */
-    @PostFilter("isAllowed('READ', filterObject)")
     public List<Target> loadTargets(final String clause, final PagingInfo pagingInfo, final List<SortInfo> sortInfos) {
         final String query = addPagingInfoToQuery(addSortInfoToQuery(addClauseToQuery(loadTargetsQuery, clause),
                 sortInfos), pagingInfo);
         return getJdbcTemplate().query(query, TargetParameters.getRowMapper());
     }
 
-    @PostFilter("isAllowed('READ', filterObject)")
     public List<Target> loadTargets(final String clause, final List<SortInfo> sortInfos) {
         final String query = addSortInfoToQuery(addClauseToQuery(loadTargetsQuery, clause), sortInfos);
         return getJdbcTemplate().query(query, TargetParameters.getRowMapper());

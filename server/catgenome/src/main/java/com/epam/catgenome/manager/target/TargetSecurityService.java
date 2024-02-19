@@ -26,9 +26,9 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.exception.TargetUpdateException;
-import com.epam.catgenome.util.db.Page;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -49,17 +49,25 @@ public class TargetSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public Page<Target> loadTargets(final TargetQueryParams queryParameters) {
+    @PostFilter("isAllowed('READ', filterObject)")
+    public List<Target> loadTargets(final TargetQueryParams queryParameters) {
         return targetManager.load(queryParameters);
     }
 
     @PreAuthorize(ROLE_USER)
+    @PostFilter("isAllowed('READ', filterObject)")
+    public List<Target> loadAllPages(final TargetQueryParams queryParameters) {
+        return targetManager.loadAllPages(queryParameters);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    @PostFilter("isAllowed('READ', filterObject)")
     public List<Target> loadTargets(final String geneName, final Long taxId) throws ParseException, IOException {
         return targetManager.load(geneName, taxId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<Target> loadTargets() throws ParseException, IOException {
+    public List<Target> loadTargets() {
         return targetManager.load();
     }
 
@@ -78,7 +86,7 @@ public class TargetSecurityService {
         return targetManager.loadFieldValues(field);
     }
 
-    @PreAuthorize(ROLE_TARGET_MANAGER + OR + "isAllowed('WRITE', filterObject)")
+    @PreAuthorize(ROLE_TARGET_MANAGER + OR + "hasPermissionOnTarget(#target.id, 'WRITE')")
     public Target updateTarget(final Target target) throws TargetUpdateException, IOException {
         return targetManager.update(target);
     }
