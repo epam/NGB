@@ -57,8 +57,13 @@ public class CustomLLMHandler implements LLMHandler {
 
     @Override
     public String getSummary(final String text, final double temperature) {
+        return getSummary(promptTemplate, text, temperature);
+    }
+
+    @Override
+    public String getSummary(final String prompt, final String text, final double temperature) {
         Assert.notNull(api, "Custom LLM api is not configured.");
-        return QueryUtils.execute(api.chatMessage(new CustomLLMMessage(buildPrompt(promptTemplate, text, promptSize))))
+        return QueryUtils.execute(api.chatMessage(new CustomLLMMessage(buildPrompt(prompt, text, promptSize))))
                 .getResponse();
     }
 

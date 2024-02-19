@@ -38,6 +38,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +52,8 @@ import java.util.stream.Collectors;
 @Service
 public class GooglePatentManager {
 
+    private static final int PAGE_SIZE = 10;
+    private static final int MAX_SEARCH_RESULTS = 100;
     private final CustomSearchAPI api;
     private final List<String> keywords;
     private final String searchHost;
@@ -76,18 +79,75 @@ public class GooglePatentManager {
 
     @SneakyThrows
     public SearchResult<GooglePatent> getProteinPatentsGoogle(final PatentsSearchRequest request) {
+        final Search result = getSearch(buildTargetQuery(request.getName()),
+                request.getPageSize() * (request.getPage() - 1) + 1,
+                request.getPageSize());
+
+        final List<GooglePatent> items = mapPatents(result);
+        return new SearchResult<>(items, Integer.parseInt(result.getSearchInformation().getTotalResults()));
+    }
+
+
+    public List<GooglePatent> getAllPatents(final String query) {
+        final List<GooglePatent> result = new ArrayList<>();
+        final String fullQuery = buildTargetQuery(query);
+        Search currentSearch = getSearch(fullQuery, 1L, PAGE_SIZE);
+        result.addAll(mapPatents(currentSearch));
+        while (CollectionUtils.isNotEmpty(currentSearch.getQueries().getNextPage())) {
+            final Search.Queries.NextPage nextPage = currentSearch.getQueries().getNextPage().get(0);
+            if (nextPage.getStartIndex() >= MAX_SEARCH_RESULTS) {
+                break;
+            }
+            currentSearch = getSearch(fullQuery, nextPage.getStartIndex(), PAGE_SIZE);
+            result.addAll(mapPatents(currentSearch));
+        }
+        return result;
+    }
+
+    @SneakyThrows
+    private Search getSearch(final String query,
+                             final long startIndex,
+                             final int pageSize) {
         final CustomSearchAPI.Cse.List list = api.cse().list();
-        list.setNum(request.getPageSize());
-        list.setStart(request.getPageSize() * (request.getPage() - 1) + 1L);
+        list.setNum(pageSize);
+        list.setStart(startIndex);
         list.setCx(searchEngine);
-        list.setQ(buildTargetQuery(request.getName()));
+        list.setQ(query);
         list.setSiteSearch(searchHost);
         list.setSiteSearchFilter("i");
         list.setKey(apiKey);
+        return list.execute();
+    }
 
-        Search result = list.execute();
+    private Map<String, String> getMetaInfo(final Map<String, Object> pageName,
+                                            final String name) {
+        final Object metatags = pageName.get(name);
+        if (metatags instanceof List) {
+            final List<ArrayMap<String, String>> list = (List<ArrayMap<String, String>>) metatags;
+            if (CollectionUtils.isEmpty(list)) {
+                return Collections.emptyMap();
+            }
+            return list.get(0);
+        } else {
+            return Collections.emptyMap();
+        }
+    }
 
-        List<GooglePatent> items = ListUtils.emptyIfNull(result.getItems())
+    private String buildTargetQuery(final String input) {
+        final String lowerCase = input.toLowerCase();
+        final List<String> terms = new ArrayList<>();
+        terms.add(input);
+        ListUtils.emptyIfNull(keywords).forEach(keyword -> {
+            if (!StringUtils.containsIgnoreCase(lowerCase, keyword)) {
+                terms.add(keyword);
+            }
+        });
+        return String.format("(%s)", String.join(" ", terms));
+    }
+
+    @NotNull
+    private List<GooglePatent> mapPatents(Search result) {
+        return ListUtils.emptyIfNull(result.getItems())
                 .stream()
                 .map(item -> {
                     final Map<String, Object> pageName = MapUtils.emptyIfNull(item.getPagemap());
@@ -117,32 +177,6 @@ public class GooglePatentManager {
                             .build();
                 })
                 .collect(Collectors.toList());
-        return new SearchResult<>(items, Integer.parseInt(result.getSearchInformation().getTotalResults()));
     }
 
-    private Map<String, String> getMetaInfo(final Map<String, Object> pageName,
-                                            final String name) {
-        final Object metatags = pageName.get(name);
-        if (metatags instanceof List) {
-            final List<ArrayMap<String, String>> list = (List<ArrayMap<String, String>>) metatags;
-            if (CollectionUtils.isEmpty(list)) {
-                return Collections.emptyMap();
-            }
-            return list.get(0);
-        } else {
-            return Collections.emptyMap();
-        }
-    }
-
-    private String buildTargetQuery(final String input) {
-        final String lowerCase = input.toLowerCase();
-        final List<String> terms = new ArrayList<>();
-        terms.add(input);
-        ListUtils.emptyIfNull(keywords).forEach(keyword -> {
-            if (!StringUtils.containsIgnoreCase(lowerCase, keyword)) {
-                terms.add(keyword);
-            }
-        });
-        return String.format("(%s)", String.join(" ", terms));
-    }
 }

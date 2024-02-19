@@ -36,7 +36,12 @@ public class OpenAIChatGPT40 implements LLMHandler {
 
     @Override
     public String getSummary(String text, double temperature) {
-        return openAIClient.getChatCompletion(buildPrompt(promptTemplate, text, promptSize),
+        return getSummary(promptTemplate, text, temperature);
+    }
+
+    @Override
+    public String getSummary(final String prompt, final String text, final double temperature) {
+        return openAIClient.getChatCompletion(buildPrompt(prompt, text, promptSize),
                 responseSize, modelName, temperature);
     }
 

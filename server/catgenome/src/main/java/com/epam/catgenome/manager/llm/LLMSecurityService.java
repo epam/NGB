@@ -55,4 +55,12 @@ public class LLMSecurityService {
                                   final double temperature) {
         return llmService.getChatResponse(messages, provider, maxSize, temperature);
     }
+
+    @PreAuthorize(ROLE_USER)
+    public String getPatentSummary(final String query,
+                                   final LLMProvider provider,
+                                   final int maxSize,
+                                   final double temperature) {
+        return llmService.getPatentSummary(query, provider, maxSize, temperature);
+    }
 }

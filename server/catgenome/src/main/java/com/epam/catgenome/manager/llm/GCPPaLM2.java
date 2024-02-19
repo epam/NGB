@@ -68,9 +68,14 @@ public class GCPPaLM2 implements LLMHandler {
     @Override
     public String getSummary(final String text,
                              final double temperature) {
+        return getSummary(promptTemplate, text, temperature);
+    }
+
+    @Override
+    public String getSummary(final String prompt, final String text, final double temperature) {
         Assert.isTrue(StringUtils.isNotBlank(project), "Project is not configured for GCP request");
         final String instance =
-                String.format("{ \"prompt\": \"%s\"}", buildPrompt(promptTemplate, text, promptSize));
+                String.format("{ \"prompt\": \"%s\"}", buildPrompt(prompt, text, promptSize));
 
         final String parameters =
                 String.format("{\"temperature\": %.2f,\"maxOutputTokens\": %d,\"topP\": 0.95,\"topK\": 40}",

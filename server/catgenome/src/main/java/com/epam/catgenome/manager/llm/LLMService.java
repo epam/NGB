@@ -25,11 +25,15 @@
 package com.epam.catgenome.manager.llm;
 
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
+import com.epam.catgenome.entity.externaldb.patents.google.GooglePatent;
 import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMProvider;
 import com.epam.catgenome.manager.externaldb.PubMedService;
+import com.epam.catgenome.manager.externaldb.patents.GooglePatentManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -43,11 +47,17 @@ import java.util.stream.Collectors;
 public class LLMService {
 
     private final PubMedService pubmedService;
+    private final GooglePatentManager patentManager;
     private final Map<LLMProvider, LLMHandler> handlers;
+    private final String patentPrompt;
 
     public LLMService(final List<LLMHandler> handlers,
-                      final PubMedService pubmedService) {
+                      final GooglePatentManager patentManager,
+                      final PubMedService pubmedService,
+                      final @Value("${llm.patent.prompt:}") String patentPrompt) {
         this.pubmedService = pubmedService;
+        this.patentManager = patentManager;
+        this.patentPrompt = patentPrompt;
         this.handlers = ListUtils.emptyIfNull(handlers).stream()
                 .collect(Collectors.toMap(LLMHandler::getProvider, Function.identity()));
     }
@@ -59,6 +69,15 @@ public class LLMService {
         return getHandler(provider)
                 .getSummary(pubmedService.getArticleAbstracts(pubMedIDs), temperature);
     }
+
+    public String getPatentSummary(final String query,
+                                   final LLMProvider provider,
+                                   final int maxSize,
+                                   final double temperature) {
+        return getHandler(provider)
+                .getSummary(patentPrompt, builtPatentText(patentManager.getAllPatents(query)), temperature);
+    }
+
 
     public String getGeneArticleSummary(final List<String> geneIds,
                                         final LLMProvider provider,
@@ -82,4 +101,21 @@ public class LLMService {
         Assert.notNull(handler, provider + " is not supported.");
         return handler;
     }
+
+    private String builtPatentText(final List<GooglePatent> patents) {
+        return ListUtils.emptyIfNull(patents)
+                .stream()
+                .map(patent -> {
+                    final StringBuilder result = new StringBuilder();
+                    final String description = StringUtils.defaultString(patent.getDescription(), patent.getSnippet());
+                    result.append("Patent: ")
+                            .append(patent.getFullTitle())
+                            .append(' ')
+                            .append(description)
+                            .append(" Link: ")
+                            .append(patent.getLink());
+                    return result.toString();
+                }).collect(Collectors.joining("\n"));
+    }
+
 }

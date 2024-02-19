@@ -36,6 +36,7 @@ public interface LLMHandler {
     int TOKEN_TO_CHAR = 4;
 
     String getSummary(String text, double temperature);
+    String getSummary(String prompt, String text, double temperature);
     String getChatResponse(List<LLMMessage> messages, double temperature);
 
     LLMProvider getProvider();

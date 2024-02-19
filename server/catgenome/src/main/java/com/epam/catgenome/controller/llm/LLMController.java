@@ -35,6 +35,7 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -63,6 +64,22 @@ public class LLMController extends AbstractRESTController {
             @RequestParam(required = false, defaultValue = "500") final int maxSize,
             @RequestParam(required = false, defaultValue = "0.3") final double temperature) {
         return Result.success(llmSecurityService.getArticleSummary(pubMedIDs, provider, maxSize, temperature));
+    }
+
+    @GetMapping(value = "/llm/patent")
+    @ApiOperation(
+            value = "Returns summary over google patents",
+            notes = "Returns summary over google patents",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<String> getPatentSummary(
+            @RequestParam String query,
+            @RequestParam(required = false, defaultValue = "OPENAI_GPT_35") final LLMProvider provider,
+            @RequestParam(required = false, defaultValue = "500") final int maxSize,
+            @RequestParam(required = false, defaultValue = "0.3") final double temperature) {
+        return Result.success(llmSecurityService.getPatentSummary(query, provider, maxSize, temperature));
     }
 
     @PostMapping(value = "/llm/chat")
