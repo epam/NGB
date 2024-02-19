@@ -52,8 +52,8 @@ export default class ngbTargetsTableMenuController {
     async editTarget(event, target) {
         event.preventDefault();
         event.stopPropagation();
-        if (!target.targetId) return;
-        await this.ngbTargetsFormService.getTarget(target.targetId);
+        if (!target.id) return;
+        await this.ngbTargetsFormService.getTarget(target.id);
         this.dispatcher.emit('target:diseases:show:targets:tab');
     }
 

@@ -142,7 +142,7 @@ export default class ngbTargetsTableService {
     setTargetsResult(data) {
         this.targetsResults = [...(data || []).map(item => (
             {
-                id: item.targetId,
+                id: item.id,
                 name: item.targetName,
                 type: item.type,
                 genes: {
