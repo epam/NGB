@@ -1,0 +1,16 @@
+<div class="ui-grid-cell-contents ng-binding ng-scope">
+    <md-tooltip class="patent-cell-tooltip"
+                md-direction="top">
+        {{row.entity[col.field]}}
+    </md-tooltip>
+    <span class="link-cell"
+          ng-if="row.entity && (row.entity['link'])">
+    <a ng-href="{{row.entity['link']}}" target="_blank">
+        {{row.entity[col.field]}}
+    </a>
+    </span>
+        <span class="link-cell"
+              ng-if="row.entity && !row.entity['link']">
+        {{row.entity[col.field]}}
+    </span>
+</div>

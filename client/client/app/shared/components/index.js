@@ -18,6 +18,7 @@ import ngbTags from './ngbTags';
 import ngbChat from './ngbChat';
 import ngbLLM from './ngbLLM';
 import ngbFloatingPanel from './ngbFloatingPanel';
+import ngbPagination from './ngbPagination';
 
 export default angular.module('SharedComponents', [
     ngbGoldenLayout,
@@ -37,4 +38,5 @@ export default angular.module('SharedComponents', [
     ngbChat,
     ngbLLM,
     ngbFloatingPanel,
+    ngbPagination,
 ]).name;

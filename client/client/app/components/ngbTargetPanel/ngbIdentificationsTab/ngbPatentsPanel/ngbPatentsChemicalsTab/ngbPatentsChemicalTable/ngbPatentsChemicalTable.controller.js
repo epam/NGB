@@ -104,45 +104,40 @@ export default class ngbPatentsChemicalTableController {
 
         const result = [];
         const columnsList = this.ngbPatentsChemicalsTabService.getColumnList();
+        const getColumnConfig = (column) => {
+          if (typeof column === 'string') {
+              return {
+                  field: column,
+                  title: column,
+              };
+          }
+          return column;
+        };
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
-            const column = columnsList[i];
+            const {field, title, cellTemplate = tooltipCell} = getColumnConfig(columnsList[i]);
             columnSettings = {
-                name: column,
-                displayName: column,
+                name: field,
+                displayName: title,
                 enableHiding: false,
                 enableColumnMenu: false,
                 enableSorting: false,
                 enableFiltering: false,
-                field: column,
-                headerTooltip: column,
+                field,
+                headerTooltip: title,
                 headerCellTemplate: headerCells,
                 minWidth: 40,
-                width: '*'
+                width: '*',
+                cellTemplate,
             };
-            switch (column) {
+            switch (field) {
                 case 'CID':
                     columnSettings = {
                         ...columnSettings,
                         cellTemplate: linkCell,
                     };
                     break;
-                case 'Name':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: tooltipCell
-                    };
-                    break;
-                case 'IUPAC name':
-                    columnSettings = {
-                        ...columnSettings,
-                        cellTemplate: tooltipCell
-                    };
-                    break;
                 default:
-                    columnSettings = {
-                        ...columnSettings,
-                    };
                     break;
             }
             if (columnSettings) {

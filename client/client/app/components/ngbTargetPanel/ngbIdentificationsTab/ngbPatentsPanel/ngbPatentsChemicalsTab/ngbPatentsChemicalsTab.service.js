@@ -1,3 +1,6 @@
+import {GOOGLE_PATENTS_SOURCE} from '../ngbPatentsPanel.service';
+import {mapGooglePatentsData} from '../utilities/map-google-patents-data';
+
 const SEARCH_BY_OPTIONS = {
     name: 'name',
     structure: 'structure',
@@ -12,6 +15,48 @@ const PAGE_SIZE = 20;
 
 const DRUG_COLUMNS = ['CID', 'Name', 'Molecular formula', 'IUPAC name'];
 const STRUCTURE_COLUMNS = ['CID', 'Name', 'Molecular formula', 'IUPAC name', 'Patent'];
+const GOOGLE_PATENTS_COLUMNS = [
+    {
+        title: 'Title',
+        field: 'title',
+        cellTemplate: require('../ngbPatentsTable_cells/ngbPatentsTable_googlePatentsLinkCell.tpl.html'),
+    },
+    {
+        title: 'Patent number',
+        field: 'patentNumber',
+    },
+    {
+        title: 'PDF',
+        field: 'pdfLink',
+        cellTemplate: require('../ngbPatentsTable_cells/ngbPatentsTable_linkValueCell.tpl.html'),
+    },
+    {
+        title: 'Description',
+        field: 'description',
+    },
+    {
+        title: 'Assignee',
+        field: 'assignee',
+    },
+    {
+        title: 'Filing date',
+        field: 'filingDate',
+    },
+    {
+        title: 'Inventor',
+        field: 'inventor',
+    },
+    {
+        title: 'Publication date',
+        field: 'publicationDate',
+    },
+    {
+        title: 'Publication number',
+        field: 'publicationNumber',
+    },
+];
+
+export { GOOGLE_PATENTS_COLUMNS };
 
 const HEADER_TEXT = {
     [SEARCH_BY_OPTIONS.name]: 'Patented chemicals containing the name of the specified drug - ',
@@ -28,16 +73,22 @@ export default class ngbPatentsChemicalsTabService {
         return SEARCH_BY_NAMES;
     }
     get pageSize() {
-        return PAGE_SIZE;
+        return this.isGooglePatentsSource ? 10 : PAGE_SIZE;
     }
     get drugColumns() {
         return DRUG_COLUMNS;
+    }
+    get googlePatentsColumns() {
+        return GOOGLE_PATENTS_COLUMNS;
     }
     get structureColumns() {
         return STRUCTURE_COLUMNS;
     }
     get headerText() {
         return HEADER_TEXT;
+    }
+    get isGooglePatentsSource() {
+        return this.ngbPatentsPanelService.sourceModel && this.ngbPatentsPanelService.sourceModel.name === GOOGLE_PATENTS_SOURCE;
     }
 
     _loadingDrugs = false;
@@ -203,13 +254,14 @@ export default class ngbPatentsChemicalsTabService {
         this._errorIdentifier = value;
     }
 
-    static instance (dispatcher, ngbTargetPanelService, targetDataService) {
-        return new ngbPatentsChemicalsTabService(dispatcher, ngbTargetPanelService, targetDataService);
+    static instance (dispatcher, ngbTargetPanelService, targetDataService, ngbPatentsPanelService) {
+        return new ngbPatentsChemicalsTabService(dispatcher, ngbTargetPanelService, targetDataService, ngbPatentsPanelService);
     }
 
-    constructor(dispatcher, ngbTargetPanelService, targetDataService) {
-        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService});
+    constructor(dispatcher, ngbTargetPanelService, targetDataService, ngbPatentsPanelService) {
+        Object.assign(this, {dispatcher, ngbTargetPanelService, targetDataService, ngbPatentsPanelService});
         dispatcher.on('target:identification:reset', this.targetChanged.bind(this));
+        dispatcher.on('target:identification:patents:source:changed', this.sourceChanged.bind(this));
         this.setDrugs();
     }
 
@@ -277,6 +329,13 @@ export default class ngbPatentsChemicalsTabService {
     getRequest() {
         let request;
         const {searchBy} = this.requestedModel;
+        if (this.isGooglePatentsSource) {
+            return {
+                page: this.currentPage,
+                pageSize: this.pageSize,
+                name: searchBy === this.searchByOptions.name ? this.selectedDrug : this.searchStructure,
+            };
+        }
         if (searchBy === this.searchByOptions.name) {
             request = {
                 page: this.currentPage,
@@ -321,19 +380,32 @@ export default class ngbPatentsChemicalsTabService {
         });
     }
 
-    searchPatentResults(request) {
+    async searchPatentResults(request) {
         const {searchBy} = this.requestedModel;
+        if (this.isGooglePatentsSource) {
+            const {items = [], totalCount} = await this.targetDataService.getGooglePatentsByName(request);
+            return {
+                // Google Patents API only allows searching for first 10 pages with a maximum
+                // page size of 10 - so, in total, 100 items
+                totalCount: Math.min(100, totalCount),
+                items,
+            };
+        }
         if (searchBy === this.searchByOptions.name) {
-            return Promise.resolve(this.targetDataService.searchPatentsByDrug(request));
+            return this.targetDataService.searchPatentsByDrug(request);
         }
         if (searchBy === this.searchByOptions.structure) {
-            return Promise.resolve(this.targetDataService.searchPatentsByStructure(request));
+            return this.targetDataService.searchPatentsByStructure(request);
         }
     }
 
     setTableResults(data) {
         if (data.items) {
             const {searchBy} = this.requestedModel;
+            if (this.isGooglePatentsSource) {
+                this._tableResults = (data.items || []).map(mapGooglePatentsData);
+                return;
+            }
             if (searchBy === this.searchByOptions.name) {
                 this._tableResults = data.items.map(item => {
                     const cid = { name: item.id };
@@ -370,6 +442,9 @@ export default class ngbPatentsChemicalsTabService {
 
     getColumnList() {
         const {name, structure} = this.searchByOptions;
+        if (this.isGooglePatentsSource) {
+            return this.googlePatentsColumns;
+        }
         if (this.searchBy === name) {
             return this.drugColumns;
         }
@@ -411,6 +486,11 @@ export default class ngbPatentsChemicalsTabService {
         this._failedResult = false;
         this._errorMessageList = null;
         this._emptyResults = false;
+    }
+
+    sourceChanged() {
+        this.resetTableResults();
+        this.requestedModel = null;
     }
 
     resetData() {

@@ -67,7 +67,7 @@
      ng-if="$ctrl.loadingData">
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
-<div ng-if="$ctrl.tableResults"
+<div ng-if="$ctrl.tableResults && $ctrl.headerText"
      class="results-header">
     <span>{{$ctrl.headerText}}</span><span style="font-style: italic;">{{$ctrl.headerDetails}}</span>
 </div>

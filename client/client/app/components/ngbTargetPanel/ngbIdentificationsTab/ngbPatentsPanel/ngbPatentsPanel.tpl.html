@@ -9,7 +9,23 @@
         {{$ctrl.getTabName(tab)}}
     </md-nav-item>
 </md-nav-bar>
+<div class="patents-source-selector">
+    <label>Source:</label>
+    <md-input-container>
+        <md-select ng-model="$ctrl.sourceModel"
+                   aria-label="Source select"
+                   ng-change="$ctrl.onChangeSource()"
+                   md-container-class="patents-source-select-container">
+            <md-option ng-repeat="item in $ctrl.sourceOptions"
+                       ng-value="item">
+                {{item.displayName}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+</div>
 <md-content class="_md patents-content">
+    <ngb-patents-general-tab ng-if="$ctrl.selectedTab === $ctrl.patentTabs.general">
+    </ngb-patents-general-tab>
     <ngb-patents-sequences-tab ng-if="$ctrl.selectedTab === $ctrl.patentTabs.sequences">
     </ngb-patents-sequences-tab>
     <ngb-patents-chemicals-tab ng-if="$ctrl.selectedTab === $ctrl.patentTabs.chemicals">

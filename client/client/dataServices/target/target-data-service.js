@@ -722,6 +722,23 @@ export class TargetDataService extends DataService {
         });
     }
 
+    getGooglePatentsByName(request) {
+        return new Promise((resolve, reject) => {
+            this.post('patents/proteins/google', request)
+                .then(data => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        resolve(false);
+                    }
+                })
+                .catch(error => {
+                    const message = 'Error getting patents';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
     getPatentsByProteinId(targetId, sequenceId) {
         return new Promise((resolve, reject) => {
             this.get(`patents/proteins/${targetId}?sequenceId=${sequenceId}`)

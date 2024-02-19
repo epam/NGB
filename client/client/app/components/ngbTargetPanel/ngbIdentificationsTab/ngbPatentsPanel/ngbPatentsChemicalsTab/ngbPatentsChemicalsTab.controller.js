@@ -105,15 +105,24 @@ export default class ngbPatentsChemicalsTabController {
     }
 
     get headerText() {
+        if (this.isGooglePatentsSource) {
+            return undefined;
+        }
         return this.ngbPatentsChemicalsTabService.headerText[this.requestedModel.searchBy];
     }
     get headerDetails() {
+        if (this.isGooglePatentsSource) {
+            return undefined;
+        }
         const { searchBy, drugName, structure, originalStructure } = this.requestedModel;
         if (searchBy === this.searchByOptions.name) {
             return drugName;
         } else {
             return originalStructure === structure ? drugName : this.customName;
         }
+    }
+    get isGooglePatentsSource() {
+        return this.ngbPatentsChemicalsTabService.isGooglePatentsSource;
     }
 
     refresh() {

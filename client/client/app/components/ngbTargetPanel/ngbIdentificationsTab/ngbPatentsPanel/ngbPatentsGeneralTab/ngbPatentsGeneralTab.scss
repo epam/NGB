@@ -1,0 +1,55 @@
+@import "../ngbPatentsPanel.variables.scss";
+
+ngb-patents-general-tab {
+  margin-bottom: 20px;
+
+  .loading-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+  }
+
+  .search-input-container {
+    padding: 0 5px;
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    line-height: $patents-control-height;
+
+    .general-search-input {
+      flex: 0 1 300px;
+      margin-left: 5px;
+      padding: 0 4px;
+      line-height: $patents-control-height;
+      height: $patents-control-height;
+      color: $patents-color;
+      font-size: $patents-font-size;
+      border: none;
+      border-bottom: 1px solid #cccccc;
+      outline: none;
+
+      &:active, &:focus {
+        border-bottom: 1px solid rgb(102, 153, 255);;
+      }
+    }
+
+    .patent-button {
+      flex: 0 0 80px;
+    }
+  }
+
+  .patent-button {
+    min-height: $patents-button-height;
+    height: $patents-button-height;
+    line-height: $patents-button-height;
+    min-width: 80px;
+    margin-left: 10px;
+  }
+
+  .patents-table-wrapper {
+    height: auto;
+    width: 100%;
+    overflow: auto;
+  }
+}

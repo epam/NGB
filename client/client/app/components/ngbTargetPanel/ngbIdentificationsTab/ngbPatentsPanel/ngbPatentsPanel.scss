@@ -5,6 +5,58 @@ ngb-patents-panel {
     padding: 5px 0 0 0;
     position: relative;
 
+    .patents-source-selector {
+        height: $patents-control-height;
+        line-height: $patents-control-height;
+        position: absolute;
+        top: 2px;
+        right: 0;
+        display: inline-flex;
+        align-items: center;
+        margin-left: 8px;
+
+        md-input-container,
+        label {
+            margin: 0;
+            padding: 0;
+            line-height: $patents-control-height;
+            height: $patents-control-height;
+            color: $patents-color;
+            font-size: $patents-font-size;
+        }
+
+        label {
+            margin-right: 5px;
+        }
+
+        md-input-container md-select {
+            &:not([disabled]):focus .md-select-value {
+                border-bottom: none;
+            }
+
+            md-select-value {
+                border: none;
+                min-height: $patents-control-height;
+                padding: 0;
+                font-size: $patents-font-size;
+                display: flex;
+                align-items: center;
+
+                .md-select-icon {
+                    margin: 0 4px 0 0;
+                    width: 20px;
+                }
+
+                > span,
+                > span > div {
+                    line-height: $patents-control-height;
+                    height: $patents-control-height;
+                    transform: none !important;
+                }
+            }
+        }
+    }
+
     md-nav-bar.patents-nav-bar {
         nav,
         ul,
@@ -54,6 +106,28 @@ ngb-patents-panel {
         }
     }
 }
+
+.patents-source-select-container {
+    md-select-menu:not(.md-overflow) md-content {
+        padding: 0;
+    }
+
+    md-option {
+        padding: 0 8px;
+        height: calc($patents-control-height + 2px);
+
+        &[selected],
+        &:not([disabled]):focus {
+            color: $patents-color;
+        }
+    }
+
+    md-select-menu,
+    md-select-menu md-content {
+        min-height: calc($patents-control-height + 2px);
+    }
+}
+
 
 md-tooltip.patent-cell-tooltip {
     max-width: 50%;
