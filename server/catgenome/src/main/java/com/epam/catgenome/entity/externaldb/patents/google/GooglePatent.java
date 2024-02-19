@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2024 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.externaldb;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+package com.epam.catgenome.entity.externaldb.patents.google;
 
-import java.util.List;
+import lombok.Builder;
+import lombok.Data;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class SearchResult<T> {
-    private List<T> items;
-    private Integer totalCount;
+
+@Data
+@Builder
+public class GooglePatent {
+
+    private String title;
+    private String link;
+    private String snippet;
+    private String date;
+    private String description;
+    private String fullTitle;
+    private String contributor;
+    private String patentNumber;
+    private String pdfLink;
+    private ArticleData articleData;
+
+    @Data
+    @Builder
+    public static class ArticleData {
+        private String countryCode;
+        private String countryName;
+        private String priorityDate;
+        private String publicationDate;
+        private String publicationNumber;
+        private String filingDate;
+        private String priorartDate;
+        private String inventor;
+        private String assignee;
+
+    }
 }

@@ -212,6 +212,9 @@ dependencies {
     compile group: "com.google.cloud", name: "google-cloud-aiplatform", version: "3.22.0"
     compile group: 'com.google.code.gson', name: 'gson', version: '2.10.1'
 
+    compile group: 'com.google.apis', 'name':'google-api-services-customsearch', version: 'v1-rev20240103-2.0.0'
+    compile group: 'com.google.http-client', name: 'google-http-client-jackson2', version: '1.44.1'
+
     //Excel
     compile group: "org.apache.poi", name: "poi", version: "3.16"
     compile group: "org.apache.poi", name: "poi-ooxml", version: "3.16"

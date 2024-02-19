@@ -30,10 +30,11 @@ import com.epam.catgenome.controller.vo.target.PatentsSearchRequest;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.externaldb.patents.DrugPatent;
 import com.epam.catgenome.entity.externaldb.patents.SequencePatent;
+import com.epam.catgenome.entity.externaldb.patents.google.GooglePatent;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
-import com.epam.catgenome.manager.externaldb.patents.NCBIPatentsSecurityService;
+import com.epam.catgenome.manager.externaldb.patents.PatentsSecurityService;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -50,7 +51,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PatentsController extends AbstractRESTController {
 
-    private final NCBIPatentsSecurityService ncbiPatentsSecurityService;
+    private final PatentsSecurityService ncbiPatentsSecurityService;
 
     @PostMapping(value = "/patents/proteins/ncbi")
     @ApiOperation(
@@ -60,9 +61,22 @@ public class PatentsController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<SequencePatent>> loadTarget(@RequestBody final PatentsSearchRequest request)
+    public Result<SearchResult<SequencePatent>> getProteinPatentsNcbi(@RequestBody final PatentsSearchRequest request)
             throws ExternalDbUnavailableException {
         return Result.success(ncbiPatentsSecurityService.getProteinPatents(request));
+    }
+
+    @PostMapping(value = "/patents/proteins/google")
+    @ApiOperation(
+            value = "Searches protein patents by name using Google Patents.",
+            notes = "Searches protein patents by name using Google Patents.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SearchResult<GooglePatent>> getProteinPatentsGoogle(
+            @RequestBody final PatentsSearchRequest request) {
+        return Result.success(ncbiPatentsSecurityService.getProteinPatentsGoogle(request));
     }
 
     @PostMapping(value = "/patents/drugs/ncbi")

@@ -27,6 +27,7 @@ import com.epam.catgenome.controller.vo.target.PatentsSearchRequest;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.externaldb.patents.DrugPatent;
 import com.epam.catgenome.entity.externaldb.patents.SequencePatent;
+import com.epam.catgenome.entity.externaldb.patents.google.GooglePatent;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
@@ -42,15 +43,20 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
 @Service
 @RequiredArgsConstructor
-public class NCBIPatentsSecurityService {
+public class PatentsSecurityService {
 
-    private final NCBIPatentsManager manager;
+    private final PatentsManager manager;
     private final ProteinPatentsManager proteinPatentsManager;
 
     @PreAuthorize(ROLE_USER)
     public SearchResult<SequencePatent> getProteinPatents(final PatentsSearchRequest request)
             throws ExternalDbUnavailableException {
         return manager.getProteinPatents(request);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public SearchResult<GooglePatent> getProteinPatentsGoogle(final PatentsSearchRequest request) {
+        return manager.getProteinPatentsGoogle(request);
     }
 
     @PreAuthorize(ROLE_USER)

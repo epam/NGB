@@ -28,6 +28,7 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.target.PatentsSearchRequest;
 import com.epam.catgenome.entity.externaldb.patents.DrugPatent;
 import com.epam.catgenome.entity.externaldb.patents.SequencePatent;
+import com.epam.catgenome.entity.externaldb.patents.google.GooglePatent;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIAuxiliaryManager;
@@ -35,7 +36,6 @@ import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
 import com.epam.catgenome.manager.externaldb.pug.NCBIPugManager;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -59,7 +59,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_PARSING;
@@ -67,20 +66,18 @@ import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * <p>
- * A class that manages connections to NCBI external database
+ * A class that manages connections to get patent data from  external databases or APIs
  * NOTE: very useful information about possible arguments for different DBs
  * https://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/
  * </p>
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
-public class NCBIPatentsManager {
+public class PatentsManager {
     private static final String PROTEIN_DB = "protein";
     private static final String PUB_CHEM_COMPOUND_DB = "pccompound";
     private static final String PROTEIN_TERM = "Patent[Properties] %s";
     private static final String DRUG_TERM = "has_patent[Filter] %s";
-    private static final Pattern DRUG_NAME_PATTERN = Pattern.compile("\\d+\\.\\s");
     private static final String DRUG_LINK = "https://pubchem.ncbi.nlm.nih.gov/compound/%s";
     private static final String PROTEIN_LINK = "https://www.ncbi.nlm.nih.gov/protein/%s";
     private static final String XPATH = "/GBSet/GBSeq";
@@ -94,6 +91,18 @@ public class NCBIPatentsManager {
     private final NCBIAuxiliaryManager ncbiAuxiliaryManager;
     private final NCBIDataManager ncbiDataManager;
     private final NCBIPugManager ncbiPugManager;
+    private final GooglePatentManager googlePatentManager;
+
+    public PatentsManager(final NCBIAuxiliaryManager ncbiAuxiliaryManager,
+                          final NCBIDataManager ncbiDataManager,
+                          final NCBIPugManager ncbiPugManager,
+                          GooglePatentManager googlePatentManager) {
+        this.ncbiAuxiliaryManager = ncbiAuxiliaryManager;
+        this.ncbiDataManager = ncbiDataManager;
+        this.ncbiPugManager = ncbiPugManager;
+        this.googlePatentManager = googlePatentManager;
+    }
+
 
     public SearchResult<SequencePatent> getProteinPatents(final PatentsSearchRequest request)
             throws ExternalDbUnavailableException {
@@ -112,6 +121,10 @@ public class NCBIPatentsManager {
             result.setItems(patents);
         }
         return result;
+    }
+
+    public SearchResult<GooglePatent> getProteinPatentsGoogle(final PatentsSearchRequest request) {
+        return googlePatentManager.getProteinPatentsGoogle(request);
     }
 
     public SearchResult<DrugPatent> getDrugPatents(final PatentsSearchRequest request)
