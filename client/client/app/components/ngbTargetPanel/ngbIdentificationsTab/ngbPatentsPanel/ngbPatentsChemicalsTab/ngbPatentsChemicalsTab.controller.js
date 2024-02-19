@@ -125,6 +125,10 @@ export default class ngbPatentsChemicalsTabController {
         return this.ngbPatentsChemicalsTabService.isGooglePatentsSource;
     }
 
+    get summaryCriteria() {
+        return this.ngbPatentsChemicalsTabService.summaryCriteria;
+    }
+
     refresh() {
         this.setIdentifier();
         this.$timeout(() => this.$scope.$apply());

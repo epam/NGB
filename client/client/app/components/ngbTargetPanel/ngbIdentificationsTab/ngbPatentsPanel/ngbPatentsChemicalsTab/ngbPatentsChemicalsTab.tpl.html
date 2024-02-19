@@ -47,6 +47,7 @@
     </div>
 </div>
 <div class="loading-identifier-indicator"
+     ng-if="$ctrl.searchBy === $ctrl.searchByOptions.structure"
      ng-class="{'show': $ctrl.searchBy === $ctrl.searchByOptions.structure && $ctrl.loadingIdentifier}">
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
@@ -62,6 +63,9 @@
                   required>
         </textarea>
     </md-input-container>
+</div>
+<div class="generate-summary-container" ng-if="$ctrl.isGooglePatentsSource">
+    <ngb-patents-summary search="$ctrl.summaryCriteria"></ngb-patents-summary>
 </div>
 <div class="loading-data-indicator"
      ng-if="$ctrl.loadingData">

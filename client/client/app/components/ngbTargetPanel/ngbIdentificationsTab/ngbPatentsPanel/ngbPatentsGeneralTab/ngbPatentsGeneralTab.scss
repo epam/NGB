@@ -39,6 +39,11 @@ ngb-patents-general-tab {
     }
   }
 
+  .generate-summary-container {
+    padding: 0 5px;
+    margin: 5px 0;
+  }
+
   .patent-button {
     min-height: $patents-button-height;
     height: $patents-button-height;

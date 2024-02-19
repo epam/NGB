@@ -259,6 +259,26 @@ export class TargetDataService extends DataService {
         });
     }
 
+    getGooglePatentsSummary(request, modelOptions) {
+        const {
+            type: provider,
+            ...rest
+        } = modelOptions || {};
+        if (!provider) {
+            return Promise.reject(new Error('LLM provider not specified'));
+        }
+        return new Promise((resolve, reject) => {
+            this.get(`llm/patent${getQueryString({provider, ...rest, query: request})}`)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error generating summary';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
     getAbstracts(request) {
         return new Promise((resolve, reject) => {
             this.post('target/abstracts', request)

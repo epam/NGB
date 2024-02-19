@@ -1,0 +1,86 @@
+@import "../ngbPatentsPanel.variables.scss";
+
+ngb-patents-summary {
+  .loading-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+  }
+
+  .summary-button {
+
+    .md-button {
+      height: $patents-control-height;
+      min-height: $patents-control-height;
+      display: flex;
+      align-items: center;
+      text-transform: none;
+      font-size: $patents-font-size;
+      border-radius: 10px;
+      margin: 0;
+      padding: 0;
+
+      background: transparent;
+
+      &:not([disabled]) {
+        color: rgb(51, 103, 214);
+      }
+
+      &:hover,
+      &:visited,
+      &:active,
+      &:focus {
+        background: transparent;
+      }
+
+      &:hover .button-text,
+      &:hover .md-select-value > span:not(.md-select-icon) {
+        text-decoration: underline;
+      }
+
+      md-select {
+        margin: 0;
+
+        .md-select-value {
+          font-size: $patents-font-size;
+        }
+
+        .md-select-value .md-select-icon {
+          width: 14px;
+        }
+      }
+
+      md-select[disabled] .md-select-value {
+        background: none;
+      }
+    }
+  }
+
+  .summary-section {
+    margin-top: 5px;
+
+    .summary-section-title {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      line-height: $patents-control-height;
+
+      .section-name {
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-right: 10px;
+        line-height: 1;
+      }
+    }
+  }
+
+  .summary-container {
+    margin: 5px 0;
+    font-size: calc($patents-font-size + 1px);
+
+    p {
+      margin: 0;
+    }
+  }
+}

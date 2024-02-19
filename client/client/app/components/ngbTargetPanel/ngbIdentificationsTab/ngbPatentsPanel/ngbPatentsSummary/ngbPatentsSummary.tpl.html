@@ -1,0 +1,28 @@
+<div class="loading-indicator"
+     ng-if="$ctrl.loading">
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-class="{'hidden': !$ctrl.hasError || $ctrl.loading}">
+    <ngb-panel-error-list message-list="$ctrl.errors"></ngb-panel-error-list>
+</div>
+<div class="summary-button" ng-if="$ctrl.llmModels && $ctrl.llmModels.length">
+    <md-button ng-click="$ctrl.onSearch($event)"
+               ng-disabled="$ctrl.loading || !$ctrl.available"
+               md-no-ink
+    >
+                <span class="button-text">
+                    Get summary with Generative AI
+                </span>
+    </md-button>
+</div>
+<div class="summary-section"
+     ng-if="$ctrl.summary && !$ctrl.loadingSummary">
+    <div class="summary-section-title">
+        <span class="section-name">
+            Summary
+        </span>
+    </div>
+    <div class="summary-container"
+         ng-bind-html="$ctrl.summary.html">
+    </div>
+</div>
