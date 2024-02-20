@@ -39,6 +39,7 @@ import com.epam.catgenome.manager.target.TargetField;
 import com.epam.catgenome.manager.target.TargetGeneSecurityService;
 import com.epam.catgenome.manager.target.TargetSecurityService;
 import com.epam.catgenome.util.db.Page;
+import com.opencsv.exceptions.CsvValidationException;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -200,7 +201,7 @@ public class TargetController extends AbstractRESTController {
     public Result<Boolean> importGenes(@RequestParam(required = false) final String path,
                                        @RequestParam(value = "file", required = false) final MultipartFile multipart,
                                        @PathVariable final long targetId)
-            throws IOException, ParseException, TargetGenesException {
+            throws IOException, ParseException, TargetGenesException, CsvValidationException {
         targetGeneSecurityService.importGenes(targetId, path, multipart);
         return Result.success(null);
     }

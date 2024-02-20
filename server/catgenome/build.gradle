@@ -219,6 +219,9 @@ dependencies {
     compile group: "org.apache.poi", name: "poi", version: "3.16"
     compile group: "org.apache.poi", name: "poi-ooxml", version: "3.16"
 
+//    CSV
+    compile group: "com.opencsv", name: "opencsv", version: "5.8"
+
     // >>>>> dependencies used to compile tests; in fact no need to include them into artifact
     testCompile("org.springframework.boot:spring-boot-starter-test")
     testCompile group: "org.unitils", name: "unitils-core", version: project.ext.versionUnitils
