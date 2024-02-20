@@ -148,8 +148,8 @@ public class LaunchIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public String getArticleAbstracts(final PublicationSearchRequest request) {
-        return manager.getArticlesAbstracts(request);
+    public String getArticleAbstracts(final PublicationSearchRequest request, boolean getLinks) {
+        return manager.getArticlesAbstracts(request, getLinks);
     }
 
     @PreAuthorize(ROLE_USER)

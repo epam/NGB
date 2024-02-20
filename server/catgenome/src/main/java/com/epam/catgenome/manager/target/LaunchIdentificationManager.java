@@ -226,8 +226,8 @@ public class LaunchIdentificationManager {
         return pubMedService.fetchPubMedArticles(request);
     }
 
-    public String getArticlesAbstracts(final PublicationSearchRequest request) {
-        return pubMedService.getArticleAbstracts(request);
+    public String getArticlesAbstracts(final PublicationSearchRequest request, boolean getLinks) {
+        return pubMedService.getArticleAbstracts(request, getLinks);
     }
 
     public List<GeneSequences> getGeneSequences(final List<String> geneIds) throws ParseException, IOException {

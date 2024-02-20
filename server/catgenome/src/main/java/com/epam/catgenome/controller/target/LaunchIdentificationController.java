@@ -286,8 +286,9 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<String> getAbstracts(@RequestBody final PublicationSearchRequest request) {
-        return Result.success(launchIdentificationSecurityService.getArticleAbstracts(request));
+    public Result<String> getAbstracts(@RequestBody final PublicationSearchRequest request,
+                                       @RequestParam(required = false, defaultValue = "false") boolean getLinks) {
+        return Result.success(launchIdentificationSecurityService.getArticleAbstracts(request, getLinks));
     }
 
     @GetMapping(value = "/target/sequences")

@@ -40,6 +40,7 @@ import org.apache.http.util.TextUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -70,6 +71,7 @@ public class PubMedService {
     private Integer articlesMaxNumber;
 
     private static final Integer BATCH_SIZE = 500;
+    private static final String ARTICLE_XPATH = "MedlineCitation//Article";
 
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
     private final NCBIGeneManager ncbiGeneManager;
@@ -115,13 +117,13 @@ public class PubMedService {
     }
 
     @SneakyThrows
-    public String getArticleAbstracts(final List<String> pmcIds) {
+    public String getArticleAbstracts(final List<String> pmcIds, boolean getLinks) {
         final String xml = ncbiDataManager.fetchXmlById(NCBIDatabase.PUBMED.name(),
                 String.join(",", pmcIds), "Abstract");
-        return parseAbstract(xml);
+        return getLinks ? parseAbstractWithLink(xml) : parseAbstract(xml);
     }
 
-    public String getArticleAbstracts(final PublicationSearchRequest request) {
+    public String getArticleAbstracts(final PublicationSearchRequest request, boolean getLinks) {
         request.setPage(1);
         request.setPageSize(articlesMaxNumber);
         final SearchResult<NCBISummaryVO> result = fetchPubMedArticles(request);
@@ -129,7 +131,7 @@ public class PubMedService {
                 .stream()
                 .map(NCBISummaryVO::getUid)
                 .collect(Collectors.toList());
-        return getArticleAbstracts(ids);
+        return getArticleAbstracts(ids, getLinks);
     }
 
     private String parseAbstract(final String xml) throws ParserConfigurationException, IOException,
@@ -147,6 +149,34 @@ public class PubMedService {
                 result.append('\n');
             }
             result.append(abstracts.item(i).getTextContent());
+        }
+        return result.toString();
+    }
+
+    private String parseAbstractWithLink(final String xml) throws ParserConfigurationException, IOException,
+            SAXException, XPathExpressionException {
+        final XPath xPath = XPathFactory.newInstance().newXPath();
+        final DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+        final DocumentBuilder builder = builderFactory.newDocumentBuilder();
+        final InputSource is = new InputSource(new StringReader(xml));
+        final Document document = builder.parse(is);
+        final XPathExpression exp = xPath.compile("//PubmedArticle");
+        final NodeList articles = (NodeList)exp.evaluate(document, XPathConstants.NODESET);
+        final StringBuilder result = new StringBuilder();
+        for (int i = 0; i < articles.getLength(); i++) {
+            if (result.length() != 0) {
+                result.append('\n');
+            }
+            Node item = articles.item(i).cloneNode(true);
+            String title = xPath.compile(ARTICLE_XPATH + "//ArticleTitle").evaluate(item);
+            result.append(String.format("Article: \"%s\" ", title));
+            String id = xPath.compile("MedlineCitation//PMID").evaluate(item);
+            result.append(String.format("Link: https://pubmed.ncbi.nlm.nih.gov/%s. ", id));
+            XPathExpression abstractExp = xPath.compile(ARTICLE_XPATH + "//Abstract//AbstractText");
+            NodeList abstracts = (NodeList)abstractExp.evaluate(item, XPathConstants.NODESET);
+            for (int j = 0; j < abstracts.getLength(); j++) {
+                result.append(abstracts.item(j).getTextContent());
+            }
         }
         return result.toString();
     }
