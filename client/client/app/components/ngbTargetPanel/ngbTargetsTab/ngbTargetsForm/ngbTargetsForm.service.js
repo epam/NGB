@@ -218,7 +218,7 @@ export default class ngbTargetsFormService {
 
     setTargetModel(data) {
         this._targetModel = {
-            id: data.targetId,
+            id: data.id,
             name: data.targetName,
             genes: (data.targetGenes || []).map(gene => ({
                 geneId: gene.geneId,
@@ -238,7 +238,7 @@ export default class ngbTargetsFormService {
 
     setOriginalModel(data) {
         this._originalModel = {
-            id: data.targetId,
+            id: data.id,
             name: data.targetName,
             diseases: (data.diseases || []).filter(d => d),
             products: (data.products || []).filter(p => p),
@@ -444,10 +444,10 @@ export default class ngbTargetsFormService {
                     if (target) {
                         const promises = [];
                         if (this.geneFile) {
-                            promises.push(await this.importFile(target.targetId));
+                            promises.push(await this.importFile(target.id));
                         }
                         if (this.parasiteGenesAdded()) {
-                            promises.push(await this.postNewParasiteTargetGenes(target.targetId));
+                            promises.push(await this.postNewParasiteTargetGenes(target.id));
                         }
                         await Promise.all(promises).then(values => {
                             if (values.every(v => v)) {

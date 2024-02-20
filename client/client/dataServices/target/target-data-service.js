@@ -66,7 +66,7 @@ export class TargetDataService extends DataService {
         return new Promise((resolve, reject) => {
             this.post('target', request)
                 .then(data => {
-                    if (data && data.targetId) {
+                    if (data && data.id) {
                         resolve(data);
                     } else {
                         resolve(false);
