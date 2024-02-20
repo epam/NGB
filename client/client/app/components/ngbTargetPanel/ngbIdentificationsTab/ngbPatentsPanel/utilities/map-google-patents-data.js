@@ -1,9 +1,10 @@
-export function mapGooglePatentsData(data) {
+export function mapGooglePatentsData(data, analysisUrl) {
     const {
         articleData = {},
         contributor,
         description,
         snippet,
+        pdfLink,
         ...rest
     } = data;
     const {
@@ -22,5 +23,7 @@ export function mapGooglePatentsData(data) {
         inventor: inventor || contributor,
         publicationDate,
         publicationNumber,
+        pdfLink,
+        analysisLink: pdfLink && analysisUrl ? `${analysisUrl}?url=${encodeURIComponent(pdfLink)}` : undefined
     };
 }

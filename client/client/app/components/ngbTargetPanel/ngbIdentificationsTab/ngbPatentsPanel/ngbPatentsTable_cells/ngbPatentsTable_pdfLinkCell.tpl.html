@@ -1,0 +1,18 @@
+<div class="ui-grid-cell-contents ng-binding ng-scope">
+    <span class="link-cell"
+          style="display: inline-flex; align-items: center;"
+          ng-if="row.entity && (row.entity['pdfLink'])">
+        <a ng-href="{{row.entity['pdfLink']}}" target="_blank" style="display: inline-flex; align-items: center;">
+            <ng-md-icon icon="launch" size="16" style="fill: currentColor"></ng-md-icon>
+            <span style="height: 16px">PDF</span>
+        </a>
+        <a ng-if="row.entity['analysisLink']" ng-href="{{row.entity['analysisLink']}}" target="_blank" style="margin-left: 10px; display: inline-flex; align-items: center;">
+            <img src="../../../../../assets/icons/mol.svg" height="16" />
+        </a>
+    </span>
+    <span class="link-cell"
+          style="display: inline-flex; align-items: center"
+          ng-if="row.entity && !row.entity['pdfLink']">
+        {{'\u00A0'}}
+    </span>
+</div>

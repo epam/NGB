@@ -106,13 +106,17 @@ export default class ngbPatentsGeneralTabService {
                 page: page + 1,
                 pageSize: this.pageSize
             });
+            const settings = await this.ngbPatentsPanelService.getTargetSettings();
+            const {
+                google_patents_analysis_url: analysisUrl
+            } = settings || {};
             const {
                 items = [],
                 totalCount = 0
             } = result || {};
             commitChanges(() => {
                 this._total = totalCount;
-                this._results = items.map(mapGooglePatentsData);
+                this._results = items.map((item) => mapGooglePatentsData(item, analysisUrl));
             });
         } catch (error) {
             commitChanges(() => {

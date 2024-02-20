@@ -16,13 +16,15 @@ export { NCBI_SOURCE, GOOGLE_PATENTS_SOURCE };
 
 export default class ngbPatentsPanelService {
     _sourceModel = SOURCE_OPTIONS.NCBI;
-    static instance (dispatcher) {
-        return new ngbPatentsPanelService(dispatcher);
+    _targetSettingsPromise;
+    static instance (dispatcher, utilsDataService) {
+        return new ngbPatentsPanelService(dispatcher, utilsDataService);
     }
 
-    constructor(dispatcher) {
-        Object.assign(this, {dispatcher});
+    constructor(dispatcher, utilsDataService) {
+        Object.assign(this, {dispatcher, utilsDataService});
         this._sourceModel = this.sourceOptions.NCBI;
+        this._targetSettingsPromise = undefined;
     }
 
     get sourceOptions () {
@@ -38,5 +40,20 @@ export default class ngbPatentsPanelService {
     }
     resetData() {
         this._sourceModel = this.sourceOptions.OPEN_TARGETS;
+    }
+
+    async getTargetSettings() {
+        if (!this._targetSettingsPromise) {
+            this._targetSettingsPromise = new Promise(async (resolve) => {
+                try {
+                    const {target_settings: targetSettings = {}} = await this.utilsDataService.getDefaultTrackSettings();
+                    resolve(targetSettings);
+                } catch (e) {
+                    console.log(e);
+                    resolve({});
+                }
+            });
+        }
+        return this._targetSettingsPromise;
     }
 }

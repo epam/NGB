@@ -28,7 +28,7 @@ const GOOGLE_PATENTS_COLUMNS = [
     {
         title: 'PDF',
         field: 'pdfLink',
-        cellTemplate: require('../ngbPatentsTable_cells/ngbPatentsTable_linkValueCell.tpl.html'),
+        cellTemplate: require('../ngbPatentsTable_cells/ngbPatentsTable_pdfLinkCell.tpl.html'),
     },
     {
         title: 'Description',
@@ -368,7 +368,9 @@ export default class ngbPatentsChemicalsTabService {
                     this._errorMessageList = null;
                     this._totalPages = Math.ceil(data.totalCount/this.pageSize);
                     this._emptyResults = data.totalCount === 0;
-                    this.setTableResults(data);
+                    return this.setTableResults(data);
+                })
+                .then(() => {
                     this._loadingData = false;
                     resolve(true);
                 })
@@ -403,11 +405,15 @@ export default class ngbPatentsChemicalsTabService {
         }
     }
 
-    setTableResults(data) {
+    async setTableResults(data) {
         if (data.items) {
             const {searchBy} = this.requestedModel;
             if (this.isGooglePatentsSource) {
-                this._tableResults = (data.items || []).map(mapGooglePatentsData);
+                const settings = await this.ngbPatentsPanelService.getTargetSettings();
+                const {
+                    google_patents_analysis_url: analysisUrl
+                } = settings || {};
+                this._tableResults = (data.items || []).map((item) => mapGooglePatentsData(item, analysisUrl));
                 return;
             }
             if (searchBy === this.searchByOptions.name) {
