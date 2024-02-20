@@ -36,7 +36,6 @@ import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 import com.epam.catgenome.util.db.Condition;
-import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -182,10 +181,8 @@ public class TargetManager implements SecuredEntityManager {
         return targetDao.loadAllTargets();
     }
 
-    public Page<Target> load(final TargetQueryParams targetQueryParams) {
+    public List<Target> load(final TargetQueryParams targetQueryParams) {
         final String clause = getFilterClause(targetQueryParams);
-        final List<Target> allTargets = targetDao.loadTargets(clause, null);
-        final long totalCount = allTargets.size();
         final SortInfo sortInfo = targetQueryParams.getSortInfo() != null ?
                 targetQueryParams.getSortInfo() : SortInfo.builder()
                 .field(TARGET_NAME)
@@ -205,10 +202,12 @@ public class TargetManager implements SecuredEntityManager {
                     .filter(g -> g.getTargetId().equals(t.getId()))
                     .collect(Collectors.toList()));
         }
-        return Page.<Target>builder()
-                .totalCount(totalCount)
-                .items(targets)
-                .build();
+        return targets;
+    }
+
+    public List<Target> loadAllPages(final TargetQueryParams params) {
+        final String clause = getFilterClause(params);
+        return targetDao.loadTargets(clause, null);
     }
 
     public List<Target> load(final String geneName, final Long taxId) throws ParseException, IOException {

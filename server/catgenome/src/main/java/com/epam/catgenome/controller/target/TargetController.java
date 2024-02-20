@@ -106,7 +106,12 @@ public class TargetController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Page<Target>> loadTarget(@RequestBody final TargetQueryParams queryParameters) {
-        return Result.success(targetSecurityService.loadTargets(queryParameters));
+        final List<Target> targets = targetSecurityService.loadTargets(queryParameters);
+        final List<Target> allPages = targetSecurityService.loadAllPages(queryParameters);
+        return Result.success(Page.<Target>builder()
+                .totalCount(allPages.size())
+                .items(targets)
+                .build());
     }
 
     @GetMapping(value = "/target")
@@ -131,7 +136,7 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<Target>> loadTargets() throws ParseException, IOException {
+    public Result<List<Target>> loadTargets() {
         return Result.success(targetSecurityService.loadTargets());
     }
 

@@ -181,7 +181,7 @@
         <property name="updateOwnerQuery">
             <value>
                 <![CDATA[
-                    UPDATE catgenome.target_id
+                    UPDATE catgenome.target
                     SET owner = :OWNER
                     WHERE target_id = :TARGET_ID
                 ]]>
