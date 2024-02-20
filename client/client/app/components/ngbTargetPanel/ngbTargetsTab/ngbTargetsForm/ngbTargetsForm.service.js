@@ -479,7 +479,7 @@ export default class ngbTargetsFormService {
     getUpdateRequest() {
         const {id, name, diseases, products, genes, type} = this.targetModel;
         const request = {
-            targetId: id,
+            id,
             targetName: name,
             type,
             diseases,

@@ -120,13 +120,15 @@ export default class ngbTargetGenesTableService {
     }
 
     async initAdditionalColumns() {
-        const savedColumns = JSON.parse(localStorage.getItem('targetGenesColumns'));
-        const availableColumns = await this.getMetadataColumns();
-        if (savedColumns && savedColumns.length) {
-            const columns = savedColumns.filter(c => availableColumns.includes(c));
-            this.setAdditionalColumns(columns);
+        if (this.isParasiteType) {
+            const savedColumns = JSON.parse(localStorage.getItem('targetGenesColumns'));
+            const availableColumns = await this.getMetadataColumns();
+            if (savedColumns && savedColumns.length) {
+                const columns = savedColumns.filter(c => availableColumns.includes(c));
+                this.setAdditionalColumns(columns);
+            }
+            this.dispatcher.emit('target:form:table:columns');
         }
-        this.dispatcher.emit('target:form:table:columns');
     }
 
     async getMetadataColumns() {
