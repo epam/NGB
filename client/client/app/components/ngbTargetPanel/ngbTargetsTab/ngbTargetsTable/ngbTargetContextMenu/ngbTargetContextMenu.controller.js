@@ -5,7 +5,7 @@ const ROLE_TARGET_MANAGER = 'ROLE_TARGET_MANAGER';
 
 export default class ngbTargetContextMenuController {
 
-    hasRole = true;
+    hasRole = false;
 
     get managerRole() {
         return ROLE_TARGET_MANAGER;
@@ -21,17 +21,17 @@ export default class ngbTargetContextMenuController {
     }
 
     checkUserRole() {
-        // this.utilsDataService.isRoleModelEnabled()
-        //     .then(utilsDataService => {
-        //         if (utilsDataService) {
-        //             this.userDataService.getCurrentUser()
-        //                 .then(user => {
-        //                     this.hasRole = user.hasRoles([this.managerRole]);
-        //                 });
-        //         } else {
-        //             this.hasRole = false;
-        //         }
-        //     });
+        this.utilsDataService.isRoleModelEnabled()
+            .then(utilsDataService => {
+                if (utilsDataService) {
+                    this.userDataService.getCurrentUser()
+                        .then(user => {
+                            this.hasRole = user.hasRoles([this.managerRole]);
+                        });
+                } else {
+                    this.hasRole = false;
+                }
+            });
     }
 
     openPermissions(event) {

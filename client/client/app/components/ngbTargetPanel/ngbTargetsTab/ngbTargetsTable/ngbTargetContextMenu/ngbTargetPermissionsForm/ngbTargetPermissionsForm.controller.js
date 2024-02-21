@@ -115,8 +115,8 @@ export default class ngbTargetPermissionsFormController {
         return role.name;
     }
 
-    constructor($scope, $mdDialog, target, ngbTargetPermissionsFormService) {
-        Object.assign(this, {$scope, $mdDialog, target, ngbTargetPermissionsFormService});
+    constructor($scope, $mdDialog, dispatcher, target, ngbTargetPermissionsFormService) {
+        Object.assign(this, {$scope, $mdDialog, dispatcher, target, ngbTargetPermissionsFormService});
         Object.assign(this.formGridOptions, {
             ...this.gridOptions,
             appScopeProvider: this.$scope,
@@ -276,7 +276,8 @@ export default class ngbTargetPermissionsFormController {
     changeOwner = () => {
         this.ngbTargetPermissionsFormService.grantOwner(this.target, this.selectedOwner)
             .then(() => this.fetchPermissions())
-            .then(() => this.clearSelectedOwner());
+            .then(() => this.clearSelectedOwner())
+            .then(() => this.dispatcher.emit('target:owner:changed'));
     };
 
     clearSelectedOwner = () => {
