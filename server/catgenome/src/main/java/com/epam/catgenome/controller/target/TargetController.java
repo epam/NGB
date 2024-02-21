@@ -62,6 +62,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
+import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
+
 @RestController
 @Api(value = "target", description = "Target Management")
 @RequiredArgsConstructor
@@ -79,7 +81,7 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Target> loadTarget(@PathVariable final long targetId) {
+    public Result<Target> loadTargets(@PathVariable final long targetId) {
         return Result.success(targetSecurityService.loadTarget(targetId));
     }
 
@@ -106,12 +108,16 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Page<Target>> loadTarget(@RequestBody final TargetQueryParams queryParameters) {
+    public Result<Page<Target>> loadTargets(@RequestBody final TargetQueryParams queryParameters) {
         final List<Target> targets = targetSecurityService.loadTargets(queryParameters);
-        final List<Target> allPages = targetSecurityService.loadAllPages(queryParameters);
+        final int pageNum = queryParameters.getPagingInfo() == null ? 1 :
+                Math.max(queryParameters.getPagingInfo().getPageNum(), 1);
+        final int pageSize = queryParameters.getPagingInfo() == null ? DEFAULT_PAGE_SIZE :
+                Math.max(queryParameters.getPagingInfo().getPageSize(), 1);
         return Result.success(Page.<Target>builder()
-                .totalCount(allPages.size())
-                .items(targets)
+                .totalCount(targets.size())
+                .items(targets.subList(Math.min((pageNum - 1) * pageSize, targets.size()),
+                        Math.min((pageNum * pageSize), targets.size())))
                 .build());
     }
 
@@ -270,8 +276,8 @@ public class TargetController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<TargetGene>> loadTarget(@PathVariable final long targetId,
-                                                       @RequestBody final SearchRequest request)
+    public Result<SearchResult<TargetGene>> loadTargetGenes(@PathVariable final long targetId,
+                                                            @RequestBody final SearchRequest request)
             throws ParseException, IOException {
         return Result.success(targetGeneSecurityService.filter(targetId, request));
     }

@@ -56,12 +56,6 @@ public class TargetSecurityService {
 
     @PreAuthorize(ROLE_USER)
     @PostFilter("isAllowed('READ', filterObject)")
-    public List<Target> loadAllPages(final TargetQueryParams queryParameters) {
-        return targetManager.loadAllPages(queryParameters);
-    }
-
-    @PreAuthorize(ROLE_USER)
-    @PostFilter("isAllowed('READ', filterObject)")
     public List<Target> loadTargets(final String geneName, final Long taxId) throws ParseException, IOException {
         return targetManager.load(geneName, taxId);
     }

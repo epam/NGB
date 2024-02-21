@@ -102,7 +102,8 @@ public class TargetManager implements SecuredEntityManager {
             final Target oldTarget = getTarget(target.getId());
             final List<String> genesToDelete = getGenesToDelete(target, oldTarget);
             if (!CollectionUtils.isEmpty(genesToDelete)) {
-                final List<TargetIdentification> targetIdentifications = oldTarget.getIdentifications();
+                final List<TargetIdentification> targetIdentifications = Optional.ofNullable(
+                        oldTarget.getIdentifications()).orElse(Collections.emptyList());
                 final List<TargetIdentification> identifications = new ArrayList<>();
                 targetIdentifications.forEach(i -> {
                     List<String> genesOfInterest = i.getGenesOfInterest().stream()
@@ -188,9 +189,7 @@ public class TargetManager implements SecuredEntityManager {
                 .field(TARGET_NAME)
                 .ascending(true)
                 .build();
-        final List<Target> targets = targetDao.loadTargets(clause,
-                targetQueryParams.getPagingInfo(),
-                Collections.singletonList(sortInfo));
+        final List<Target> targets = targetDao.loadTargets(clause, Collections.singletonList(sortInfo));
         final Set<Long> targetIds = targets.stream().map(Target::getId).collect(Collectors.toSet());
         final List<TargetGene> targetGenes = targetGeneDao.loadTargetGenes(targetIds);
         final List<TargetIdentification> identifications = getIdentifications(targetIds);
@@ -203,11 +202,6 @@ public class TargetManager implements SecuredEntityManager {
                     .collect(Collectors.toList()));
         }
         return targets;
-    }
-
-    public List<Target> loadAllPages(final TargetQueryParams params) {
-        final String clause = getFilterClause(params);
-        return targetDao.loadTargets(clause, null);
     }
 
     public List<Target> load(final String geneName, final Long taxId) throws ParseException, IOException {
