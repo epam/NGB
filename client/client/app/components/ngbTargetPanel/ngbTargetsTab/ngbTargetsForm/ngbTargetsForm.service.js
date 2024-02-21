@@ -9,7 +9,7 @@ const NEW_GENE = {
 const PAGE_SIZE = 20;
 
 const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'priority'];
-const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority'];
+const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority', 'Additional genes'];
 
 const REQUIRED_FIELDS = ['geneId', 'geneName', 'taxId', 'speciesName'];
 
@@ -287,6 +287,25 @@ export default class ngbTargetsFormService {
             taxId: g.taxId,
             speciesName: g.speciesName,
             priority: g.priority,
+            additionalGenes: {
+                value: [{
+                    geneId: 'geneid1',
+                    taxId: 'taxId1'
+                }, {
+                    geneId: 'geneid2',
+                    taxId: 'taxId2'
+                }, {
+                    geneId: 'geneid3',
+                    taxId: 'taxId3'
+                }, {
+                    geneId: 'geneid4',
+                    taxId: 'taxId4'
+                }, {
+                    geneId: 'geneid5',
+                    taxId: 'taxId5'
+                }],
+                limit: 1,
+            },
             ...encodedMetadata(g.metadata)
         }));
         this._originalModel.genes = (genes.items || []).map(g => ({
@@ -296,6 +315,25 @@ export default class ngbTargetsFormService {
             taxId: g.taxId,
             speciesName: g.speciesName,
             priority: g.priority,
+            additionalGenes: {
+                value: [{
+                    geneId: 'geneid1',
+                    taxId: 'taxId1'
+                }, {
+                    geneId: 'geneid2',
+                    taxId: 'taxId2'
+                }, {
+                    geneId: 'geneid3',
+                    taxId: 'taxId3'
+                }, {
+                    geneId: 'geneid4',
+                    taxId: 'taxId4'
+                }, {
+                    geneId: 'geneid5',
+                    taxId: 'taxId5'
+                }],
+                limit: 1,
+            },
             ...encodedMetadata(g.metadata)
         }));
     }

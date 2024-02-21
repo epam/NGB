@@ -69,6 +69,7 @@ export default class ngbTargetGenesTableController {
         const resetSorting = this.resetSorting.bind(this);
         const confirmRestoreDialog = this.confirmRestoreDialog.bind(this);
         const confirmFilterDialog = this.confirmFilterDialog.bind(this);
+        const restoreRowsHeight = this.restoreRowsHeight.bind(this);
         dispatcher.on('target:form:gene:added', initialize);
         dispatcher.on('target:form:saved', reloadCurrentPage);
         dispatcher.on('target:form:add:gene', getDataOnLastPage);
@@ -78,6 +79,7 @@ export default class ngbTargetGenesTableController {
         dispatcher.on('target:form:sort:reset', resetSorting);
         dispatcher.on('target:form:restore:view', confirmRestoreDialog);
         dispatcher.on('target:form:confirm:filter', confirmFilterDialog);
+        dispatcher.on('target:form:restore:row:height', restoreRowsHeight);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:gene:added', initialize);
             dispatcher.removeListener('target:form:saved', reloadCurrentPage);
@@ -88,6 +90,7 @@ export default class ngbTargetGenesTableController {
             dispatcher.removeListener('target:form:sort:reset', resetSorting);
             dispatcher.removeListener('target:form:restore:view', confirmRestoreDialog);
             dispatcher.removeListener('target:form:confirm:filter', confirmFilterDialog);
+            dispatcher.removeListener('target:form:restore:row:height', restoreRowsHeight);
         });
     }
 
@@ -141,6 +144,7 @@ export default class ngbTargetGenesTableController {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
             columnDefs: [],
+            rowTemplate: require('./ngbTargetGenesTableCells/ngbTargetGenesTable_row.tpl.html'),
             paginationPageSize: this.pageSize,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
@@ -222,6 +226,7 @@ export default class ngbTargetGenesTableController {
         const listCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_listCell.tpl.html');
         const removeCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_removeCell.tpl.html');
         const additionalCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_additionalCell.tpl.html');
+        const additionalGenes = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_genesCell.tpl.html')
 
         const result = [];
         const columnsList = this.ngbTargetGenesTableService.currentColumnFields;
@@ -318,6 +323,15 @@ export default class ngbTargetGenesTableController {
                             cellTemplate: selectCell,
                         };
                     }
+                    break;
+                case 'additionalGenes':
+                    columnSettings = {
+                        ...parasiteSettings,
+                        enableColumnMenu: false,
+                        enableSorting: false,
+                        enableFiltering: this.displayFilters,
+                        cellTemplate: additionalGenes,
+                    };
                     break;
                 case 'remove':
                     columnSettings = {
@@ -452,11 +466,13 @@ export default class ngbTargetGenesTableController {
             const cancelCallback = async () => {
                 this.ngbTargetsFormService.addedGenes = [];
                 this.ngbTargetsFormService.removedGenes = [];
+                this.ngbTargetGenesTableService.rowsHeight = {};
                 this.currentPage = page;
                 await this.loadData();
             };
             this.openConfirmDialog(saveCallback, cancelCallback);
         } else {
+            this.ngbTargetGenesTableService.rowsHeight = {};
             this.currentPage = page;
             await this.loadData();
         }
@@ -476,12 +492,14 @@ export default class ngbTargetGenesTableController {
                     };
                     const cancelCallback = async () => {
                         this.ngbTargetsFormService.removedGenes = [];
+                        this.ngbTargetGenesTableService.rowsHeight = {};
                         this.currentPage = this.totalPages;
                         await this.loadData();
                     };
                     this.openConfirmDialog(saveCallback, cancelCallback);
                 } else {
                     if (!this.gridApi) return;
+                    this.ngbTargetGenesTableService.rowsHeight = {};
                     this.currentPage = this.totalPages;
                     await this.loadData();
                     this.$timeout(() => this.ngbTargetsFormService.addNewGene());
@@ -590,6 +608,7 @@ export default class ngbTargetGenesTableController {
             }
         });
         this.saveSortConfiguration();
+        this.ngbTargetGenesTableService.rowsHeight = {};
         this.currentPage = 1;
         await this.loadData();
     }
@@ -600,6 +619,7 @@ export default class ngbTargetGenesTableController {
         }
         this.loadingData = true;
         this.currentPage = 1;
+        this.ngbTargetGenesTableService.rowsHeight = {};
         await this.loadData();
         this.$timeout(() => this.$scope.$apply());
     }
@@ -621,6 +641,7 @@ export default class ngbTargetGenesTableController {
             this.ngbTargetsFormService.removedGenes = [];
             this.ngbTargetGenesTableService.resetTableResults();
             this.ngbTargetGenesTableService.restoreView();
+            this.restoreRowsHeight();
             this.dispatcher.emit('target:form:reset:columns');
             this.refreshColumns();
         };
@@ -670,5 +691,40 @@ export default class ngbTargetGenesTableController {
                 };
             }
         });
+    }
+
+    showOthers(rowIndex, cell, event) {
+        event.stopPropagation();
+        this.ngbTargetGenesTableService.rowsHeight[rowIndex] = cell.value.length;
+        cell.limit = 100000;
+    }
+
+    showLess(rowIndex, cell, event) {
+        event.stopPropagation();
+        this.ngbTargetGenesTableService.rowsHeight[rowIndex] = 0.21212121;
+        cell.limit = 1;
+    }
+
+    restoreRowsHeight() {
+        for (let i = 0; i < this.gridOptions.data.length; i++) {
+            this.gridOptions.data[i].additionalGenes.limit = 1;
+        }
+    }
+
+    getRowStyle(rowIndex, viewport) {
+        let style = {};
+        if (this.ngbTargetGenesTableService.rowsHeight[rowIndex]) {
+            const itemHeightWithMargin = 16.5;
+            const cellPadding = 10;
+            const itemsCountPlusButton = this.ngbTargetGenesTableService.rowsHeight[rowIndex] + 1;
+            style.height = itemsCountPlusButton * itemHeightWithMargin + cellPadding + 'px'
+        }
+        if (viewport) {
+            style = {
+                ...style,
+                ...viewport.rowStyle(rowIndex)
+            }
+        }
+        return style;
     }
 }

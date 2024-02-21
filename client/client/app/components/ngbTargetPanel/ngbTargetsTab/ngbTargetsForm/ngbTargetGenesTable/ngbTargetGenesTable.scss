@@ -15,6 +15,10 @@ ngb-target-genes-table {
             height: 100% !important;
         }
 
+        .ui-grid-row > div:first-child {
+            height: 100%;
+        }
+
         .ui-grid-cell-contents {
             white-space: nowrap;
         }
@@ -85,6 +89,7 @@ ngb-target-genes-table {
 
     .input-cell {
         width: 100%;
+        height: 100%;
 
         input.ngb-targets-form-table-input {
             flex: 1;
@@ -92,7 +97,7 @@ ngb-target-genes-table {
             border-radius: $table-control-border-radius;
             border: none;
             background: $table-control-background;
-            height: $table-control-height;
+            height: 100%;
             color: $table-control-font-color;
             padding: $table-control-padding;
             font-size: $table-control-font-size;
@@ -101,7 +106,7 @@ ngb-target-genes-table {
         
             &.error {
                 border-bottom: 1px solid red;
-                margin: 1px 0;
+                margin: 0;
             }
         
             &:hover:not(:focus) {
@@ -123,7 +128,7 @@ ngb-target-genes-table {
             border-radius: $table-control-border-radius;
             border: $table-control-border;
             background: $table-control-background;
-            height: $table-control-height;
+            height: 100%;
             color: $table-control-font-color;
             box-sizing: border-box;
 
@@ -171,11 +176,31 @@ ngb-target-genes-table {
         height: $table-control-height;
         line-height: $table-control-height;
         padding: 0;
-        margin: 0;
+        margin: auto 5px;
     }
 
     .list-cell {
         width: 100%;
+    }
+
+    .cell-content {
+        font-size: 12px;
+        align-self: center;
+        padding: 5px;
+    }
+
+    .cell-content p {
+        margin: 2px 0;
+    }
+
+    .others-button {
+        text-decoration: underline;
+        font-style: italic;
+        white-space: nowrap;
+    }
+
+    .others-button:hover {
+        text-decoration: none;
     }
 }
 
