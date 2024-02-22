@@ -26,26 +26,29 @@ package com.epam.catgenome.controller.sequence;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
+import com.epam.catgenome.controller.vo.sequence.LocalSequenceRequest;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.exception.ReferenceReadingException;
+import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.manager.externaldb.ncbi.util.NCBISequenceDatabase;
-import com.epam.catgenome.manager.externaldb.sequence.NCBISequenceSecurityService;
+import com.epam.catgenome.manager.externaldb.sequence.SequenceSecurityService;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @Api(value = "sequence", description = "Sequences Management")
 @RequiredArgsConstructor
 public class SequenceController extends AbstractRESTController {
 
-    private final NCBISequenceSecurityService service;
+    private final SequenceSecurityService service;
 
     @GetMapping(value = "/sequence/{id}")
     @ApiOperation(
@@ -58,5 +61,19 @@ public class SequenceController extends AbstractRESTController {
     public Result<String> getFasta(@RequestParam final NCBISequenceDatabase database, @PathVariable final String id)
             throws ExternalDbUnavailableException {
         return Result.success(service.getFasta(database, id));
+    }
+
+    @PostMapping(value = "/sequence/local")
+    @ApiOperation(
+            value = "Returns a gene sequence.",
+            notes = "Returns a gene sequence.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<String> getSequence(@RequestBody final LocalSequenceRequest request)
+            throws ExternalDbUnavailableException, TargetGenesException, ReferenceReadingException,
+            ParseException, IOException {
+        return Result.success(service.getSequence(request));
     }
 }

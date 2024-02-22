@@ -67,6 +67,7 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldVa
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugManager;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBGeneManager;
 import com.epam.catgenome.manager.pdb.PdbFileManager;
+import com.epam.catgenome.manager.sequence.SequencesManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -112,6 +113,7 @@ public class LaunchIdentificationManager {
     private final NCBIGeneInfoManager geneInfoManager;
     private final TaxonomyManager taxonomyManager;
     private final NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
+    private final SequencesManager sequencesManager;
 
     public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
@@ -240,15 +242,21 @@ public class LaunchIdentificationManager {
         return geneSequencesManager.fetchGeneSequences(entrezMap);
     }
 
-    public List<GeneRefSection> getGeneSequencesTable(final List<String> geneIds, final Boolean getComments)
+    public List<GeneRefSection> getGeneSequencesTable(final List<String> geneIds,
+                                                      final Boolean getComments,
+                                                      final Boolean includeLocal)
             throws ParseException, IOException, ExternalDbUnavailableException {
+        final List<GeneRefSection> result = includeLocal ?
+                sequencesManager.getGeneSequencesTable(geneIds) : new ArrayList<>();
+
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         if (CollectionUtils.isEmpty(ncbiGeneIds)) {
-            return Collections.emptyList();
+            return result;
         }
         final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
                 .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
-        return geneSequencesManager.getGeneSequencesTable(entrezMap, getComments);
+        result.addAll(geneSequencesManager.getGeneSequencesTable(entrezMap, getComments));
+        return result;
     }
 
     public SearchResult<Structure> getStructures(final StructuresSearchRequest request)

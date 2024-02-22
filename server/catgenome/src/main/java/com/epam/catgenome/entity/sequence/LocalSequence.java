@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 EPAM Systems
+ * Copyright (c) 2024 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,29 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.target;
+package com.epam.catgenome.entity.sequence;
 
-import com.epam.catgenome.entity.externaldb.target.UrlEntity;
-import com.epam.catgenome.manager.gene.parser.StrandSerializable;
+import com.epam.catgenome.entity.target.Sequence;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class Sequence extends UrlEntity{
-    private Long begin;
-    private Long end;
-    private StrandSerializable strand;
-    private String genomic;
-    private Integer length;
-
-    public static StrandSerializable parseStrand(final String orientation) {
-        if (orientation.equals("plus") || orientation.equals("+")) {
-            return StrandSerializable.POSITIVE;
-        }
-        if (orientation.equals("minus") || orientation.equals("-")) {
-            return StrandSerializable.NEGATIVE;
-        }
-        return StrandSerializable.NONE;
-    }
+public class LocalSequence extends Sequence {
+    private Long referenceId;
+    private Long featureFileId;
+    private Long chromosomeId;
 }

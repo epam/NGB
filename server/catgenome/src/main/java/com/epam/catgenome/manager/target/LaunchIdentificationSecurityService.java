@@ -158,9 +158,11 @@ public class LaunchIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<GeneRefSection> getGeneSequencesTable(final List<String> geneIds, final Boolean getComments)
+    public List<GeneRefSection> getGeneSequencesTable(final List<String> geneIds,
+                                                      final Boolean getComments,
+                                                      final Boolean includeLocal)
             throws ParseException, IOException, ExternalDbUnavailableException {
-        return manager.getGeneSequencesTable(geneIds, getComments);
+        return manager.getGeneSequencesTable(geneIds, getComments, includeLocal);
     }
 
     @PreAuthorize(ROLE_USER)

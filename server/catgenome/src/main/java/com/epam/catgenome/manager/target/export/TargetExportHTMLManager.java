@@ -214,7 +214,7 @@ public class TargetExportHTMLManager {
             throws ParseException, IOException, ExternalDbUnavailableException {
         final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(geneIds);
         final List<GeneRefSection> sequencesTable = launchIdentificationManager.getGeneSequencesTable(geneIds,
-                false);
+                false, true);
         final List<Sequence> sequences = new ArrayList<>();
         for (GeneRefSection geneRefSection : sequencesTable) {
             SequenceGene sequenceGene = SequenceGene.builder()

@@ -274,7 +274,7 @@ public class TargetExportManager {
     public List<GeneSequence> getSequenceTable(final List<String> geneIds, final Map<String, String> genesMap)
             throws ParseException, IOException, ExternalDbUnavailableException {
         final List<GeneRefSection> sequencesTable = identificationManager.getGeneSequencesTable(geneIds,
-                false);
+                false, true);
         final List<GeneSequence> result = new ArrayList<>();
         for (GeneRefSection geneRefSection : sequencesTable) {
             for (com.epam.catgenome.entity.target.GeneSequence sequence :
