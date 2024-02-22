@@ -578,7 +578,7 @@ export default class ngbTargetsFormService {
     getParasiteTargetRequest() {
         const {id, name, diseases, products, type} = this.targetModel;
         const request = {
-            targetId: id,
+            id,
             targetName: name,
             type,
             diseases,
@@ -593,24 +593,24 @@ export default class ngbTargetsFormService {
     async updateParasiteTarget() {
         const promises = [];
         if (this.geneFile) {
-            promises.push(await this.importFile(this.targetModel.id));
+            promises.push(this.importFile(this.targetModel.id));
         }
         if (this.parasiteGenesAdded()) {
-            promises.push(await this.postNewParasiteTargetGenes(this.targetModel.id));
+            promises.push(this.postNewParasiteTargetGenes(this.targetModel.id));
         }
         if (this.parasiteGenesRemoved()) {
             const targetGeneIds = this.removedGenes.map(gene => gene.targetGeneId);
-            promises.push(await this.deleteParasiteTargetGenes(targetGeneIds));
+            promises.push(this.deleteParasiteTargetGenes(targetGeneIds));
         }
         if (this.targetGenesChanged()) {
             const request = this.getParasiteGenesMetadataRequest();
             if (request && request.length) {
-                promises.push(await this.putParasiteGenes(request));
+                promises.push(this.putParasiteGenes(request));
             }
         }
         if (this.targetInfoChanged()) {
             const request = this.getParasiteTargetRequest();
-            promises.push(await this.putParasiteTarget(request));
+            promises.push(this.putParasiteTarget(request));
         }
         promises.push(this.getParasiteTarget());
         return await Promise.all(promises).then(values => {
