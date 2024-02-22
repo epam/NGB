@@ -22,6 +22,7 @@ export default class ngbTargetsFormActionsController {
             this.dispatcher.removeListener('target:form:reset:columns', resetColumnsSelection);
             this.dispatcher.removeListener('target:form:table:columns', setColumnsList);
         });
+        this.setColumnsList();
     }
 
     setColumnsList() {

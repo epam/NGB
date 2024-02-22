@@ -8,5 +8,6 @@
     <input class="ngb-targets-form-table-input"
            spellcheck="false"
            name="row.entity[col.field].name"
+           ng-disabled="!grid.appScope.$ctrl.changeAllowed"
            ng-model="row.entity[col.field]">
 </span>

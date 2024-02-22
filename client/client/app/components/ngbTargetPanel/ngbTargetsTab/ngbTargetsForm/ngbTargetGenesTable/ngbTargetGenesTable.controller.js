@@ -137,6 +137,10 @@ export default class ngbTargetGenesTableController {
         this.ngbTargetsFormService.addedGenes = value;
     }
 
+    get changeAllowed() {
+        return this.ngbTargetsFormService.isAddMode || this.targetModel.changeAllowed;
+    }
+
     $onInit() {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
@@ -493,6 +497,7 @@ export default class ngbTargetGenesTableController {
     }
 
     saveSortConfiguration() {
+        if (!this.gridApi) return;
         this.savedSortConfiguration = this.gridApi.grid.columns
             .filter(column => !!column.sort)
             .map((column, priority) => ({
