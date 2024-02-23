@@ -31,12 +31,15 @@ import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.entity.session.NGBSession;
+import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.security.acl.PermissionHelper;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.acls.model.*;
 import org.springframework.security.core.Authentication;
 
+import java.io.IOException;
 import java.util.List;
 
 public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
@@ -111,6 +114,10 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
 
     public boolean isOwner(AclClass aclClass, long id) {
         return permissionHelper.isOwner(aclClass, id);
+    }
+
+    public boolean isTargetOwner(AclClass aclClass, long id) {
+        return aclClass.equals(AclClass.TARGET) && permissionHelper.isOwner(aclClass, id);
     }
 
     public boolean hasPermissionOnProject(Long projectId, String permission) {
@@ -213,6 +220,18 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
 
     public boolean hasPermissionOnTarget(final long targetId, final String permission) {
         return isAllowed(targetId, AclClass.TARGET, permission);
+    }
+
+    public boolean hasPermissionOnTargetGenes(final List<Long> targetGeneIds, final String permission)
+            throws ParseException, IOException {
+        return permissionHelper.isAllowedByTargetGeneIds(targetGeneIds, permission);
+    }
+
+    public boolean hasPermissionOnTargetGenes(final String permission, final List<TargetGene> targetGenes) {
+        return targetGenes.stream()
+                .map(TargetGene::getTargetId)
+                .distinct()
+                .allMatch(t -> hasPermissionOnTarget(t, permission));
     }
 
     @Override

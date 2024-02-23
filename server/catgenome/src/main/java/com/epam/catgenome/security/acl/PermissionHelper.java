@@ -36,6 +36,7 @@ import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.entity.session.NGBSession;
 import com.epam.catgenome.entity.session.NGBSessionValue;
+import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.manager.CompositeSecuredEntityManager;
 import com.epam.catgenome.manager.dataitem.DataItemManager;
 import com.epam.catgenome.manager.gene.GeneFileManager;
@@ -44,7 +45,7 @@ import com.epam.catgenome.manager.lineage.LineageTreeManager;
 import com.epam.catgenome.manager.project.ProjectDescriptionService;
 import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.manager.target.TargetManager;
+import com.epam.catgenome.manager.target.TargetGeneManager;
 import com.epam.catgenome.manager.user.UserManager;
 import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.security.UserContext;
@@ -52,6 +53,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,7 +126,7 @@ public class PermissionHelper {
     private LineageTreeManager lineageTreeManager;
 
     @Autowired
-    private TargetManager targetManager;
+    private TargetGeneManager targetGeneManager;
 
     @Autowired
     private ProjectDescriptionService projectDescriptionService;
@@ -167,6 +169,15 @@ public class PermissionHelper {
                 .hasPermission(SecurityContextHolder.getContext().getAuthentication(),
                         bioItem,
                         permissionName);
+    }
+
+    public boolean isAllowedByTargetGeneIds(final List<Long> targetGeneIds, final String permission)
+            throws ParseException, IOException {
+        final List<TargetGene> targetGenes = targetGeneManager.loadByIds(targetGeneIds);
+        return targetGenes.stream()
+                .map(TargetGene::getTargetId)
+                .distinct()
+                .allMatch(t -> isAllowed(permission, t, AclClass.TARGET));
     }
 
     public boolean projectCanBeMoved(Long projectId, Long newParentId) {

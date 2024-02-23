@@ -26,6 +26,8 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetQueryParams;
 import com.epam.catgenome.exception.TargetUpdateException;
+import com.epam.catgenome.security.acl.aspect.AclMask;
+import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PostFilter;
@@ -43,19 +45,22 @@ public class TargetSecurityService {
 
     private final TargetManager targetManager;
 
+    @AclMask
     @PreAuthorize(ROLE_USER)
     public Target loadTarget(final long targetId) {
         return targetManager.load(targetId);
     }
 
+    @AclMaskList
     @PreAuthorize(ROLE_USER)
-    @PostFilter("isAllowed('READ', filterObject)")
+    @PostFilter(ROLE_TARGET_MANAGER + OR + "isAllowed('READ', filterObject)")
     public List<Target> loadTargets(final TargetQueryParams queryParameters) {
         return targetManager.load(queryParameters);
     }
 
+    @AclMaskList
     @PreAuthorize(ROLE_USER)
-    @PostFilter("isAllowed('READ', filterObject)")
+    @PostFilter(ROLE_TARGET_MANAGER + OR + "isAllowed('READ', filterObject)")
     public List<Target> loadTargets(final String geneName, final Long taxId) throws ParseException, IOException {
         return targetManager.load(geneName, taxId);
     }
@@ -80,6 +85,7 @@ public class TargetSecurityService {
         return targetManager.loadFieldValues(field);
     }
 
+    @AclMask
     @PreAuthorize(ROLE_TARGET_MANAGER + OR + "hasPermissionOnTarget(#target.id, 'WRITE')")
     public Target updateTarget(final Target target) throws TargetUpdateException, IOException {
         return targetManager.update(target);
