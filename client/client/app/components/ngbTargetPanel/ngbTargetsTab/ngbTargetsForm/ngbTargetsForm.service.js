@@ -1,4 +1,4 @@
-import roleModel from '../../../../shared/utils/roleModel';
+import maskModel from './utils/maskModel';
 
 const NEW_GENE = {
     geneId: '',
@@ -280,10 +280,10 @@ export default class ngbTargetsFormService {
                         .then(user => {
                             const hasRoles = user.hasRoles(this.writeRoles);
                             if (hasRoles) return hasRoles;
-                            if (!mask) return false;
-                            const isOwner = roleModel.isOwner({ mask });
-                            const isWriteAllowed = roleModel.writeAllowed({ mask });
-                            return isOwner || isWriteAllowed;
+                            if (mask === undefined) return false;
+                            const isOwner = maskModel.isOwner({ mask });
+                            const writeAllowed = maskModel.writeAllowed({ mask });
+                            return isOwner || writeAllowed;
                         });
                 } else {
                     return true;

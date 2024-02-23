@@ -85,7 +85,8 @@
                  style="padding-top: 8px; padding-bottom: 8px; text-align: center;">
                 <div class="no-genes-info"
                      ng-if="!$ctrl.inputFile && (
-                        !$ctrl.targetModel.genes || $ctrl.targetModel.genes.length === 0)">
+                            (!$ctrl.targetModel.genes || $ctrl.targetModel.genes.length === 0) &&
+                            (!$ctrl.addedGenes || !$ctrl.addedGenes.length))">
                     At least one gene or transcript shall be specified.
                 </div>
                 <div class="table-buttons"
