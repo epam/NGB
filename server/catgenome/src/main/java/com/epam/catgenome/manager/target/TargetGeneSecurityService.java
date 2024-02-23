@@ -38,7 +38,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
-import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
 @Service
 @RequiredArgsConstructor
@@ -46,19 +46,19 @@ public class TargetGeneSecurityService {
 
     private final TargetGeneManager targetGeneManager;
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize(ROLE_TARGET_MANAGER + OR + "hasPermissionOnTarget(#targetId, 'WRITE')")
     public void importGenes(final long targetId, final String path, final MultipartFile multipart)
             throws IOException, ParseException, TargetGenesException, CsvValidationException {
         targetGeneManager.importData(targetId, path, multipart);
     }
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize(ROLE_TARGET_MANAGER + OR + "hasPermissionOnTarget(#targetId, 'WRITE')")
     public void create(final long targetId, final List<TargetGene> targetGenes)
             throws IOException, ParseException, TargetGenesException {
         targetGeneManager.create(targetId, targetGenes);
     }
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize(ROLE_TARGET_MANAGER + OR + "hasPermissionOnTargetGenes('WRITE', #targetGenes)")
     public void update(final List<TargetGene> targetGenes) throws IOException, ParseException, TargetGenesException {
         targetGeneManager.update(targetGenes);
     }
@@ -68,12 +68,12 @@ public class TargetGeneSecurityService {
         return targetGeneManager.loadByIds(targetGeneIds);
     }
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize(ROLE_TARGET_MANAGER + OR + "hasPermissionOnTarget(#targetId, 'WRITE')")
     public void delete(final Long targetId) throws ParseException, IOException {
         targetGeneManager.delete(targetId);
     }
 
-    @PreAuthorize(ROLE_USER)
+    @PreAuthorize(ROLE_TARGET_MANAGER + OR + "hasPermissionOnTargetGenes(#targetGeneIds, 'WRITE')")
     public void delete(final List<Long> targetGeneIds) throws ParseException, IOException {
         targetGeneManager.delete(targetGeneIds);
     }

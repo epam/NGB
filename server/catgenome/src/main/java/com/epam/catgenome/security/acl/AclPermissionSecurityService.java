@@ -47,7 +47,7 @@ public class AclPermissionSecurityService {
     @Autowired
     private GrantPermissionManager permissionManager;
 
-    @PreAuthorize(ROLE_ADMIN)
+    @PreAuthorize(ROLE_ADMIN + OR + "isTargetOwner(#grantVO.aclClass, #grantVO.id)")
     public AclSecuredEntry setPermissions(PermissionGrantVO grantVO) {
         return permissionManager.setPermissions(grantVO.getAclClass(), grantVO.getId(), grantVO.getUserName(),
                 grantVO.getPrincipal(), grantVO.getMask());
