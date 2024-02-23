@@ -11,7 +11,7 @@ export default class ngbTargetGenesTableController {
     gridOptions = {
         height: '100%',
         headerRowHeight: 30,
-        rowHeight: 'auto',
+        rowHeight: 40,
         showHeader: true,
         multiSelect: false,
         enableGridMenu: false,
@@ -701,7 +701,7 @@ export default class ngbTargetGenesTableController {
 
     showLess(rowIndex, cell, event) {
         event.stopPropagation();
-        this.ngbTargetGenesTableService.rowsHeight[rowIndex] = 0.21212121;
+        this.ngbTargetGenesTableService.rowsHeight[rowIndex] = 0.81818182;
         cell.limit = 1;
     }
 
@@ -726,5 +726,8 @@ export default class ngbTargetGenesTableController {
             }
         }
         return style;
+    }
+
+    onClickAdditionalRemove() {
     }
 }

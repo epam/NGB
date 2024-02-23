@@ -37,6 +37,35 @@ ngb-target-genes-table {
                 margin-left: 0;
             }
         }
+
+        .additional-genes {
+            background: #fafafa;
+        }
+
+        .additional-gene-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .additional-gene-input,
+        .additional-gene-input.ng-valid {
+            width: 44%;
+            border-radius: 0;
+            border: none;
+            background: #fafafa;
+            color: #444444;
+            padding: 0 4px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #c7c7c7;
+        }
+
+        .additional-remove-btn {
+            min-height: 10px;
+            min-width: 12px;
+            line-height: 10px;
+            padding: 0 2px;
+            margin: 1px 2px;
+        }
     }
 
     .ui-grid-container .ui-grid-render-container {
