@@ -137,7 +137,7 @@ public class AlignmentManager {
         }
         dirFile.mkdirs();
 
-        final List<GeneSequences> sequences = launchIdentificationManager.getGeneSequences(geneIds);
+        final List<GeneSequences> sequences = launchIdentificationManager.getGeneSequences(geneIds, false);
         final List<String> proteinIds = sequences.stream()
                 .map(geneSequences -> geneSequences.getProteins().stream()
                         .map(UrlEntity::getId)

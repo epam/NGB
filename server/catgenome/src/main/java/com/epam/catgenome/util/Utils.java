@@ -51,12 +51,15 @@ import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.readers.LineIterator;
+import lombok.SneakyThrows;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.http.util.TextUtils;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -520,6 +523,18 @@ public final class Utils {
                 .collect(Collectors.joining(","));
     }
 
+    @SneakyThrows
+    public static String serialize(final Map<String, Long> data) {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(data);
+    }
+
+    @SneakyThrows
+    public static Map<String, Long> deSerialize(final String data) {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(data, TypeFactory.defaultInstance()
+                .constructMapType(HashMap.class, String.class, Long.class));
+    }
     public static List<String> dataToList(final String data) {
         return data != null ? Arrays.asList(data.split(SEPARATOR)) : new ArrayList<>();
     }

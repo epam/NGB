@@ -36,6 +36,7 @@ public class TargetGene {
     private Long targetGeneId;
     private Long targetId;
     private String geneId;
+    private Map<String, Long> additionalGenes;
     private String geneName;
     private Long taxId;
     private String speciesName;

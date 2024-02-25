@@ -39,12 +39,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static com.epam.catgenome.util.Utils.addClauseToQuery;
+import static com.epam.catgenome.util.Utils.deSerialize;
+import static com.epam.catgenome.util.Utils.serialize;
 
 @Setter
 @NoArgsConstructor
@@ -118,6 +117,7 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
         TARGET_GENE_ID,
         TARGET_ID,
         GENE_ID,
+        ADDITIONAL_GENES,
         GENE_NAME,
         TAX_ID,
         SPECIES_NAME,
@@ -128,6 +128,7 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
             params.addValue(TARGET_GENE_ID.name(), targetGene.getTargetGeneId());
             params.addValue(TARGET_ID.name(), targetGene.getTargetId());
             params.addValue(GENE_ID.name(), targetGene.getGeneId());
+            params.addValue(ADDITIONAL_GENES.name(), serialize(targetGene.getAdditionalGenes()));
             params.addValue(GENE_NAME.name(), targetGene.getGeneName());
             params.addValue(TAX_ID.name(), targetGene.getTaxId());
             params.addValue(SPECIES_NAME.name(), targetGene.getSpeciesName());
@@ -141,7 +142,7 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
         }
 
         static TargetGene parseTargetGene(final ResultSet rs) throws SQLException {
-            return TargetGene.builder()
+            final TargetGene targetGene = TargetGene.builder()
                     .targetGeneId(rs.getLong(TARGET_GENE_ID.name()))
                     .targetId(rs.getLong(TARGET_ID.name()))
                     .geneId(rs.getString(GENE_ID.name()))
@@ -150,6 +151,11 @@ public class TargetGeneDao extends NamedParameterJdbcDaoSupport {
                     .speciesName(rs.getString(SPECIES_NAME.name()))
                     .priority(TargetGenePriority.getByValue(rs.getInt(PRIORITY.name())))
                     .build();
+            final String additionalGenes = rs.getString(ADDITIONAL_GENES.name());
+            if (!rs.wasNull()) {
+                targetGene.setAdditionalGenes(deSerialize(additionalGenes));
+            }
+            return targetGene;
         }
     }
 }

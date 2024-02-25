@@ -31,7 +31,6 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.target.GeneRefSection;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
-import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
@@ -143,26 +142,23 @@ public class LaunchIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request) {
+    public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request)
+            throws ParseException, IOException {
         return manager.getPublications(request);
     }
 
     @PreAuthorize(ROLE_USER)
-    public String getArticleAbstracts(final PublicationSearchRequest request) {
+    public String getArticleAbstracts(final PublicationSearchRequest request) throws ParseException, IOException {
         return manager.getArticlesAbstracts(request);
-    }
-
-    @PreAuthorize(ROLE_USER)
-    public List<GeneSequences> getGeneSequences(final List<String> geneIds) throws ParseException, IOException {
-        return manager.getGeneSequences(geneIds);
     }
 
     @PreAuthorize(ROLE_USER)
     public List<GeneRefSection> getGeneSequencesTable(final List<String> geneIds,
                                                       final Boolean getComments,
-                                                      final Boolean includeLocal)
+                                                      final Boolean includeLocal,
+                                                      final Boolean includeAdditionalGenes)
             throws ParseException, IOException, ExternalDbUnavailableException {
-        return manager.getGeneSequencesTable(geneIds, getComments, includeLocal);
+        return manager.getGeneSequencesTable(geneIds, getComments, includeLocal, includeAdditionalGenes);
     }
 
     @PreAuthorize(ROLE_USER)

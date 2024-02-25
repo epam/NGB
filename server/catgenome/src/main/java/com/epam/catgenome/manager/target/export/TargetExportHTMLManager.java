@@ -99,7 +99,7 @@ public class TargetExportHTMLManager {
         final String template = getTemplate();
 
         final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
-
+        targetManager.expandTargetGenes(geneIds);
         String name;
         if (targetId != null) {
             final Target target = targetManager.getTarget(targetId);
@@ -121,7 +121,7 @@ public class TargetExportHTMLManager {
         final List<DiseaseAssociation> diseaseAssociations = targetExportManager.getDiseaseAssociations(geneIds,
                 geneNamesMap);
         final List<SourceData<DiseaseData>> diseases = getDiseases(pharmGKBDiseases, diseaseAssociations);
-        final List<Sequence> sequences = getSequences(geneIds, geneNamesMap);
+        final List<Sequence> sequences = getSequences(getGeneIds(genesOfInterest, translationalGenes), geneNamesMap);
         final List<SourceData<StructureData>> structures = getStructures(geneIds);
         final long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
         final List<Publication> publications = getPublications(entrezIds, publicationsCount);
@@ -157,7 +157,7 @@ public class TargetExportHTMLManager {
         final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(geneIds);
         final Map<String, String> descriptions = launchIdentificationManager.getDescriptions(ncbiGeneIds);
         for (String geneId : geneIds) {
-            TargetGene gene = genesMap.get(geneId);
+            TargetGene gene = genesMap.containsKey(geneId) ? genesMap.get(geneId) : TargetGene.builder().build();
             boolean isGeneOfInterest = genesOfInterest.stream()
                     .map(String::toLowerCase)
                     .anyMatch(g -> g.equals(geneId));
@@ -214,7 +214,7 @@ public class TargetExportHTMLManager {
             throws ParseException, IOException, ExternalDbUnavailableException {
         final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(geneIds);
         final List<GeneRefSection> sequencesTable = launchIdentificationManager.getGeneSequencesTable(geneIds,
-                false, true);
+                false, true, true);
         final List<Sequence> sequences = new ArrayList<>();
         for (GeneRefSection geneRefSection : sequencesTable) {
             SequenceGene sequenceGene = SequenceGene.builder()

@@ -56,6 +56,7 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugField;
 import com.epam.catgenome.manager.pdb.PdbFileField;
 import com.epam.catgenome.manager.pdb.PdbFileManager;
 import com.epam.catgenome.manager.target.LaunchIdentificationManager;
+import com.epam.catgenome.manager.target.TargetManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -95,12 +96,15 @@ public class TargetExportXLSManager {
     private final NCBISequenceManager geneSequencesManager;
     private final TargetExportManager targetExportManager;
     private final LaunchIdentificationManager launchIdentificationManager;
+    private final TargetManager targetManager;
 
     public InputStream report(final List<String> genesOfInterest,
                               final List<String> translationalGenes)
             throws IOException, ParseException, ExternalDbUnavailableException {
 
         final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
+
+        targetManager.expandTargetGenes(geneIds);
         final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(geneIds);
         final Map<String, String> targetNames = targetExportManager.getTargetGeneNames(genesMap);
         final List<TargetHomologue> homologyData = targetExportManager.getHomologyData(geneIds,
@@ -127,7 +131,8 @@ public class TargetExportXLSManager {
             writeSheet("Structures (Local)", Arrays.asList(PdbFileField.values()),
                     targetExportManager.getPdbFiles(geneIds), workbook);
             writeSheet("Sequences", Arrays.asList(GeneSequenceField.values()),
-                    targetExportManager.getSequenceTable(geneIds, targetNames), workbook);
+                    targetExportManager.getSequenceTable(getGeneIds(genesOfInterest, translationalGenes), targetNames),
+                    workbook);
             writeSheet("Homology", Arrays.asList(TargetHomologyField.values()), homologyData, workbook);
             return ExcelExportUtils.export(workbook);
         }
@@ -143,6 +148,7 @@ public class TargetExportXLSManager {
                                                  final List<TargetHomologue> homologyData)
             throws ParseException, IOException, ExternalDbUnavailableException {
         final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
+        targetManager.expandTargetGenes(geneIds);
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         final Map<String, GeneId> genes = ncbiGeneIds.stream()
                 .collect(Collectors.toMap(g -> g.getEnsemblId().toLowerCase(), Function.identity()));
@@ -177,16 +183,17 @@ public class TargetExportXLSManager {
                     sequencesSummaryMap.get(geneId).toString() : "";
 
             long localPdbFilesCount = pdbFileManager.totalCount(Collections.singletonList(geneId));
-            String geneName = genesMap.get(geneId).getGeneName();
+            String geneName = genesMap.containsKey(geneId) ? genesMap.get(geneId).getGeneName() : "";
             long structures = (structuresCount.containsKey(geneName) ? structuresCount.get(geneName) : 0) +
                     localPdbFilesCount;
 
-            DrugsCount drugsCount = drugsCountMap.get(geneId);
+            DrugsCount drugsCount = drugsCountMap.containsKey(geneId) ?
+                    drugsCountMap.get(geneId) : DrugsCount.builder().build();
 
             TargetExportSummary summary = TargetExportSummary.builder()
-                    .gene(genesMap.get(geneId).getGeneName())
-                    .geneId(genesMap.get(geneId).getGeneId())
-                    .species(genesMap.get(geneId).getSpeciesName())
+                    .gene(geneName)
+                    .geneId(geneId)
+                    .species(genesMap.containsKey(geneId) ? genesMap.get(geneId).getSpeciesName() : "")
                     .description(descriptions.get(geneId))
                     .knownDrugs(drugsCount.getDistinctCount())
                     .knownDrugRecords(drugsCount.getTotalCount())

@@ -105,7 +105,7 @@ public class EnsemblDataManager {
             if (desc.length > 1) {
                 return desc[1].replace("]", "");
             }
-        } catch (ExternalDbUnavailableException | JsonProcessingException e) {
+        } catch (ExternalDbUnavailableException | JsonProcessingException | NullPointerException e) {
             log.error(e.getMessage());
         }
         return null;

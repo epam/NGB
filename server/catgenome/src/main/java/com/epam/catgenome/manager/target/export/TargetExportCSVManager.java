@@ -36,6 +36,7 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugField;
 import com.epam.catgenome.manager.pdb.PdbFileField;
 import com.epam.catgenome.entity.target.export.GeneSequenceField;
 import com.epam.catgenome.entity.target.export.TargetHomologyField;
+import com.epam.catgenome.manager.target.TargetManager;
 import com.epam.catgenome.util.FileFormat;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -57,6 +58,7 @@ public class TargetExportCSVManager {
     private final DrugAssociationManager drugAssociationManager;
     private final DiseaseAssociationManager diseaseAssociationManager;
     private final TargetExportManager targetExportManager;
+    private final TargetManager targetManager;
 
     public byte[] exportDisease(final String diseaseId, final TargetExportTable source,
                                 final FileFormat format, final boolean includeHeader)
@@ -84,8 +86,9 @@ public class TargetExportCSVManager {
                          final boolean includeHeader)
             throws IOException, ParseException, ExternalDbUnavailableException {
         final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
+        targetManager.expandTargetGenes(geneIds);
         final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneIds);
-        return export(genesOfInterest, translationalGenes, format, source, includeHeader, genesMap);
+        return export(genesOfInterest, translationalGenes, format, source, includeHeader, geneIds, genesMap);
     }
 
     public byte[] exportGene(final String geneId, final TargetExportTable source,
@@ -93,14 +96,14 @@ public class TargetExportCSVManager {
             throws IOException, ParseException, ExternalDbUnavailableException {
         final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneId);
         return export(Collections.singletonList(geneId), Collections.emptyList(),
-                format, source, includeHeader, genesMap);
+                format, source, includeHeader, Collections.singletonList(geneId), genesMap);
     }
 
     private byte[] export(final List<String> genesOfInterest, final List<String> translationalGenes,
                           final FileFormat format, final TargetExportTable source, final boolean includeHeader,
+                          final List<String> geneIds,
                           final Map<String, String> genesMap)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
         byte[] result = null;
         switch (source) {
             case OPEN_TARGETS_DISEASES:
@@ -132,7 +135,8 @@ public class TargetExportCSVManager {
                         Arrays.asList(PdbFileField.values()), format, includeHeader);
                 break;
             case SEQUENCES:
-                result = ExportUtils.export(targetExportManager.getSequenceTable(geneIds, genesMap),
+                result = ExportUtils.export(targetExportManager.getSequenceTable(
+                        getGeneIds(genesOfInterest, translationalGenes), genesMap),
                         Arrays.asList(GeneSequenceField.values()), format, includeHeader);
                 break;
             case HOMOLOGY:
