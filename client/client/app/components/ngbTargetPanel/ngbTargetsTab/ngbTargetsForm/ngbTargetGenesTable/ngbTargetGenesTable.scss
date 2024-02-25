@@ -38,8 +38,16 @@ ngb-target-genes-table {
             }
         }
 
-        .additional-genes {
+        .additional-cell-wrapper {
+            overflow-y: auto;
+            box-sizing: border-box;
+            height: 100%;
+            width: 100%;
             background: #fafafa;
+        }
+
+        .additional-genes {
+            padding: 2px 5px;
         }
 
         .additional-gene-item {
@@ -56,7 +64,14 @@ ngb-target-genes-table {
             color: #444444;
             padding: 0 4px;
             box-sizing: border-box;
-            border-bottom: 1px solid #c7c7c7;
+
+            &:focus {
+                border-bottom: 1px solid #c7c7c7;
+            }
+
+            &.error {
+                border-bottom: 1px solid red;
+            }
         }
 
         .additional-remove-btn {
@@ -222,13 +237,15 @@ ngb-target-genes-table {
         margin: 2px 0;
     }
 
-    .others-button {
+    .others-button,
+    .add-button {
         text-decoration: underline;
         font-style: italic;
         white-space: nowrap;
     }
 
-    .others-button:hover {
+    .others-button:hover,
+    .add-button:hover {
         text-decoration: none;
     }
 }

@@ -3,7 +3,14 @@ const NEW_GENE = {
     geneName: '',
     taxId: '',
     speciesName: '',
-    priority: ''
+    priority: '',
+    additionalGenes: {
+        value: [{
+            taxId: '',
+            geneId: '',
+        }],
+        limit: 1,
+    }
 };
 
 const PAGE_SIZE = 20;
@@ -225,7 +232,26 @@ export default class ngbTargetsFormService {
                 geneName: gene.geneName,
                 taxId: gene.taxId,
                 speciesName: gene.speciesName,
-                priority: gene.priority
+                priority: gene.priority,
+                additionalGenes: {
+                    value: [{
+                        geneId: 'geneid1',
+                        taxId: 'taxId1'
+                    }, {
+                        geneId: 'geneid2',
+                        taxId: 'taxId2'
+                    }, {
+                        geneId: 'geneid3',
+                        taxId: 'taxId3'
+                    }, {
+                        geneId: 'geneid4',
+                        taxId: 'taxId4'
+                    }, {
+                        geneId: 'geneid5',
+                        taxId: 'taxId5'
+                    }],
+                    limit: 1,
+                },
             })),
             diseases: (data.diseases || []).filter(d => d),
             products: (data.products || []).filter(p => p),
@@ -249,7 +275,26 @@ export default class ngbTargetsFormService {
                 geneName: gene.geneName,
                 taxId: gene.taxId,
                 speciesName: gene.speciesName,
-                priority: gene.priority
+                priority: gene.priority,
+                additionalGenes: {
+                    value: [{
+                        geneId: 'geneid1',
+                        taxId: 'taxId1'
+                    }, {
+                        geneId: 'geneid2',
+                        taxId: 'taxId2'
+                    }, {
+                        geneId: 'geneid3',
+                        taxId: 'taxId3'
+                    }, {
+                        geneId: 'geneid4',
+                        taxId: 'taxId4'
+                    }, {
+                        geneId: 'geneid5',
+                        taxId: 'taxId5'
+                    }],
+                    limit: 1,
+                },
             }))
         };
     }

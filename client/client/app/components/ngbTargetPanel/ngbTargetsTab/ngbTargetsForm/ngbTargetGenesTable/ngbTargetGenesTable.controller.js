@@ -728,6 +728,36 @@ export default class ngbTargetGenesTableController {
         return style;
     }
 
-    onClickAdditionalRemove() {
+    onChangeAdditionalGeneName(row, field, text) {
+        this.ngbTargetsFormService.setGeneModel(row, field, text);
+    }
+
+    onClickAdditionalRemove(event, genesArray, index) {
+        if (index > -1) {
+            genesArray.value.splice(index, 1);
+        }
+    }
+
+    getIsAddAdditionalGeneDisabled (genesArray) {
+        if (this.loading) return true;
+        if (!genesArray || !genesArray.value) {
+            return false;
+        }
+        const genesEmpty = genesArray.value.filter(gene => {
+            return ((!gene.taxId || !String(gene.taxId).length) ||
+                    (!gene.geneId || !String(gene.geneId).length))
+        });
+        return genesEmpty.length;
+    }
+
+    addAdditionalGene(genesArray, rowIndex, event) {
+        if (this.getIsAddAdditionalGeneDisabled(genesArray)) return;
+        if (genesArray.value.length === genesArray.limit) {
+            this.showOthers(rowIndex, genesArray, event)
+        }
+        genesArray.value.push({
+            taxId: '',
+            geneId: ''
+        });
     }
 }
