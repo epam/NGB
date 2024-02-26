@@ -32,15 +32,18 @@ import com.google.cloud.aiplatform.v1beta1.PredictionServiceClient;
 import com.google.cloud.aiplatform.v1beta1.PredictionServiceSettings;
 import com.google.protobuf.util.JsonFormat;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
 @Service
+@Slf4j
 public class GCPPaLM2 implements LLMHandler {
     private final String project;
     private final String location;
@@ -73,6 +76,7 @@ public class GCPPaLM2 implements LLMHandler {
 
     @Override
     public String getSummary(final String prompt, final String text, final double temperature) {
+        Assert.notNull(this.client, "Google PALM client is not available");
         Assert.isTrue(StringUtils.isNotBlank(project), "Project is not configured for GCP request");
         final String instance =
                 String.format("{ \"prompt\": \"%s\"}", buildPrompt(prompt, text, promptSize));
@@ -111,11 +115,15 @@ public class GCPPaLM2 implements LLMHandler {
         return value.build();
     }
 
-    @SneakyThrows
     private PredictionServiceClient buildClient() {
-        final String endpoint = String.format("%s-aiplatform.googleapis.com:443", location);
-        final PredictionServiceSettings predictionServiceSettings =
-                PredictionServiceSettings.newBuilder().setEndpoint(endpoint).build();
-        return PredictionServiceClient.create(predictionServiceSettings);
+        try {
+            final String endpoint = String.format("%s-aiplatform.googleapis.com:443", location);
+            final PredictionServiceSettings predictionServiceSettings =
+                    PredictionServiceSettings.newBuilder().setEndpoint(endpoint).build();
+            return PredictionServiceClient.create(predictionServiceSettings);
+        } catch (IOException e) {
+            log.error("Failed to initialize Google PALM client", e);
+            return null;
+        }
     }
 }
