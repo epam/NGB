@@ -4,14 +4,9 @@ const bitEnabled = (bit, mask) => {
 
 // 0 - nothing is allowed
 // 1 - read is allowed
-// 2 - read is denied
-// 4 - write is allowed
-// 5 - read and write are allowed
-// 6 - write is allowed, read is denied
+// 2 - write is allowed
+// 3 - read and write are allowed
 // 7 - owner
-// 8 - write is denied
-// 9 - read is allowed, write is denied
-// 10 - read and write are denied
 
 const readAllowed = (item) => {
     if (!item || item.mask === undefined || item.mask === null) {
@@ -31,21 +26,21 @@ const writeAllowed = (item) => {
     if (!item || item.mask === undefined || item.mask === null) {
         return false;
     }
-    return bitEnabled(4, item.mask);
+    return bitEnabled(2, item.mask);
 };
 
 const writeDenied = (item) => {
     if (!item || item.mask === undefined || item.mask === null) {
         return false;
     }
-    return !bitEnabled(4, item.mask);
+    return !bitEnabled(2, item.mask);
 };
 
 const isOwner = (item) => {
     if (!item || item.mask === undefined || item.mask === null) {
         return false;
     }
-    return bitEnabled(7, item.mask);
+    return bitEnabled(3, item.mask);
 };
 
 export default {
