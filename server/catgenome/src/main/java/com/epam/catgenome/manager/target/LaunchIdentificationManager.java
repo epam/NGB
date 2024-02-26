@@ -123,6 +123,9 @@ public class LaunchIdentificationManager {
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
                 "Either Species of interest or Translational species must me specified.");
 
+        final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, true);
+        targetManager.expandTargetGenes(geneIds);
+
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         final List<String> entrezGeneIds = ncbiGeneIds.stream()
                 .map(g -> g.getEntrezId().toString())
@@ -131,7 +134,7 @@ public class LaunchIdentificationManager {
         final DrugsCount drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
         final long publicationsCount = pubMedService.getPublicationsCount(entrezGeneIds);
-        final SequencesSummary sequencesCount = geneSequencesManager.getSequencesCount(ncbiGeneIds);
+        final SequencesSummary sequencesCount = getGeneSequencesCount(geneIds, targetGenes, true);
         final long structuresCount = getStructuresCount(geneIds);
         return TargetIdentificationResult.builder()
                 .description(description)
@@ -146,26 +149,31 @@ public class LaunchIdentificationManager {
 
     public SearchResult<DGIDBDrugAssociation> getDGIDbDrugs(final AssociationSearchRequest request)
             throws IOException, ParseException {
+        targetManager.expandTargetGenes(request.getGeneIds());
         return dgidbDrugAssociationManager.search(request);
     }
 
     public SearchResult<PharmGKBDrug> getPharmGKBDrugs(final AssociationSearchRequest request)
             throws IOException, ParseException {
+        targetManager.expandTargetGenes(request.getGeneIds());
         return pharmGKBDrugAssociationManager.search(request);
     }
 
     public SearchResult<PharmGKBDisease> getPharmGKBDiseases(final AssociationSearchRequest request)
             throws IOException, ParseException {
+        targetManager.expandTargetGenes(request.getGeneIds());
         return pharmGKBDiseaseAssociationManager.search(request);
     }
 
     public SearchResult<DrugAssociation> getOpenTargetsDrugs(final AssociationSearchRequest request)
             throws IOException, ParseException {
+        targetManager.expandTargetGenes(request.getGeneIds());
         return drugAssociationManager.search(request);
     }
 
     public SearchResult<DiseaseAssociationAggregated> getOpenTargetsDiseases(final AssociationSearchRequest request)
             throws IOException, ParseException {
+        targetManager.expandTargetGenes(request.getGeneIds());
         final SearchResult<DiseaseAssociation> result = diseaseAssociationManager.search(request);
         final List<DiseaseAssociationAggregated> converted = result.getItems().stream()
                 .map(this::aggregate)
@@ -178,6 +186,7 @@ public class LaunchIdentificationManager {
 
     public List<DiseaseAssociationAggregated> getAllOpenTargetsDiseases(final AssociationSearchRequest request)
             throws IOException, ParseException {
+        targetManager.expandTargetGenes(request.getGeneIds());
         final List<DiseaseAssociation> result = diseaseAssociationManager.searchAll(request.getGeneIds());
         final List<DiseaseAssociationAggregated> converted = result.stream()
                 .map(this::aggregate)
@@ -208,15 +217,18 @@ public class LaunchIdentificationManager {
 
     public PharmGKBDrugFieldValues getPharmGKBDrugFieldValues(final List<String> geneIds)
             throws IOException, ParseException {
+        targetManager.expandTargetGenes(geneIds);
         return pharmGKBDrugAssociationManager.getFieldValues(geneIds);
     }
 
     public DGIDBDrugFieldValues getDGIDBDrugFieldValues(final List<String> geneIds)
             throws IOException, ParseException {
+        targetManager.expandTargetGenes(geneIds);
         return dgidbDrugAssociationManager.getFieldValues(geneIds);
     }
 
     public DrugFieldValues getDrugFieldValues(final List<String> geneIds) throws IOException, ParseException {
+        targetManager.expandTargetGenes(geneIds);
         return drugAssociationManager.getFieldValues(geneIds);
     }
 
@@ -224,15 +236,22 @@ public class LaunchIdentificationManager {
         return diseaseManager.search();
     }
 
-    public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request) {
+    public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request)
+            throws ParseException, IOException {
+        targetManager.expandTargetGenes(request.getGeneIds());
         return pubMedService.fetchPubMedArticles(request);
     }
 
-    public String getArticlesAbstracts(final PublicationSearchRequest request) {
+    public String getArticlesAbstracts(final PublicationSearchRequest request) throws ParseException, IOException {
+        targetManager.expandTargetGenes(request.getGeneIds());
         return pubMedService.getArticleAbstracts(request);
     }
 
-    public List<GeneSequences> getGeneSequences(final List<String> geneIds) throws ParseException, IOException {
+    public List<GeneSequences> getGeneSequences(final List<String> geneIds, final boolean includeAdditionalGenes)
+            throws ParseException, IOException {
+        if (includeAdditionalGenes) {
+            targetManager.expandTargetGenes(geneIds);
+        }
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         if (CollectionUtils.isEmpty(ncbiGeneIds)) {
             return Collections.emptyList();
@@ -244,23 +263,72 @@ public class LaunchIdentificationManager {
 
     public List<GeneRefSection> getGeneSequencesTable(final List<String> geneIds,
                                                       final Boolean getComments,
-                                                      final Boolean includeLocal)
+                                                      final Boolean includeLocal,
+                                                      final Boolean includeAdditionalGenes)
             throws ParseException, IOException, ExternalDbUnavailableException {
-        final List<GeneRefSection> result = includeLocal ?
-                sequencesManager.getGeneSequencesTable(geneIds) : new ArrayList<>();
+
+        List<GeneRefSection> result = new ArrayList<>();
+
+        if (includeLocal) {
+            final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, includeAdditionalGenes);
+            result = sequencesManager.getGeneSequencesTable(targetGenes);
+        }
+
+        if (includeAdditionalGenes) {
+            targetManager.expandTargetGenes(geneIds);
+        }
 
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         if (CollectionUtils.isEmpty(ncbiGeneIds)) {
             return result;
         }
+
         final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
                 .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
         result.addAll(geneSequencesManager.getGeneSequencesTable(entrezMap, getComments));
         return result;
     }
 
+    public SequencesSummary getGeneSequencesCount(final List<String> geneIds,
+                                                  final Map<String, Long> targetGenes,
+                                                  final Boolean includeLocal)
+            throws ParseException, IOException, ExternalDbUnavailableException {
+        final SequencesSummary localSequencesSummary = SequencesSummary.builder().build();
+        if (includeLocal) {
+            final List<GeneRefSection> result = sequencesManager.getGeneSequencesTable(targetGenes);
+            localSequencesSummary.setDNAs(result.stream()
+                    .map(GeneRefSection::getReference)
+                    .filter(Objects::nonNull)
+                    .count());
+            localSequencesSummary.setMRNAs(result.stream()
+                    .map(r -> Optional.ofNullable(r.getSequences()).orElse(Collections.emptyList()))
+                    .flatMap(List::stream)
+                    .map(GeneSequence::getMRNA).filter(Objects::nonNull).count());
+            localSequencesSummary.setProteins(result.stream()
+                    .map(r -> Optional.ofNullable(r.getSequences()).orElse(Collections.emptyList()))
+                    .flatMap(List::stream)
+                    .map(GeneSequence::getProtein).filter(Objects::nonNull).count());
+        }
+
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
+        if (CollectionUtils.isEmpty(ncbiGeneIds)) {
+            return localSequencesSummary;
+        }
+        final SequencesSummary ncbiSequencesSummary = geneSequencesManager.getSequencesCount(ncbiGeneIds);
+
+        return SequencesSummary.builder()
+                .dNAs(Optional.ofNullable(localSequencesSummary.getDNAs()).orElse(0L) +
+                        Optional.ofNullable(ncbiSequencesSummary.getDNAs()).orElse(0L))
+                .mRNAs(Optional.ofNullable(localSequencesSummary.getMRNAs()).orElse(0L) +
+                        Optional.ofNullable(ncbiSequencesSummary.getMRNAs()).orElse(0L))
+                .proteins(Optional.ofNullable(localSequencesSummary.getProteins()).orElse(0L) +
+                        Optional.ofNullable(ncbiSequencesSummary.getProteins()).orElse(0L))
+                .build();
+    }
+
     public SearchResult<Structure> getStructures(final StructuresSearchRequest request)
             throws ParseException, IOException {
+        targetManager.expandTargetGenes(request.getGeneIds());
         final List<String> geneNames = getGeneNames(request.getGeneIds());
         return pdbEntriesManager.getStructures(request, geneNames);
     }
@@ -312,22 +380,6 @@ public class LaunchIdentificationManager {
         return localPdbFiles + structuresCount;
     }
 
-    private String setHyperLinks(final String text) {
-        String newText = text;
-        final Pattern pattern = Pattern.compile(PUBMED_PATTERN);
-        final Matcher matcher = pattern.matcher(text);
-        final List<String> matches = new ArrayList<>();
-        while(matcher.find()) {
-            matches.add(matcher.group());
-        }
-        for (String match : matches) {
-            String pubId = match.split(":")[1];
-            String withLink = String.format(PUBMED_LINK, pubId, pubId);
-            newText = newText.replace(match, withLink);
-        }
-        return newText;
-    }
-
     public DrugsCount getDrugsCount(final List<String> geneIds) throws IOException, ParseException {
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
@@ -352,6 +404,7 @@ public class LaunchIdentificationManager {
     }
 
     public List<String> getDrugs(final List<String> geneIds) throws IOException, ParseException {
+        targetManager.expandTargetGenes(geneIds);
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);
@@ -369,6 +422,46 @@ public class LaunchIdentificationManager {
         final long openTargetsDiseasesCount = diseaseAssociationManager.totalCount(geneIds);
         final long pharmGKBDiseasesCount = pharmGKBDiseaseAssociationManager.totalCount(geneIds);
         return openTargetsDiseasesCount + pharmGKBDiseasesCount;
+    }
+
+    public List<String> getGeneNames(final List<String> geneIds) throws ParseException, IOException {
+        final Set<String> geneNames = new HashSet<>();
+        for (String g : geneIds) {
+            List<String> targetGeneNames = targetManager.getTargetGeneNames(Collections.singletonList(g));
+            if (CollectionUtils.isEmpty(targetGeneNames)) {
+                List<TargetDetails> targetDetails = Collections.emptyList();
+                try {
+                    targetDetails = targetDetailsManager.search(Collections.singletonList(g));
+                } catch (ParseException | IOException e) {
+                    log.debug("No gene names found for {}", g);
+                }
+                targetGeneNames = targetDetails.stream().map(TargetDetails::getSymbol).collect(Collectors.toList());
+            }
+            if (CollectionUtils.isNotEmpty(targetGeneNames)) {
+                geneNames.addAll(targetGeneNames);
+            }
+        }
+        return new ArrayList<>(geneNames);
+    }
+
+    public Map<String, String> getGeneNamesMap(final List<String> geneIds) throws ParseException, IOException {
+        final Map<String, String> geneNames = new HashMap<>();
+        for (String g : geneIds) {
+            List<String> targetGeneNames = targetManager.getTargetGeneNames(Collections.singletonList(g));
+            if (CollectionUtils.isEmpty(targetGeneNames)) {
+                List<TargetDetails> targetDetails = Collections.emptyList();
+                try {
+                    targetDetails = targetDetailsManager.search(Collections.singletonList(g));
+                } catch (ParseException | IOException e) {
+                    log.debug("No gene names found for {}", g);
+                }
+                targetGeneNames = targetDetails.stream().map(TargetDetails::getSymbol).collect(Collectors.toList());
+            }
+            if (CollectionUtils.isNotEmpty(targetGeneNames)) {
+                geneNames.put(g.toLowerCase(), targetGeneNames.get(0));
+            }
+        }
+        return geneNames;
     }
 
     private static Map<String, String> mergeDescriptions(final Map<GeneId, String> ncbiSummary,
@@ -466,43 +559,19 @@ public class LaunchIdentificationManager {
                 .collect(Collectors.toMap(Disease::getId, Function.identity()));
     }
 
-    public List<String> getGeneNames(final List<String> geneIds) throws ParseException, IOException {
-        final List<String> geneNames = new ArrayList<>();
-        for (String g : geneIds) {
-            List<String> targetGeneNames = targetManager.getTargetGeneNames(Collections.singletonList(g));
-            if (CollectionUtils.isEmpty(targetGeneNames)) {
-                List<TargetDetails> targetDetails = Collections.emptyList();
-                try {
-                    targetDetails = targetDetailsManager.search(Collections.singletonList(g));
-                } catch (ParseException | IOException e) {
-                    log.debug("No gene names found for {}", g);
-                }
-                targetGeneNames = targetDetails.stream().map(TargetDetails::getSymbol).collect(Collectors.toList());
-            }
-            if (CollectionUtils.isNotEmpty(targetGeneNames)) {
-                geneNames.addAll(targetGeneNames);
-            }
+    private String setHyperLinks(final String text) {
+        String newText = text;
+        final Pattern pattern = Pattern.compile(PUBMED_PATTERN);
+        final Matcher matcher = pattern.matcher(text);
+        final List<String> matches = new ArrayList<>();
+        while(matcher.find()) {
+            matches.add(matcher.group());
         }
-        return geneNames;
-    }
-
-    public Map<String, String> getGeneNamesMap(final List<String> geneIds) throws ParseException, IOException {
-        final Map<String, String> geneNames = new HashMap<>();
-        for (String g : geneIds) {
-            List<String> targetGeneNames = targetManager.getTargetGeneNames(Collections.singletonList(g));
-            if (CollectionUtils.isEmpty(targetGeneNames)) {
-                List<TargetDetails> targetDetails = Collections.emptyList();
-                try {
-                    targetDetails = targetDetailsManager.search(Collections.singletonList(g));
-                } catch (ParseException | IOException e) {
-                    log.debug("No gene names found for {}", g);
-                }
-                targetGeneNames = targetDetails.stream().map(TargetDetails::getSymbol).collect(Collectors.toList());
-            }
-            if (CollectionUtils.isNotEmpty(targetGeneNames)) {
-                geneNames.put(g.toLowerCase(), targetGeneNames.get(0));
-            }
+        for (String match : matches) {
+            String pubId = match.split(":")[1];
+            String withLink = String.format(PUBMED_LINK, pubId, pubId);
+            newText = newText.replace(match, withLink);
         }
-        return geneNames;
+        return newText;
     }
 }

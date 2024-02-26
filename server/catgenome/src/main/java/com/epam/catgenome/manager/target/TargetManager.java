@@ -48,13 +48,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
@@ -252,9 +246,38 @@ public class TargetManager implements SecuredEntityManager {
         final List<TargetGene> indexTargetGenes = targetGeneManager.load(geneIds);
         final List<String> clauses = new ArrayList<>();
         clauses.add(getGeneIdsClause(geneIds));
-        final List<TargetGene> targetGenes =  targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
+        final List<TargetGene> targetGenes = targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
         indexTargetGenes.addAll(targetGenes);
         return indexTargetGenes;
+    }
+
+    public void expandTargetGenes(final List<String> geneIds) throws ParseException, IOException {
+        final Set<String> result = new HashSet<>();
+        final List<TargetGene> targetGenes = getTargetGenes(geneIds);
+        targetGenes.forEach(r -> {
+            result.add(r.getGeneId().toLowerCase());
+            if (!CollectionUtils.isEmpty(r.getAdditionalGenes())) {
+                result.addAll(r.getAdditionalGenes().keySet());
+            }
+        });
+        geneIds.clear();
+        geneIds.addAll(result);
+    }
+
+    public Map<String, Long> getTargetGenes(final List<String> geneIds, final boolean includeAdditionalGenes)
+            throws ParseException, IOException {
+        final Map<String, Long> result = new HashMap<>();
+        final List<TargetGene> targetGenes = getTargetGenes(geneIds);
+        targetGenes.forEach(r -> {
+            result.put(r.getGeneId().toLowerCase(), r.getTaxId());
+            if (includeAdditionalGenes) {
+                Map<String, Long> additionalGenes = r.getAdditionalGenes();
+                if (!CollectionUtils.isEmpty(additionalGenes)) {
+                    additionalGenes.forEach((k, v) -> result.put(k.toLowerCase(), v));
+                }
+            }
+        });
+        return result;
     }
 
     private static String getFilterClause(final TargetQueryParams targetQueryParams) {
@@ -343,7 +366,8 @@ public class TargetManager implements SecuredEntityManager {
         final List<String> oldGenes = oldTarget.getTargetGenes().stream()
                 .map(g -> g.getGeneId().toLowerCase())
                 .collect(Collectors.toList());
-        final List<String> newGenes = target.getTargetGenes().stream()
+        final List<String> newGenes = Optional.ofNullable(target.getTargetGenes()).orElse(Collections.emptyList())
+                .stream()
                 .map(g -> g.getGeneId().toLowerCase())
                 .collect(Collectors.toList());
         return oldGenes.stream()

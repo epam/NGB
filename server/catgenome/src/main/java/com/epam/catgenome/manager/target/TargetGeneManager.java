@@ -80,11 +80,25 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.*;
+import static com.epam.catgenome.util.IndexUtils.getByOptionsQuery;
+import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
+import static com.epam.catgenome.util.IndexUtils.getByRangeQuery;
+import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
+import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
+import static com.epam.catgenome.util.Utils.deSerialize;
+import static com.epam.catgenome.util.Utils.serialize;
 import static org.apache.poi.ss.usermodel.CellType.NUMERIC;
 
 @Service
@@ -100,6 +114,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     private static final int FIELD_VALUES_TOP_HITS = 200;
     private static final String EXCEL_EXTENSION = "xlsx";
     private static final float OPTIONS_RATIO = 0.5F;
+    public static final String ADDITIONAL_GENES_PREFIX = "AG";
     private int keywordMaxLength;
     private final TargetGeneFieldManager targetGeneFieldManager;
     private final TargetGeneDao targetGeneDao;
@@ -341,8 +356,10 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     @Override
     public TargetGene entryFromDoc(final Document doc) {
         final List<IndexableField> fields = doc.getFields();
+        final Map<String, Long> additionalGenes = new HashMap<>();
         final Map<String, String> metadata = new HashMap<>();
         final TargetGene targetGene = TargetGene.builder()
+                .additionalGenes(additionalGenes)
                 .metadata(metadata)
                 .build();
         for (IndexableField field : fields) {
@@ -356,6 +373,9 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                     break;
                 case GENE_ID:
                     targetGene.setGeneId(field.stringValue());
+                    break;
+                case ADDITIONAL_GENES:
+                    targetGene.setAdditionalGenes(deSerialize(field.stringValue()));
                     break;
                 case GENE_NAME:
                     targetGene.setGeneName(field.stringValue());
@@ -496,6 +516,9 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         doc.add(new TextField(IndexField.GENE_ID.getValue(), entry.getGeneId(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexField.GENE_ID.getValue(), new BytesRef(entry.getGeneId())));
 
+        doc.add(new TextField(IndexField.ADDITIONAL_GENES.getValue(),
+                serialize(entry.getAdditionalGenes()), Field.Store.YES));
+
         doc.add(new TextField(IndexField.GENE_NAME.getValue(), entry.getGeneName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexField.GENE_NAME.getValue(), new BytesRef(entry.getGeneName())));
 
@@ -542,6 +565,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         TARGET_GENE_ID("ID", FilterType.TERM, SortType.NONE),
         TARGET_ID("Target ID", FilterType.TERM, SortType.LONG),
         GENE_ID("Gene ID", FilterType.TERM, SortType.STRING),
+        ADDITIONAL_GENES("Additional Genes", FilterType.PHRASE, SortType.NONE),
         GENE_NAME("Gene Name", FilterType.PHRASE, SortType.STRING),
         TAX_ID("Tax ID", FilterType.OPTIONS, SortType.LONG),
         SPECIES_NAME("Species Name", FilterType.PHRASE, SortType.STRING),
@@ -556,6 +580,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             VALUES_MAP.put("ID", TARGET_GENE_ID);
             VALUES_MAP.put("Target ID", TARGET_ID);
             VALUES_MAP.put("Gene ID", GENE_ID);
+            VALUES_MAP.put("Additional Genes", ADDITIONAL_GENES);
             VALUES_MAP.put("Gene Name", GENE_NAME);
             VALUES_MAP.put("Tax ID", TAX_ID);
             VALUES_MAP.put("Species Name", SPECIES_NAME);
@@ -652,12 +677,25 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 metadata.put(entry.getKey(), value);
             }
         }
+
+        final Map<String, Long> additionalGenes = new HashMap<>();
+        for (Map.Entry<Long, Integer> entry : header.getAdditionalGeneIndexes().entrySet()) {
+            String cellValue = cells[entry.getValue()].trim();
+            if (StringUtils.isNotBlank(cellValue)) {
+                String[] values = cellValue.split(",");
+                for (String value: values) {
+                    additionalGenes.put(value.trim(), entry.getKey());
+                }
+            }
+        }
+
         final TargetGene gene = TargetGene.builder()
                 .geneId(geneId)
                 .geneName(geneName)
                 .taxId(taxId)
                 .speciesName(speciesName)
                 .priority(targetGenePriority)
+                .additionalGenes(additionalGenes)
                 .metadata(metadata)
                 .build();
         entries.add(gene);
@@ -711,6 +749,20 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 }
             });
 
+            Map<String, Long> additionalGenes = new HashMap<>();
+            header.getAdditionalGeneIndexes().forEach((k, v) -> {
+                Cell cell = row.getCell(v);
+                if (cell != null) {
+                    String cellValue = getCellValue(cell);
+                    if (StringUtils.isNotBlank(cellValue)) {
+                        String[] values = cellValue.split(",");
+                        for (String value: values) {
+                            additionalGenes.put(value.trim(), k);
+                        }
+                    }
+                }
+            });
+
             TargetGene gene = TargetGene.builder()
                     .geneId(geneId)
                     .geneName(geneName)
@@ -718,10 +770,22 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                     .speciesName(speciesName)
                     .priority(priority)
                     .metadata(metadata)
+                    .additionalGenes(additionalGenes)
                     .build();
             entries.add(gene);
         }
         return entries;
+    }
+
+    private static Long parseTaxId(final String fieldName) {
+        final String[] values = fieldName.split(" ");
+        Assert.isTrue(values.length >= 2, "Incorrect 'Additional Genes' column name.");
+        try {
+            return Long.parseLong(values[1]);
+        } catch (NumberFormatException e) {
+            log.debug("Incorrect additional genes column name.");
+            return null;
+        }
     }
 
     private static String getCellValue(final Cell cell) {
@@ -750,6 +814,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         Integer speciesNameIndex = null;
         Integer priorityIndex = null;
         final Map<String, Integer> metadataIndexes = new HashMap<>();
+        final Map<Long, Integer> additionalGeneIndexes = new HashMap<>();
         for (String value : cells) {
             if (TextUtils.isBlank(value)) {
                 break;
@@ -764,6 +829,11 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 speciesNameIndex = index;
             } else if (PRIORITY_NAMES.stream().anyMatch(value::equalsIgnoreCase)) {
                 priorityIndex = index;
+            } else if (value.toUpperCase().startsWith(ADDITIONAL_GENES_PREFIX)) {
+                Long taxId = parseTaxId(value);
+                if (taxId != null) {
+                    additionalGeneIndexes.put(taxId, index);
+                }
             } else {
                 metadataIndexes.put(value, index);
             }
@@ -779,6 +849,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 .taxIdIndex(taxIdIndex)
                 .speciesNameIndex(speciesNameIndex)
                 .priorityIndex(priorityIndex)
+                .additionalGeneIndexes(additionalGeneIndexes)
                 .metadataIndexes(metadataIndexes)
                 .build();
     }
@@ -791,6 +862,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         Integer speciesNameIndex = null;
         Integer priorityIndex = null;
         final Map<String, Integer> metadataIndexes = new HashMap<>();
+        final Map<Long, Integer> additionalGeneIndexes = new HashMap<>();
         for (Cell cell : headerRow) {
             String cellValue = cell.getStringCellValue();
             if (TextUtils.isBlank(cellValue)) {
@@ -806,6 +878,11 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 speciesNameIndex = index;
             } else if (PRIORITY_NAMES.stream().anyMatch(cellValue::equalsIgnoreCase)) {
                 priorityIndex = index;
+            } else if (cellValue.toUpperCase().startsWith(ADDITIONAL_GENES_PREFIX)) {
+                Long taxId = parseTaxId(cellValue);
+                if (taxId != null) {
+                    additionalGeneIndexes.put(taxId, index);
+                }
             } else {
                 metadataIndexes.put(cellValue, index);
             }
@@ -821,6 +898,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 .taxIdIndex(taxIdIndex)
                 .speciesNameIndex(speciesNameIndex)
                 .priorityIndex(priorityIndex)
+                .additionalGeneIndexes(additionalGeneIndexes)
                 .metadataIndexes(metadataIndexes)
                 .build();
     }
@@ -835,5 +913,6 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         private Integer speciesNameIndex;
         private Integer priorityIndex;
         private Map<String, Integer> metadataIndexes;
+        private Map<Long, Integer> additionalGeneIndexes;
     }
 }

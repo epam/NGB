@@ -274,7 +274,8 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<SearchResult<NCBISummaryVO>> getPublications(@RequestBody final PublicationSearchRequest request) {
+    public Result<SearchResult<NCBISummaryVO>> getPublications(@RequestBody final PublicationSearchRequest request)
+            throws ParseException, IOException {
         return Result.success(launchIdentificationSecurityService.getPublications(request));
     }
 
@@ -286,21 +287,9 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<String> getAbstracts(@RequestBody final PublicationSearchRequest request) {
+    public Result<String> getAbstracts(@RequestBody final PublicationSearchRequest request)
+            throws ParseException, IOException {
         return Result.success(launchIdentificationSecurityService.getArticleAbstracts(request));
-    }
-
-    @GetMapping(value = "/target/sequences")
-    @ApiOperation(
-            value = "Returns data for Gene Sequences block",
-            notes = "Returns data for Gene Sequences block",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<List<GeneSequences>> getGeneSequences(@RequestParam final List<String> geneIds)
-            throws IOException, ParseException {
-        return Result.success(launchIdentificationSecurityService.getGeneSequences(geneIds));
     }
 
     @GetMapping(value = "/target/sequences/table")
@@ -313,10 +302,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
             })
     public Result<List<GeneRefSection>> getGeneSequencesTable(@RequestParam final List<String> geneIds,
                                                               @RequestParam final Boolean getComments,
-                                                              @RequestParam final Boolean includeLocal)
+                                                              @RequestParam final Boolean includeLocal,
+                                                              @RequestParam final Boolean includeAdditionalGenes)
             throws IOException, ParseException, ExternalDbUnavailableException {
         return Result.success(launchIdentificationSecurityService.getGeneSequencesTable(geneIds, getComments,
-                includeLocal));
+                includeLocal, includeAdditionalGenes));
     }
 
     @PostMapping(value = "/target/structures")
