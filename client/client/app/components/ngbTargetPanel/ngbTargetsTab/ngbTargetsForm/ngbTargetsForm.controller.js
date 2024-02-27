@@ -75,6 +75,7 @@ export default class ngbTargetsFormController {
         const {name, genes} = this.targetModel;
         if (!name || !name.length || !genes || !genes.length) return true;
         if (this.ngbTargetsFormService.isSomeGeneEmpty()) return true;
+        if (this.ngbTargetsFormService.isSomeAdditionalGeneEmpty()) return true;
         return (this.ngbTargetsFormService.targetInfoChanged()
             || this.ngbTargetsFormService.targetGenesChanged()
             || this.ngbTargetsFormService.parasiteGenesAdded()
@@ -112,6 +113,7 @@ export default class ngbTargetsFormController {
             }
         }
         if (this.ngbTargetsFormService.isSomeGeneEmpty()) return true;
+        if (this.ngbTargetsFormService.isSomeAdditionalGeneEmpty()) return true;
         if (!this.isAddMode) {
             return !(this.ngbTargetsFormService.targetInfoChanged()
                 || this.ngbTargetsFormService.targetGenesChanged()

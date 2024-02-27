@@ -189,8 +189,11 @@ export default class ngbTargetGenesTableController {
     }
 
     async reloadCurrentPage() {
+        this.gridOptions.data = [];
         await this.ngbTargetGenesTableService.initAdditionalColumns();
         await this.loadData();
+        this.ngbTargetGenesTableService.rowsHeight = {};
+        this.restoreRowsHeight();
         this.gridOptions.columnDefs = this.getTableColumns();
     }
 
@@ -695,29 +698,34 @@ export default class ngbTargetGenesTableController {
 
     showOthers(rowIndex, cell, event) {
         event.stopPropagation();
-        this.ngbTargetGenesTableService.rowsHeight[rowIndex] = cell.value.length;
+        this.ngbTargetGenesTableService.rowsHeight[rowIndex] = Math.min(cell.value.length, 5);
         cell.limit = 100000;
     }
 
     showLess(rowIndex, cell, event) {
         event.stopPropagation();
-        this.ngbTargetGenesTableService.rowsHeight[rowIndex] = 0.81818182;
+        const rowHeight = 40;
+        const cellPadding = 10;
+        const itemHeight = 16.5;
+        this.ngbTargetGenesTableService.rowsHeight[rowIndex] = ((rowHeight - cellPadding) / itemHeight) - 2;
         cell.limit = 1;
     }
 
     restoreRowsHeight() {
         for (let i = 0; i < this.gridOptions.data.length; i++) {
-            this.gridOptions.data[i].additionalGenes.limit = 1;
+            if (this.gridOptions.data[i].additionalGenes) {
+                this.gridOptions.data[i].additionalGenes.limit = 1;
+            }
         }
     }
 
     getRowStyle(rowIndex, viewport) {
         let style = {};
         if (this.ngbTargetGenesTableService.rowsHeight[rowIndex]) {
-            const itemHeightWithMargin = 16.5;
+            const itemHeight = 16.5;
             const cellPadding = 10;
-            const itemsCountPlusButton = this.ngbTargetGenesTableService.rowsHeight[rowIndex] + 1;
-            style.height = itemsCountPlusButton * itemHeightWithMargin + cellPadding + 'px'
+            const itemsCountPlusButtons = this.ngbTargetGenesTableService.rowsHeight[rowIndex] + 2;
+            style.height = itemsCountPlusButtons * itemHeight + cellPadding + 'px'
         }
         if (viewport) {
             style = {

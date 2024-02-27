@@ -1,21 +1,31 @@
+const NEW_ADDITIONAL_GENE = {
+    taxId: '',
+    geneId: '',
+};
+
+const NEW_ADDITIONAL_GENES = {
+    limit: 1,
+}
+
 const NEW_GENE = {
     geneId: '',
     geneName: '',
     taxId: '',
     speciesName: '',
     priority: '',
-    additionalGenes: {
-        value: [{
-            taxId: '',
-            geneId: '',
-        }],
-        limit: 1,
-    }
 };
 
-const PAGE_SIZE = 20;
+const getNewGene = () => {
+    const gene = {...NEW_GENE};
+    gene.additionalGenes = {...NEW_ADDITIONAL_GENES};
+    gene.additionalGenes.value = [{...NEW_ADDITIONAL_GENE}];
+    return gene;
+}
 
-const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'priority'];
+const PAGE_SIZE = 20;
+const ADDITIONAL_GENES = 'additionalGenes';
+
+const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'priority', 'additionalGenes'];
 const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority', 'Additional genes'];
 
 const REQUIRED_FIELDS = ['geneId', 'geneName', 'taxId', 'speciesName'];
@@ -54,6 +64,9 @@ export default class ngbTargetsFormService {
     }
     get requiredFields() {
         return REQUIRED_FIELDS;
+    }
+    get additionalGenes() {
+        return ADDITIONAL_GENES;
     }
 
     _targetModel;
@@ -171,7 +184,17 @@ export default class ngbTargetsFormService {
             Object.entries(gene)
                 .some(([key, value]) => {
                     if (!allFields.includes(key)) return false;
-                    return String(value) !== String(originalGenes[index][key]);
+                    if (key === this.additionalGenes) {
+                        const additionalGenes = value.value.filter(v => v.geneId && v.taxId);
+                        const originalAdditionalGenes = originalGenes[index].additionalGenes.value;
+                        if (originalAdditionalGenes.length !== additionalGenes.length) return true;
+                        return additionalGenes.some((g, i) => (
+                            g.geneId !== originalAdditionalGenes[i].geneId ||
+                            g.taxId !== originalAdditionalGenes[i].taxId
+                        ))
+                    } else {
+                        return String(value) !== String(originalGenes[index][key]);
+                    }
                 })
         ));
     }
@@ -203,6 +226,20 @@ export default class ngbTargetsFormService {
         return genesEmpty.length;
     }
 
+    isSomeAdditionalGeneEmpty() {
+        let {genes} = this.targetModel;
+        if (this.isParasite) {
+            genes = [...genes, ...this.addedGenes];
+        }
+        const genesEmpty = genes.filter(gene => {
+            if (!gene.additionalGenes || !gene.additionalGenes.value) return false;
+            const additionalGenes = gene.additionalGenes.value;
+            return additionalGenes.some(g => (!g.taxId || !String(g.taxId).length) ^
+                                             (!g.geneId || !String(g.geneId).length))
+        });
+        return genesEmpty.length;
+    }
+
     areGenesEmpty() {
         if (this.isParasite) {
             if (this.isAddMode) {
@@ -227,32 +264,26 @@ export default class ngbTargetsFormService {
         this._targetModel = {
             id: data.id,
             name: data.targetName,
-            genes: (data.targetGenes || []).map(gene => ({
-                geneId: gene.geneId,
-                geneName: gene.geneName,
-                taxId: gene.taxId,
-                speciesName: gene.speciesName,
-                priority: gene.priority,
-                additionalGenes: {
-                    value: [{
-                        geneId: 'geneid1',
-                        taxId: 'taxId1'
-                    }, {
-                        geneId: 'geneid2',
-                        taxId: 'taxId2'
-                    }, {
-                        geneId: 'geneid3',
-                        taxId: 'taxId3'
-                    }, {
-                        geneId: 'geneid4',
-                        taxId: 'taxId4'
-                    }, {
-                        geneId: 'geneid5',
-                        taxId: 'taxId5'
-                    }],
-                    limit: 1,
-                },
-            })),
+            genes: (data.targetGenes || []).map(gene => {
+                const geneObject = {
+                    geneId: gene.geneId,
+                    geneName: gene.geneName,
+                    taxId: gene.taxId,
+                    speciesName: gene.speciesName,
+                    priority: gene.priority,
+                };
+                if (gene.additionalGenes) {
+                    geneObject.additionalGenes = {
+                        value: Object.entries(gene.additionalGenes)
+                            .map(([geneId, taxId]) => ({
+                                geneId,
+                                taxId,
+                            })),
+                        limit: 1,
+                    };
+                }
+                return geneObject;
+            }),
             diseases: (data.diseases || []).filter(d => d),
             products: (data.products || []).filter(p => p),
             identifications: data.identifications,
@@ -270,32 +301,26 @@ export default class ngbTargetsFormService {
             products: (data.products || []).filter(p => p),
             identifications: data.identifications,
             type: data.type,
-            genes: (data.targetGenes || []).map(gene => ({
-                geneId: gene.geneId,
-                geneName: gene.geneName,
-                taxId: gene.taxId,
-                speciesName: gene.speciesName,
-                priority: gene.priority,
-                additionalGenes: {
-                    value: [{
-                        geneId: 'geneid1',
-                        taxId: 'taxId1'
-                    }, {
-                        geneId: 'geneid2',
-                        taxId: 'taxId2'
-                    }, {
-                        geneId: 'geneid3',
-                        taxId: 'taxId3'
-                    }, {
-                        geneId: 'geneid4',
-                        taxId: 'taxId4'
-                    }, {
-                        geneId: 'geneid5',
-                        taxId: 'taxId5'
-                    }],
-                    limit: 1,
-                },
-            }))
+            genes: (data.targetGenes || []).map(gene => {
+                const geneObject = {
+                    geneId: gene.geneId,
+                    geneName: gene.geneName,
+                    taxId: gene.taxId,
+                    speciesName: gene.speciesName,
+                    priority: gene.priority,
+                };
+                if (gene.additionalGenes) {
+                    geneObject.additionalGenes = {
+                        value: Object.entries(gene.additionalGenes)
+                            .map(([geneId, taxId]) => ({
+                                geneId,
+                                taxId,
+                            })),
+                        limit: 1,
+                    };
+                }
+                return geneObject;
+            })
         };
     }
 
@@ -325,62 +350,50 @@ export default class ngbTargetsFormService {
 
     setParasiteTargetGenes(genes) {
         this._targetModel.genesTotal = genes.totalCount;
-        this._targetModel.genes = (genes.items || []).map(g => ({
-            targetGeneId: g.targetGeneId,
-            geneId: g.geneId,
-            geneName: g.geneName,
-            taxId: g.taxId,
-            speciesName: g.speciesName,
-            priority: g.priority,
-            additionalGenes: {
-                value: [{
-                    geneId: 'geneid1',
-                    taxId: 'taxId1'
-                }, {
-                    geneId: 'geneid2',
-                    taxId: 'taxId2'
-                }, {
-                    geneId: 'geneid3',
-                    taxId: 'taxId3'
-                }, {
-                    geneId: 'geneid4',
-                    taxId: 'taxId4'
-                }, {
-                    geneId: 'geneid5',
-                    taxId: 'taxId5'
-                }],
-                limit: 1,
-            },
-            ...encodedMetadata(g.metadata)
-        }));
-        this._originalModel.genes = (genes.items || []).map(g => ({
-            targetGeneId: g.targetGeneId,
-            geneId: g.geneId,
-            geneName: g.geneName,
-            taxId: g.taxId,
-            speciesName: g.speciesName,
-            priority: g.priority,
-            additionalGenes: {
-                value: [{
-                    geneId: 'geneid1',
-                    taxId: 'taxId1'
-                }, {
-                    geneId: 'geneid2',
-                    taxId: 'taxId2'
-                }, {
-                    geneId: 'geneid3',
-                    taxId: 'taxId3'
-                }, {
-                    geneId: 'geneid4',
-                    taxId: 'taxId4'
-                }, {
-                    geneId: 'geneid5',
-                    taxId: 'taxId5'
-                }],
-                limit: 1,
-            },
-            ...encodedMetadata(g.metadata)
-        }));
+        this._targetModel.genes = (genes.items || []).map(g => {
+            const gene = {
+                targetGeneId: g.targetGeneId,
+                geneId: g.geneId,
+                geneName: g.geneName,
+                taxId: g.taxId,
+                speciesName: g.speciesName,
+                priority: g.priority,
+                ...encodedMetadata(g.metadata)
+            };
+            if (g.additionalGenes) {
+                gene.additionalGenes = {
+                    value: Object.entries(g.additionalGenes || {})
+                        .map(([geneId, taxId]) => ({
+                            geneId,
+                            taxId,
+                        })),
+                    limit: 1,
+                }
+            }
+            return gene;
+        });
+        this._originalModel.genes = (genes.items || []).map(g => {
+            const gene = {
+                targetGeneId: g.targetGeneId,
+                geneId: g.geneId,
+                geneName: g.geneName,
+                taxId: g.taxId,
+                speciesName: g.speciesName,
+                priority: g.priority,
+                ...encodedMetadata(g.metadata)
+            };
+            if (g.additionalGenes) {
+                gene.additionalGenes = {
+                    value: Object.entries(g.additionalGenes)
+                        .map(([geneId, taxId]) => ({
+                            geneId,
+                            taxId,
+                        })),
+                    limit: 1,
+                };
+            }
+            return gene;
+        });
     }
 
     getTargetGenes(id, request) {
@@ -420,10 +433,12 @@ export default class ngbTargetsFormService {
     addNewGene() {
         const model = this.isAddMode ? this.targetModel : this.originalModel;
         if (model.type === this.targetType.PARASITE) {
-            this.addedGenes.push({...NEW_GENE});
+            const newGene = getNewGene();
+            this.addedGenes.push(newGene);
             this.dispatcher.emit('target:form:gene:added');
         } else if (model.type === this.targetType.DEFAULT) {
-            this._targetModel.genes.push({...NEW_GENE});
+            const newGene = getNewGene();
+            this._targetModel.genes.push(newGene);
         }
     }
 
@@ -494,6 +509,10 @@ export default class ngbTargetsFormService {
             gene.metadata = {};
             if (g.priority && g.priority !== 'None') {
                 gene.priority = g.priority;
+            }
+            if (g.additionalGenes) {
+                gene.additionalGenes = g.additionalGenes.value
+                    .reduce((a, v) => ({ ...a, [v.geneId]: Number(v.taxId)}), {}) 
             }
             return gene;
         });
@@ -620,7 +639,17 @@ export default class ngbTargetsFormService {
                 const originalGene = original.filter(o => o.targetGeneId === gene.targetGeneId)[0];
                 return Object.entries(gene).some(([key, value]) => {
                     if (!allFields.includes(key)) return false;
-                    return String(value) !== String(originalGene[key]);
+                    if (key === this.additionalGenes) {
+                        const additionalGenes = value.value;
+                        const originalAdditionalGenes = originalGene.additionalGenes.value;
+                        if (originalAdditionalGenes.length !== additionalGenes.length) return true;
+                        return additionalGenes.some((g, i) => (
+                            g.geneId !== originalAdditionalGenes[i].geneId ||
+                            g.taxId !== originalAdditionalGenes[i].taxId
+                        ));
+                    } else {
+                        return String(value) !== String(originalGene[key]);
+                    }
                 });
             })
             .map(g => {
@@ -632,6 +661,9 @@ export default class ngbTargetsFormService {
                 gene.metadata = Object.fromEntries(this.metadataFields.map(c => [c, g[c]]));
                 if (g.priority && g.priority !== 'None') {
                     gene.priority = g.priority;
+                }
+                if (g.additionalGenes) {
+                    gene.additionalGenes = g.additionalGenes.value.reduce((a, v) => ({ ...a, [v.geneId]: Number(v.taxId)}), {}) 
                 }
                 return gene;
             });

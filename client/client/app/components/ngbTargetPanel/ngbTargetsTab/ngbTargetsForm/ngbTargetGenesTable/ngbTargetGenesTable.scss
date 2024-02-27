@@ -57,7 +57,7 @@ ngb-target-genes-table {
 
         .additional-gene-input,
         .additional-gene-input.ng-valid {
-            width: 44%;
+            width: 58%;
             border-radius: 0;
             border: none;
             background: #fafafa;
@@ -72,6 +72,11 @@ ngb-target-genes-table {
             &.error {
                 border-bottom: 1px solid red;
             }
+        }
+
+        .additional-gene-input:nth-child(2),
+        .additional-gene-input:nth-child(2).ng-valid {
+            width: 30%;
         }
 
         .additional-remove-btn {
