@@ -5,6 +5,7 @@ export default class ngbPatentsSummaryController {
         return 'ngbPatentsSummaryController';
     }
     _loading = false;
+    _hasError = false;
     _errors = undefined;
     _summary = undefined;
 
@@ -16,6 +17,10 @@ export default class ngbPatentsSummaryController {
 
     get loading() {
         return this._loading;
+    }
+
+    get hasError() {
+        return this._hasError;
     }
 
     get errors() {
@@ -62,9 +67,12 @@ export default class ngbPatentsSummaryController {
                     result,
                     html: this.$sce.trustAsHtml(processLinks(result)),
                 }
+                this._hasError = false;
+                this._errors = undefined;
             });
         } catch (error) {
             commit(() => {
+                this._hasError = true;
                 this._errors = [error.message];
             });
         } finally {
@@ -80,6 +88,7 @@ export default class ngbPatentsSummaryController {
     reset() {
         this._token = {};
         this._loading = false;
+        this._hasError = false;
         this._errors = undefined;
         this._summary = undefined;
     }
