@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 EPAM Systems
+ * Copyright (c) 2016-2024 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +22,32 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.client.cloud.pipeline;
+package com.epam.catgenome.entity.llm;
 
-import com.epam.catgenome.entity.llm.CustomChatCompletion;
-import com.epam.catgenome.entity.llm.CustomChatResponse;
-import com.epam.catgenome.entity.llm.CustomLLMMessage;
-import com.epam.catgenome.entity.llm.CustomLLMResponse;
-import com.epam.catgenome.entity.notification.NotificationMessageVO;
-import retrofit2.Call;
-import retrofit2.http.Body;
-import retrofit2.http.Headers;
-import retrofit2.http.POST;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
-public interface CloudPipelineApi {
-    @Headers("Content-type: application/json")
-    @POST("notification/message")
-    Call<Void> sendNotification(@Body NotificationMessageVO notificationMessage);
+import java.util.List;
 
-    @Headers("Content-type: application/json")
-    @POST("chat")
-    Call<CustomLLMResponse> chatMessage(@Body CustomLLMMessage message);
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class CustomChatResponse {
+    private String id;
+    private String object;
+    private List<Choice> choices;
 
-    @Headers("Content-type: application/json")
-    @POST("v1/completions")
-    Call<CustomChatResponse> chatMessage(@Body CustomChatCompletion message);
+    @Data
+    private static class Choice {
+        private Integer index;
+        private String text;
+        private String finish_reason;
+    }
+
+    public String getResponse() {
+        if (CollectionUtils.isEmpty(choices)) {
+            return null;
+        }
+        return choices.get(0).getText();
+    }
 }
