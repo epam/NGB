@@ -30,14 +30,12 @@ import com.azure.ai.openai.models.ChatCompletionsOptions;
 import com.azure.ai.openai.models.ChatMessage;
 import com.azure.ai.openai.models.ChatRole;
 import com.azure.ai.openai.models.NonAzureOpenAIKeyCredential;
+import com.azure.core.util.Header;
+import com.azure.core.util.HttpClientOptions;
 import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMRole;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -46,13 +44,24 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
 public class OpenAIClient {
 
-    private final String openAIKey;
+    private final com.azure.ai.openai.OpenAIClient client;
 
-    public OpenAIClient(final @Value("${llm.openai.api.key:}") String openAIKey) {
-        this.openAIKey = openAIKey;
+    public OpenAIClient(final String openAIKey) {
+        this.client =  new OpenAIClientBuilder()
+                .credential(new NonAzureOpenAIKeyCredential(openAIKey))
+                .buildClient();
+    }
+
+    public OpenAIClient(final String openAIKey,
+                        final String endpoint) {
+        final List<Header> headers = Collections.singletonList(new Header("bearer", openAIKey));
+        this.client =  new OpenAIClientBuilder()
+                .credential(new NonAzureOpenAIKeyCredential(openAIKey))
+                .endpoint(endpoint)
+                .clientOptions(new HttpClientOptions().setHeaders(headers))
+                .buildClient();
     }
 
     public String getChatCompletion(final String prompt,
@@ -68,11 +77,7 @@ public class OpenAIClient {
                                  final int maxSize,
                                  final String model,
                                  final double temperature) {
-        Assert.isTrue(StringUtils.isNotBlank(openAIKey), "OpenAI API key is not configured.");
-        final com.azure.ai.openai.OpenAIClient client = new OpenAIClientBuilder()
-                .credential(new NonAzureOpenAIKeyCredential(openAIKey))
-                .buildClient();
-        LocalDateTime start = LocalDateTime.now();
+        final LocalDateTime start = LocalDateTime.now();
         log.debug("Starting request processing {}", LocalDateTime.now());
 
         final ChatCompletionsOptions options = new ChatCompletionsOptions(messages.stream()

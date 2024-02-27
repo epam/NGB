@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.manager.llm;
 
+import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMProvider;
 import com.google.cloud.aiplatform.v1beta1.EndpointName;
@@ -31,6 +32,8 @@ import com.google.cloud.aiplatform.v1beta1.PredictResponse;
 import com.google.cloud.aiplatform.v1beta1.PredictionServiceClient;
 import com.google.cloud.aiplatform.v1beta1.PredictionServiceSettings;
 import com.google.protobuf.util.JsonFormat;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -78,8 +81,8 @@ public class GCPPaLM2 implements LLMHandler {
     public String getSummary(final String prompt, final String text, final double temperature) {
         Assert.notNull(this.client, "Google PALM client is not available");
         Assert.isTrue(StringUtils.isNotBlank(project), "Project is not configured for GCP request");
-        final String instance =
-                String.format("{ \"prompt\": \"%s\"}", buildPrompt(prompt, text, promptSize));
+        final String instance = JsonMapper.convertDataToJsonStringForQuery(
+                new PalmPrompt(buildPrompt(prompt, text, promptSize)));
 
         final String parameters =
                 String.format("{\"temperature\": %.2f,\"maxOutputTokens\": %d,\"topP\": 0.95,\"topK\": 40}",
@@ -125,5 +128,11 @@ public class GCPPaLM2 implements LLMHandler {
             log.error("Failed to initialize Google PALM client", e);
             return null;
         }
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class PalmPrompt {
+        private String prompt;
     }
 }

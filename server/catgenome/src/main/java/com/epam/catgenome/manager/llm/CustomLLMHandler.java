@@ -24,12 +24,9 @@
 
 package com.epam.catgenome.manager.llm;
 
-import com.epam.catgenome.client.cloud.pipeline.CloudPipelineApi;
-import com.epam.catgenome.client.cloud.pipeline.CloudPipelineApiBuilder;
 import com.epam.catgenome.entity.llm.CustomLLMMessage;
 import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMProvider;
-import com.epam.catgenome.util.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,19 +37,32 @@ import java.util.List;
 @Service
 public class CustomLLMHandler implements LLMHandler {
 
-    private CloudPipelineApi api;
+    private CustomLLMApi api;
     private Integer promptSize;
     private String promptTemplate;
+    private final String firstMessagePrefix;
+    private final String lastMessagePrefix;
 
     public CustomLLMHandler(final @Value("${llm.custom.url:}") String url,
                             final @Value("${llm.custom.token:}") String token,
+                            final @Value("${llm.custom.type:custom}") String type,
+                            final @Value("${llm.custom.model.name:}") String modelName,
                             final @Value("${llm.custom.prompt.template:}") String promptTemplate,
-                            final @Value("${llm.custom.prompt.size:1000}") int promptSize) {
-        if (StringUtils.isNotBlank(url)) {
-            this.api = new CloudPipelineApiBuilder(0, 0, url, null, token).buildClient();
+                            final @Value("${llm.custom.prompt.size:1000}") int promptSize,
+                            final @Value("${llm.custom.response.size:500}") int responseSize,
+                            final @Value("${llm.custom.first.message.prefix:}") String firstMessagePrefix,
+                            final @Value("${llm.custom.last.message.prefix:}") String lastMessagePrefix) {
+        if (StringUtils.isBlank(url)) {
+            this.api = null;
+        }else if (type.equalsIgnoreCase("openai")) {
+            this.api = new CustomOpenAILLMClient(url, token, modelName, responseSize);
+        } else {
+            this.api = new CustomLLMApiClient(url, token);
         }
         this.promptSize = promptSize;
         this.promptTemplate = promptTemplate;
+        this.firstMessagePrefix = firstMessagePrefix;
+        this.lastMessagePrefix = lastMessagePrefix;
     }
 
     @Override
@@ -63,16 +73,14 @@ public class CustomLLMHandler implements LLMHandler {
     @Override
     public String getSummary(final String prompt, final String text, final double temperature) {
         Assert.notNull(api, "Custom LLM api is not configured.");
-        return QueryUtils.execute(api.chatMessage(new CustomLLMMessage(buildPrompt(prompt, text, promptSize))))
-                .getResponse();
+        return api.getSummary(new CustomLLMMessage(buildPrompt(prompt, text, promptSize)), temperature);
     }
 
     @Override
     public String getChatResponse(final List<LLMMessage> messages, final double temperature) {
         Assert.notNull(api, "Custom LLM api is not configured.");
-        return QueryUtils.execute(api.chatMessage(
-                new CustomLLMMessage(messages.get(messages.size() - 1).getContent())))
-                .getResponse();
+        return api.getChatResponse(
+                adjustFirstMessage(adjustLastMessage(messages, lastMessagePrefix), firstMessagePrefix), temperature);
     }
 
     @Override
