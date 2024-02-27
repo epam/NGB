@@ -26,7 +26,7 @@ public class OpenAIChatGPT40 implements LLMHandler {
                            final @Value("${llm.openai.chatgpt40.prompt.template:}") String promptTemplate,
                            final @Value("${llm.openai.chatgpt35.first.message.prefix:}") String firstMessagePrefix,
                            final @Value("${llm.openai.chatgpt35.last.message.prefix:}") String lastMessagePrefix,
-                           final @Value("{llm.openai.api.key:}") String openAIKey) {
+                           final @Value("${llm.openai.api.key:}") String openAIKey) {
         this.modelName = modelName;
         this.promptSize = promptSize;
         this.responseSize = responseSize;
