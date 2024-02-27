@@ -693,7 +693,7 @@ export default class ngbTargetsFormService {
     getParasiteTargetRequest() {
         const {id, name, diseases, products, type} = this.targetModel;
         const request = {
-            targetId: id,
+            id,
             targetName: name,
             type,
             diseases,
