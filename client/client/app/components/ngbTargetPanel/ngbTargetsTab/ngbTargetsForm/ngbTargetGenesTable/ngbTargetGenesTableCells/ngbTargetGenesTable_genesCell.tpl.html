@@ -1,0 +1,50 @@
+<div class="additional-cell-wrapper">
+    <div class="cell-content additional-genes">
+        <p ng-repeat="element in row.entity[col.field].value |
+                      limitTo : row.entity[col.field].limit track by $index"
+           class="additional-gene-item">
+            <md-tooltip class="target-genes-table-tooltip"
+                        ng-if="grid.appScope.$ctrl.isParasite && row.entity[col.field]"
+                        md-direction="top">
+                <span ng-if="element.geneId">{{element.geneId}}</span> <span ng-if="element.taxId">({{element.taxId}})</span>
+            </md-tooltip>
+            <input class="additional-gene-input"
+                   name="element.geneId"
+                   ng-model="element.geneId"
+                   ng-class="{error: !element.geneId}">
+            <input class="additional-gene-input"
+                   name="element.taxId"
+                   ng-model="element.taxId"
+                   ng-class="{error: !element.taxId}">
+            <md-button class="additional-remove-btn"
+                       ng-click="grid.appScope.$ctrl.onClickAdditionalRemove($event, row.entity[col.field], $index)"
+                       aria-label="Remove additional gene"
+                       title="Remove additional gene">
+                <ng-md-icon icon="clear"
+                            size="10"
+                            style="fill: currentColor !important;">
+                </ng-md-icon>
+            </md-button>
+        </p>
+        <p ng-if="row.entity[col.field].value.length > row.entity[col.field].limit">
+            and
+            <span class="others-button"
+                  ng-click="grid.appScope.$ctrl.showOthers(rowRenderIndex, row.entity[col.field], $event)">
+                {{row.entity[col.field].value.length - row.entity[col.field].limit}}
+                {{row.entity[col.field].value.length - row.entity[col.field].limit === 1 ? 'other' : 'others'}}
+            </span>
+        </p>
+        <p class="others-button"
+           ng-if="row.entity[col.field].limit > row.entity[col.field].value.length &&
+                  row.entity[col.field].value.length > 1"
+           ng-click="grid.appScope.$ctrl.showLess(rowRenderIndex, row.entity[col.field], $event)">
+            less
+        </p>
+        <p class="add-button"
+           ng-if="row.entity[col.field].limit >= row.entity[col.field].value.length"
+           ng-click="grid.appScope.$ctrl.addAdditionalGene(row.entity[col.field], rowRenderIndex, $event)"
+           ng-disabled="grid.appScope.$ctrl.getIsAddAdditionalGeneDisabled(row.entity[col.field])">
+            add gene
+        </p>
+    </div>
+</div>

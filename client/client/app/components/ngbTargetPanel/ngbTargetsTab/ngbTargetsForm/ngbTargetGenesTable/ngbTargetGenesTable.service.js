@@ -8,6 +8,7 @@ const DISPLAY_NAME = {
     taxId: 'Tax ID',
     speciesName: 'Species Name',
     priority: 'Priority',
+    additionalGenes: 'Additional Genes',
     remove: ''
 };
 
@@ -17,6 +18,7 @@ const COLUMN_FIELD = {
     'Tax ID': 'taxId',
     'Species Name': 'speciesName',
     'Priority': 'priority',
+    'Additional Genes': 'additionalGenes',
     'Remove': 'remove'
 };
 
@@ -59,6 +61,8 @@ export default class ngbTargetGenesTableService {
     _sortInfo = null;
     _filterInfo = null;
     fieldList = {};
+
+    rowsHeight = {};
 
     get displayFilters() {
         return this._displayFilters;
@@ -320,6 +324,7 @@ export default class ngbTargetGenesTableService {
         this.allColumns = [];
         this._columnsInfo = {};
         this._displayFilters = false;
+        this.rowsHeight = {};
     }
 
     resetTargetModel() {
@@ -334,6 +339,7 @@ export default class ngbTargetGenesTableService {
         this.additionalColumns = [];
         this.allColumns = [];
         this._columnsInfo = {};
+        this.rowsHeight = {};
     }
 
     async onChangeShowFilters() {

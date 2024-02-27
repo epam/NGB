@@ -66,6 +66,7 @@ export default class ngbTargetsFormActionsController {
             this.ngbTargetGenesTableService.restoreView();
             this.resetColumnsSelection();
             this.dispatcher.emit('target:form:filters:display:changed');
+            this.dispatcher.emit('target:form:restore:row:height');
             this.$timeout(() => this.$scope.$apply());
         }
     }
