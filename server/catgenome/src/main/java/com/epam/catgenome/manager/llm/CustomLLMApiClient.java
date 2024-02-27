@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.llm;
 
 import com.epam.catgenome.client.cloud.pipeline.CloudPipelineApi;
 import com.epam.catgenome.client.cloud.pipeline.CloudPipelineApiBuilder;
+import com.epam.catgenome.entity.llm.CustomChatCompletion;
 import com.epam.catgenome.entity.llm.CustomLLMMessage;
 import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.util.QueryUtils;
@@ -36,21 +37,25 @@ import java.util.List;
 public class CustomLLMApiClient implements CustomLLMApi {
 
     private CloudPipelineApi api;
+    private String model;
 
-    public CustomLLMApiClient(final String url, final String token) {
+    public CustomLLMApiClient(final String url, final String token, final String model) {
         this.api = new CloudPipelineApiBuilder(0, 0, url, null, token).buildClient();
+        this.model = model;
     }
 
     @Override
     public String getSummary(final CustomLLMMessage message, final double temperature) {
-        return QueryUtils.execute(api.chatMessage(message)).getResponse();
+        Assert.notNull(api, "Custom LLM api is not configured.");
+        return QueryUtils.execute(api.chatMessage(new CustomChatCompletion(model, message.getMessage())))
+                .getResponse();
     }
 
     @Override
     public String getChatResponse(final List<LLMMessage> messages, final double temperature) {
         Assert.notNull(api, "Custom LLM api is not configured.");
-        return QueryUtils.execute(api.chatMessage(
-                        new CustomLLMMessage(messages.get(messages.size() - 1).getContent())))
+        final String prompt = messages.get(messages.size() - 1).getContent();
+        return QueryUtils.execute(api.chatMessage(new CustomChatCompletion(model, prompt)))
                 .getResponse();
     }
 }

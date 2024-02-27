@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.client.cloud.pipeline;
 
+import com.epam.catgenome.entity.llm.CustomChatCompletion;
 import com.epam.catgenome.entity.llm.CustomLLMMessage;
 import com.epam.catgenome.entity.llm.CustomLLMResponse;
 import com.epam.catgenome.entity.notification.NotificationMessageVO;
@@ -40,4 +41,8 @@ public interface CloudPipelineApi {
     @Headers("Content-type: application/json")
     @POST("chat")
     Call<CustomLLMResponse> chatMessage(@Body CustomLLMMessage message);
+
+    @Headers("Content-type: application/json")
+    @POST("v1/completions")
+    Call<CustomLLMResponse> chatMessage(@Body CustomChatCompletion message);
 }

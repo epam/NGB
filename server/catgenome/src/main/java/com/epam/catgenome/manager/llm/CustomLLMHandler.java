@@ -57,7 +57,7 @@ public class CustomLLMHandler implements LLMHandler {
         }else if (type.equalsIgnoreCase("openai")) {
             this.api = new CustomOpenAILLMClient(url, token, modelName, responseSize);
         } else {
-            this.api = new CustomLLMApiClient(url, token);
+            this.api = new CustomLLMApiClient(url, token, modelName);
         }
         this.promptSize = promptSize;
         this.promptTemplate = promptTemplate;
