@@ -26,7 +26,7 @@ const PAGE_SIZE = 20;
 const ADDITIONAL_GENES = 'additionalGenes';
 
 const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'priority', 'additionalGenes'];
-const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority', 'Additional genes'];
+const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority', 'Additional Genes'];
 
 const REQUIRED_FIELDS = ['geneId', 'geneName', 'taxId', 'speciesName'];
 

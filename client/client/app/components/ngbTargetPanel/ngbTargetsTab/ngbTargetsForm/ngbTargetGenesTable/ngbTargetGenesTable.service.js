@@ -8,7 +8,7 @@ const DISPLAY_NAME = {
     taxId: 'Tax ID',
     speciesName: 'Species Name',
     priority: 'Priority',
-    additionalGenes: 'Additional genes',
+    additionalGenes: 'Additional Genes',
     remove: ''
 };
 
@@ -18,7 +18,7 @@ const COLUMN_FIELD = {
     'Tax ID': 'taxId',
     'Species Name': 'speciesName',
     'Priority': 'priority',
-    'Additional genes': 'additionalGenes',
+    'Additional Genes': 'additionalGenes',
     'Remove': 'remove'
 };
 
