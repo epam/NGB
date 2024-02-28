@@ -178,6 +178,7 @@ export default class ngbTargetsFormController {
                 .then((success) => {
                     if (success) {
                         this.ngbTargetsTabService.setEditMode();
+                        this.dispatcher.emit('target:form:saved');
                     }
                 });
         }
