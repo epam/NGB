@@ -8,6 +8,7 @@
     <md-select ng-model="row.entity[col.field]"
                class="ngb-targets-form-table-select"
                aria-label="Select priority"
+               ng-disabled="!grid.appScope.$ctrl.changeAllowed"
                md-container-class="priority-select">
         <md-option><em>None</em></md-option>
         <md-option ng-repeat="priority in grid.appScope.$ctrl.priorityList"

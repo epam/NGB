@@ -18,6 +18,7 @@
                ng-auto-focus
                ng-class="{'error': !$ctrl.targetModel.name}"
                required
+               ng-disabled="!$ctrl.changeAllowed"
                placeholder="Target name"
                ng-model="$ctrl.targetModel.name"/>
         <md-button type="button"
@@ -30,13 +31,14 @@
         <md-button type="button"
                    class="md-primary md-raised md-accent target-button"
                    aria-label="Save target"
+                   ng-if="$ctrl.changeAllowed"
                    ng-click="$ctrl.saveTarget()"
                    ng-disabled="$ctrl.isSaveDisabled()">
             {{$ctrl.isEditMode ? 'SAVE' : 'CREATE'}}
         </md-button>
         <md-button type="button"
                    class="md-raised md-warn target-button"
-                   ng-class="{'hidden': !$ctrl.isEditMode}"
+                   ng-class="{'hidden': !$ctrl.isEditMode || !$ctrl.changeAllowed}"
                    aria-label="Remove target"
                    ng-click="$ctrl.removeTarget()"
                    ng-disabled="$ctrl.loading">
@@ -63,15 +65,17 @@
         </div>
         <ngb-tags class="ngb-target-diseases"
                   tag-title="'Diseases:'"
+                  ng-if="$ctrl.showDiseaseTags"
                   tags="$ctrl.targetModel.diseases"
                   add-label="'Add disease'"
-                  editable="true">
+                  editable="$ctrl.changeAllowed">
         </ngb-tags>
         <ngb-tags class="ngb-target-products"
                   tag-title="'Products:'"
+                  ng-if="$ctrl.showProductTags"
                   tags="$ctrl.targetModel.products"
                   add-label="'Add product'"
-                  editable="true">
+                  editable="$ctrl.changeAllowed">
         </ngb-tags>
     </div>
     <div class="ngb-targets-form-section">
@@ -84,7 +88,8 @@
                         !$ctrl.targetModel.genes || $ctrl.targetModel.genes.length === 0)">
                     At least one gene or transcript shall be specified.
                 </div>
-                <div class="table-buttons">
+                <div class="table-buttons"
+                     ng-if="$ctrl.changeAllowed">
                     <span class="add-gene-link"
                           ng-class="{'disabled': $ctrl.isAddGeneDisabled}"
                           ng-click="$ctrl.addGene()"

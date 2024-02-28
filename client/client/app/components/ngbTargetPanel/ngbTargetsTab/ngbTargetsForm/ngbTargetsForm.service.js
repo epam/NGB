@@ -1,3 +1,5 @@
+import roleModel from '../../../../shared/utils/roleModel';
+
 const NEW_ADDITIONAL_GENE = {
     taxId: '',
     geneId: '',
@@ -29,6 +31,8 @@ const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'pr
 const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority', 'Additional Genes'];
 
 const REQUIRED_FIELDS = ['geneId', 'geneName', 'taxId', 'speciesName'];
+
+const WRITE_ROLES = ['ROLE_ADMIN', 'ROLE_TARGET_MANAGER'];
 
 export const encodeName = (name) => {
     if (name.includes('(') || name.includes(')')) {
@@ -67,6 +71,9 @@ export default class ngbTargetsFormService {
     }
     get additionalGenes() {
         return ADDITIONAL_GENES;
+    }
+    get writeRoles() {
+        return WRITE_ROLES;
     }
 
     _targetModel;
@@ -138,12 +145,40 @@ export default class ngbTargetsFormService {
         return this.targetModel.type === this.targetType.PARASITE;
     }
 
-    static instance (dispatcher, ngbTargetsTabService, targetDataService, targetContext) {
-        return new ngbTargetsFormService(dispatcher, ngbTargetsTabService, targetDataService, targetContext);
+    static instance (
+        dispatcher,
+        ngbTargetsTabService,
+        targetDataService,
+        targetContext,
+        utilsDataService,
+        userDataService,
+    ) {
+        return new ngbTargetsFormService(
+            dispatcher,
+            ngbTargetsTabService,
+            targetDataService,
+            targetContext,
+            utilsDataService,
+            userDataService,
+        );
     }
 
-    constructor(dispatcher, ngbTargetsTabService, targetDataService, targetContext) {
-        Object.assign(this, {dispatcher, ngbTargetsTabService, targetDataService, targetContext});
+    constructor(
+        dispatcher,
+        ngbTargetsTabService,
+        targetDataService,
+        targetContext,
+        utilsDataService,
+        userDataService,
+    ) {
+        Object.assign(this, {
+            dispatcher,
+            ngbTargetsTabService,
+            targetDataService,
+            targetContext,
+            utilsDataService,
+            userDataService,
+        });
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
     }
 
@@ -161,7 +196,7 @@ export default class ngbTargetsFormService {
             genes: [],
             diseases: [],
             products: [],
-            type: this.targetType.DEFAULT
+            type: this.targetType.DEFAULT,
         };
         this._originalModel = undefined;
         this.dispatcher.emit('target:model:changed');
@@ -260,7 +295,7 @@ export default class ngbTargetsFormService {
         return !!(this.parasiteGenesRemoved() || this.parasiteGenesAdded() || this.targetGenesChanged());
     }
 
-    setTargetModel(data) {
+    async setTargetModel(data) {
         this._targetModel = {
             id: data.id,
             name: data.targetName,
@@ -288,9 +323,30 @@ export default class ngbTargetsFormService {
             products: (data.products || []).filter(p => p),
             identifications: data.identifications,
             type: data.type,
+            changeAllowed: await this.getIsChangeAllowed(data.mask),
         };
         this.setOriginalModel(data);
         this.targetContext.targetModelType = data.type;
+    }
+
+    async getIsChangeAllowed(mask) {
+        const allowed = await this.utilsDataService.isRoleModelEnabled()
+            .then(utilsDataService => {
+                if (utilsDataService) {
+                    return this.userDataService.getCurrentUser()
+                        .then(user => {
+                            const hasRoles = user.hasRoles(this.writeRoles);
+                            if (hasRoles) return hasRoles;
+                            if (!mask) return false;
+                            const isOwner = roleModel.isOwner({ mask });
+                            const isWriteAllowed = roleModel.writeAllowed({ mask });
+                            return isOwner || isWriteAllowed;
+                        });
+                } else {
+                    return true;
+                }
+            });
+        return allowed;
     }
 
     setOriginalModel(data) {
