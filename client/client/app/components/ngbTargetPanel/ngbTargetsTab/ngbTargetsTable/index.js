@@ -16,6 +16,9 @@ import ngbTargetsTablePaginate from './ngbTargetsTablePaginate';
 import ngbDisableWheelHandler from './disable-wheel-handler';
 import ngbMdChips from './md-chips-trim';
 
+import ngbTargetContextMenu from './ngbTargetContextMenu';
+import ngbTargetPermissionsFormService from './ngbTargetContextMenu/ngbTargetPermissionsForm/ngbTargetPermissionsForm.service';
+
 import ngbLaunchMenuInput from './ngbTargetLaunchDialog/ngbLaunchMenuInput/ngbLaunchMenuInput.directive';
 
 export default angular
@@ -24,12 +27,14 @@ export default angular
         ngbTargetsTableFilter,
         ngbTargetsTablePaginate,
         ngbLaunchMenuInput,
+        ngbTargetContextMenu,
     ])
     .directive('disableWheelHandler', ngbDisableWheelHandler)
     .directive('mdChipsTrim', ngbMdChips)
     .controller(controller.UID, controller)
     .component('ngbTargetsTable', component)
     .service('ngbTargetsTableService', service.instance)
+    .service('ngbTargetPermissionsFormService', ngbTargetPermissionsFormService)
     .run(runLaunch)
     .run(runSaved)
     .name;

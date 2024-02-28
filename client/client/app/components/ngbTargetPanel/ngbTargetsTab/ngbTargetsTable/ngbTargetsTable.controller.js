@@ -140,6 +140,7 @@ export default class ngbTargetsTableController {
     async initialize() {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
+            rowTemplate: require('./ngbTargetsTable_row.tpl.html'),
             columnDefs: this.getTargetsTableGridColumns(),
             paginationPageSize: this.pageSize,
             onRegisterApi: (gridApi) => {
