@@ -15,7 +15,7 @@
         <md-dialog-content>
             <md-content class="md-padding">
                 <div layout="column">
-                    <div layout="row">
+                    <div layout="row" class="action-container">
                         <md-input-container flex>
                             <label>Owner</label>
                             <md-select name="owner"
@@ -46,7 +46,7 @@
                             </md-select>
                         </md-input-container>
                         <md-button aria-label="apply"
-                                   class="md-icon-button md-primary"
+                                   class="md-icon-button apply-button"
                                    ng-if="$ctrl.ownerChanged"
                                    ng-click="$ctrl.changeOwner()">
                             <ng-md-icon icon="done">
@@ -58,13 +58,13 @@
                             <ng-md-icon icon="clear">
                         </md-button>
                         <md-button aria-label="Add user"
-                                   class="md-mini md-hue-1"
+                                   class="md-icon-button"
                                    ng-if="$ctrl.permissionsChangeAllowed"
                                    ng-click="$ctrl.onAddUser()">
                             <ng-md-icon icon="person_add"></ng-md-icon>
                         </md-button>
                         <md-button aria-label="Add group or role"
-                                   class="md-mini md-hue-1"
+                                   class="md-icon-button"
                                    ng-if="$ctrl.permissionsChangeAllowed"
                                    ng-click="$ctrl.onAddRole()">
                             <ng-md-icon icon="group_add"></ng-md-icon>
