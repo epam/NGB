@@ -167,6 +167,12 @@ export default class ngbTargetsFormService {
         this.dispatcher.emit('target:model:changed');
     }
 
+    addAdditionalGenesField(index) {
+        const gene = this._targetModel.genes[index];
+        gene.additionalGenes = {...NEW_ADDITIONAL_GENES};
+        gene.additionalGenes.value = [{...NEW_ADDITIONAL_GENE}];
+    }
+
     parasiteGenesAdded() {
         return this.isParasite && !!this.addedGenes.length;
     }
@@ -186,6 +192,7 @@ export default class ngbTargetsFormService {
                     if (!allFields.includes(key)) return false;
                     if (key === this.additionalGenes) {
                         const additionalGenes = value.value.filter(v => v.geneId && v.taxId);
+                        if (!originalGenes[index].additionalGenes) return additionalGenes.length;
                         const originalAdditionalGenes = originalGenes[index].additionalGenes.value;
                         if (originalAdditionalGenes.length !== additionalGenes.length) return true;
                         return additionalGenes.some((g, i) => (
@@ -595,6 +602,10 @@ export default class ngbTargetsFormService {
                 };
                 if (g.priority && g.priority !== 'None') {
                     gene.priority = g.priority;
+                }
+                if (g.additionalGenes && g.additionalGenes.value) {
+                    gene.additionalGenes = g.additionalGenes.value
+                        .reduce((a, v) => ({ ...a, [v.geneId]: Number(v.taxId)}), {})
                 }
                 return gene;
             }),

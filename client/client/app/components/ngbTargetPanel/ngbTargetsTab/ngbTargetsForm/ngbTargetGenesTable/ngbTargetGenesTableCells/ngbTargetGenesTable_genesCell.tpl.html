@@ -41,7 +41,6 @@
             less
         </p>
         <p class="add-button"
-           ng-if="row.entity[col.field].limit >= row.entity[col.field].value.length"
            ng-click="grid.appScope.$ctrl.addAdditionalGene(row.entity[col.field], rowRenderIndex, $event)"
            ng-disabled="grid.appScope.$ctrl.getIsAddAdditionalGeneDisabled(row.entity[col.field])">
             add gene
