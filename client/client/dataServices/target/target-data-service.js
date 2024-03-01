@@ -485,7 +485,7 @@ export class TargetDataService extends DataService {
                     if (data) {
                         resolve(data);
                     } else {
-                        reject({});
+                        resolve({});
                     }
                 })
                 .catch(error => {
