@@ -4,14 +4,16 @@ const SOURCE = {
     OPEN_TARGETS: 'OPEN_TARGETS',
     TXGNN: 'TXGNN',
     DGI_DB: 'DGI_DB',
-    PHARM_GKB: 'PHARM_GKB'
+    PHARM_GKB: 'PHARM_GKB',
+    TTD: 'TTD'
 };
 
 const ExternalDBApi = {
     [SOURCE.OPEN_TARGETS]: 'opentargets',
     [SOURCE.TXGNN]: 'txgnn',
     [SOURCE.DGI_DB]: 'dgidb',
-    [SOURCE.PHARM_GKB]: 'pharmgkb'
+    [SOURCE.PHARM_GKB]: 'pharmgkb',
+    [SOURCE.TTD]: 'ttd'
 };
 
 const ExternalDBNames = {
@@ -24,7 +26,8 @@ const ExternalDBNames = {
 const ExternalDBFields = {
     [SOURCE.OPEN_TARGETS]: 'opentargets',
     [SOURCE.DGI_DB]: 'dgidb',
-    [SOURCE.PHARM_GKB]: 'pharmGKB'
+    [SOURCE.PHARM_GKB]: 'pharmGKB',
+    [SOURCE.TTD]: 'ttd'
 };
 
 const PDB_SOURCE = {
@@ -168,18 +171,42 @@ export class TargetDataService extends DataService {
 
     getDrugsResults(request, source) {
         return new Promise((resolve, reject) => {
-            this.post(`target/${ExternalDBApi[source]}/drugs`, request)
-                .then(data => {
-                    if (data && data.items) {
-                        resolve([data.items, data.totalCount]);
-                    } else {
-                        resolve([[], data.totalCount]);
-                    }
-                })
-                .catch(error => {
-                    const message = `Error getting drugs from ${ExternalDBNames[source]}`;
-                    reject(new Error((error && error.message) || message));
-                });
+            if (source === 'TTD') {
+                const result = {
+                    "items": [{
+                        "sequence": "",
+                        "company": "company",
+                        "type": "type",
+                        "therapeuticClass": "therapeuticClass",
+                        "inChI": "inChI",
+                        "inChIKey": "inChIKey",
+                        "canonicalSmiles": "canonicalSmiles",
+                        "highestStatus": "highestStatus",
+                        "compoundClass": "compoundClass",
+                        "id": "id",
+                        "name": "name",
+                        "url": "url",
+                        "geneId": "geneId",
+                        "target": "target"
+                      }
+                    ],
+                    "totalCount": 1
+                };
+                resolve([result.items, result.totalCount]);
+            } else {
+                this.post(`target/${ExternalDBApi[source]}/drugs`, request)
+                    .then(data => {
+                        if (data && data.items) {
+                            resolve([data.items, data.totalCount]);
+                        } else {
+                            resolve([[], data.totalCount]);
+                        }
+                    })
+                    .catch(error => {
+                        const message = `Error getting drugs from ${ExternalDBNames[source]}`;
+                        reject(new Error((error && error.message) || message));
+                    });
+            }
         });
     }
 
@@ -314,6 +341,16 @@ export class TargetDataService extends DataService {
 
     getDrugsFieldValues(source, geneIds) {
         return new Promise((resolve) => {
+            if (source === 'TTD') {
+                const result = {
+                    "companies": ['company1', 'company2'],
+                    "types": ['type1', 'type2'],
+                    "therapeuticClasses": ['class1', 'class2'],
+                    "statuses": ['status1'],
+                    "compoundClasses": ['class']
+                };
+                resolve(result);
+            } else {
             this.get(`target/${ExternalDBFields[source]}/drugs/fieldValues?geneIds=${geneIds}`)
                 .then(data => {
                     if (data) {
@@ -322,6 +359,7 @@ export class TargetDataService extends DataService {
                         resolve([]);
                     }
                 });
+            }
         });
     }
 
