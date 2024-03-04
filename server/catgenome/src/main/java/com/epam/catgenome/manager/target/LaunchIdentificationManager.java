@@ -38,10 +38,16 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.target.*;
+import com.epam.catgenome.exception.BlastRequestException;
+import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugFieldValues;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugsManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneInfoManager;
@@ -114,17 +120,19 @@ public class LaunchIdentificationManager {
     private final TaxonomyManager taxonomyManager;
     private final NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
     private final SequencesManager sequencesManager;
+    private final TTDDrugAssociationManager ttdDrugAssociationManager;
+    private final TTDDrugsManager ttdDrugsManager;
 
     public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
 
-        final List<String> geneIds = ListUtils.union(ListUtils.emptyIfNull(request.getTranslationalGenes()),
+        List<String> geneIds = ListUtils.union(ListUtils.emptyIfNull(request.getTranslationalGenes()),
                 ListUtils.emptyIfNull(request.getGenesOfInterest()));
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
                 "Either Species of interest or Translational species must me specified.");
 
         final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, true);
-        targetManager.expandTargetGenes(geneIds);
+        geneIds = new ArrayList<>(targetGenes.keySet());
 
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         final List<String> entrezGeneIds = ncbiGeneIds.stream()
@@ -134,7 +142,7 @@ public class LaunchIdentificationManager {
         final DrugsCount drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
         final long publicationsCount = pubMedService.getPublicationsCount(entrezGeneIds);
-        final SequencesSummary sequencesCount = getGeneSequencesCount(geneIds, targetGenes, true);
+        final SequencesSummary sequencesCount = getGeneSequencesCount(targetGenes, true);
         final long structuresCount = getStructuresCount(geneIds);
         return TargetIdentificationResult.builder()
                 .description(description)
@@ -215,6 +223,11 @@ public class LaunchIdentificationManager {
         dgidbDrugAssociationManager.importData(path);
     }
 
+    public void importTTDData(final String drugsPath, final String targetsPath)
+            throws IOException, ParseException {
+        ttdDrugAssociationManager.importData(drugsPath, targetsPath);
+    }
+
     public PharmGKBDrugFieldValues getPharmGKBDrugFieldValues(final List<String> geneIds)
             throws IOException, ParseException {
         targetManager.expandTargetGenes(geneIds);
@@ -289,8 +302,7 @@ public class LaunchIdentificationManager {
         return result;
     }
 
-    public SequencesSummary getGeneSequencesCount(final List<String> geneIds,
-                                                  final Map<String, Long> targetGenes,
+    public SequencesSummary getGeneSequencesCount(final Map<String, Long> targetGenes,
                                                   final Boolean includeLocal)
             throws ParseException, IOException, ExternalDbUnavailableException {
         final SequencesSummary localSequencesSummary = SequencesSummary.builder().build();
@@ -310,7 +322,7 @@ public class LaunchIdentificationManager {
                     .map(GeneSequence::getProtein).filter(Objects::nonNull).count());
         }
 
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(new ArrayList<>(targetGenes.keySet()));
         if (CollectionUtils.isEmpty(ncbiGeneIds)) {
             return localSequencesSummary;
         }
@@ -462,6 +474,20 @@ public class LaunchIdentificationManager {
             }
         }
         return geneNames;
+    }
+
+    public SearchResult<TTDDrugAssociation> getTTDDrugs(final AssociationSearchRequest request)
+            throws ParseException, IOException, BlastRequestException, InterruptedException {
+        final Map<String, Long> targetGenes = targetManager.getTargetGenes(request.getGeneIds(), true);
+        targetManager.expandTargetGenes(request.getGeneIds());
+        return ttdDrugsManager.getTTDDrugs(request, targetGenes);
+    }
+
+    public TTDDrugFieldValues getTTDDrugFieldValues(final List<String> geneIds)
+            throws IOException, ParseException, ReferenceReadingException, BlastRequestException, InterruptedException {
+        final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, true);
+        targetManager.expandTargetGenes(geneIds);
+        return ttdDrugsManager.getFieldValues(geneIds, targetGenes);
     }
 
     private static Map<String, String> mergeDescriptions(final Map<GeneId, String> ncbiSummary,
