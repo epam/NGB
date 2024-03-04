@@ -27,6 +27,18 @@ const FIELDS = {
         'drug': 'DRUG_NAME',
         'interaction claim source': 'INTERACTION_CLAIM_SOURCE',
         'interaction types': 'INTERACTION_TYPES'
+    },
+    TTD: {
+        'target': 'TARGET',
+        'drug': 'DRUG_NAME',
+        'company': 'COMPANY',
+        'type': 'TYPE',
+        'therapeutic class': 'THERAPEUTIC_CLASS',
+        'inChI': 'INCHI',
+        'inChIKey': 'INCHI_KEY',
+        'canonical smiles': 'CANONICAL_SMILES',
+        'highest status': 'STATUS',
+        'compound class': 'COMPOUND_CLASS'
     }
 };
 

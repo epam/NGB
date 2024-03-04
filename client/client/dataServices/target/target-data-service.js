@@ -171,42 +171,18 @@ export class TargetDataService extends DataService {
 
     getDrugsResults(request, source) {
         return new Promise((resolve, reject) => {
-            if (source === 'TTD') {
-                const result = {
-                    "items": [{
-                        "sequence": "",
-                        "company": "company",
-                        "type": "type",
-                        "therapeuticClass": "therapeuticClass",
-                        "inChI": "inChI",
-                        "inChIKey": "inChIKey",
-                        "canonicalSmiles": "canonicalSmiles",
-                        "highestStatus": "highestStatus",
-                        "compoundClass": "compoundClass",
-                        "id": "id",
-                        "name": "name",
-                        "url": "url",
-                        "geneId": "geneId",
-                        "target": "target"
-                      }
-                    ],
-                    "totalCount": 1
-                };
-                resolve([result.items, result.totalCount]);
-            } else {
-                this.post(`target/${ExternalDBApi[source]}/drugs`, request)
-                    .then(data => {
-                        if (data && data.items) {
-                            resolve([data.items, data.totalCount]);
-                        } else {
-                            resolve([[], data.totalCount]);
-                        }
-                    })
-                    .catch(error => {
-                        const message = `Error getting drugs from ${ExternalDBNames[source]}`;
-                        reject(new Error((error && error.message) || message));
-                    });
-            }
+            this.post(`target/${ExternalDBApi[source]}/drugs`, request)
+                .then(data => {
+                    if (data && data.items) {
+                        resolve([data.items, data.totalCount]);
+                    } else {
+                        resolve([[], data.totalCount]);
+                    }
+                })
+                .catch(error => {
+                    const message = `Error getting drugs from ${ExternalDBNames[source]}`;
+                    reject(new Error((error && error.message) || message));
+                });
         });
     }
 
@@ -341,16 +317,6 @@ export class TargetDataService extends DataService {
 
     getDrugsFieldValues(source, geneIds) {
         return new Promise((resolve) => {
-            if (source === 'TTD') {
-                const result = {
-                    "companies": ['company1', 'company2'],
-                    "types": ['type1', 'type2'],
-                    "therapeuticClasses": ['class1', 'class2'],
-                    "statuses": ['status1'],
-                    "compoundClasses": ['class']
-                };
-                resolve(result);
-            } else {
             this.get(`target/${ExternalDBFields[source]}/drugs/fieldValues?geneIds=${geneIds}`)
                 .then(data => {
                     if (data) {
@@ -359,7 +325,6 @@ export class TargetDataService extends DataService {
                         resolve([]);
                     }
                 });
-            }
         });
     }
 
