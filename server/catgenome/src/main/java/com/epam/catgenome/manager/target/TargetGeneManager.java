@@ -400,10 +400,10 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     private Sort getSort(final List<OrderInfo> orderInfos, final Map<String, TargetGeneField> fieldsMap) {
-        if (CollectionUtils.isEmpty(orderInfos)) {
-            return null;
-        }
         final List<SortField> sortFields = new ArrayList<>();
+        if (CollectionUtils.isEmpty(orderInfos)) {
+            sortFields.add(getDefaultSortField());
+        }
         for (OrderInfo orderInfo : orderInfos) {
             SortField sortField;
             switch (fieldsMap.get(orderInfo.getOrderBy()).getSortType()) {

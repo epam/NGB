@@ -36,14 +36,18 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociatio
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.target.*;
+import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugFieldValues;
 import com.epam.catgenome.manager.target.LaunchIdentificationSecurityService;
 import com.epam.catgenome.manager.target.export.TargetExportSecurityService;
 import com.epam.catgenome.manager.target.export.TargetExportTable;
@@ -96,6 +100,35 @@ public class LaunchIdentificationController extends AbstractRESTController {
     public Result<SearchResult<DGIDBDrugAssociation>> getDGIDbDrugs(@RequestBody final AssociationSearchRequest request)
             throws ParseException, IOException {
         return Result.success(launchIdentificationSecurityService.getDGIDbDrugs(request));
+    }
+
+    @PostMapping(value = "/target/ttd/drugs")
+    @ApiOperation(
+            value = "Launches Identification for TTD datasource drug associations",
+            notes = "Launches Identification for TTD datasource drug associations." +
+                    "Available field names for sorting and filtering: TARGET, DRUG_NAME, COMPANY, " +
+                    "TYPE, THERAPEUTIC_CLASS, INCHI, INCHI_KEY, CANONICAL_SMILES, STATUS, COMPOUND_CLASS. " +
+                    "The following fields are optional: COMPANY, TYPE, THERAPEUTIC_CLASS, STATUS, COMPOUND_CLASS.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SearchResult<TTDDrugAssociation>> getTTDDrugs(@RequestBody final AssociationSearchRequest request)
+            throws ParseException, IOException, ReferenceReadingException, BlastRequestException, InterruptedException {
+        return Result.success(launchIdentificationSecurityService.getTTDDrugs(request));
+    }
+
+    @GetMapping(value = "/target/ttd/drugs/fieldValues")
+    @ApiOperation(
+            value = "Returns filed values for TTD drugs data",
+            notes = "Returns filed values for TTD drugs data",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<TTDDrugFieldValues> getTTDDrugFieldValues(@RequestParam final List<String> geneIds)
+            throws ParseException, IOException, ReferenceReadingException, BlastRequestException, InterruptedException {
+        return Result.success(launchIdentificationSecurityService.getTTDDrugFieldValues(geneIds));
     }
 
     @PostMapping(value = "/target/pharmgkb/drugs")
@@ -224,6 +257,23 @@ public class LaunchIdentificationController extends AbstractRESTController {
             @RequestParam final String diseaseAssociationPath) throws IOException, ParseException {
         launchIdentificationSecurityService.importPharmGKBData(genePath, drugPath,
                 drugAssociationPath, diseaseAssociationPath);
+        return Result.success(null);
+    }
+
+    @PutMapping(value = "/target/import/ttd")
+    @ApiOperation(
+            value = "Imports data from TTD datasource.",
+            notes = "Imports data from TTD datasource. Data can be found here: " +
+                    "drugs - https://idrblab.net/ttd/sites/default/files/ttd_database/P1-02-TTD_drug_download.txt" +
+                    "targets - https://idrblab.net/ttd/sites/default/files/ttd_database/P1-01-TTD_target_download.txt",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> importTTDData(
+            @RequestParam final String drugsPath,
+            @RequestParam final String targetsPath) throws IOException, ParseException {
+        launchIdentificationSecurityService.importTTDData(drugsPath, targetsPath);
         return Result.success(null);
     }
 
