@@ -4,14 +4,16 @@ const SOURCE = {
     OPEN_TARGETS: 'OPEN_TARGETS',
     TXGNN: 'TXGNN',
     DGI_DB: 'DGI_DB',
-    PHARM_GKB: 'PHARM_GKB'
+    PHARM_GKB: 'PHARM_GKB',
+    TTD: 'TTD'
 };
 
 const ExternalDBApi = {
     [SOURCE.OPEN_TARGETS]: 'opentargets',
     [SOURCE.TXGNN]: 'txgnn',
     [SOURCE.DGI_DB]: 'dgidb',
-    [SOURCE.PHARM_GKB]: 'pharmgkb'
+    [SOURCE.PHARM_GKB]: 'pharmgkb',
+    [SOURCE.TTD]: 'ttd'
 };
 
 const ExternalDBNames = {
@@ -24,7 +26,8 @@ const ExternalDBNames = {
 const ExternalDBFields = {
     [SOURCE.OPEN_TARGETS]: 'opentargets',
     [SOURCE.DGI_DB]: 'dgidb',
-    [SOURCE.PHARM_GKB]: 'pharmGKB'
+    [SOURCE.PHARM_GKB]: 'pharmGKB',
+    [SOURCE.TTD]: 'ttd'
 };
 
 const PDB_SOURCE = {

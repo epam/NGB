@@ -10,6 +10,10 @@ const SOURCE_OPTIONS = {
     PHARM_GKB: {
         displayName: 'PharmGKB',
         name: 'PHARM_GKB'
+    },
+    TTD: {
+        displayName: 'Therapeutic Target Database',
+        name: 'TTD'
     }
 };
 

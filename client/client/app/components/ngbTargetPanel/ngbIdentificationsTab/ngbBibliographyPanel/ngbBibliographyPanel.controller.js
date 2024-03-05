@@ -40,7 +40,7 @@ export default class ngbBibliographyPanelController {
         dispatcher.on('target:identification:publications:chat:initialized', apply);
         dispatcher.on('target:identification:publications:chat:answer', apply);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:drugs:source:changed', refresh);
+            dispatcher.removeListener('target:identification:publications:page:changed', refresh);
             dispatcher.removeListener('target:identification:changed', onTargetChanged);
             dispatcher.removeListener('target:identification:publications:model:changed', modelChanged);
             dispatcher.removeListener('target:identification:publications:chat:initialized', apply);

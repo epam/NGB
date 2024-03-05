@@ -3,6 +3,7 @@ const PAGE_SIZE = 10;
 const OPEN_TARGETS_COLUMNS = ['target', 'drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
 const PHARM_GKB_COLUMNS = ['target', 'drug', 'Source'];
 const DGI_DB_COLUMNS = ['target', 'drug', 'interaction claim source', 'interaction types'];
+const TTD_COLUMNS = ['target', 'drug', 'company', 'type', 'therapeutic class', 'inChI', 'inChIKey', 'canonical smiles', 'highest status', 'compound class'];
 
 const FIELDS = {
     OPEN_TARGETS: {
@@ -26,6 +27,18 @@ const FIELDS = {
         'drug': 'DRUG_NAME',
         'interaction claim source': 'INTERACTION_CLAIM_SOURCE',
         'interaction types': 'INTERACTION_TYPES'
+    },
+    TTD: {
+        'target': 'TARGET',
+        'drug': 'DRUG_NAME',
+        'company': 'COMPANY',
+        'type': 'TYPE',
+        'therapeutic class': 'THERAPEUTIC_CLASS',
+        'inChI': 'INCHI',
+        'inChIKey': 'INCHI_KEY',
+        'canonical smiles': 'CANONICAL_SMILES',
+        'highest status': 'STATUS',
+        'compound class': 'COMPOUND_CLASS'
     }
 };
 
@@ -44,6 +57,13 @@ const FILTER_FIELDS_LIST = {
     DGI_DB: {
         'interactionClaimSources': 'interaction claim source',
         'interactionTypes': 'interaction types'
+    },
+    TTD: {
+        'companies': 'company',
+        'types': 'type',
+        'therapeuticClasses': 'therapeutic class',
+        'statuses': 'highest status',
+        'compoundClasses': 'compound class'
     }
 };
 
@@ -132,6 +152,9 @@ export default class ngbDrugsTableService {
     get dgiDbColumns() {
         return DGI_DB_COLUMNS;
     }
+    get ttdColumns() {
+        return TTD_COLUMNS;
+    }
 
     static instance (dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService) {
         return new ngbDrugsTableService(dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService);
@@ -151,7 +174,7 @@ export default class ngbDrugsTableService {
     }
 
     getColumnList() {
-        const {OPEN_TARGETS, PHARM_GKB, DGI_DB} = this.sourceOptions;
+        const {OPEN_TARGETS, PHARM_GKB, DGI_DB, TTD} = this.sourceOptions;
         if (this.sourceModel === OPEN_TARGETS) {
             return this.openTargetsColumns;
         }
@@ -160,6 +183,9 @@ export default class ngbDrugsTableService {
         }
         if (this.sourceModel === DGI_DB) {
             return this.dgiDbColumns;
+        }
+        if (this.sourceModel === TTD) {
+            return this.ttdColumns;
         }
     }
 
@@ -173,7 +199,7 @@ export default class ngbDrugsTableService {
     }
 
     setDrugsResult(result) {
-        const {OPEN_TARGETS, PHARM_GKB, DGI_DB} = this.sourceOptions;
+        const {OPEN_TARGETS, PHARM_GKB, DGI_DB, TTD} = this.sourceOptions;
         if (this.sourceModel === OPEN_TARGETS) {
             this._drugsResults = result.map(item => ({
                 target: {
@@ -221,6 +247,27 @@ export default class ngbDrugsTableService {
                 },
                 'interaction claim source': item.interactionClaimSource,
                 'interaction types': item.interactionTypes
+            }));
+        }
+        if (this.sourceModel === TTD) {
+            this._drugsResults = result.map(item => ({
+                target: {
+                    geneId: item.geneId,
+                    value: this.getTarget(item.geneId)
+                },
+                'drug': {
+                    id: item.id,
+                    name: item.name,
+                    url: item.url
+                },
+                'company': item.company,
+                'type': item.type,
+                'therapeutic class': item.therapeuticClass,
+                'inChI': item.inChI,
+                'inChIKey': item.inChIKey,
+                'canonical smiles': item.canonicalSmiles,
+                'highest status': item.highestStatus,
+                'compound class': item.compoundClass,
             }));
         }
     }
@@ -317,7 +364,7 @@ export default class ngbDrugsTableService {
         const list = this.filterFieldsList;
         for (let i = 0; i < entries.length; i++) {
             const key = entries[i][0];
-            const values = entries[i][1].map(v => v ? v : 'Empty value');
+            const values = (entries[i][1] || []).map(v => v ? v : 'Empty value');
             const field = list[source][key]
             this.fieldList[field] = values;
         }
