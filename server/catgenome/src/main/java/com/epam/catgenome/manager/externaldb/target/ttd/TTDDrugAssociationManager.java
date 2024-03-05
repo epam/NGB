@@ -26,20 +26,15 @@ package com.epam.catgenome.manager.externaldb.target.ttd;
 import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
-import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.index.CaseInsensitiveWhitespaceAnalyzer;
-import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.util.FileFormat;
-import lombok.Builder;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.document.*;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
@@ -51,12 +46,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
-
 
 @Service
 public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDrugAssociation> {
@@ -99,52 +95,17 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
         });
     }
 
-    public List<TTDDrugAssociation> searchByGeneNames(final AssociationSearchRequest request,
-                                                      final List<String> geneNames) throws IOException, ParseException {
-        final Query byGeneNamesQuery = getByTermsQuery(geneNames, TTDDrugField.TARGET.name());
-        final Query query = buildQuery(byGeneNamesQuery, request.getFilters());
-        return search(query, null);
-    }
-
-    public List<TTDDrugAssociation> searchByGeneNames(final List<String> geneNames) throws IOException, ParseException {
-        final Query byGeneNamesQuery = getByTermsQuery(geneNames, TTDDrugField.TARGET.name());
-        return search(byGeneNamesQuery, null);
-    }
-
-    public List<TTDDrugAssociation> searchBySequences(final AssociationSearchRequest request,
-                                                      final List<String> sequences) throws IOException, ParseException {
-        final Query bySequencesQuery = getByTermsQuery(sequences, TTDDrugField.GENE_ID.name());
-        final Query query = buildQuery(bySequencesQuery, request.getFilters());
-        return search(query, null);
-    }
-
-    public List<TTDDrugAssociation> searchBySequences(final List<String> sequences) throws IOException, ParseException {
-        final Query bySequencesQuery = getByTermsQuery(sequences, TTDDrugField.GENE_ID.name());
-        return search(bySequencesQuery, null);
-    }
-
-    public Query buildQuery(final Query query, final List<Filter> filters) throws ParseException {
-        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        mainBuilder.add(query, BooleanClause.Occur.MUST);
-        if (filters != null) {
-            for (Filter filter: filters) {
-                addFieldQuery(mainBuilder, filter);
-            }
-        }
-        return mainBuilder.build();
-    }
-
     @Override
     public List<TTDDrugAssociation> readEntries(final String path) throws IOException {
         final List<TTDDrugAssociation> entries = new ArrayList<>();
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
-            final List<TTDDrugRecord> records = new ArrayList<>();
+            final List<TTDRecord> records = new ArrayList<>();
             String line;
             String[] cells;
             while ((line = bufferedReader.readLine()) != null) {
                 cells = line.split(FileFormat.TSV.getSeparator());
                 if (cells.length == 3) {
-                    TTDDrugRecord record = TTDDrugRecord.builder()
+                    TTDRecord record = TTDRecord.builder()
                             .id(cells[0].trim())
                             .filed(cells[1].trim())
                             .value(cells[2].trim())
@@ -152,7 +113,7 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
                     records.add(record);
                 }
                 if (cells.length == 5) {
-                    TTDDrugRecord record = TTDDrugRecord.builder()
+                    TTDRecord record = TTDRecord.builder()
                             .id(cells[0].trim())
                             .filed(cells[1].trim())
                             .value(String.join(FileFormat.TSV.getSeparator(),
@@ -161,13 +122,13 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
                     records.add(record);
                 }
             }
-            Map<String, List<TTDDrugRecord>> grouped = records.stream()
-                    .collect(Collectors.groupingBy(TTDDrugRecord::getId));
+            Map<String, List<TTDRecord>> grouped = records.stream()
+                    .collect(Collectors.groupingBy(TTDRecord::getId));
             grouped.forEach((k, v) -> {
-                Map<String, List<TTDDrugRecord>> groupedByField = v.stream()
-                        .collect(Collectors.groupingBy(TTDDrugRecord::getFiled));
+                Map<String, List<TTDRecord>> groupedByField = v.stream()
+                        .collect(Collectors.groupingBy(TTDRecord::getFiled));
                 if (groupedByField.containsKey("DRUGINFO")) {
-                    List<TTDDrugRecord> drugRecords = groupedByField.get("DRUGINFO");
+                    List<TTDRecord> drugRecords = groupedByField.get("DRUGINFO");
                     drugRecords.forEach(r -> {
                         if (groupedByField.containsKey("GENENAME") && groupedByField.containsKey("TARGETID")) {
                             TTDDrugAssociation entry = TTDDrugAssociation.builder()
@@ -187,24 +148,16 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
         return entries;
     }
 
-    @Builder
-    @Getter
-    static class TTDDrugRecord {
-        private String id;
-        private String filed;
-        private String value;
-    }
-
     public List<TTDDrugAssociation> readDrugs(final String path) throws IOException {
         final List<TTDDrugAssociation> entries = new ArrayList<>();
         try (Reader reader = new FileReader(path); BufferedReader bufferedReader = new BufferedReader(reader)) {
-            final List<TTDDrugRecord> records = new ArrayList<>();
+            final List<TTDRecord> records = new ArrayList<>();
             String line;
             String[] cells;
             while ((line = bufferedReader.readLine()) != null) {
                 cells = line.split(FileFormat.TSV.getSeparator());
                 if (cells.length == 3) {
-                    TTDDrugRecord record = TTDDrugRecord.builder()
+                    TTDRecord record = TTDRecord.builder()
                             .id(cells[0].trim())
                             .filed(cells[1].trim())
                             .value(cells[2].trim())
@@ -212,8 +165,8 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
                     records.add(record);
                 }
             }
-            Map<String, List<TTDDrugRecord>> grouped = records.stream()
-                    .collect(Collectors.groupingBy(TTDDrugRecord::getId));
+            Map<String, List<TTDRecord>> grouped = records.stream()
+                    .collect(Collectors.groupingBy(TTDRecord::getId));
             grouped.forEach((k, v) -> {
                 if (v.size() > 4) {
                     TTDDrugAssociation entry = TTDDrugAssociation.builder().build();
@@ -274,69 +227,56 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
     @Override
     public void addDoc(final IndexWriter writer, final TTDDrugAssociation entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new TextField(TTDDrugField.GENE_ID.name(),  entry.getGeneId(), Field.Store.YES));
-        doc.add(new TextField(TTDDrugField.TARGET.name(),  entry.getTarget(), Field.Store.YES));
+        doc.add(new TextField(TTDDrugField.GENE_ID.name(), entry.getGeneId(), Field.Store.YES));
+        doc.add(new TextField(TTDDrugField.TARGET.name(), entry.getTarget(), Field.Store.YES));
         doc.add(new StringField(TTDDrugField.DRUG_ID.name(), entry.getId(), Field.Store.YES));
         doc.add(new TextField(TTDDrugField.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
-        if (StringUtils.isNotBlank(entry.getCompany())) {
-            doc.add(new StringField(TTDDrugField.COMPANY.name(), entry.getCompany(), Field.Store.YES));
-        }
-        if (StringUtils.isNotBlank(entry.getTherapeuticClass())) {
-            doc.add(new StringField(TTDDrugField.THERAPEUTIC_CLASS.name(),
-                    entry.getTherapeuticClass(), Field.Store.YES));
-        }
-        if (StringUtils.isNotBlank(entry.getTherapeuticClass())) {
-            doc.add(new StringField(TTDDrugField.THERAPEUTIC_CLASS.name(),
-                    entry.getTherapeuticClass(), Field.Store.YES));
-        }
-        if (StringUtils.isNotBlank(entry.getInChI())) {
-            doc.add(new TextField(TTDDrugField.INCHI.name(), entry.getInChI(), Field.Store.YES));
-        }
-        if (StringUtils.isNotBlank(entry.getInChIKey())) {
-            doc.add(new TextField(TTDDrugField.INCHI_KEY.name(), entry.getInChIKey(), Field.Store.YES));
-        }
-        if (StringUtils.isNotBlank(entry.getCanonicalSmiles())) {
-            doc.add(new TextField(TTDDrugField.CANONICAL_SMILES.name(), entry.getCanonicalSmiles(), Field.Store.YES));
-        }
-        if (StringUtils.isNotBlank(entry.getStatus())) {
-            doc.add(new StringField(TTDDrugField.STATUS.name(), entry.getStatus(), Field.Store.YES));
-        }
-        if (StringUtils.isNotBlank(entry.getCompoundClass())) {
-            doc.add(new StringField(TTDDrugField.COMPOUND_CLASS.name(), entry.getCompoundClass(), Field.Store.YES));
-        }
+
+        final String company = Optional.ofNullable(entry.getCompany()).orElse("");
+        doc.add(new StringField(TTDDrugField.COMPANY.name(), company, Field.Store.YES));
+
+        final String type = Optional.ofNullable(entry.getType()).orElse("");
+        doc.add(new StringField(TTDDrugField.TYPE.name(), type, Field.Store.YES));
+
+        final String therapeuticClass = Optional.ofNullable(entry.getTherapeuticClass()).orElse("");
+        doc.add(new StringField(TTDDrugField.THERAPEUTIC_CLASS.name(), therapeuticClass, Field.Store.YES));
+
+        final String inchi = Optional.ofNullable(entry.getInChI()).orElse("");
+        doc.add(new TextField(TTDDrugField.INCHI.name(), inchi, Field.Store.YES));
+
+        final String inchiKey = Optional.ofNullable(entry.getInChIKey()).orElse("");
+        doc.add(new TextField(TTDDrugField.INCHI_KEY.name(), inchiKey, Field.Store.YES));
+
+        final String canonicalSmiles = Optional.ofNullable(entry.getCanonicalSmiles()).orElse("");
+        doc.add(new TextField(TTDDrugField.CANONICAL_SMILES.name(), canonicalSmiles, Field.Store.YES));
+
+        final String status = Optional.ofNullable(entry.getStatus()).orElse("");
+        doc.add(new StringField(TTDDrugField.STATUS.name(), status, Field.Store.YES));
+
+        final String compoundClass = Optional.ofNullable(entry.getCompoundClass()).orElse("");
+        doc.add(new StringField(TTDDrugField.COMPOUND_CLASS.name(), compoundClass, Field.Store.YES));
+
         writer.addDocument(doc);
     }
 
     @Override
     public TTDDrugAssociation entryFromDoc(final Document doc) {
-        final TTDDrugAssociation ttdDrugAssociation = TTDDrugAssociation.builder()
+        final String id = doc.getField(TTDDrugField.DRUG_ID.name()).stringValue();
+        return TTDDrugAssociation.builder()
                 .geneId(doc.getField(TTDDrugField.GENE_ID.name()).stringValue())
                 .target(doc.getField(TTDDrugField.TARGET.name()).stringValue())
-                .id(doc.getField(TTDDrugField.DRUG_ID.name()).stringValue())
+                .id(id)
                 .name(doc.getField(TTDDrugField.DRUG_NAME.name()).stringValue())
+                .url(String.format(TTDDrugAssociation.URL_PATTERN, id))
+                .company(doc.getField(TTDDrugField.COMPANY.name()).stringValue())
+                .type(doc.getField(TTDDrugField.TYPE.name()).stringValue())
+                .therapeuticClass(doc.getField(TTDDrugField.THERAPEUTIC_CLASS.name()).stringValue())
+                .inChI(doc.getField(TTDDrugField.INCHI.name()).stringValue())
+                .inChIKey(doc.getField(TTDDrugField.INCHI_KEY.name()).stringValue())
+                .canonicalSmiles(doc.getField(TTDDrugField.CANONICAL_SMILES.name()).stringValue())
+                .status(doc.getField(TTDDrugField.STATUS.name()).stringValue())
+                .compoundClass(doc.getField(TTDDrugField.COMPOUND_CLASS.name()).stringValue())
                 .build();
-        if (doc.getField(TTDDrugField.COMPANY.name()) != null) {
-            ttdDrugAssociation.setCompany(doc.getField(TTDDrugField.COMPANY.name()).stringValue());
-        }
-        if (doc.getField(TTDDrugField.THERAPEUTIC_CLASS.name()) != null) {
-            ttdDrugAssociation.setTherapeuticClass(doc.getField(TTDDrugField.THERAPEUTIC_CLASS.name()).stringValue());
-        }
-        if (doc.getField(TTDDrugField.INCHI.name()) != null) {
-            ttdDrugAssociation.setInChI(doc.getField(TTDDrugField.INCHI.name()).stringValue());
-        }
-        if (doc.getField(TTDDrugField.INCHI_KEY.name()) != null) {
-            ttdDrugAssociation.setInChIKey(doc.getField(TTDDrugField.INCHI_KEY.name()).stringValue());
-        }
-        if (doc.getField(TTDDrugField.CANONICAL_SMILES.name()) != null) {
-            ttdDrugAssociation.setCanonicalSmiles(doc.getField(TTDDrugField.CANONICAL_SMILES.name()).stringValue());
-        }
-        if (doc.getField(TTDDrugField.STATUS.name()) != null) {
-            ttdDrugAssociation.setStatus(doc.getField(TTDDrugField.STATUS.name()).stringValue());
-        }
-        if (doc.getField(TTDDrugField.COMPOUND_CLASS.name()) != null) {
-            ttdDrugAssociation.setCompoundClass(doc.getField(TTDDrugField.COMPOUND_CLASS.name()).stringValue());
-        }
-        return ttdDrugAssociation;
     }
 
     @Override

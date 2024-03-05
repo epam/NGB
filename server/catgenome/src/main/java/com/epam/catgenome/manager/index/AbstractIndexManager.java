@@ -167,6 +167,17 @@ public abstract class AbstractIndexManager<T> {
         }
     }
 
+    public Query buildQuery(final Query query, final List<Filter> filters) throws ParseException {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        mainBuilder.add(query, BooleanClause.Occur.MUST);
+        if (filters != null) {
+            for (Filter filter: filters) {
+                addFieldQuery(mainBuilder, filter);
+            }
+        }
+        return mainBuilder.build();
+    }
+
     public Sort getSort(final List<OrderInfo> orderInfos) {
         final List<SortField> sortFields = new ArrayList<>();
         if (orderInfos == null) {

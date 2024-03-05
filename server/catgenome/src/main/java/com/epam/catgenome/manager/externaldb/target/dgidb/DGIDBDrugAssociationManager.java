@@ -75,7 +75,7 @@ public class DGIDBDrugAssociationManager extends AbstractAssociationManager<DGID
 
     public DGIDBDrugFieldValues getFieldValues(final List<String> geneIds)
             throws IOException, ParseException {
-        final Query query = buildQuery(geneIds, null);
+        final Query query = getByGeneIdsQuery(geneIds);
         final List<DGIDBDrugAssociation> result = search(query, null);
         final List<String> interactionTypes = result.stream()
                 .map(DGIDBDrugAssociation::getInteractionTypes)

@@ -34,28 +34,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TTDDrugAssociation extends Association {
-    public static final String URL_PATTERN = "https://idrblab.net/ttd/data/drug/details/%s";
-    private String company;
-    private String type;
-    private String therapeuticClass;
-    private String inChI;
-    private String inChIKey;
-    private String canonicalSmiles;
-    private String status;
-    private String compoundClass;
+public class TTDDiseaseAssociation extends Association {
+    private String clinicalStatus;
     @Builder
-    public TTDDrugAssociation(String id, String name, String url, String geneId, String target,
-                              String company, String type, String therapeuticClass, String inChI,
-                              String inChIKey, String canonicalSmiles, String status, String compoundClass) {
+    public TTDDiseaseAssociation(String id, String name, String url, String geneId,
+                                 String target, String clinicalStatus) {
         super(id, name, url, geneId, target);
-        this.company = company;
-        this.type = type;
-        this.therapeuticClass = therapeuticClass;
-        this.inChI = inChI;
-        this.inChIKey = inChIKey;
-        this.canonicalSmiles = canonicalSmiles;
-        this.status = status;
-        this.compoundClass = compoundClass;
+        this.clinicalStatus = clinicalStatus;
     }
 }

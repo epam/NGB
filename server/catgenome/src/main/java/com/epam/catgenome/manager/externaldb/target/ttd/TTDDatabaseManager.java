@@ -23,9 +23,9 @@
  */
 package com.epam.catgenome.manager.externaldb.target.ttd;
 
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.exception.BlastRequestException;
-import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.sequence.SequencesManager;
@@ -51,15 +51,22 @@ import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TTDDrugsManager {
+public class TTDDatabaseManager {
 
-    @Value("${targets.parasite.proteins.directory:C:\\Users\\Oksana_Kolesnikova\\Documents\\ngb\\parasite_proteins}")
+    @Value("${targets.parasite.proteins.directory:}")
     private String parasiteProteinsDirectory;
 
     private final TTDDrugAssociationManager ttdDrugAssociationManager;
+    private final TTDDiseaseAssociationManager ttdDiseaseAssociationManager;
     private final ParasiteProteinsManager parasiteProteinsManager;
     private final TargetManager targetManager;
     private final SequencesManager sequencesManager;
+
+    public void importData(final String drugsPath, final String targetsPath, final String diseasesPath)
+            throws IOException, ParseException {
+        ttdDrugAssociationManager.importData(drugsPath, targetsPath);
+        ttdDiseaseAssociationManager.importData(diseasesPath);
+    }
 
     public SearchResult<TTDDrugAssociation> getTTDDrugs(final AssociationSearchRequest request,
                                                         final Map<String, Long> targetGenes)
@@ -69,21 +76,46 @@ public class TTDDrugsManager {
             List<String> geneNames = targetManager.getTargetGeneNames(Collections.singletonList(geneId));
             List<TTDDrugAssociation> byGeneNames = CollectionUtils.isEmpty(geneNames) ?
                     Collections.emptyList() :
-                    ttdDrugAssociationManager.searchByGeneNames(request, geneNames);
+                    ttdDrugAssociationManager.searchByGeneNames(geneNames, request.getFilters());
             if (CollectionUtils.isNotEmpty(byGeneNames)) {
                 result.addAll(byGeneNames);
             } else {
                 List<String> blastSequences = getBlastSequences(targetGenes, geneId);
                 if (CollectionUtils.isNotEmpty(blastSequences)) {
-                    List<TTDDrugAssociation> bySequences = ttdDrugAssociationManager.searchBySequences(request,
-                            blastSequences);
+                    List<TTDDrugAssociation> bySequences = ttdDrugAssociationManager.searchByGeneIds(blastSequences,
+                            request.getFilters());
                     if (CollectionUtils.isNotEmpty(bySequences)) {
                         result.addAll(bySequences);
                     }
                 }
             }
         }
-        return getSearchResult(request, result);
+        return convertDrugs(request, result);
+    }
+
+    public SearchResult<TTDDiseaseAssociation> getTTDDiseases(final AssociationSearchRequest request,
+                                                              final Map<String, Long> targetGenes)
+            throws ParseException, IOException, BlastRequestException, InterruptedException {
+        final List<TTDDiseaseAssociation> result = new ArrayList<>();
+        for (String geneId : request.getGeneIds()) {
+            List<String> geneNames = targetManager.getTargetGeneNames(Collections.singletonList(geneId));
+            List<TTDDiseaseAssociation> byGeneNames = CollectionUtils.isEmpty(geneNames) ?
+                    Collections.emptyList() :
+                    ttdDiseaseAssociationManager.searchByGeneNames(geneNames, request.getFilters());
+            if (CollectionUtils.isNotEmpty(byGeneNames)) {
+                result.addAll(byGeneNames);
+            } else {
+                List<String> blastSequences = getBlastSequences(targetGenes, geneId);
+                if (CollectionUtils.isNotEmpty(blastSequences)) {
+                    List<TTDDiseaseAssociation> bySequences = ttdDiseaseAssociationManager.searchByGeneIds(
+                            blastSequences, request.getFilters());
+                    if (CollectionUtils.isNotEmpty(bySequences)) {
+                        result.addAll(bySequences);
+                    }
+                }
+            }
+        }
+        return convertDiseases(request, result);
     }
 
     public List<TTDDrugAssociation> getTTDDrugs(final List<String> geneIds, final Map<String, Long> targetGenes)
@@ -99,7 +131,7 @@ public class TTDDrugsManager {
             } else {
                 List<String> blastSequences = getBlastSequences(targetGenes, geneId);
                 if (CollectionUtils.isNotEmpty(blastSequences)) {
-                    List<TTDDrugAssociation> bySequences = ttdDrugAssociationManager.searchBySequences(blastSequences);
+                    List<TTDDrugAssociation> bySequences = ttdDrugAssociationManager.search(blastSequences);
                     if (CollectionUtils.isNotEmpty(bySequences)) {
                         result.addAll(bySequences);
                     }
@@ -109,36 +141,31 @@ public class TTDDrugsManager {
         return result;
     }
 
-    public TTDDrugFieldValues getFieldValues(final List<String> geneIds, final Map<String, Long> targetGenes)
-            throws IOException, ParseException, ReferenceReadingException, BlastRequestException, InterruptedException {
+    public TTDDrugFieldValues getDrugFieldValues(final List<String> geneIds, final Map<String, Long> targetGenes)
+            throws IOException, ParseException, BlastRequestException, InterruptedException {
         final List<TTDDrugAssociation> result = getTTDDrugs(geneIds, targetGenes);
         final List<String> companies = result.stream()
                 .map(TTDDrugAssociation::getCompany)
-                .filter(Objects::nonNull)
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
         final List<String> types = result.stream()
                 .map(TTDDrugAssociation::getType)
-                .filter(Objects::nonNull)
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
         final List<String> therapeuticClasses = result.stream()
                 .map(TTDDrugAssociation::getTherapeuticClass)
-                .filter(Objects::nonNull)
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
         final List<String> statuses = result.stream()
                 .map(TTDDrugAssociation::getStatus)
-                .filter(Objects::nonNull)
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
         final List<String> compoundClasses = result.stream()
                 .map(TTDDrugAssociation::getCompoundClass)
-                .filter(Objects::nonNull)
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
@@ -148,6 +175,42 @@ public class TTDDrugsManager {
                 .therapeuticClasses(therapeuticClasses)
                 .statuses(statuses)
                 .compoundClasses(compoundClasses)
+                .build();
+    }
+
+    public List<TTDDiseaseAssociation> getTTDDiseases(final List<String> geneIds, final Map<String, Long> targetGenes)
+            throws ParseException, IOException, BlastRequestException, InterruptedException {
+        final List<TTDDiseaseAssociation> result = new ArrayList<>();
+        for (String geneId : geneIds) {
+            List<String> geneNames = targetManager.getTargetGeneNames(Collections.singletonList(geneId));
+            List<TTDDiseaseAssociation> byGeneNames = CollectionUtils.isEmpty(geneNames) ?
+                    Collections.emptyList() :
+                    ttdDiseaseAssociationManager.searchByGeneNames(geneNames);
+            if (CollectionUtils.isNotEmpty(byGeneNames)) {
+                result.addAll(byGeneNames);
+            } else {
+                List<String> blastSequences = getBlastSequences(targetGenes, geneId);
+                if (CollectionUtils.isNotEmpty(blastSequences)) {
+                    List<TTDDiseaseAssociation> bySequences = ttdDiseaseAssociationManager.search(blastSequences);
+                    if (CollectionUtils.isNotEmpty(bySequences)) {
+                        result.addAll(bySequences);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public TTDDiseseFieldValues getDiseaseFieldValues(final List<String> geneIds, final Map<String, Long> targetGenes)
+            throws IOException, ParseException, BlastRequestException, InterruptedException {
+        final List<TTDDiseaseAssociation> result = getTTDDiseases(geneIds, targetGenes);
+        final List<String> phases = result.stream()
+                .map(TTDDiseaseAssociation::getClinicalStatus)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        return TTDDiseseFieldValues.builder()
+                .phases(phases)
                 .build();
     }
 
@@ -197,9 +260,8 @@ public class TTDDrugsManager {
         return blastSequences;
     }
 
-    private static SearchResult<TTDDrugAssociation> getSearchResult(final AssociationSearchRequest request,
-                                                                    final List<TTDDrugAssociation> result) {
-        final SearchResult<TTDDrugAssociation> searchResult = new SearchResult<>();
+    private static SearchResult<TTDDrugAssociation> convertDrugs(final AssociationSearchRequest request,
+                                                                 final List<TTDDrugAssociation> result) {
         result.sort((p1, p2) -> {
             CompareToBuilder builder = new CompareToBuilder();
             if (CollectionUtils.isEmpty(request.getOrderInfos())) {
@@ -216,7 +278,32 @@ public class TTDDrugsManager {
             }
             return builder.toComparison();
         });
+        return getPage(request, result);
+    }
 
+    private static SearchResult<TTDDiseaseAssociation> convertDiseases(final AssociationSearchRequest request,
+                                                                       final List<TTDDiseaseAssociation> result) {
+        result.sort((p1, p2) -> {
+            CompareToBuilder builder = new CompareToBuilder();
+            if (CollectionUtils.isEmpty(request.getOrderInfos())) {
+                builder.append(p1.getTarget(), p2.getTarget());
+            } else {
+                request.getOrderInfos().forEach(f -> {
+                    Function<TTDDiseaseAssociation, String> func = TTDDiseaseField.valueOf(f.getOrderBy()).getGetter();
+                    if (f.isReverse()) {
+                        builder.append(func.apply(p2), func.apply(p1));
+                    } else {
+                        builder.append(func.apply(p1), func.apply(p2));
+                    }
+                });
+            }
+            return builder.toComparison();
+        });
+        return getPage(request, result);
+    }
+
+    private static <T> SearchResult<T> getPage(final AssociationSearchRequest request, final List<T> result) {
+        final SearchResult<T> searchResult = new SearchResult<>();
         final int pageNum = request.getPage() == null ? 1 : Math.max(request.getPage(), 1);
         final int pageSize = request.getPageSize() == null ? DEFAULT_PAGE_SIZE : Math.max(request.getPageSize(), 1);
         searchResult.setItems(result.subList(Math.min((pageNum - 1) * pageSize, result.size()),

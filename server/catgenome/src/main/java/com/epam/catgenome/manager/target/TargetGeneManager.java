@@ -92,11 +92,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.getByOptionsQuery;
-import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
-import static com.epam.catgenome.util.IndexUtils.getByRangeQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
+import static com.epam.catgenome.util.IndexUtils.*;
 import static com.epam.catgenome.util.Utils.deSerialize;
 import static com.epam.catgenome.util.Utils.serialize;
 import static org.apache.poi.ss.usermodel.CellType.NUMERIC;

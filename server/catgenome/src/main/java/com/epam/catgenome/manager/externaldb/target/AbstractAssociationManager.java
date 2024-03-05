@@ -49,7 +49,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.catgenome.util.IndexUtils.*;
+import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
+import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -67,14 +68,8 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
 
     public SearchResult<T> search(final SearchRequest request, final String diseaseId)
             throws ParseException, IOException {
-        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        mainBuilder.add(getByTermQuery(diseaseId, IndexCommonFields.DISEASE_ID.name()), BooleanClause.Occur.MUST);
-        if (request.getFilters() != null) {
-            for (Filter filter: request.getFilters()) {
-                addFieldQuery(mainBuilder, filter);
-            }
-        }
-        final Query query = mainBuilder.build();
+        final Query byDiseaseIdQuery = getByTermQuery(diseaseId, IndexCommonFields.DISEASE_ID.name());
+        final Query query = buildQuery(byDiseaseIdQuery, request.getFilters());
         final List<T> entries = new ArrayList<>();
         final SearchResult<T> searchResult = new SearchResult<>();
         final int page = (request.getPage() == null || request.getPage() <= 0) ? 1 : request.getPage();
@@ -101,8 +96,7 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
         return searchResult;
     }
 
-    public List<T> search(final String diseaseId)
-            throws ParseException, IOException {
+    public List<T> search(final String diseaseId) throws ParseException, IOException {
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
         mainBuilder.add(getByTermQuery(diseaseId, IndexCommonFields.DISEASE_ID.name()), BooleanClause.Occur.MUST);
         final List<T> entries = new ArrayList<>();
@@ -136,15 +130,25 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
         return search(ids, IndexCommonFields.GENE_ID.name());
     }
 
+    public List<T> searchByGeneIds(final List<String> geneIds, final List<Filter> filters)
+            throws ParseException, IOException {
+        return search(buildQuery(geneIds, filters), null);
+    }
+
+    public List<T> searchByGeneNames(final List<String> geneNames) throws IOException, ParseException {
+        final Query byGeneNamesQuery = getByTermsQuery(geneNames, IndexCommonFields.TARGET.name());
+        return search(byGeneNamesQuery, null);
+    }
+
+    public List<T> searchByGeneNames(final List<String> geneNames, final List<Filter> filters)
+            throws IOException, ParseException {
+        final Query byGeneNamesQuery = getByTermsQuery(geneNames, IndexCommonFields.TARGET.name());
+        final Query query = buildQuery(byGeneNamesQuery, filters);
+        return search(query, null);
+    }
+
     public Query buildQuery(final List<String> geneIds, final List<Filter> filters) throws ParseException {
-        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        mainBuilder.add(getByGeneIdsQuery(geneIds), BooleanClause.Occur.MUST);
-        if (filters != null) {
-            for (Filter filter: filters) {
-                addFieldQuery(mainBuilder, filter);
-            }
-        }
-        return mainBuilder.build();
+        return buildQuery(getByGeneIdsQuery(geneIds), filters);
     }
 
     public Long totalCount(final List<String> geneIds) throws ParseException, IOException {
@@ -163,6 +167,7 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
     @Getter
     private enum IndexCommonFields {
         GENE_ID,
+        TARGET,
         DISEASE_ID;
     }
 }
