@@ -42,9 +42,6 @@ function findGeneByName(reference, gene) {
 
 export default class ngbSequencesPanelController {
 
-    includeLocal = false;
-    includeAdditionalGenes = false;
-
     static get UID() {
         return 'ngbSequencesPanelController';
     }
@@ -121,8 +118,22 @@ export default class ngbSequencesPanelController {
         return [...this.ngbTargetPanelService.allChips];
     }
 
+    get includeLocal() {
+        return this.ngbSequencesPanelService.includeLocal;
+    }
+    set includeLocal(value) {
+        this.ngbSequencesPanelService.includeLocal = value;
+    }
+
+    get includeAdditionalGenes() {
+        return this.ngbSequencesPanelService.includeAdditionalGenes;
+    }
+    set includeAdditionalGenes(value) {
+        this.ngbSequencesPanelService.includeAdditionalGenes = value;
+    }
+
     onChangeSetting() {
-        this.dispatcher.emit('target:identification:sequence:settings:changed');
+        this.dispatcher.emit('target:identification:sequence:setting:changed');
     }
 
     onChangeGene() {

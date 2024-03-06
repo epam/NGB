@@ -23,6 +23,9 @@ export default class ngbSequencesPanelService {
     _sequencesReference = null;
     _totalPages = 0;
 
+    _includeLocal = false;
+    _includeAdditionalGenes = false;
+
     get loadingData() {
         return this._loadingData;
     }
@@ -62,6 +65,20 @@ export default class ngbSequencesPanelService {
 
     get selectedGene() {
         return this.genes.filter(gene => gene.geneId === this.selectedGeneId)[0];
+    }
+
+    get includeLocal() {
+        return this._includeLocal;
+    }
+    set includeLocal(value) {
+        this._includeLocal = value;
+    }
+
+    get includeAdditionalGenes() {
+        return this._includeAdditionalGenes;
+    }
+    set includeAdditionalGenes(value) {
+        this._includeAdditionalGenes = value;
     }
 
     static instance ($timeout, dispatcher, ngbTargetPanelService, targetDataService) {
@@ -176,8 +193,12 @@ export default class ngbSequencesPanelService {
                 resolve(true);
             });
         }
+        const params = {
+            includeLocal: this.includeLocal,
+            includeAdditionalGenes: this.includeAdditionalGenes
+        };
         return new Promise(resolve => {
-            this.targetDataService.getSequencesTableResults(this.genesIds)
+            this.targetDataService.getSequencesTableResults(this.genesIds, params)
                 .then((data) => {
                     this._failedResult = false;
                     this._errorMessageList = null;
@@ -212,7 +233,13 @@ export default class ngbSequencesPanelService {
         this._genes = [];
         this._selectedGeneId = undefined;
         this._allSequences = null;
+        this._includeLocal = false;
+        this._includeAdditionalGenes = false;
         this.resetSequenceResults();
+    }
+
+    resetAllSequences() {
+        this._allSequences = null;
     }
 
     exportResults() {
