@@ -4,6 +4,20 @@
 </div>
 <div class="sequences-header">
     <div class="action-container">
+        <div class="checkbox-container">
+            <md-checkbox aria-label="Show local sequences checkbox"
+                         ng-model="$ctrl.includeLocal"
+                         ng-change="$ctrl.onChangeSetting()"
+                         ng-disabled="$ctrl.loadingData">
+                Show local sequences
+            </md-checkbox>
+            <md-checkbox aria-label="Show ortholog sequences checkbox"
+                         ng-model="$ctrl.includeAdditionalGenes"
+                         ng-change="$ctrl.onChangeSetting()"
+                         ng-disabled="$ctrl.loadingData">
+                Show ortholog sequences
+            </md-checkbox>
+        </div>
         <span class="export-link"
               ng-if="$ctrl.tableResults"
               ng-click="$ctrl.exportResults()">
