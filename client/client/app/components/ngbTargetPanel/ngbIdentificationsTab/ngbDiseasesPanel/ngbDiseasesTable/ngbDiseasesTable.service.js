@@ -28,14 +28,14 @@ const FIELDS = {
     },
     TTD: {
         'target': 'TARGET',
-        'drug': 'DRUG_NAME',
+        'disease': 'DISEASE_NAME',
         'clinical status': 'CLINICAL_STATUS'
     }
 };
 
 const FILTER_FIELDS_LIST = {
     TTD: {
-        'clinicalStatuses': 'clinical status'
+        'phases': 'clinical status'
     }
 };
 
@@ -244,6 +244,9 @@ export default class ngbDiseasesTableService {
                             });
                             return filter;
                         case 'disease':
+                            filter.terms = Array.isArray(values) ? values.map(v => v) : [values];
+                            return filter;
+                        case 'clinical status':
                             filter.terms = Array.isArray(values) ? values.map(v => v) : [values];
                             return filter;
                         default:

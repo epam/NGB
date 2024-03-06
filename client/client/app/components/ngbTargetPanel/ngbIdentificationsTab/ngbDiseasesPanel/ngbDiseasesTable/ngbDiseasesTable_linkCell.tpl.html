@@ -1,7 +1,12 @@
 <span class="link-cell"
-     ng-click="grid.appScope.$ctrl.onClickLink(row.entity, $event)"
-     ng-if="row.entity">
-    <a ng-href="{{row.entity[col.field].url}}" target="_blank">
+      ng-click="grid.appScope.$ctrl.onClickLink(row.entity, $event)"
+      ng-if="row.entity">
+    <a ng-href="{{row.entity[col.field].url}}"
+       ng-if="row.entity[col.field].url"
+       target="_blank">
         {{row.entity[col.field].name}}
     </a>
+    <span ng-if="!row.entity[col.field].url">
+        {{row.entity[col.field].name}}
+    </span>
 </span>

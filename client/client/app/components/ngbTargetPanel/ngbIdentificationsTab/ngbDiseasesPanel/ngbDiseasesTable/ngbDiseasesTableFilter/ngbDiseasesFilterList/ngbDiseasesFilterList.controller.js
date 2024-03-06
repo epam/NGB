@@ -20,11 +20,13 @@ export default class ngbDiseasesFilterListController {
         this.selectedItems = ((this.filterInfo || {})[this.column.field] || []).map(i => i);
         this.displayText = [...this.selectedItems].join(', ');
 
-        this.dispatcher.on('diseases:filters:list', this.setList.bind(this));
-        this.dispatcher.on('diseases:filters:reset', this.resetFilters.bind(this));
+        const setList = this.setList.bind(this);
+        const resetFilters = this.resetFilters.bind(this);
+        this.dispatcher.on('diseases:filters:list', setList);
+        this.dispatcher.on('diseases:filters:reset', resetFilters);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('diseases:filters:list', this.setList.bind(this));
-            dispatcher.removeListener('diseases:filters:reset', this.resetFilters.bind(this));
+            dispatcher.removeListener('diseases:filters:list', setList);
+            dispatcher.removeListener('diseases:filters:reset', resetFilters);
         });
         this.setList();
     }
@@ -38,11 +40,6 @@ export default class ngbDiseasesFilterListController {
         if (this.list && this.list.length) {
             this.listElements = new ListElements(this.list,  {
                 onSearchFinishedCallback: ::this.searchFinished
-            });
-            this.$scope.$watch('$ctrl.list', () => {
-                this.listElements = new ListElements(this.list,  {
-                    onSearchFinishedCallback: ::this.searchFinished
-                });
             });
         }
     }

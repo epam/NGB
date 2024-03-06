@@ -188,33 +188,18 @@ export class TargetDataService extends DataService {
 
     getDiseasesResults(request, source) {
         return new Promise((resolve, reject) => {
-            if (source === 'TTD') {
-                const data = {
-                    totalCount: 10,
-                    items: [{
-                        "clinicalStatus": "clinicalStatus",
-                        "id": "EFO_0000676",
-                        "name": "psoriasis",
-                        "url": "https://platform.opentargets.org/disease/EFO_0000676",
-                        "geneId": "ENSG00000065989",
-                        "target": "PDE4A (Homo sapiens)"
-                    }]
+            this.post(`target/${ExternalDBApi[source]}/diseases`, request)
+            .then(data => {
+                if (data && data.items) {
+                    resolve([data.items, data.totalCount]);
+                } else {
+                    resolve([[], data.totalCount]);
                 }
-                resolve([data.items, data.totalCount]);
-            } else {
-                this.post(`target/${ExternalDBApi[source]}/diseases`, request)
-                .then(data => {
-                    if (data && data.items) {
-                        resolve([data.items, data.totalCount]);
-                    } else {
-                        resolve([[], data.totalCount]);
-                    }
-                })
-                .catch(error => {
-                    const message = `Error getting diseases from ${ExternalDBNames[source]}`;
-                    reject(new Error((error && error.message) || message));
-                });
-            }
+            })
+            .catch(error => {
+                const message = `Error getting diseases from ${ExternalDBNames[source]}`;
+                reject(new Error((error && error.message) || message));
+            });
         });
     }
 
@@ -345,13 +330,7 @@ export class TargetDataService extends DataService {
 
     getDiseasesFieldValues(source, geneIds) {
         return new Promise((resolve) => {
-            if (source === 'TTD') {
-                const data = {
-                    "clinicalStatuses": ["clinicalStatus1", 'clinicalStatus2'],
-                };
-                resolve(data);
-            } else {
-                this.get(`target/${ExternalDBFields[source]}/diseases/fieldValues?geneIds=${geneIds}`)
+            this.get(`target/${ExternalDBFields[source]}/diseases/fieldValues?geneIds=${geneIds}`)
                 .then(data => {
                     if (data) {
                         resolve(data);
@@ -359,7 +338,6 @@ export class TargetDataService extends DataService {
                         resolve([]);
                     }
                 });
-            }
         });
     }
 

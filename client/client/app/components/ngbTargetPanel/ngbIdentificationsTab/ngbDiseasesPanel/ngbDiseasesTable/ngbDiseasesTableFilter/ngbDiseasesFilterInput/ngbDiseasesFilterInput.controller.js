@@ -7,9 +7,10 @@ export default class ngbDiseasesFilterInputController {
         this.ngbDiseasesTableService = ngbDiseasesTableService;
         this.prevValue = this.value = (this.ngbDiseasesTableService.filterInfo || {})[this.column.field];
 
-        this.dispatcher.on('diseases:filters:reset', this.resetFilters.bind(this));
+        const resetFilters = this.resetFilters.bind(this);
+        this.dispatcher.on('diseases:filters:reset', resetFilters);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('diseases:filters:reset', this.resetFilters.bind(this));
+            dispatcher.removeListener('diseases:filters:reset', resetFilters);
         });
     }
 

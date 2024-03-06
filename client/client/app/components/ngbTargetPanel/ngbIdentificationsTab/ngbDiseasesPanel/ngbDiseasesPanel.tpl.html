@@ -13,9 +13,10 @@
         {{$ctrl.getTabName(tab)}}
     </md-nav-item>
     <div class="action-container"
-         ng-if="$ctrl.selectedTab === $ctrl.tableTab && $ctrl.tableResults">
+         ng-if="$ctrl.selectedTab === $ctrl.tableTab">
         <span class="export-link"
-              ng-click="$ctrl.exportResults()">
+              ng-click="$ctrl.exportResults()"
+              ng-if="$ctrl.tableResults">
             EXPORT
         </span>
         <div class="diseases-source-select">
