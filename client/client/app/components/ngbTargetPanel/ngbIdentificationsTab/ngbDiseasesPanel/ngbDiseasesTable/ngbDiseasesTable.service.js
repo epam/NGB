@@ -25,6 +25,17 @@ const FIELDS = {
     PHARM_GKB: {
         'target': 'GENE_ID',
         'disease': 'DISEASE_NAME'
+    },
+    TTD: {
+        'target': 'TARGET',
+        'drug': 'DRUG_NAME',
+        'clinical status': 'CLINICAL_STATUS'
+    }
+};
+
+const FILTER_FIELDS_LIST = {
+    TTD: {
+        'clinicalStatuses': 'clinical status'
     }
 };
 
@@ -100,6 +111,9 @@ export default class ngbDiseasesTableService {
 
     get fields () {
         return FIELDS;
+    }
+    get filterFieldsList () {
+        return FILTER_FIELDS_LIST
     }
 
     static instance (
@@ -188,6 +202,19 @@ export default class ngbDiseasesTableService {
                 };
             });
         }
+        if (this.sourceModel === SourceOptions.TTD) {
+            this._diseasesResults = result.map(item => {
+                return {
+                    target: this.getTarget(item.geneId),
+                    disease: {
+                        id: item.id,
+                        name: item.name,
+                        url: item.url
+                    },
+                    'clinical status': item.clinicalStatus
+                };
+            });
+        }
     }
 
     getRequest() {
@@ -264,12 +291,48 @@ export default class ngbDiseasesTableService {
         });
     }
 
-    setFieldList() {
-        this.fieldList = {
-            target: [...this.ngbTargetPanelService.allChips],
-            disease: []
-        };
+    async setFieldList() {
+        if (this.sourceModel === SourceOptions.TTD) {
+            const result = await this.getDiseasesFieldValues();
+            if (!result) {
+                this.fieldList = {};
+            } else {
+                const entries = Object.entries(result);
+                const source = this.sourceModel;
+                const list = this.filterFieldsList;
+                for (let i = 0; i < entries.length; i++) {
+                    const key = entries[i][0];
+                    const values = (entries[i][1] || []).map(v => v ? v : 'Empty value');
+                    const field = list[source][key];
+                    this.fieldList[field] = values;
+                }
+                this.fieldList.target = [...this.ngbTargetPanelService.allChips];
+            }
+        } else {
+            this.fieldList = {
+                target: [...this.ngbTargetPanelService.allChips],
+                disease: []
+            };
+        }
         this.dispatcher.emitSimpleEvent('diseases:filters:list');
+    }
+
+    getDiseasesFieldValues() {
+        const geneIds = this.geneIds;
+        if (!geneIds || !geneIds.length) {
+            return new Promise(resolve => {
+                resolve(null);
+            });
+        }
+        return new Promise(resolve => {
+            this.targetDataService.getDiseasesFieldValues(this.sourceModel, geneIds)
+                .then((data) => {
+                    resolve(data);
+                })
+                .catch(err => {
+                    resolve(null);
+                });
+        });
     }
 
     setFilter(field, value) {

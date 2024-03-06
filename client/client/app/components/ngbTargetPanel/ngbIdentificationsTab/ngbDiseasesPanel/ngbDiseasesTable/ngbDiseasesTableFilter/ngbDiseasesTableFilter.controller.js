@@ -13,6 +13,10 @@ export default class ngbDiseasesTableFilterController {
                 this.isList = true;
                 break;
             }
+            case 'clinical status': {
+                this.isList = true;
+                break;
+            }
             default:
                 this.isString = true;
                 break;
