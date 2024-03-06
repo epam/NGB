@@ -20,11 +20,13 @@ export default class ngbGenomicsTableFilterController {
         this.selectedItems = ((this.filterInfo || {})[this.column.field] || []).map(i => i);
         this.setDisplayText();
 
-        this.dispatcher.on('genomics:filters:list', this.setList.bind(this));
-        this.dispatcher.on('genomics:filters:reset', this.resetFilters.bind(this));
+        const setList = this.setList.bind(this);
+        const resetFilters = this.resetFilters.bind(this);
+        this.dispatcher.on('genomics:filters:list', setList);
+        this.dispatcher.on('genomics:filters:reset', resetFilters);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('genomics:filters:list', this.setList.bind(this));
-            dispatcher.removeListener('genomics:filters:reset', this.resetFilters.bind(this));
+            dispatcher.removeListener('genomics:filters:list', setList);
+            dispatcher.removeListener('genomics:filters:reset', resetFilters);
         });
         this.setList();
     }

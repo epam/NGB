@@ -10,9 +10,11 @@ export default class ngbDiseasesTablePaginationController {
     constructor($scope, $timeout, dispatcher, ngbDiseasesTableService, ) {
         Object.assign(this, {$scope, $timeout, ngbDiseasesTableService});
         this.pages = this.getPages();
-        dispatcher.on('diseases:results:updated', this.refresh.bind(this));
+
+        const refresh = this.refresh.bind(this);
+        dispatcher.on('diseases:results:updated', refresh);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('diseases:results:updated', this.refresh.bind(this));
+            dispatcher.removeListener('diseases:results:updated', refresh);
         });
     }
 

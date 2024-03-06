@@ -10,9 +10,11 @@ export default class ngbProteinTablePaginationController {
     constructor($scope, $timeout, dispatcher, ngbPatentsSequencesTabService, ) {
         Object.assign(this, {$scope, $timeout, ngbPatentsSequencesTabService});
         this.pages = this.getPages();
-        dispatcher.on('target:identification:patents:protein:pagination:updated', this.refresh.bind(this));
+
+        const refresh = this.refresh.bind(this);
+        dispatcher.on('target:identification:patents:protein:pagination:updated', refresh);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:patents:protein:pagination:updated', this.refresh.bind(this));
+            dispatcher.removeListener('target:identification:patents:protein:pagination:updated', refresh);
         });
     }
 

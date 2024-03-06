@@ -10,9 +10,11 @@ export default class ngbStructureTablePaginationController {
     constructor($scope, $timeout, dispatcher, ngbStructurePanelService, ) {
         Object.assign(this, {$scope, $timeout, ngbStructurePanelService});
         this.pages = this.getPages();
-        dispatcher.on('target:identification:structure:results:updated', this.refresh.bind(this));
+
+        const refresh = this.refresh.bind(this);
+        dispatcher.on('target:identification:structure:results:updated', refresh);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:structure:results:updated', this.refresh.bind(this));
+            dispatcher.removeListener('target:identification:structure:results:updated', refresh);
         });
     }
 

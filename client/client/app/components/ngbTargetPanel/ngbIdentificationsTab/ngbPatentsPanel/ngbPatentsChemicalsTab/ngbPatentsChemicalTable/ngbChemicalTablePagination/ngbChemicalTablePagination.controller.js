@@ -10,9 +10,11 @@ export default class ngbChemicalTablePaginationController {
     constructor($scope, $timeout, dispatcher, ngbPatentsChemicalsTabService, ) {
         Object.assign(this, {$scope, $timeout, ngbPatentsChemicalsTabService});
         this.pages = this.getPages();
-        dispatcher.on('target:identification:patents:drug:pagination:updated', this.refresh.bind(this));
+
+        const refresh = this.refresh.bind(this);
+        dispatcher.on('target:identification:patents:drug:pagination:updated', refresh);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:patents:drug:pagination:updated', this.refresh.bind(this));
+            dispatcher.removeListener('target:identification:patents:drug:pagination:updated', refresh);
         });
     }
 

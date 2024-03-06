@@ -10,9 +10,11 @@ export default class ngbBibliographyPaginationController {
     constructor($scope, $timeout, dispatcher, ngbBibliographyPanelService) {
         Object.assign(this, {$scope, $timeout, ngbBibliographyPanelService});
         this.pages = this.getPages();
-        dispatcher.on('target:identification:publications:results:updated', this.refresh.bind(this));
+
+        const refresh = this.refresh.bind(this);
+        dispatcher.on('target:identification:publications:results:updated', refresh);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:publications:results:updated', this.refresh.bind(this));
+            dispatcher.removeListener('target:identification:publications:results:updated', refresh);
         });
     }
 
