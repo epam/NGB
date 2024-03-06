@@ -36,7 +36,6 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,7 +47,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -70,8 +72,7 @@ public class PharmGKBDrugAssociationManager extends AbstractAssociationManager<P
 
     public PharmGKBDrugFieldValues getFieldValues(final List<String> geneIds)
             throws IOException, ParseException {
-        final Query query = getByGeneIdsQuery(geneIds);
-        final List<PharmGKBDrug> result = search(query, null);
+        final List<PharmGKBDrug> result = searchByGeneIds(geneIds);
         final List<String> sources = result.stream()
                 .map(PharmGKBDrug::getSource)
                 .distinct()

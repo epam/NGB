@@ -23,7 +23,7 @@
  */
 package com.epam.catgenome.manager.externaldb.target.ttd;
 
-import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDiseaseAssociation;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AssociationExportField;
 import lombok.AllArgsConstructor;
@@ -33,25 +33,17 @@ import java.util.function.Function;
 
 @Getter
 @AllArgsConstructor
-public enum TTDDrugField implements AssociationExportField<TTDDrugAssociation> {
-    GENE_ID("Target ID", TTDDrugAssociation::getGeneId, FilterType.TERM, false),
-    TARGET("Target", TTDDrugAssociation::getTarget, FilterType.TERM, true),
-    DRUG_NAME("Drug", TTDDrugAssociation::getName, FilterType.PHRASE, true),
-    DRUG_ID(false),
-    COMPANY("Company", TTDDrugAssociation::getCompany, FilterType.OPTIONS, true),
-    TYPE("Type", TTDDrugAssociation::getType, FilterType.OPTIONS, true),
-    THERAPEUTIC_CLASS("Therapeutic Class", TTDDrugAssociation::getTherapeuticClass, FilterType.OPTIONS, true),
-    INCHI("InChI", TTDDrugAssociation::getInChI, FilterType.PHRASE, true),
-    INCHI_KEY("InChIKey", TTDDrugAssociation::getInChIKey, FilterType.PHRASE, true),
-    CANONICAL_SMILES("Canonical SMILES", TTDDrugAssociation::getCanonicalSmiles, FilterType.PHRASE, true),
-    STATUS("Status", TTDDrugAssociation::getStatus, FilterType.OPTIONS, true),
-    COMPOUND_CLASS("Compound Class", TTDDrugAssociation::getCompoundClass, FilterType.OPTIONS, true);
+public enum TTDDiseaseField implements AssociationExportField<TTDDiseaseAssociation> {
+    GENE_ID("Target ID", TTDDiseaseAssociation::getGeneId, FilterType.TERM, false),
+    TARGET("Target", TTDDiseaseAssociation::getTarget, FilterType.TERM, true),
+    DISEASE_NAME("Disease", TTDDiseaseAssociation::getName, FilterType.PHRASE, true),
+    CLINICAL_STATUS("Clinical Status", TTDDiseaseAssociation::getClinicalStatus, FilterType.OPTIONS, true);
     private String label;
-    private Function<TTDDrugAssociation, String> getter;
+    private Function<TTDDiseaseAssociation, String> getter;
     private FilterType type;
     private final boolean export;
 
-    TTDDrugField(boolean export) {
+    TTDDiseaseField(boolean export) {
         this.export = export;
     }
 }

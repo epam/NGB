@@ -29,10 +29,10 @@ import com.epam.catgenome.controller.vo.target.StructuresSearchRequest;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneInfo;
 import com.epam.catgenome.entity.externaldb.target.opentargets.BareDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.target.GeneRefSection;
 import com.epam.catgenome.exception.BlastRequestException;
-import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
@@ -46,6 +46,7 @@ import com.epam.catgenome.entity.target.TargetIdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseseFieldValues;
 import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugFieldValues;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -124,9 +125,9 @@ public class LaunchIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN)
-    public void importTTDData(final String drugsPath, final String targetsPath)
+    public void importTTDData(final String drugsPath, final String targetsPath, final String diseasesPath)
             throws IOException, ParseException {
-        manager.importTTDData(drugsPath, targetsPath);
+        manager.importTTDData(drugsPath, targetsPath, diseasesPath);
     }
 
     @PreAuthorize(ROLE_USER)
@@ -195,7 +196,19 @@ public class LaunchIdentificationSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public TTDDrugFieldValues getTTDDrugFieldValues(final List<String> geneIds)
-            throws ParseException, IOException, ReferenceReadingException, BlastRequestException, InterruptedException {
+            throws ParseException, IOException, BlastRequestException, InterruptedException {
         return manager.getTTDDrugFieldValues(geneIds);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public SearchResult<TTDDiseaseAssociation> getTTDDiseases(final AssociationSearchRequest request)
+            throws ParseException, IOException, BlastRequestException, InterruptedException {
+        return manager.getTTDDiseases(request);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public TTDDiseseFieldValues getTTDDiseaseFieldValues(final List<String> geneIds)
+            throws ParseException, IOException, BlastRequestException, InterruptedException {
+        return manager.getTTDDiseaseFieldValues(geneIds);
     }
 }

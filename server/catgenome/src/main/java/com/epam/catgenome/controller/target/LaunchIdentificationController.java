@@ -36,17 +36,18 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociatio
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.target.*;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseseFieldValues;
 import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugFieldValues;
 import com.epam.catgenome.manager.target.LaunchIdentificationSecurityService;
 import com.epam.catgenome.manager.target.export.TargetExportSecurityService;
@@ -104,8 +105,8 @@ public class LaunchIdentificationController extends AbstractRESTController {
 
     @PostMapping(value = "/target/ttd/drugs")
     @ApiOperation(
-            value = "Launches Identification for TTD datasource drug associations",
-            notes = "Launches Identification for TTD datasource drug associations." +
+            value = "Launches Identification for TTD datasource target - drug associations",
+            notes = "Launches Identification for TTD datasource target - drug associations." +
                     "Available field names for sorting and filtering: TARGET, DRUG_NAME, COMPANY, " +
                     "TYPE, THERAPEUTIC_CLASS, INCHI, INCHI_KEY, CANONICAL_SMILES, STATUS, COMPOUND_CLASS. " +
                     "The following fields are optional: COMPANY, TYPE, THERAPEUTIC_CLASS, STATUS, COMPOUND_CLASS.",
@@ -114,7 +115,7 @@ public class LaunchIdentificationController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<TTDDrugAssociation>> getTTDDrugs(@RequestBody final AssociationSearchRequest request)
-            throws ParseException, IOException, ReferenceReadingException, BlastRequestException, InterruptedException {
+            throws ParseException, IOException, BlastRequestException, InterruptedException {
         return Result.success(launchIdentificationSecurityService.getTTDDrugs(request));
     }
 
@@ -127,8 +128,37 @@ public class LaunchIdentificationController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<TTDDrugFieldValues> getTTDDrugFieldValues(@RequestParam final List<String> geneIds)
-            throws ParseException, IOException, ReferenceReadingException, BlastRequestException, InterruptedException {
+            throws ParseException, IOException, BlastRequestException, InterruptedException {
         return Result.success(launchIdentificationSecurityService.getTTDDrugFieldValues(geneIds));
+    }
+
+    @PostMapping(value = "/target/ttd/diseases")
+    @ApiOperation(
+            value = "Launches Identification for TTD datasource target - disease associations",
+            notes = "Launches Identification for TTD datasource target - disease associations." +
+                    "Available field names for sorting and filtering: TARGET, DISEASE_NAME, CLINICAL_STATUS. " +
+                    "The following fields are optional: CLINICAL_STATUS.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SearchResult<TTDDiseaseAssociation>> getTTDDiseases(
+            @RequestBody final AssociationSearchRequest request)
+            throws ParseException, IOException, BlastRequestException, InterruptedException {
+        return Result.success(launchIdentificationSecurityService.getTTDDiseases(request));
+    }
+
+    @GetMapping(value = "/target/ttd/diseases/fieldValues")
+    @ApiOperation(
+            value = "Returns filed values for TTD diseases data",
+            notes = "Returns filed values for TTD diseases data",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<TTDDiseseFieldValues> getTTDDiseaseFieldValues(@RequestParam final List<String> geneIds)
+            throws ParseException, IOException, BlastRequestException, InterruptedException {
+        return Result.success(launchIdentificationSecurityService.getTTDDiseaseFieldValues(geneIds));
     }
 
     @PostMapping(value = "/target/pharmgkb/drugs")
@@ -264,16 +294,18 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiOperation(
             value = "Imports data from TTD datasource.",
             notes = "Imports data from TTD datasource. Data can be found here: " +
-                    "drugs - https://idrblab.net/ttd/sites/default/files/ttd_database/P1-02-TTD_drug_download.txt" +
-                    "targets - https://idrblab.net/ttd/sites/default/files/ttd_database/P1-01-TTD_target_download.txt",
+                    "drugs: https://idrblab.net/ttd/sites/default/files/ttd_database/P1-02-TTD_drug_download.txt," +
+                    "targets: https://idrblab.net/ttd/sites/default/files/ttd_database/P1-01-TTD_target_download.txt," +
+                    "diseases: https://idrblab.net/ttd/sites/default/files/ttd_database/P1-06-Target_disease.txt",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importTTDData(
             @RequestParam final String drugsPath,
-            @RequestParam final String targetsPath) throws IOException, ParseException {
-        launchIdentificationSecurityService.importTTDData(drugsPath, targetsPath);
+            @RequestParam final String targetsPath,
+            @RequestParam final String diseasesPath) throws IOException, ParseException {
+        launchIdentificationSecurityService.importTTDData(drugsPath, targetsPath, diseasesPath);
         return Result.success(null);
     }
 

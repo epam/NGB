@@ -38,16 +38,17 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.TargetDetails;
 import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.target.*;
 import com.epam.catgenome.exception.BlastRequestException;
-import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseseFieldValues;
 import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugFieldValues;
-import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugsManager;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDatabaseManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneInfoManager;
@@ -121,7 +122,7 @@ public class LaunchIdentificationManager {
     private final NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
     private final SequencesManager sequencesManager;
     private final TTDDrugAssociationManager ttdDrugAssociationManager;
-    private final TTDDrugsManager ttdDrugsManager;
+    private final TTDDatabaseManager ttdDatabaseManager;
 
     public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
@@ -221,11 +222,6 @@ public class LaunchIdentificationManager {
 
     public void importDGIdbData(final String path) throws IOException, ParseException {
         dgidbDrugAssociationManager.importData(path);
-    }
-
-    public void importTTDData(final String drugsPath, final String targetsPath)
-            throws IOException, ParseException {
-        ttdDrugAssociationManager.importData(drugsPath, targetsPath);
     }
 
     public PharmGKBDrugFieldValues getPharmGKBDrugFieldValues(final List<String> geneIds)
@@ -476,18 +472,37 @@ public class LaunchIdentificationManager {
         return geneNames;
     }
 
+    public void importTTDData(final String drugsPath, final String targetsPath, final String diseasesPath)
+            throws IOException, ParseException {
+        ttdDatabaseManager.importData(drugsPath, targetsPath, diseasesPath);
+    }
+
     public SearchResult<TTDDrugAssociation> getTTDDrugs(final AssociationSearchRequest request)
             throws ParseException, IOException, BlastRequestException, InterruptedException {
         final Map<String, Long> targetGenes = targetManager.getTargetGenes(request.getGeneIds(), true);
         targetManager.expandTargetGenes(request.getGeneIds());
-        return ttdDrugsManager.getTTDDrugs(request, targetGenes);
+        return ttdDatabaseManager.getTTDDrugs(request, targetGenes);
     }
 
     public TTDDrugFieldValues getTTDDrugFieldValues(final List<String> geneIds)
-            throws IOException, ParseException, ReferenceReadingException, BlastRequestException, InterruptedException {
+            throws IOException, ParseException, BlastRequestException, InterruptedException {
         final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, true);
         targetManager.expandTargetGenes(geneIds);
-        return ttdDrugsManager.getFieldValues(geneIds, targetGenes);
+        return ttdDatabaseManager.getDrugFieldValues(geneIds, targetGenes);
+    }
+
+    public SearchResult<TTDDiseaseAssociation> getTTDDiseases(final AssociationSearchRequest request)
+            throws ParseException, IOException, BlastRequestException, InterruptedException {
+        final Map<String, Long> targetGenes = targetManager.getTargetGenes(request.getGeneIds(), true);
+        targetManager.expandTargetGenes(request.getGeneIds());
+        return ttdDatabaseManager.getTTDDiseases(request, targetGenes);
+    }
+
+    public TTDDiseseFieldValues getTTDDiseaseFieldValues(final List<String> geneIds)
+            throws IOException, ParseException, BlastRequestException, InterruptedException {
+        final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, true);
+        targetManager.expandTargetGenes(geneIds);
+        return ttdDatabaseManager.getDiseaseFieldValues(geneIds, targetGenes);
     }
 
     private static Map<String, String> mergeDescriptions(final Map<GeneId, String> ncbiSummary,

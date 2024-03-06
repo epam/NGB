@@ -90,7 +90,7 @@ public class DrugAssociationManager extends AbstractAssociationManager<DrugAssoc
     }
 
     public DrugFieldValues getFieldValues(final List<String> geneIds) throws IOException, ParseException {
-        final Query query = buildQuery(geneIds, null);
+        final Query query = getByGeneIdsQuery(geneIds);
         return getFieldValues(query);
     }
 
