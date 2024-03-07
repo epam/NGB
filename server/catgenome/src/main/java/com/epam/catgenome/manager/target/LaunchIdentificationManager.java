@@ -121,7 +121,6 @@ public class LaunchIdentificationManager {
     private final TaxonomyManager taxonomyManager;
     private final NCBIEnsemblIdsManager ncbiEnsemblIdsManager;
     private final SequencesManager sequencesManager;
-    private final TTDDrugAssociationManager ttdDrugAssociationManager;
     private final TTDDatabaseManager ttdDatabaseManager;
 
     public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
@@ -143,7 +142,7 @@ public class LaunchIdentificationManager {
         final DrugsCount drugsCount = getDrugsCount(geneIds);
         final long diseasesCount = getDiseasesCount(geneIds);
         final long publicationsCount = pubMedService.getPublicationsCount(entrezGeneIds);
-        final SequencesSummary sequencesCount = getGeneSequencesCount(targetGenes, true);
+        final SequencesSummary sequencesCount = getGeneSequencesCount(targetGenes, ncbiGeneIds, true);
         final long structuresCount = getStructuresCount(geneIds);
         return TargetIdentificationResult.builder()
                 .description(description)
@@ -299,8 +298,9 @@ public class LaunchIdentificationManager {
     }
 
     public SequencesSummary getGeneSequencesCount(final Map<String, Long> targetGenes,
+                                                  final List<GeneId> ncbiGeneIds,
                                                   final Boolean includeLocal)
-            throws ParseException, IOException, ExternalDbUnavailableException {
+            throws IOException, ExternalDbUnavailableException {
         final SequencesSummary localSequencesSummary = SequencesSummary.builder().build();
         if (includeLocal) {
             final List<GeneRefSection> result = sequencesManager.getGeneSequencesTable(targetGenes);
@@ -317,8 +317,6 @@ public class LaunchIdentificationManager {
                     .flatMap(List::stream)
                     .map(GeneSequence::getProtein).filter(Objects::nonNull).count());
         }
-
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(new ArrayList<>(targetGenes.keySet()));
         if (CollectionUtils.isEmpty(ncbiGeneIds)) {
             return localSequencesSummary;
         }

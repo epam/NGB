@@ -36,6 +36,8 @@ import java.util.function.Function;
 public enum TTDDiseaseField implements AssociationExportField<TTDDiseaseAssociation> {
     GENE_ID("Target ID", TTDDiseaseAssociation::getGeneId, FilterType.TERM, false),
     TARGET("Target", TTDDiseaseAssociation::getTarget, FilterType.TERM, true),
+    TTD_GENE_ID("TTD Target ID", TTDDiseaseAssociation::getTtdGeneId, FilterType.TERM, false),
+    TTD_TARGET("TTD Target", TTDDiseaseAssociation::getTtdTarget, FilterType.TERM, true),
     DISEASE_NAME("Disease", TTDDiseaseAssociation::getName, FilterType.PHRASE, true),
     CLINICAL_STATUS("Clinical Status", TTDDiseaseAssociation::getClinicalStatus, FilterType.OPTIONS, true);
     private String label;

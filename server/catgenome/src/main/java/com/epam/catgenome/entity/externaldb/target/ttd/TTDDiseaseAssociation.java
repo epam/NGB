@@ -36,10 +36,14 @@ import lombok.Setter;
 @AllArgsConstructor
 public class TTDDiseaseAssociation extends Association {
     private String clinicalStatus;
+    private String ttdGeneId;
+    private String ttdTarget;
     @Builder
     public TTDDiseaseAssociation(String id, String name, String url, String geneId,
-                                 String target, String clinicalStatus) {
+                                 String target, String ttdGeneId, String ttdTarget, String clinicalStatus) {
         super(id, name, url, geneId, target);
+        this.ttdGeneId = ttdGeneId;
+        this.ttdTarget = ttdTarget;
         this.clinicalStatus = clinicalStatus;
     }
 }
