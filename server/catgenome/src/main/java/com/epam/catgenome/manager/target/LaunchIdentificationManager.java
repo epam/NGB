@@ -46,7 +46,6 @@ import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseseFieldValues;
-import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.ttd.TTDDatabaseManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
