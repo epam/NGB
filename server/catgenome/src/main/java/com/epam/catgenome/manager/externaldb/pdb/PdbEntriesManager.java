@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 
 @Service
@@ -283,7 +284,7 @@ public class PdbEntriesManager extends HttpDataManager {
         final List<StructureRequest.Query> parametersQueryList = new ArrayList<>();
         for (String geneName : geneNames) {
             StructureRequest.FullTextParameters parameters = StructureRequest.FullTextParameters.builder()
-                    .value(geneName)
+                    .value(String.format("\"%s\"", geneName))
                     .build();
             StructureRequest.FullTextQuery parametersQuery = StructureRequest.FullTextQuery.builder()
                     .type("terminal")
@@ -346,10 +347,11 @@ public class PdbEntriesManager extends HttpDataManager {
     }
 
     private static StructureRequest.RequestOptions getOptions(final StructuresSearchRequest request) {
-        final int start = ((request.getPage() - 1) * request.getPageSize());
+        final int pageSize = Optional.ofNullable(request.getPageSize()).orElse(DEFAULT_PAGE_SIZE);
+        final int start = ((Optional.ofNullable(request.getPage()).orElse(1) - 1) * pageSize);
         final StructureRequest.Paginate paginate = StructureRequest.Paginate.builder()
                 .start(start)
-                .rows(request.getPageSize())
+                .rows(pageSize)
                 .build();
         final StructureRequest.Sort sort = StructureRequest.Sort.builder()
                 .sortBy(Optional.ofNullable(request.getOrderBy()).orElse(StructureRequestField.ENTRY_ID).getValue())
