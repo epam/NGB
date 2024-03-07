@@ -81,10 +81,13 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
-import org.apache.lucene.index.*;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.*;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.slf4j.Logger;
@@ -105,7 +108,6 @@ public final class IndexUtils {
     private static final Pattern FIRST_PART_PATH_PATTERN = Pattern.compile(FIRST_PART_PATH_REGEX);
     private static final String LINE_DELIMITER = "|";
     private static final String LINE_DELIMITER_PATTERN = "\\|";
-    private static final String TERM_SPLIT_TOKEN = " ";
 
     private IndexUtils() {
         //no operations
@@ -594,62 +596,9 @@ public final class IndexUtils {
         return Arrays.asList(encoded.split(LINE_DELIMITER_PATTERN));
     }
 
-    public static Query getByTermQuery(final String term, final String fieldName) throws ParseException {
-        final StandardAnalyzer analyzer = new StandardAnalyzer();
-        final QueryParser queryParser = new QueryParser(fieldName, analyzer);
-        queryParser.setDefaultOperator(QueryParser.Operator.OR);
-        return queryParser.parse(term);
-    }
-
-    public static Query getByTermsQuery(final List<String> ids, final String fieldName) throws ParseException {
-        return getByTermQuery(join(ids, TERM_SPLIT_TOKEN), fieldName);
-    }
-
-    public static Query getByPrefixQuery(final String prefix, final String fieldName) {
-        return new PrefixQuery(new Term(fieldName, prefix));
-    }
-
-    public static Query getByPhraseQuery(final String phrase, final String fieldName) {
-        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        for (String term : phrase.split(TERM_SPLIT_TOKEN)) {
-            builder.add(new WildcardQuery(new Term(fieldName, "*" + term.toLowerCase() + "*")),
-                    BooleanClause.Occur.MUST);
-        }
-        return builder.build();
-    }
-
-    public static Query getByOptionsQuery(final List<String> options, final String fieldName) {
-        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        for (String option : options) {
-            builder.add(buildTermQuery(option, fieldName), BooleanClause.Occur.SHOULD);
-        }
-        return builder.build();
-    }
-
-    public static Query getByRangeQuery(final Interval<Float> interval, final String fieldName) {
-        return FloatPoint.newRangeQuery(fieldName,
-                Optional.ofNullable(interval.getFrom()).orElse(Float.NEGATIVE_INFINITY),
-                Optional.ofNullable(interval.getTo()).orElse(Float.POSITIVE_INFINITY));
-    }
-
     public static Query buildTermQuery(final String term, final String fieldName) {
         return new TermQuery(new Term(fieldName, term));
     }
-
-    public static List<String> getFieldValues(final String fieldName, final String indexDirectory) throws IOException {
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
-            final List<String> fieldValues = new ArrayList<>();
-            final Terms terms = MultiFields.getTerms(indexReader, fieldName);
-            final TermsEnum termsEnum = terms.iterator();
-            while (termsEnum.next() != null) {
-                String fieldValue = termsEnum.term().utf8ToString();
-                fieldValues.add(fieldValue);
-            }
-            return fieldValues;
-        }
-    }
-
 
     public static String getField(final Document doc, final String fieldName) {
         return doc.getField(fieldName).stringValue();

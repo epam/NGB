@@ -80,9 +80,8 @@ public class TargetManagerTest extends TestCase {
         final TargetQueryParams targetQueryParams = TargetQueryParams.builder()
                 .pagingInfo(PagingInfo.builder().pageSize(2).pageNum(1).build())
                 .build();
-        final Page<Target> targets = targetManager.load(targetQueryParams);
-        assertEquals(2, targets.getItems().size());
-        assertEquals(3, targets.getTotalCount());
+        final List<Target> targets = targetManager.load(targetQueryParams);
+        assertEquals(2, targets.size());
     }
 
     @Test
@@ -92,9 +91,8 @@ public class TargetManagerTest extends TestCase {
         final TargetQueryParams targetQueryParams = TargetQueryParams.builder()
                 .targetName("target1")
                 .build();
-        final Page<Target> targets = targetManager.load(targetQueryParams);
-        assertEquals(1, targets.getItems().size());
-        assertEquals(1, targets.getTotalCount());
+        final List<Target> targets = targetManager.load(targetQueryParams);
+        assertEquals(1, targets.size());
     }
 
     @Test
@@ -105,9 +103,8 @@ public class TargetManagerTest extends TestCase {
         final TargetQueryParams targetQueryParams = TargetQueryParams.builder()
                 .products(Arrays.asList("product1", "product3"))
                 .build();
-        final Page<Target> targets = targetManager.load(targetQueryParams);
-        assertEquals(2, targets.getItems().size());
-        assertEquals(2, targets.getTotalCount());
+        final List<Target> targets = targetManager.load(targetQueryParams);
+        assertEquals(2, targets.size());
     }
 
     @Test
@@ -116,13 +113,13 @@ public class TargetManagerTest extends TestCase {
         final TargetQueryParams targetQueryParams = TargetQueryParams.builder()
                 .owner("owner")
                 .build();
-        final Page<Target> targets = targetManager.load(targetQueryParams);
-        assertEquals(1, targets.getTotalCount());
+        final List<Target> targets = targetManager.load(targetQueryParams);
+        assertEquals(1, targets.size());
         final TargetQueryParams targetQueryParams1 = TargetQueryParams.builder()
                 .owner("owner1")
                 .build();
-        final Page<Target> targets1 = targetManager.load(targetQueryParams1);
-        assertEquals(0, targets1.getTotalCount());
+        final List<Target> targets1 = targetManager.load(targetQueryParams1);
+        assertEquals(0, targets1.size());
     }
 
     @Test

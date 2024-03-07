@@ -35,6 +35,9 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
@@ -53,6 +56,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
 
 @Service
 public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDrugAssociation> {
@@ -168,49 +173,57 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
             Map<String, List<TTDRecord>> grouped = records.stream()
                     .collect(Collectors.groupingBy(TTDRecord::getId));
             grouped.forEach((k, v) -> {
-                if (v.size() > 4) {
-                    TTDDrugAssociation entry = TTDDrugAssociation.builder().build();
-                    v.forEach(item -> {
-                        switch (item.getFiled()) {
-                            case "DRUG__ID":
-                                entry.setId(item.getValue());
-                                break;
-                            case "TRADNAME":
-                                entry.setName(item.getValue());
-                                break;
-                            case "DRUGCOMP":
-                                entry.setCompany(item.getValue());
-                                break;
-                            case "THERCLAS":
-                                entry.setTherapeuticClass(item.getValue());
-                                break;
-                            case "DRUGTYPE":
-                                entry.setType(item.getValue());
-                                break;
-                            case "DRUGINCH":
-                                entry.setInChI(item.getValue());
-                                break;
-                            case "DRUGINKE":
-                                entry.setInChIKey(item.getValue());
-                                break;
-                            case "DRUGSMIL":
-                                entry.setCanonicalSmiles(item.getValue());
-                                break;
-                            case "HIGHSTAT":
-                                entry.setStatus(item.getValue());
-                                break;
-                            case "COMPCLAS":
-                                entry.setCompoundClass(item.getValue());
-                                break;
-                            default:
-                                break;
-                        }
-                    });
-                    entries.add(entry);
-                }
+                TTDDrugAssociation entry = TTDDrugAssociation.builder().build();
+                v.forEach(item -> {
+                    switch (item.getFiled()) {
+                        case "DRUG__ID":
+                            entry.setId(item.getValue());
+                            break;
+                        case "TRADNAME":
+                            entry.setName(item.getValue());
+                            break;
+                        case "DRUGCOMP":
+                            entry.setCompany(item.getValue());
+                            break;
+                        case "THERCLAS":
+                            entry.setTherapeuticClass(item.getValue());
+                            break;
+                        case "DRUGTYPE":
+                            entry.setType(item.getValue());
+                            break;
+                        case "DRUGINCH":
+                            entry.setInChI(item.getValue());
+                            break;
+                        case "DRUGINKE":
+                            entry.setInChIKey(item.getValue());
+                            break;
+                        case "DRUGSMIL":
+                            entry.setCanonicalSmiles(item.getValue());
+                            break;
+                        case "HIGHSTAT":
+                            entry.setStatus(item.getValue());
+                            break;
+                        case "COMPCLAS":
+                            entry.setCompoundClass(item.getValue());
+                            break;
+                        default:
+                            break;
+                    }
+                });
+                entries.add(entry);
             });
         }
         return entries;
+    }
+
+    @Override
+    public Query getByOptionsQuery(final List<String> options, final String fieldName) {
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        for (String option : options) {
+            builder.add(buildTermQuery(TTDDrugField.TTD_TARGET.name().equals(fieldName) ?
+                    option.toLowerCase() : option, fieldName), BooleanClause.Occur.SHOULD);
+        }
+        return builder.build();
     }
 
     @Override

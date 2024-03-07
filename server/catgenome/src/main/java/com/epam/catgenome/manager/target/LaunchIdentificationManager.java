@@ -45,7 +45,7 @@ import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
-import com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseseFieldValues;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseaseFieldValues;
 import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.ttd.TTDDatabaseManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
@@ -495,7 +495,7 @@ public class LaunchIdentificationManager {
         return ttdDatabaseManager.getTTDDiseases(request, targetGenes);
     }
 
-    public TTDDiseseFieldValues getTTDDiseaseFieldValues(final List<String> geneIds)
+    public TTDDiseaseFieldValues getTTDDiseaseFieldValues(final List<String> geneIds)
             throws IOException, ParseException, BlastRequestException, InterruptedException {
         final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, true);
         targetManager.expandTargetGenes(geneIds);

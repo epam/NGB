@@ -33,6 +33,9 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -48,6 +51,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
 
 
 @Service
@@ -147,6 +152,16 @@ public class TTDDiseaseAssociationManager extends AbstractAssociationManager<TTD
     @Override
     public FilterType getFilterType(String fieldName) {
         return TTDDiseaseField.valueOf(fieldName).getType();
+    }
+
+    @Override
+    public Query getByOptionsQuery(final List<String> options, final String fieldName) {
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        for (String option : options) {
+            builder.add(buildTermQuery(TTDDiseaseField.TTD_TARGET.name().equals(fieldName) ?
+                    option.toLowerCase() : option, fieldName), BooleanClause.Occur.SHOULD);
+        }
+        return builder.build();
     }
 
     private static String getTargetName(final String targetFullName) {

@@ -49,8 +49,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -122,7 +120,7 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
         return null;
     };
 
-    public static Query getByGeneIdsQuery(final List<String> ids) throws ParseException {
+    public Query getByGeneIdsQuery(final List<String> ids) throws ParseException {
         return getByTermsQuery(ids, IndexCommonFields.GENE_ID.name());
     }
 

@@ -24,21 +24,18 @@
 package com.epam.catgenome.manager.index;
 
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.Interval;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 
@@ -47,17 +44,17 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.util.IndexUtils.getByOptionsQuery;
-import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
-import static com.epam.catgenome.util.IndexUtils.getByRangeQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermsQuery;
+import static com.epam.catgenome.util.IndexUtils.*;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
+import static org.apache.commons.lang3.StringUtils.join;
 
 @Slf4j
 public abstract class AbstractIndexManager<T> {
 
+    private static final String TERM_SPLIT_TOKEN = " ";
     private static final Integer BATCH_SIZE = 1000;
     public final String indexDirectory;
     public final int topHits;
@@ -216,6 +213,44 @@ public abstract class AbstractIndexManager<T> {
     public Sort getDefaultSort() {
         final List<SortField> sortFields = Collections.singletonList(getDefaultSortField());
         return new Sort(sortFields.toArray(new SortField[1]));
+    }
+
+    public Query getByOptionsQuery(final List<String> options, final String fieldName) {
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        for (String option : options) {
+            builder.add(buildTermQuery(option, fieldName), BooleanClause.Occur.SHOULD);
+        }
+        return builder.build();
+    }
+
+    public Query getByRangeQuery(final Interval<Float> interval, final String fieldName) {
+        return FloatPoint.newRangeQuery(fieldName,
+                Optional.ofNullable(interval.getFrom()).orElse(Float.NEGATIVE_INFINITY),
+                Optional.ofNullable(interval.getTo()).orElse(Float.POSITIVE_INFINITY));
+    }
+
+    public Query getByPhraseQuery(final String phrase, final String fieldName) {
+        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        for (String term : phrase.split(TERM_SPLIT_TOKEN)) {
+            builder.add(new WildcardQuery(new Term(fieldName, "*" + term.toLowerCase() + "*")),
+                    BooleanClause.Occur.MUST);
+        }
+        return builder.build();
+    }
+
+    public Query getByPrefixQuery(final String prefix, final String fieldName) {
+        return new PrefixQuery(new Term(fieldName, prefix));
+    }
+
+    public Query getByTermsQuery(final List<String> ids, final String fieldName) throws ParseException {
+        return getByTermQuery(join(ids, TERM_SPLIT_TOKEN), fieldName);
+    }
+
+    public Query getByTermQuery(final String term, final String fieldName) throws ParseException {
+        final StandardAnalyzer analyzer = new StandardAnalyzer();
+        final QueryParser queryParser = new QueryParser(fieldName, analyzer);
+        queryParser.setDefaultOperator(QueryParser.Operator.OR);
+        return queryParser.parse(term);
     }
 
     public abstract FilterType getFilterType(String fieldName);
