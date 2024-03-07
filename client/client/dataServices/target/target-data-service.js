@@ -341,10 +341,11 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getSequencesTableResults(geneIds) {
+    getSequencesTableResults(geneIds, params) {
         const getComments = false;
+        const {includeLocal, includeAdditionalGenes} = params;
         return new Promise((resolve, reject) => {
-            this.get(`target/sequences/table${getQueryString({geneIds, getComments})}`)
+            this.get(`target/sequences/table${getQueryString({geneIds, getComments, includeLocal, includeAdditionalGenes})}`)
                 .then(data => {
                     if (data) {
                         resolve(data);

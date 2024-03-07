@@ -105,6 +105,47 @@ ngb-sequences-panel {
         margin: 0;
     }
 
+    .checkbox-container {
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        width: 100%;
+        color: $sequences-font-color;
+
+        md-checkbox {
+            margin-bottom: 0;
+
+            .md-label {
+                margin-left: 25px;
+            }
+
+            .md-container,
+            .md-icon {
+                height: 18px;
+                width: 18px;
+            }
+
+            .md-container:after {
+                top: -7px;
+                right: -7px;
+                bottom: -7px;
+                left: -7px;
+            }
+
+            .md-container .md-ripple-container {
+                left: -7px;
+                top: -7px;
+                right: -7px;
+                bottom: -7px;
+            }
+
+            &.md-checked .md-icon:after {
+                left: 4.06667px;
+                top: -1.22222px;
+            }
+        }
+    }
+
     .empty-container {
         font-size: 12pt;
         width: 100%;
