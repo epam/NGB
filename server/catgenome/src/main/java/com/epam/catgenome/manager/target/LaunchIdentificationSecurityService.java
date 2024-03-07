@@ -46,7 +46,7 @@ import com.epam.catgenome.entity.target.TargetIdentificationResult;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
-import com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseseFieldValues;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseaseFieldValues;
 import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugFieldValues;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -207,7 +207,7 @@ public class LaunchIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public TTDDiseseFieldValues getTTDDiseaseFieldValues(final List<String> geneIds)
+    public TTDDiseaseFieldValues getTTDDiseaseFieldValues(final List<String> geneIds)
             throws ParseException, IOException, BlastRequestException, InterruptedException {
         return manager.getTTDDiseaseFieldValues(geneIds);
     }

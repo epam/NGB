@@ -37,7 +37,7 @@ public enum TTDDrugField implements AssociationExportField<TTDDrugAssociation> {
     GENE_ID("Target ID", TTDDrugAssociation::getGeneId, FilterType.TERM, false),
     TARGET("Target", TTDDrugAssociation::getTarget, FilterType.TERM, true),
     TTD_GENE_ID("TTD Target ID", TTDDrugAssociation::getTtdGeneId, FilterType.TERM, false),
-    TTD_TARGET("TTD Target", TTDDrugAssociation::getTtdTarget, FilterType.TERM, true),
+    TTD_TARGET("TTD Target", TTDDrugAssociation::getTtdTarget, FilterType.OPTIONS, true),
     DRUG_NAME("Drug", TTDDrugAssociation::getName, FilterType.PHRASE, true),
     DRUG_ID(false),
     COMPANY("Company", TTDDrugAssociation::getCompany, FilterType.OPTIONS, true),

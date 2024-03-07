@@ -61,9 +61,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.epam.catgenome.util.IndexUtils.getByOptionsQuery;
-import static com.epam.catgenome.util.IndexUtils.getByPrefixQuery;
-
 @Service
 public class NCBIGeneInfoManager extends AbstractIndexManager<GeneInfo> {
 

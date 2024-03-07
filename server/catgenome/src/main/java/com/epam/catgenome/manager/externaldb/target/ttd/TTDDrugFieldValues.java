@@ -33,6 +33,7 @@ import java.util.List;
 @Setter
 @Builder
 public class TTDDrugFieldValues {
+    private List<String> ttdTargets;
     private List<String> companies;
     private List<String> types;
     private List<String> therapeuticClasses;

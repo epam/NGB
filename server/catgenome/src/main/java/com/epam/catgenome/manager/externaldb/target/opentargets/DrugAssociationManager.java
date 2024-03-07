@@ -64,7 +64,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.manager.externaldb.target.opentargets.Phase.getPhase;
-import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;
 
 @Service

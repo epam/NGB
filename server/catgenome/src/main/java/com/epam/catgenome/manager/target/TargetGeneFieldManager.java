@@ -49,7 +49,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
-import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 
 @Service
 public class TargetGeneFieldManager extends AbstractIndexManager<TargetGeneField> {

@@ -71,8 +71,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.util.IndexUtils.deserialize;
-import static com.epam.catgenome.util.IndexUtils.getByPhraseQuery;
-import static com.epam.catgenome.util.IndexUtils.getByTermQuery;
 import static com.epam.catgenome.util.IndexUtils.getField;
 import static com.epam.catgenome.util.IndexUtils.serialize;
 import static com.epam.catgenome.util.NgbFileUtils.getDirectory;

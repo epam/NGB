@@ -32,6 +32,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class TTDDiseseFieldValues {
+public class TTDDiseaseFieldValues {
+    private List<String> ttdTargets;
     private List<String> phases;
 }

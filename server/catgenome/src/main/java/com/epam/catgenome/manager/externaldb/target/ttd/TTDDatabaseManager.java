@@ -162,6 +162,11 @@ public class TTDDatabaseManager {
     public TTDDrugFieldValues getDrugFieldValues(final List<String> geneIds, final Map<String, Long> targetGenes)
             throws IOException, ParseException, BlastRequestException, InterruptedException {
         final List<TTDDrugAssociation> result = getTTDDrugs(geneIds, targetGenes);
+        final List<String> ttdTargets = result.stream()
+                .map(TTDDrugAssociation::getTtdTarget)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
         final List<String> companies = result.stream()
                 .map(TTDDrugAssociation::getCompany)
                 .distinct()
@@ -188,6 +193,7 @@ public class TTDDatabaseManager {
                 .sorted()
                 .collect(Collectors.toList());
         return TTDDrugFieldValues.builder()
+                .ttdTargets(ttdTargets)
                 .companies(companies)
                 .types(types)
                 .therapeuticClasses(therapeuticClasses)
@@ -222,7 +228,7 @@ public class TTDDatabaseManager {
         return result;
     }
 
-    public TTDDiseseFieldValues getDiseaseFieldValues(final List<String> geneIds, final Map<String, Long> targetGenes)
+    public TTDDiseaseFieldValues getDiseaseFieldValues(final List<String> geneIds, final Map<String, Long> targetGenes)
             throws IOException, ParseException, BlastRequestException, InterruptedException {
         final List<TTDDiseaseAssociation> result = getTTDDiseases(geneIds, targetGenes);
         final List<String> phases = result.stream()
@@ -230,7 +236,13 @@ public class TTDDatabaseManager {
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
-        return TTDDiseseFieldValues.builder()
+        final List<String> ttdTargets = result.stream()
+                .map(TTDDiseaseAssociation::getTtdTarget)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        return TTDDiseaseFieldValues.builder()
+                .ttdTargets(ttdTargets)
                 .phases(phases)
                 .build();
     }

@@ -47,7 +47,7 @@ import com.epam.catgenome.manager.externaldb.target.AssociationSearchRequest;
 import com.epam.catgenome.manager.externaldb.target.dgidb.DGIDBDrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugFieldValues;
-import com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseseFieldValues;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseaseFieldValues;
 import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugFieldValues;
 import com.epam.catgenome.manager.target.LaunchIdentificationSecurityService;
 import com.epam.catgenome.manager.target.export.TargetExportSecurityService;
@@ -107,9 +107,10 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiOperation(
             value = "Launches Identification for TTD datasource target - drug associations",
             notes = "Launches Identification for TTD datasource target - drug associations." +
-                    "Available field names for sorting and filtering: TARGET, DRUG_NAME, COMPANY, " +
+                    "Available field names for sorting and filtering: TTD_TARGET, DRUG_NAME, COMPANY, " +
                     "TYPE, THERAPEUTIC_CLASS, INCHI, INCHI_KEY, CANONICAL_SMILES, STATUS, COMPOUND_CLASS. " +
-                    "The following fields are optional: COMPANY, TYPE, THERAPEUTIC_CLASS, STATUS, COMPOUND_CLASS.",
+                    "The following fields are optional: TTD_TARGET, COMPANY, TYPE, THERAPEUTIC_CLASS, " +
+                    "STATUS, COMPOUND_CLASS.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
@@ -136,8 +137,8 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiOperation(
             value = "Launches Identification for TTD datasource target - disease associations",
             notes = "Launches Identification for TTD datasource target - disease associations." +
-                    "Available field names for sorting and filtering: TARGET, DISEASE_NAME, CLINICAL_STATUS. " +
-                    "The following fields are optional: CLINICAL_STATUS.",
+                    "Available field names for sorting and filtering: TTD_TARGET, DISEASE_NAME, CLINICAL_STATUS. " +
+                    "The following fields are optional: TTD_TARGET, CLINICAL_STATUS.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
@@ -156,7 +157,7 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<TTDDiseseFieldValues> getTTDDiseaseFieldValues(@RequestParam final List<String> geneIds)
+    public Result<TTDDiseaseFieldValues> getTTDDiseaseFieldValues(@RequestParam final List<String> geneIds)
             throws ParseException, IOException, BlastRequestException, InterruptedException {
         return Result.success(launchIdentificationSecurityService.getTTDDiseaseFieldValues(geneIds));
     }
