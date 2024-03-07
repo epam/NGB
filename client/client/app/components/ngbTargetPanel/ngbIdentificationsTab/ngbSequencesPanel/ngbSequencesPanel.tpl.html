@@ -42,16 +42,17 @@
     </div>
 </div>
 <div class="sequences-reference"
-     ng-if="$ctrl.sequencesReference">
+     ng-if="$ctrl.sequencesReference && $ctrl.sequencesReference.length">
     <span class="reference-title">GENOMIC</span>
-    <div class="reference-content">
+    <div class="reference-content"
+         ng-repeat="reference in $ctrl.sequencesReference track by reference.id">
         <span ng-class="{'link': $ctrl.isRegistered}"
               ng-click="$ctrl.onClickSequence()">
-            {{$ctrl.sequencesReference.id}}
+            {{reference.id}}
         </span>
-        <span>{{$ctrl.sequencesReference.name}}</span>
+        <span>{{reference.name}}</span>
         <span>
-            <a ng-href="{{$ctrl.sequencesReference.url}}" target="_blank">
+            <a ng-if="reference.url" ng-href="{{reference.url}}" target="_blank">
                 NCBI
             </a>
         </span>
