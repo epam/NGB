@@ -172,6 +172,7 @@ export default class ngbDrugsTableController {
             const column = columnsList[i];
             columnSettings = {
                 name: column,
+                displayName: column.charAt(0).toUpperCase() + column.slice(1),
                 enableHiding: false,
                 enableColumnMenu: true,
                 enableSorting: true,

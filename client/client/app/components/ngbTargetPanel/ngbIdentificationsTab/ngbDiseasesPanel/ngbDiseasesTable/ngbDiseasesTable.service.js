@@ -28,6 +28,7 @@ const FIELDS = {
     },
     TTD: {
         'target': 'TARGET',
+        'ttd target': 'TTD_TARGET',
         'disease': 'DISEASE_NAME',
         'clinical status': 'CLINICAL_STATUS'
     }
@@ -35,6 +36,7 @@ const FIELDS = {
 
 const FILTER_FIELDS_LIST = {
     TTD: {
+        'ttdTargets': 'ttd target',
         'phases': 'clinical status'
     }
 };
@@ -206,6 +208,7 @@ export default class ngbDiseasesTableService {
             this._diseasesResults = result.map(item => {
                 return {
                     target: this.getTarget(item.geneId),
+                    'TTD target': item.ttdTarget,
                     disease: {
                         id: item.id,
                         name: item.name,
