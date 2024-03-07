@@ -3,7 +3,7 @@ const PAGE_SIZE = 10;
 const OPEN_TARGETS_COLUMNS = ['target', 'drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
 const PHARM_GKB_COLUMNS = ['target', 'drug', 'Source'];
 const DGI_DB_COLUMNS = ['target', 'drug', 'interaction claim source', 'interaction types'];
-const TTD_COLUMNS = ['target', 'drug', 'company', 'type', 'therapeutic class', 'inChI', 'inChIKey', 'canonical smiles', 'highest status', 'compound class'];
+const TTD_COLUMNS = ['target', 'drug', 'company', 'type', 'therapeutic class', 'inChI', 'inChIKey', 'canonical smiles', 'status', 'compound class'];
 
 const FIELDS = {
     OPEN_TARGETS: {
@@ -37,7 +37,7 @@ const FIELDS = {
         'inChI': 'INCHI',
         'inChIKey': 'INCHI_KEY',
         'canonical smiles': 'CANONICAL_SMILES',
-        'highest status': 'STATUS',
+        'status': 'STATUS',
         'compound class': 'COMPOUND_CLASS'
     }
 };
@@ -62,7 +62,7 @@ const FILTER_FIELDS_LIST = {
         'companies': 'company',
         'types': 'type',
         'therapeuticClasses': 'therapeutic class',
-        'statuses': 'highest status',
+        'statuses': 'status',
         'compoundClasses': 'compound class'
     }
 };
@@ -250,25 +250,27 @@ export default class ngbDrugsTableService {
             }));
         }
         if (this.sourceModel === TTD) {
-            this._drugsResults = result.map(item => ({
-                target: {
-                    geneId: item.geneId,
-                    value: this.getTarget(item.geneId)
-                },
-                'drug': {
-                    id: item.id,
-                    name: item.name,
-                    url: item.url
-                },
-                'company': item.company,
-                'type': item.type,
-                'therapeutic class': item.therapeuticClass,
-                'inChI': item.inChI,
-                'inChIKey': item.inChIKey,
-                'canonical smiles': item.canonicalSmiles,
-                'highest status': item.highestStatus,
-                'compound class': item.compoundClass,
-            }));
+            this._drugsResults = result.map(item => {
+                return {
+                    target: {
+                        geneId: item.geneId,
+                        value: this.getTarget(item.geneId)
+                    },
+                    'drug': {
+                        id: item.id,
+                        name: item.name,
+                        url: item.url
+                    },
+                    'company': item.company,
+                    'type': item.type,
+                    'therapeutic class': item.therapeuticClass,
+                    'inChI': item.inChI,
+                    'inChIKey': item.inChIKey,
+                    'canonical smiles': item.canonicalSmiles,
+                    'status': item.status,
+                    'compound class': item.compoundClass,
+                };
+            });
         }
     }
 
