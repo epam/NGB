@@ -73,9 +73,12 @@ export default class ngbSequencesTableController {
         });
 
         const geneChanged = this.geneChanged.bind(this);
+        const settingChanged = this.settingChanged.bind(this);
         dispatcher.on('target:identification:sequence:gene:changed', geneChanged);
+        dispatcher.on('target:identification:sequence:setting:changed', settingChanged);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:identification:sequence:gene:changed', geneChanged);
+            dispatcher.removeListener('target:identification:sequence:setting:changed', settingChanged);
         });
     }
 
@@ -226,5 +229,11 @@ export default class ngbSequencesTableController {
     resetSequenceResults() {
         this.currentPage = 1;
         this.ngbSequencesPanelService.resetSequenceResults();
+    }
+
+    async settingChanged() {
+        this.resetSequenceResults();
+        this.ngbSequencesPanelService.resetAllSequences();
+        await this.initialize();
     }
 }
