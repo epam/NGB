@@ -46,13 +46,13 @@ ngb-genomics-table {
     }
 
     .ui-grid-container .ui-grid-cell-contents.md-button {
-        min-height: unset;
         height: 100%;
     }
 
     .ui-grid-header-cell-label-container {
         display: flex;
         justify-content: center;
+        height: 13px;
     }
 
     .ui-grid-header-cell-label {

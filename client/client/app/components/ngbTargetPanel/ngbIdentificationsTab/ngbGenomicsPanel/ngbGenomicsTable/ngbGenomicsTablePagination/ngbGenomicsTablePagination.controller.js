@@ -10,9 +10,11 @@ export default class ngbGenomicsTablePaginationController {
     constructor($scope, $timeout, dispatcher, ngbGenomicsPanelService) {
         Object.assign(this, {$scope, $timeout, ngbGenomicsPanelService});
         this.pages = this.getPages();
-        dispatcher.on('target:identification:genomics:results:updated', this.refresh.bind(this));
+
+        const refresh = this.refresh.bind(this);
+        dispatcher.on('target:identification:genomics:results:updated', refresh);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:genomics:results:updated', this.refresh.bind(this));
+            dispatcher.removeListener('target:identification:genomics:results:updated', refresh);
         });
     }
 

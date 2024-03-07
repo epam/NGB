@@ -5,6 +5,7 @@ import {
 
 const OPEN_TARGETS_COLUMNS = ['target', 'disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
 const PHARM_GKB_COLUMNS = ['target', 'disease'];
+const TTD_COLUMNS = ['target', 'disease', 'clinical status'];
 
 const OPEN_TARGETS_DEFAULT_SORT = [{
     field: 'overall score',
@@ -18,6 +19,9 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
     }
     get pharmGkbColumnList () {
         return PHARM_GKB_COLUMNS;
+    }
+    get ttdColumnList () {
+        return TTD_COLUMNS;
     }
 
     get openTargetsDefaultSort() {
@@ -65,6 +69,9 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         }
         if (this.sourceModel === SourceOptions.PHARM_GKB) {
             return this.pharmGkbColumnList;
+        }
+        if (this.sourceModel === SourceOptions.TTD) {
+            return this.ttdColumnList;
         }
         return [];
     }
@@ -219,6 +226,11 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
                         ...columnSettings,
                         cellTemplate: linkCell,
                         minWidth: 200
+                    };
+                    break;
+                case 'clinical status':
+                    columnSettings = {
+                        ...columnSettings,
                     };
                     break;
                 default:

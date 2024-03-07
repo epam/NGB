@@ -10,9 +10,11 @@ export default class ngbSequencesTablePaginationController {
     constructor($scope, $timeout, dispatcher, ngbSequencesTableService, ngbSequencesPanelService) {
         Object.assign(this, {$scope, $timeout, ngbSequencesTableService, ngbSequencesPanelService});
         this.pages = this.getPages();
-        dispatcher.on('target:identification:sequences:results:updated', this.refresh.bind(this));
+
+        const refresh = this.refresh.bind(this);
+        dispatcher.on('target:identification:sequences:results:updated', refresh);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:sequences:results:updated', this.refresh.bind(this));
+            dispatcher.removeListener('target:identification:sequences:results:updated', refresh);
         });
     }
 

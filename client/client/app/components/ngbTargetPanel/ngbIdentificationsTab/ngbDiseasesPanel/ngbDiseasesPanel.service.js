@@ -13,11 +13,13 @@ const DiseaseTabNames = {
 const SourceOptions = {
     OPEN_TARGETS: 'OPEN_TARGETS',
     PHARM_GKB: 'PHARM_GKB',
+    TTD: 'TTD'
 };
 
 const SourceOptionNames = {
     [SourceOptions.OPEN_TARGETS]: 'Open Targets',
-    [SourceOptions.PHARM_GKB]: 'PharmGKB'
+    [SourceOptions.PHARM_GKB]: 'PharmGKB',
+    [SourceOptions.TTD]: 'Therapeutic Target Database'
 };
 
 const EXPORT_SOURCE = {

@@ -18,11 +18,13 @@ export default class ngbDrugsTableFilterController {
         Object.assign(this, {$scope, dispatcher, ngbDrugsTableService});
         this.input = $element.find('.ngb-filter-input')[0];
 
-        this.dispatcher.on('target:identification:drugs:filters:list', this.setList.bind(this));
-        this.dispatcher.on('target:identification:drugs:filters:reset', this.resetFilters.bind(this));
+        const setList = this.setList.bind(this);
+        const resetFilters = this.resetFilters.bind(this);
+        this.dispatcher.on('target:identification:drugs:filters:list', setList);
+        this.dispatcher.on('target:identification:drugs:filters:reset', resetFilters);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:drugs:filters:list', this.setList.bind(this));
-            dispatcher.removeListener('target:identification:drugs:filters:reset', this.resetFilters.bind(this));
+            dispatcher.removeListener('target:identification:drugs:filters:list', setList);
+            dispatcher.removeListener('target:identification:drugs:filters:reset', resetFilters);
         });
     }
 

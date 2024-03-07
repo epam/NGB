@@ -82,9 +82,11 @@ export default class ngbGenomicsPanelController {
             projectContext,
             targetContext
         });
-        dispatcher.on('target:identification:sequences:results:updated', this.setAllProteinOptions.bind(this));
+
+        const setAllProteinOptions = this.setAllProteinOptions.bind(this);
+        dispatcher.on('target:identification:sequences:results:updated', setAllProteinOptions);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:identification:sequences:results:updated', this.setAllProteinOptions.bind(this));
+            dispatcher.removeListener('target:identification:sequences:results:updated', setAllProteinOptions);
         });
     }
 
