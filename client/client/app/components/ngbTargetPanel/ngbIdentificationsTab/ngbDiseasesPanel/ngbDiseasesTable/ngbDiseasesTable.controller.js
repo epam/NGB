@@ -5,7 +5,7 @@ import {
 
 const OPEN_TARGETS_COLUMNS = ['target', 'disease', 'overall score', 'genetic association', 'somatic mutations', 'drugs', 'pathways systems', 'text mining', 'animal models', 'RNA expression'];
 const PHARM_GKB_COLUMNS = ['target', 'disease'];
-const TTD_COLUMNS = ['target', 'disease', 'clinical status'];
+const TTD_COLUMNS = ['target', 'TTD target', 'disease', 'clinical status'];
 
 const OPEN_TARGETS_DEFAULT_SORT = [{
     field: 'overall score',

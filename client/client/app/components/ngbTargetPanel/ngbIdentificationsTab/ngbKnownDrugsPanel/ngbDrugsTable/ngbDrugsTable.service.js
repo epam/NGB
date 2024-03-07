@@ -3,7 +3,7 @@ const PAGE_SIZE = 10;
 const OPEN_TARGETS_COLUMNS = ['target', 'drug', 'type', 'mechanism of action', 'action type', 'disease', 'phase', 'status', 'source'];
 const PHARM_GKB_COLUMNS = ['target', 'drug', 'Source'];
 const DGI_DB_COLUMNS = ['target', 'drug', 'interaction claim source', 'interaction types'];
-const TTD_COLUMNS = ['target', 'drug', 'company', 'type', 'therapeutic class', 'inChI', 'inChIKey', 'canonical smiles', 'status', 'compound class'];
+const TTD_COLUMNS = ['target', 'ttd target', 'drug', 'company', 'type', 'therapeutic class', 'inChI', 'inChIKey', 'canonical smiles', 'status', 'compound class'];
 
 const FIELDS = {
     OPEN_TARGETS: {
@@ -30,6 +30,7 @@ const FIELDS = {
     },
     TTD: {
         'target': 'TARGET',
+        'ttd target': 'TTD_TARGET',
         'drug': 'DRUG_NAME',
         'company': 'COMPANY',
         'type': 'TYPE',
@@ -59,6 +60,7 @@ const FILTER_FIELDS_LIST = {
         'interactionTypes': 'interaction types'
     },
     TTD: {
+        'ttdTargets': 'ttd target',
         'companies': 'company',
         'types': 'type',
         'therapeuticClasses': 'therapeutic class',
@@ -256,6 +258,7 @@ export default class ngbDrugsTableService {
                         geneId: item.geneId,
                         value: this.getTarget(item.geneId)
                     },
+                    'ttd target': item.ttdTarget,
                     'drug': {
                         id: item.id,
                         name: item.name,
