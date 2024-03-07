@@ -36,6 +36,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class TTDDrugAssociation extends Association {
     public static final String URL_PATTERN = "https://idrblab.net/ttd/data/drug/details/%s";
+    private String ttdGeneId;
+    private String ttdTarget;
     private String company;
     private String type;
     private String therapeuticClass;
@@ -46,9 +48,12 @@ public class TTDDrugAssociation extends Association {
     private String compoundClass;
     @Builder
     public TTDDrugAssociation(String id, String name, String url, String geneId, String target,
-                              String company, String type, String therapeuticClass, String inChI,
-                              String inChIKey, String canonicalSmiles, String status, String compoundClass) {
+                              String ttdGeneId, String ttdTarget, String company, String type,
+                              String therapeuticClass, String inChI, String inChIKey,
+                              String canonicalSmiles, String status, String compoundClass) {
         super(id, name, url, geneId, target);
+        this.ttdGeneId = ttdGeneId;
+        this.ttdTarget = ttdTarget;
         this.company = company;
         this.type = type;
         this.therapeuticClass = therapeuticClass;

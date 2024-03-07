@@ -39,9 +39,18 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -76,15 +85,18 @@ public class TTDDatabaseManager {
             List<String> geneNames = targetManager.getTargetGeneNames(Collections.singletonList(geneId));
             List<TTDDrugAssociation> byGeneNames = CollectionUtils.isEmpty(geneNames) ?
                     Collections.emptyList() :
-                    ttdDrugAssociationManager.searchByGeneNames(geneNames, request.getFilters());
+                    ttdDrugAssociationManager.searchByField(geneNames,
+                            TTDDrugField.TTD_TARGET.name(), request.getFilters());
             if (CollectionUtils.isNotEmpty(byGeneNames)) {
+                byGeneNames.forEach(i -> i.setGeneId(geneId));
                 result.addAll(byGeneNames);
             } else {
                 List<String> blastSequences = getBlastSequences(targetGenes, geneId);
                 if (CollectionUtils.isNotEmpty(blastSequences)) {
-                    List<TTDDrugAssociation> bySequences = ttdDrugAssociationManager.searchByGeneIds(blastSequences,
-                            request.getFilters());
+                    List<TTDDrugAssociation> bySequences = ttdDrugAssociationManager.searchByField(blastSequences,
+                            TTDDrugField.TTD_TARGET.name(), request.getFilters());
                     if (CollectionUtils.isNotEmpty(bySequences)) {
+                        bySequences.forEach(i -> i.setGeneId(geneId));
                         result.addAll(bySequences);
                     }
                 }
@@ -101,15 +113,18 @@ public class TTDDatabaseManager {
             List<String> geneNames = targetManager.getTargetGeneNames(Collections.singletonList(geneId));
             List<TTDDiseaseAssociation> byGeneNames = CollectionUtils.isEmpty(geneNames) ?
                     Collections.emptyList() :
-                    ttdDiseaseAssociationManager.searchByGeneNames(geneNames, request.getFilters());
+                    ttdDiseaseAssociationManager.searchByField(geneNames,
+                            TTDDiseaseField.TTD_TARGET.name(), request.getFilters());
             if (CollectionUtils.isNotEmpty(byGeneNames)) {
+                byGeneNames.forEach(i -> i.setGeneId(geneId));
                 result.addAll(byGeneNames);
             } else {
                 List<String> blastSequences = getBlastSequences(targetGenes, geneId);
                 if (CollectionUtils.isNotEmpty(blastSequences)) {
-                    List<TTDDiseaseAssociation> bySequences = ttdDiseaseAssociationManager.searchByGeneIds(
-                            blastSequences, request.getFilters());
+                    List<TTDDiseaseAssociation> bySequences = ttdDiseaseAssociationManager.searchByField(
+                            blastSequences, TTDDiseaseField.TTD_TARGET.name(), request.getFilters());
                     if (CollectionUtils.isNotEmpty(bySequences)) {
+                        bySequences.forEach(i -> i.setGeneId(geneId));
                         result.addAll(bySequences);
                     }
                 }
@@ -125,14 +140,17 @@ public class TTDDatabaseManager {
             List<String> geneNames = targetManager.getTargetGeneNames(Collections.singletonList(geneId));
             List<TTDDrugAssociation> byGeneNames = CollectionUtils.isEmpty(geneNames) ?
                     Collections.emptyList() :
-                    ttdDrugAssociationManager.searchByGeneNames(geneNames);
+                    ttdDrugAssociationManager.searchByField(geneNames, TTDDrugField.TTD_TARGET.name());
             if (CollectionUtils.isNotEmpty(byGeneNames)) {
+                byGeneNames.forEach(i -> i.setGeneId(geneId));
                 result.addAll(byGeneNames);
             } else {
                 List<String> blastSequences = getBlastSequences(targetGenes, geneId);
                 if (CollectionUtils.isNotEmpty(blastSequences)) {
-                    List<TTDDrugAssociation> bySequences = ttdDrugAssociationManager.search(blastSequences);
+                    List<TTDDrugAssociation> bySequences = ttdDrugAssociationManager.search(
+                            blastSequences, TTDDrugField.TTD_GENE_ID.name());
                     if (CollectionUtils.isNotEmpty(bySequences)) {
+                        bySequences.forEach(i -> i.setGeneId(geneId));
                         result.addAll(bySequences);
                     }
                 }
@@ -185,14 +203,17 @@ public class TTDDatabaseManager {
             List<String> geneNames = targetManager.getTargetGeneNames(Collections.singletonList(geneId));
             List<TTDDiseaseAssociation> byGeneNames = CollectionUtils.isEmpty(geneNames) ?
                     Collections.emptyList() :
-                    ttdDiseaseAssociationManager.searchByGeneNames(geneNames);
+                    ttdDiseaseAssociationManager.searchByField(geneNames, TTDDiseaseField.TTD_TARGET.name());
             if (CollectionUtils.isNotEmpty(byGeneNames)) {
+                byGeneNames.forEach(i -> i.setGeneId(geneId));
                 result.addAll(byGeneNames);
             } else {
                 List<String> blastSequences = getBlastSequences(targetGenes, geneId);
                 if (CollectionUtils.isNotEmpty(blastSequences)) {
-                    List<TTDDiseaseAssociation> bySequences = ttdDiseaseAssociationManager.search(blastSequences);
+                    List<TTDDiseaseAssociation> bySequences = ttdDiseaseAssociationManager.searchByField(
+                            blastSequences, TTDDiseaseField.TTD_GENE_ID.name());
                     if (CollectionUtils.isNotEmpty(bySequences)) {
+                        bySequences.forEach(i -> i.setGeneId(geneId));
                         result.addAll(bySequences);
                     }
                 }

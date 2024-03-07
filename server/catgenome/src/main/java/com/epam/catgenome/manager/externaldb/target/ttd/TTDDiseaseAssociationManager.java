@@ -96,8 +96,8 @@ public class TTDDiseaseAssociationManager extends AbstractAssociationManager<TTD
                         if (groupedByField.containsKey("TARGNAME") && groupedByField.containsKey("TARGETID")) {
                             String targetFullName = groupedByField.get("TARGNAME").get(0).getValue();
                             TTDDiseaseAssociation entry = TTDDiseaseAssociation.builder()
-                                    .target(getTargetName(targetFullName))
-                                    .geneId(groupedByField.get("TARGETID").get(0).getValue())
+                                    .ttdGeneId(groupedByField.get("TARGETID").get(0).getValue())
+                                    .ttdTarget(getTargetName(targetFullName))
                                     .build();
                             String[] diseaseProperties = r.getValue().split(FileFormat.TSV.getSeparator());
                             entry.setClinicalStatus(diseaseProperties[0]);
@@ -125,8 +125,8 @@ public class TTDDiseaseAssociationManager extends AbstractAssociationManager<TTD
     @Override
     public void addDoc(final IndexWriter writer, final TTDDiseaseAssociation entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new TextField(TTDDiseaseField.GENE_ID.name(), entry.getGeneId(), Field.Store.YES));
-        doc.add(new TextField(TTDDiseaseField.TARGET.name(), entry.getTarget(), Field.Store.YES));
+        doc.add(new TextField(TTDDiseaseField.TTD_GENE_ID.name(), entry.getTtdGeneId(), Field.Store.YES));
+        doc.add(new TextField(TTDDiseaseField.TTD_TARGET.name(), entry.getTtdTarget(), Field.Store.YES));
         doc.add(new TextField(TTDDiseaseField.DISEASE_NAME.name(), entry.getName(), Field.Store.YES));
 
         final String phase = Optional.ofNullable(entry.getClinicalStatus()).orElse("");
@@ -137,8 +137,8 @@ public class TTDDiseaseAssociationManager extends AbstractAssociationManager<TTD
     @Override
     public TTDDiseaseAssociation entryFromDoc(final Document doc) {
         return TTDDiseaseAssociation.builder()
-                .geneId(doc.getField(TTDDiseaseField.GENE_ID.name()).stringValue())
-                .target(doc.getField(TTDDiseaseField.TARGET.name()).stringValue())
+                .ttdGeneId(doc.getField(TTDDiseaseField.TTD_GENE_ID.name()).stringValue())
+                .ttdTarget(doc.getField(TTDDiseaseField.TTD_TARGET.name()).stringValue())
                 .name(doc.getField(TTDDiseaseField.DISEASE_NAME.name()).stringValue())
                 .clinicalStatus(doc.getField(TTDDiseaseField.CLINICAL_STATUS.name()).stringValue())
                 .build();

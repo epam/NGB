@@ -132,8 +132,8 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
                     drugRecords.forEach(r -> {
                         if (groupedByField.containsKey("GENENAME") && groupedByField.containsKey("TARGETID")) {
                             TTDDrugAssociation entry = TTDDrugAssociation.builder()
-                                    .target(groupedByField.get("GENENAME").get(0).getValue())
-                                    .geneId(groupedByField.get("TARGETID").get(0).getValue())
+                                    .ttdGeneId(groupedByField.get("TARGETID").get(0).getValue())
+                                    .ttdTarget(groupedByField.get("GENENAME").get(0).getValue())
                                     .build();
                             String[] drugProperties = r.getValue().split(FileFormat.TSV.getSeparator());
                             entry.setId(drugProperties[0]);
@@ -227,8 +227,8 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
     @Override
     public void addDoc(final IndexWriter writer, final TTDDrugAssociation entry) throws IOException {
         final Document doc = new Document();
-        doc.add(new TextField(TTDDrugField.GENE_ID.name(), entry.getGeneId(), Field.Store.YES));
-        doc.add(new TextField(TTDDrugField.TARGET.name(), entry.getTarget(), Field.Store.YES));
+        doc.add(new TextField(TTDDrugField.TTD_GENE_ID.name(), entry.getTtdGeneId(), Field.Store.YES));
+        doc.add(new TextField(TTDDrugField.TTD_TARGET.name(), entry.getTtdTarget(), Field.Store.YES));
         doc.add(new StringField(TTDDrugField.DRUG_ID.name(), entry.getId(), Field.Store.YES));
         doc.add(new TextField(TTDDrugField.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
 
@@ -263,8 +263,8 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
     public TTDDrugAssociation entryFromDoc(final Document doc) {
         final String id = doc.getField(TTDDrugField.DRUG_ID.name()).stringValue();
         return TTDDrugAssociation.builder()
-                .geneId(doc.getField(TTDDrugField.GENE_ID.name()).stringValue())
-                .target(doc.getField(TTDDrugField.TARGET.name()).stringValue())
+                .ttdGeneId(doc.getField(TTDDrugField.TTD_GENE_ID.name()).stringValue())
+                .ttdTarget(doc.getField(TTDDrugField.TTD_TARGET.name()).stringValue())
                 .id(id)
                 .name(doc.getField(TTDDrugField.DRUG_NAME.name()).stringValue())
                 .url(String.format(TTDDrugAssociation.URL_PATTERN, id))

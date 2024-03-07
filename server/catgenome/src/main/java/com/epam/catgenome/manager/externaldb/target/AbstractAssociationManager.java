@@ -130,20 +130,15 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
         return search(ids, IndexCommonFields.GENE_ID.name());
     }
 
-    public List<T> searchByGeneIds(final List<String> geneIds, final List<Filter> filters)
-            throws ParseException, IOException {
-        return search(buildQuery(geneIds, filters), null);
-    }
-
-    public List<T> searchByGeneNames(final List<String> geneNames) throws IOException, ParseException {
-        final Query byGeneNamesQuery = getByTermsQuery(geneNames, IndexCommonFields.TARGET.name());
-        return search(byGeneNamesQuery, null);
-    }
-
-    public List<T> searchByGeneNames(final List<String> geneNames, final List<Filter> filters)
+    public List<T> searchByField(final List<String> values, final String fieldName)
             throws IOException, ParseException {
-        final Query byGeneNamesQuery = getByTermsQuery(geneNames, IndexCommonFields.TARGET.name());
-        final Query query = buildQuery(byGeneNamesQuery, filters);
+        return search(getByTermsQuery(values, fieldName), null);
+    }
+
+    public List<T> searchByField(final List<String> values, final String fieldName, final List<Filter> filters)
+            throws IOException, ParseException {
+        final Query byFieldQuery = getByTermsQuery(values, fieldName);
+        final Query query = buildQuery(byFieldQuery, filters);
         return search(query, null);
     }
 
@@ -167,7 +162,6 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
     @Getter
     private enum IndexCommonFields {
         GENE_ID,
-        TARGET,
         DISEASE_ID;
     }
 }
