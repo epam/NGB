@@ -1,7 +1,7 @@
-export default class ngbGenesTableFilterController {
+export default class ngbTargetGenesTableFilterController {
 
     static get UID() {
-        return 'ngbGenesTableFilterController';
+        return 'ngbTargetGenesTableFilterController';
     }
 
     isRange = false;
