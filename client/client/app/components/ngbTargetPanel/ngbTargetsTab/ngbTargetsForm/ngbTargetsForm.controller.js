@@ -6,9 +6,14 @@ export default class ngbTargetsFormController {
 
     constructor($scope, $timeout, dispatcher, $mdDialog, ngbTargetsFormService, ngbTargetsTabService, ngbTargetGenesTableService) {
         Object.assign(this, {$scope, $timeout, dispatcher, $mdDialog, ngbTargetsFormService, ngbTargetsTabService, ngbTargetGenesTableService});
-        dispatcher.on('target:form:changes:save', this.updateTarget.bind(this));
+
+        const updateTarget = this.updateTarget.bind(this);
+        const deleteTarget = this.deleteTarget.bind(this);
+        dispatcher.on('target:form:changes:save', updateTarget);
+        dispatcher.on('target:delete', deleteTarget);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('target:form:changes:save', this.updateTarget.bind(this));
+            dispatcher.removeListener('target:form:changes:save', updateTarget);
+            dispatcher.removeListener('target:delete', deleteTarget);
         });
         this.geneFile = null;
     }
@@ -161,6 +166,7 @@ export default class ngbTargetsFormController {
                 .then((success) => {
                     if (success) {
                         this.ngbTargetsTabService.setEditMode();
+                        this.dispatcher.emit('target:form:saved');
                     }
                 });
         }
@@ -268,10 +274,10 @@ export default class ngbTargetsFormController {
                     };
                 }
             });
+    }
 
-        this.dispatcher.on('target:delete', async () => {
-            await this.ngbTargetsFormService.deleteTarget();
-            this.$timeout(() => this.$scope.$apply());
-        });
+    async deleteTarget() {
+        await this.ngbTargetsFormService.deleteTarget();
+        this.$timeout(() => this.$scope.$apply());
     }
 }

@@ -1,14 +1,5 @@
 import maskModel from './utils/maskModel';
 
-const NEW_ADDITIONAL_GENE = {
-    taxId: '',
-    geneId: '',
-};
-
-const NEW_ADDITIONAL_GENES = {
-    limit: 1,
-}
-
 const NEW_GENE = {
     geneId: '',
     geneName: '',
@@ -18,10 +9,7 @@ const NEW_GENE = {
 };
 
 const getNewGene = () => {
-    const gene = {...NEW_GENE};
-    gene.additionalGenes = {...NEW_ADDITIONAL_GENES};
-    gene.additionalGenes.value = [{...NEW_ADDITIONAL_GENE}];
-    return gene;
+    return {...NEW_GENE};
 }
 
 const PAGE_SIZE = 20;
@@ -200,12 +188,6 @@ export default class ngbTargetsFormService {
         };
         this._originalModel = undefined;
         this.dispatcher.emit('target:model:changed');
-    }
-
-    addAdditionalGenesField(index) {
-        const gene = this._targetModel.genes[index];
-        gene.additionalGenes = {...NEW_ADDITIONAL_GENES};
-        gene.additionalGenes.value = [{...NEW_ADDITIONAL_GENE}];
     }
 
     parasiteGenesAdded() {
@@ -502,6 +484,7 @@ export default class ngbTargetsFormService {
         } else if (model.type === this.targetType.DEFAULT) {
             const newGene = getNewGene();
             this._targetModel.genes.push(newGene);
+            this.dispatcher.emit('target:form:gene:added');
         }
     }
 
@@ -521,6 +504,12 @@ export default class ngbTargetsFormService {
                 };
                 if (g.priority && g.priority !== 'None') {
                     gene.priority = g.priority;
+                }
+                if (g.additionalGenes && g.additionalGenes.value) {
+                    const additionalGenes = this.getAdditionalGenesForRequest(g.additionalGenes.value);
+                    if (additionalGenes) {
+                        gene.additionalGenes = additionalGenes;
+                    }
                 }
                 return gene;
             })
@@ -563,6 +552,17 @@ export default class ngbTargetsFormService {
         return request;
     }
 
+    getAdditionalGenesForRequest(genesArray) {
+        const genesWithValue = genesArray.filter(gene => (
+            (gene.taxId || String(gene.taxId)) &&
+            (gene.geneId || String(gene.geneId))
+        ));
+        return genesWithValue.length
+            ? (genesWithValue.reduce((a, v) => (
+                { ...a, [v.geneId]: Number(v.taxId)}), {}))
+            : null;
+    }
+
     getParasiteGenesRequest(genes, targetId) {
         const request = genes.map(g => {
             const gene = Object.fromEntries(this.requiredFields.map(field => (
@@ -573,9 +573,11 @@ export default class ngbTargetsFormService {
             if (g.priority && g.priority !== 'None') {
                 gene.priority = g.priority;
             }
-            if (g.additionalGenes) {
-                gene.additionalGenes = g.additionalGenes.value
-                    .reduce((a, v) => ({ ...a, [v.geneId]: Number(v.taxId)}), {}) 
+            if (g.additionalGenes && g.additionalGenes.value) {
+                const additionalGenes = this.getAdditionalGenesForRequest(g.additionalGenes.value);
+                if (additionalGenes) {
+                    gene.additionalGenes = additionalGenes;
+                }
             }
             return gene;
         });
@@ -660,8 +662,10 @@ export default class ngbTargetsFormService {
                     gene.priority = g.priority;
                 }
                 if (g.additionalGenes && g.additionalGenes.value) {
-                    gene.additionalGenes = g.additionalGenes.value
-                        .reduce((a, v) => ({ ...a, [v.geneId]: Number(v.taxId)}), {})
+                    const additionalGenes = this.getAdditionalGenesForRequest(g.additionalGenes.value);
+                    if (additionalGenes) {
+                        gene.additionalGenes = additionalGenes;
+                    }
                 }
                 return gene;
             }),
@@ -708,8 +712,13 @@ export default class ngbTargetsFormService {
                     if (!allFields.includes(key)) return false;
                     if (key === this.additionalGenes) {
                         const additionalGenes = value.value;
+                        if (!originalGene.additionalGenes) {
+                            return additionalGenes.length;
+                        }
                         const originalAdditionalGenes = originalGene.additionalGenes.value;
-                        if (originalAdditionalGenes.length !== additionalGenes.length) return true;
+                        if (originalAdditionalGenes.length !== additionalGenes.length) {
+                            return true;
+                        }
                         return additionalGenes.some((g, i) => (
                             g.geneId !== originalAdditionalGenes[i].geneId ||
                             g.taxId !== originalAdditionalGenes[i].taxId
@@ -729,8 +738,11 @@ export default class ngbTargetsFormService {
                 if (g.priority && g.priority !== 'None') {
                     gene.priority = g.priority;
                 }
-                if (g.additionalGenes) {
-                    gene.additionalGenes = g.additionalGenes.value.reduce((a, v) => ({ ...a, [v.geneId]: Number(v.taxId)}), {}) 
+                if (g.additionalGenes && g.additionalGenes.value) {
+                    const additionalGenes = this.getAdditionalGenesForRequest(g.additionalGenes.value);
+                    if (additionalGenes) {
+                        gene.additionalGenes = additionalGenes;
+                    }
                 }
                 return gene;
             });

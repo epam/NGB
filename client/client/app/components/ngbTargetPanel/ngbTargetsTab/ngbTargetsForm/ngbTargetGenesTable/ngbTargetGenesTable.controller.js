@@ -6,6 +6,15 @@ const PRIORITY_LIST = [{
     value: 'HIGH'
 }];
 
+const NEW_ADDITIONAL_GENES = {
+    limit: 1,
+};
+
+const NEW_ADDITIONAL_GENE = {
+    taxId: '',
+    geneId: '',
+};
+
 export default class ngbTargetGenesTableController {
 
     gridOptions = {
@@ -763,18 +772,17 @@ export default class ngbTargetGenesTableController {
         return genesEmpty.length;
     }
 
-    addAdditionalGene(genesArray, rowIndex, event) {
-        if (this.getIsAddAdditionalGeneDisabled(genesArray)) return;
-        if (!genesArray) {
-            this.ngbTargetsFormService.addAdditionalGenesField(rowIndex);
+    async addAdditionalGene(row, rowIndex, event) {
+        if (this.getIsAddAdditionalGeneDisabled(row.additionalGenes)) return;
+        if (!row.additionalGenes) {
+            row.additionalGenes = {...NEW_ADDITIONAL_GENES};
+            row.additionalGenes.value = [];
+            row.additionalGenes.value.push({...NEW_ADDITIONAL_GENE});
         } else {
-            if (genesArray.value.length === genesArray.limit) {
-                this.showOthers(rowIndex, genesArray, event)
+            if (row.additionalGenes.value.length === row.additionalGenes.limit) {
+                this.showOthers(rowIndex, row.additionalGenes, event)
             }
-            genesArray.value.push({
-                taxId: '',
-                geneId: ''
-            });
+            row.additionalGenes.value.push({...NEW_ADDITIONAL_GENE});
         }
     }
 }
