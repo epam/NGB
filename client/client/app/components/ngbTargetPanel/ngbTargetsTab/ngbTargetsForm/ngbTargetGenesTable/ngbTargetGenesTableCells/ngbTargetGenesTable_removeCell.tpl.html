@@ -1,5 +1,6 @@
 <md-button class="remove-btn md-warn"
            ng-click="grid.appScope.$ctrl.onClickRemove($event, row.entity)"
+           ng-disabled="!grid.appScope.$ctrl.changeAllowed"
            aria-label="Remove gene"
            title="Remove gene">
     <ng-md-icon icon="clear"

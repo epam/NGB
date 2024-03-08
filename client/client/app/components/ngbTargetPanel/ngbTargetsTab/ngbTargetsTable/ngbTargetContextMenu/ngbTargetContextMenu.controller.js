@@ -1,14 +1,14 @@
 import angular from 'angular';
 import ngbTargetPermissionsFormController from './ngbTargetPermissionsForm/ngbTargetPermissionsForm.controller';
 
-const ROLE_TARGET_MANAGER = 'ROLE_TARGET_MANAGER';
+const ROLE_ADMIN = 'ROLE_ADMIN';
 
 export default class ngbTargetContextMenuController {
 
     hasRole = false;
 
-    get managerRole() {
-        return ROLE_TARGET_MANAGER;
+    get adminRole() {
+        return ROLE_ADMIN;
     }
 
     static get UID() {
@@ -26,7 +26,7 @@ export default class ngbTargetContextMenuController {
                 if (utilsDataService) {
                     this.userDataService.getCurrentUser()
                         .then(user => {
-                            this.hasRole = user.hasRoles([this.managerRole]);
+                            this.hasRole = user.hasRoles([this.adminRole]);
                         });
                 } else {
                     this.hasRole = false;
