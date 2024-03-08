@@ -131,6 +131,11 @@ export default class NgbBibliographyPanelService {
         return this.ngbTargetPanelService.allGenes || [];
     }
 
+    get targetId() {
+        const {target} = this.ngbTargetPanelService.identificationTarget || {};
+        return target.id;
+    }
+
     updateGenes (targetIdentificationData) {
         this.selectedGeneIds = this.genes.map(g => g.geneId);
         this.clearSummary();
@@ -162,6 +167,7 @@ export default class NgbBibliographyPanelService {
         const commit = this._getPublicationsCommitPhase();
         return new Promise(resolve => {
             this.targetDataService.getPublications({
+                targetId: this.targetId,
                 geneIds: this.selectedGeneIds,
                 page: page,
                 pageSize: this.pageSize,
