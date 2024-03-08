@@ -760,12 +760,16 @@ export default class ngbTargetGenesTableController {
 
     addAdditionalGene(genesArray, rowIndex, event) {
         if (this.getIsAddAdditionalGeneDisabled(genesArray)) return;
-        if (genesArray.value.length === genesArray.limit) {
-            this.showOthers(rowIndex, genesArray, event)
+        if (!genesArray) {
+            this.ngbTargetsFormService.addAdditionalGenesField(rowIndex);
+        } else {
+            if (genesArray.value.length === genesArray.limit) {
+                this.showOthers(rowIndex, genesArray, event)
+            }
+            genesArray.value.push({
+                taxId: '',
+                geneId: ''
+            });
         }
-        genesArray.value.push({
-            taxId: '',
-            geneId: ''
-        });
     }
 }
