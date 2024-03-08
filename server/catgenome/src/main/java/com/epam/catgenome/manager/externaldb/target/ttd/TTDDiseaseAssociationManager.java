@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.externaldb.target.ttd;
 import com.epam.catgenome.entity.externaldb.target.ttd.TTDDiseaseAssociation;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
+import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.util.FileFormat;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -33,8 +34,6 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,8 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
 
 
 @Service
@@ -131,7 +128,9 @@ public class TTDDiseaseAssociationManager extends AbstractAssociationManager<TTD
     public void addDoc(final IndexWriter writer, final TTDDiseaseAssociation entry) throws IOException {
         final Document doc = new Document();
         doc.add(new TextField(TTDDiseaseField.TTD_GENE_ID.name(), entry.getTtdGeneId(), Field.Store.YES));
-        doc.add(new TextField(TTDDiseaseField.TTD_TARGET.name(), entry.getTtdTarget(), Field.Store.YES));
+        doc.add(new StringField(TTDDiseaseField.TTD_TARGET_CI.name(),
+                entry.getTtdTarget().toLowerCase(), Field.Store.NO));
+        doc.add(new StringField(TTDDiseaseField.TTD_TARGET.name(), entry.getTtdTarget(), Field.Store.YES));
         doc.add(new TextField(TTDDiseaseField.DISEASE_NAME.name(), entry.getName(), Field.Store.YES));
 
         final String phase = Optional.ofNullable(entry.getClinicalStatus()).orElse("");
@@ -154,21 +153,39 @@ public class TTDDiseaseAssociationManager extends AbstractAssociationManager<TTD
         return TTDDiseaseField.valueOf(fieldName).getType();
     }
 
-    @Override
-    public Query getByOptionsQuery(final List<String> options, final String fieldName) {
-        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        for (String option : options) {
-            builder.add(buildTermQuery(TTDDiseaseField.TTD_TARGET.name().equals(fieldName) ?
-                    option.toLowerCase() : option, fieldName), BooleanClause.Occur.SHOULD);
-        }
-        return builder.build();
-    }
-
-    private static String getTargetName(final String targetFullName) {
+    public static String getTargetName(final String targetFullName) {
         String[] subs = targetFullName.split(" \\(");
         if (subs.length > 1) {
             return subs[1].replace(")", "");
         }
         return "";
+    }
+
+    public List<TTDDiseaseAssociation> searchByTargetNames(final List<String> values, final List<Filter> filters)
+            throws ParseException, IOException {
+        return search(buildQuery(getByTargetNamesQuery(values), filters), null);
+    }
+
+    public List<TTDDiseaseAssociation> searchByTargetNames(final List<String> values)
+            throws ParseException, IOException {
+        return search(getByTargetNamesQuery(values), null);
+    }
+
+    public List<TTDDiseaseAssociation> searchByTargetIds(final List<String> values, final List<Filter> filters)
+            throws ParseException, IOException {
+        return search(buildQuery(getByTargetIdsQuery(values), filters), null);
+    }
+
+    public List<TTDDiseaseAssociation> searchByTargetIds(final List<String> values) throws ParseException, IOException {
+        return search(getByTargetIdsQuery(values), null);
+    }
+
+    private Query getByTargetNamesQuery(final List<String> values) {
+        final List<String> lowerCaseValues = values.stream().map(String::toLowerCase).collect(Collectors.toList());
+        return getByOptionsQuery(lowerCaseValues, TTDDiseaseField.TTD_TARGET_CI.name());
+    }
+
+    private Query getByTargetIdsQuery(final List<String> values) throws ParseException {
+        return getByTermsQuery(values, TTDDiseaseField.TTD_GENE_ID.name());
     }
 }

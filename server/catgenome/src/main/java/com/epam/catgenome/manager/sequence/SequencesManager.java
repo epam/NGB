@@ -50,6 +50,7 @@ import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
 
@@ -67,7 +68,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SequencesManager {
     private static final int BATCH_SIZE = 100;
-    private final List<String> geneKeys = Arrays.asList("gene_id", "geneId", "gene");
+    private final List<String> featureIdKeys = Arrays.asList("gene_id", "geneId", "gene", "name");
     private final ReferenceGenomeManager referenceGenomeManager;
     private final FeatureIndexManager featureIndexManager;
     private final TrackHelper trackHelper;
@@ -113,52 +114,48 @@ public class SequencesManager {
         for (Map.Entry<String, Long> targetGene : targetGenes.entrySet()) {
             List<Reference> references = referenceGenomeManager.loadAllReferenceGenomesByTaxId(targetGene.getValue());
             for (Reference ref : references) {
-                GeneRefSection geneRefSection = new GeneRefSection();
-                geneRefSection.setGeneId(targetGene.getKey());
-                UrlEntity refSectionReference = new UrlEntity();
-                refSectionReference.setId(ref.getId().toString());
-                refSectionReference.setName(ref.getName());
-                geneRefSection.setReference(refSectionReference);
-                List<GeneSequence> sequences = new ArrayList<>();
-
-                List<? extends FeatureFile> geneFiles = featureIndexManager.getGeneFilesForReference(ref.getId(),
-                        Collections.emptyList());
-
-                for (String k : geneKeys) {
-                    GeneFilterForm filterForm = getGeneFilterForm(k, targetGene.getKey());
-                    IndexSearchResult<GeneIndexEntry> indexSearchResult =
-                            featureIndexManager.getGeneSearchResult(filterForm, geneFiles);
-                    processFeatures(ref.getId(), sequences, indexSearchResult.getEntries());
-                    for (int i = 2; i <= indexSearchResult.getTotalPagesCount(); i++) {
-                        filterForm.setPage(i);
-                        indexSearchResult = featureIndexManager.getGeneSearchResult(filterForm, geneFiles);
-                        processFeatures(ref.getId(), sequences, indexSearchResult.getEntries());
-                    }
+                List<GeneIndexEntry> features = getFeatures(targetGene.getKey(), ref);
+                if (CollectionUtils.isNotEmpty(features)) {
+                    List<GeneSequence> sequences = processFeatures(ref.getId(), features);
+                    GeneRefSection geneRefSection = new GeneRefSection();
+                    geneRefSection.setGeneId(targetGene.getKey());
+                    UrlEntity refSectionReference = new UrlEntity();
+                    refSectionReference.setId(ref.getId().toString());
+                    refSectionReference.setName(ref.getName());
+                    geneRefSection.setReference(refSectionReference);
+                    geneRefSection.setSequences(sequences);
+                    geneRefSections.add(geneRefSection);
                 }
-                geneRefSection.setSequences(sequences);
-                geneRefSections.add(geneRefSection);
             }
         }
         return geneRefSections;
     }
 
     public List<String> getGeneProteins(final String geneId, final long taxId) throws IOException {
-        List<String> sequences = new ArrayList<>();
-        List<Reference> references = referenceGenomeManager.loadAllReferenceGenomesByTaxId(taxId);
-        for (Reference ref : references) {
-            List<? extends FeatureFile> geneFiles = featureIndexManager.getGeneFilesForReference(ref.getId(),
-                    Collections.emptyList());
-            for (String k : geneKeys) {
-                GeneFilterForm filterForm = getGeneFilterForm(k, geneId);
-                IndexSearchResult<GeneIndexEntry> indexSearchResult =
-                        featureIndexManager.getGeneSearchResult(filterForm, geneFiles);
-                sequences.addAll(getSequences(ref.getId(), indexSearchResult.getEntries()));
+        final List<String> sequences = new ArrayList<>();
+        final List<Reference> references = referenceGenomeManager.loadAllReferenceGenomesByTaxId(taxId);
+        for (Reference reference : references) {
+            List<GeneIndexEntry> features = getFeatures(geneId, reference);
+            for (GeneIndexEntry feature : features) {
+                sequences.add(getProteinSequence(reference.getId(), feature));
+            }
+        }
+        return sequences;
+    }
 
-                for (int i = 2; i <= indexSearchResult.getTotalPagesCount(); i++) {
-                    filterForm.setPage(i);
-                    indexSearchResult = featureIndexManager.getGeneSearchResult(filterForm, geneFiles);
-                    sequences.addAll(getSequences(ref.getId(), indexSearchResult.getEntries()));
-                }
+    private List<GeneIndexEntry> getFeatures(final String geneId, final Reference ref) throws IOException {
+        final List<GeneIndexEntry> sequences = new ArrayList<>();
+        final List<? extends FeatureFile> geneFiles = featureIndexManager.getGeneFilesForReference(ref.getId(),
+                Collections.emptyList());
+        for (String k : featureIdKeys) {
+            GeneFilterForm filterForm = getGeneFilterForm(k, geneId);
+            IndexSearchResult<GeneIndexEntry> indexSearchResult =
+                    featureIndexManager.getGeneSearchResult(filterForm, geneFiles);
+            sequences.addAll(indexSearchResult.getEntries());
+            for (int i = 2; i <= indexSearchResult.getTotalPagesCount(); i++) {
+                filterForm.setPage(i);
+                indexSearchResult = featureIndexManager.getGeneSearchResult(filterForm, geneFiles);
+                sequences.addAll(indexSearchResult.getEntries());
             }
         }
         return sequences;
@@ -171,12 +168,13 @@ public class SequencesManager {
         final Map<String, String> geneFilters = new HashMap<>();
         geneFilters.put(geneField, geneId);
         filterForm.setAdditionalFilters(geneFilters);
-        filterForm.setFeatureTypes(Arrays.asList(FeatureType.MRNA.getFileValue(), FeatureType.GENE.getFileValue()));
+        filterForm.setFeatureTypes(Arrays.asList(FeatureType.CDS.getFileValue(), FeatureType.MRNA.getFileValue(),
+                FeatureType.GENE.getFileValue()));
         return filterForm;
     }
 
-    private static void processFeatures(final Long referenceId,
-                                        final List<GeneSequence> sequences, final List<GeneIndexEntry> features) {
+    private List<GeneSequence> processFeatures(final Long referenceId, final List<GeneIndexEntry> features) {
+        final List<GeneSequence> sequences = new ArrayList<>();
         features.forEach(f -> {
             GeneSequence geneSequence = new GeneSequence();
             LocalSequence mRNASequence = new LocalSequence();
@@ -191,29 +189,25 @@ public class SequencesManager {
             geneSequence.setMRNA(mRNASequence);
             sequences.add(geneSequence);
         });
+        return sequences;
     }
 
-    private List<String> getSequences(final Long referenceId, final List<GeneIndexEntry> features)
+    private String getProteinSequence(final Long referenceId, final GeneIndexEntry feature)
             throws GeneReadingException {
-        final List<String> sequences = new ArrayList<>();
-        for (GeneIndexEntry f : features) {
-            final TrackQuery trackQuery = new TrackQuery();
-            trackQuery.setScaleFactor(1D);
-            trackQuery.setChromosomeId(f.getChromosome().getId());
-            trackQuery.setStartIndex(f.getStartIndex());
-            trackQuery.setEndIndex(f.getEndIndex());
-            trackQuery.setId(f.getFeatureFileId());
-            final Track<Gene> geneTrack = Query2TrackConverter.convertToTrack(trackQuery);
-            final Chromosome chromosome = trackHelper.validateTrack(geneTrack);
-            final Map<Gene, List<ProteinSequenceEntry>> proteinSequences = psReconstructionManager
-                    .reconstructProteinSequence(geneTrackManager.loadGenes(geneTrack, false),
-                            chromosome, referenceId, false, true);
-            String sequence = proteinSequences.values().stream()
-                    .flatMap(List::stream)
-                    .map(ProteinSequenceEntry::getText)
-                    .collect(Collectors.joining());
-            sequences.add(sequence);
-        }
-        return sequences;
+        final TrackQuery trackQuery = new TrackQuery();
+        trackQuery.setScaleFactor(1D);
+        trackQuery.setChromosomeId(feature.getChromosome().getId());
+        trackQuery.setStartIndex(feature.getStartIndex());
+        trackQuery.setEndIndex(feature.getEndIndex());
+        trackQuery.setId(feature.getFeatureFileId());
+        final Track<Gene> geneTrack = Query2TrackConverter.convertToTrack(trackQuery);
+        final Chromosome chromosome = trackHelper.validateTrack(geneTrack);
+        final Map<Gene, List<ProteinSequenceEntry>> proteinSequences = psReconstructionManager
+                .reconstructProteinSequence(geneTrackManager.loadGenes(geneTrack, false),
+                        chromosome, referenceId, false, true);
+        return proteinSequences.values().stream()
+                .flatMap(List::stream)
+                .map(ProteinSequenceEntry::getText)
+                .collect(Collectors.joining());
     }
 }
