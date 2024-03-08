@@ -1,4 +1,5 @@
-<div class="ngb-target-context-menu">
+<div class="ngb-target-context-menu"
+     ng-class="{'hidden': !$ctrl.hasRole}">
     <md-list class="md-dense">
         <md-list-item ng-if="$ctrl.hasRole">
             <md-button ng-click="$ctrl.openPermissions($event)">

@@ -23,27 +23,22 @@ export default class ngbTargetPermissionsFormService {
     }
 
     getPermissions(target) {
-        return Promise.resolve({
-            mask: target.mask,
-            owner: target.owner,
-            permissions: (target.permissions || []).map(p => ({mask: p.mask, ...p.sid}))
-        });
-        // return this._permissionsDataService.getObjectPermissions(target.id, this.aclClass)
-        //     .then(data => {
-        //         if (data) {
-        //             return {
-        //                 mask: data.entity.mask,
-        //                 owner: data.entity.owner,
-        //                 permissions: (data.permissions || [])
-        //                     .map(p => ({mask: p.mask, ...p.sid}))
-        //             };
-        //         } else {
-        //             return {
-        //                 error: true,
-        //                 message: 'Error fetching object permissions'
-        //             };
-        //         }
-        //     });
+        return this._permissionsDataService.getObjectPermissions(target.id, this.aclClass)
+            .then(data => {
+                if (data) {
+                    return {
+                        mask: data.entity.mask,
+                        owner: data.entity.owner,
+                        permissions: (data.permissions || [])
+                            .map(p => ({mask: p.mask, ...p.sid}))
+                    };
+                } else {
+                    return {
+                        error: true,
+                        message: 'Error fetching object permissions'
+                    };
+                }
+            });
     }
 
     getUsers() {
