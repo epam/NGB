@@ -128,18 +128,6 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
         return search(ids, IndexCommonFields.GENE_ID.name());
     }
 
-    public List<T> searchByField(final List<String> values, final String fieldName)
-            throws IOException, ParseException {
-        return search(getByTermsQuery(values, fieldName), null);
-    }
-
-    public List<T> searchByField(final List<String> values, final String fieldName, final List<Filter> filters)
-            throws IOException, ParseException {
-        final Query byFieldQuery = getByTermsQuery(values, fieldName);
-        final Query query = buildQuery(byFieldQuery, filters);
-        return search(query, null);
-    }
-
     public Query buildQuery(final List<String> geneIds, final List<Filter> filters) throws ParseException {
         return buildQuery(getByGeneIdsQuery(geneIds), filters);
     }
