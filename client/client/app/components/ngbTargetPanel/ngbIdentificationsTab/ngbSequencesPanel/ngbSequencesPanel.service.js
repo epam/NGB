@@ -158,16 +158,23 @@ export default class ngbSequencesPanelService {
             this._sequencesReference = null;
             return;
         }
-        reference.name = reference.name || 'reference';
-        this._sequencesReference = reference;
+        this._sequencesReference = reference.map(r => {
+            r.name = reference.name || 'reference';
+            return r;
+        });
     }
 
     setAllSequences(result) {
         this._allSequences = this.genesIds.reduce((acc, id) => {
-            const data = result.filter(item => item.geneId.toLowerCase() === id.toLowerCase())[0] || {};
+            const data = result.filter(item => item.geneId.toLowerCase() === id.toLowerCase()) || {};
             acc[id.toLowerCase()] = {
-                reference: data.reference || null,
-                sequences: data.sequences || null
+                reference: data.map(i => i.reference).filter(i => i) || null,
+                sequences: data.reduce((acc, i) => {
+                    if (i.sequences) {
+                        acc = [...acc, ...i.sequences];
+                    }
+                    return acc;
+                }, []) || null
             };
             return acc;
         }, {});

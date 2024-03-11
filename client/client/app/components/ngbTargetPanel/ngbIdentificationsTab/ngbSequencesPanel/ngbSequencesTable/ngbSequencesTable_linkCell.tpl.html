@@ -3,7 +3,12 @@
       data-target="ngbSequenceTableContextMenu"
       locals="row, col"
       ngb-context-menu>
-    <a ng-href="{{row.entity[col.field].url}}" target="_blank">
+    <a ng-href="{{row.entity[col.field].url}}"
+       ng-if="row.entity[col.field].url"
+       target="_blank">
         {{row.entity[col.field].id}}
     </a>
+    <span ng-if="!row.entity[col.field].url">
+        {{row.entity[col.field].id}}
+    </span>
 </span>

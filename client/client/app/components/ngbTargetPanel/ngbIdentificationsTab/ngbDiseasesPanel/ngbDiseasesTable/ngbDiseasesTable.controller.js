@@ -7,6 +7,11 @@ const OPEN_TARGETS_COLUMNS = ['target', 'disease', 'overall score', 'genetic ass
 const PHARM_GKB_COLUMNS = ['target', 'disease'];
 const TTD_COLUMNS = ['target', 'TTD target', 'disease', 'clinical status'];
 
+const DISPLAY_NAME = {
+    'RNA expression': 'RNA expression',
+    'TTD target': 'TTD target',
+};
+
 const OPEN_TARGETS_DEFAULT_SORT = [{
     field: 'overall score',
     ascending: false
@@ -22,6 +27,9 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
     }
     get ttdColumnList () {
         return TTD_COLUMNS;
+    }
+    get displayName() {
+        return DISPLAY_NAME;
     }
 
     get openTargetsDefaultSort() {
@@ -74,6 +82,13 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
             return this.ttdColumnList;
         }
         return [];
+    }
+
+    getColumnName(field) {
+        if (Object.prototype.hasOwnProperty.call(this.displayName, field)) {
+            return this.displayName[field];
+        }
+        return field.charAt(0).toUpperCase() + field.slice(1);
     }
 
     static get UID() {
@@ -202,9 +217,10 @@ export default class ngbDiseasesTableController extends ngbDiseasesControllerBas
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
+            const columnName = this.getColumnName(column);
             columnSettings = {
                 name: column,
-                displayName: column.charAt(0).toUpperCase() + column.slice(1),
+                displayName: columnName,
                 enableHiding: false,
                 enableColumnMenu: true,
                 enableSorting: true,
