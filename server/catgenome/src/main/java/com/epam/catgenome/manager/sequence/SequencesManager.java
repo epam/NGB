@@ -148,6 +148,8 @@ public class SequencesManager {
                         ReferenceSequence seq = referenceReader.nextSequence();
                         while (seq != null) {
                             if (seq.getName().equalsIgnoreCase(geneId)) {
+                                log.error("Found matching sequence {} for gene {} {}",
+                                        seq.getName(), geneId, seq.getBaseString());
                                 sequences.add(seq.getBaseString());
                                 return sequences;
                             }
