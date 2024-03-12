@@ -48,12 +48,16 @@ import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.manager.protein.ProteinSequenceReconstructionManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
+import htsjdk.samtools.reference.FastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -135,6 +139,24 @@ public class SequencesManager {
         final List<String> sequences = new ArrayList<>();
         final List<Reference> references = referenceGenomeManager.loadAllReferenceGenomesByTaxId(taxId);
         for (Reference reference : references) {
+            final String proteinSequencePath = reference.getProteinSequenceFile();
+            if (StringUtils.isNotBlank(proteinSequencePath)) {
+                final File proteinSequenceFile = new File(proteinSequencePath);
+                if (proteinSequenceFile.exists() && proteinSequenceFile.isFile()) {
+                    try(FastaSequenceFile referenceReader =
+                                new FastaSequenceFile(proteinSequenceFile, true)) {
+                        ReferenceSequence seq = referenceReader.nextSequence();
+                        while (seq != null) {
+                            if (seq.getName().equalsIgnoreCase(geneId)) {
+                                sequences.add(seq.getBaseString());
+                                return sequences;
+                            }
+                            seq = referenceReader.nextSequence();
+                        }
+                    }
+
+                }
+            }
             List<GeneIndexEntry> features = getFeatures(geneId, reference);
             for (GeneIndexEntry feature : features) {
                 sequences.add(getProteinSequence(reference.getId(), feature));

@@ -386,6 +386,14 @@ public class ReferenceController extends AbstractRESTController {
         return Result.success(referenceSecurityService.updateSpecies(referenceId, speciesVersion));
     }
 
+    @ResponseBody
+    @RequestMapping(value = "/secure/reference/{referenceId}/protein", method = RequestMethod.PUT)
+    public Result<Boolean> updateProteinSeq(@PathVariable Long referenceId,
+                                             @RequestParam String path) {
+        referenceSecurityService.updateProteinSeqFile(referenceId, path);
+        return Result.success(true);
+    }
+
     @RequestMapping(value = "/reference/motif", method = RequestMethod.POST)
     @ResponseBody
     @ApiOperation(

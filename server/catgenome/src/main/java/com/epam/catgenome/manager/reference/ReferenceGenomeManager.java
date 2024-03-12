@@ -29,6 +29,7 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import com.epam.catgenome.dao.reference.SpeciesDao;
 import com.epam.catgenome.entity.reference.Species;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -372,6 +373,15 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
 
         referenceGenomeDao.updateSpecies(referenceId, speciesVersion);
         return load(referenceId);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void updateProteinSeqFile(long referenceId, String path) {
+        final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
+        Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
+        Assert.isTrue(Paths.get(path).toFile().exists(),
+                String.format("Specified path %s doesn't exist", path));
+        referenceGenomeDao.updateProteinSeqFile(referenceId, path);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

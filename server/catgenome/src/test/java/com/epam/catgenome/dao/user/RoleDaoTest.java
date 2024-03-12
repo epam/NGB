@@ -51,7 +51,7 @@ import com.epam.catgenome.entity.user.Role;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class RoleDaoTest extends AbstractDaoTest {
 
-    private static final int EXPECTED_DEFAULT_ROLES_NUMBER = 9;
+    private static final int EXPECTED_DEFAULT_ROLES_NUMBER = 10;
     private static final String TEST_ROLE = "ROLE_TEST";
     private static final String TEST_ROLE_UPDATED = "NEW_ROLE";
 

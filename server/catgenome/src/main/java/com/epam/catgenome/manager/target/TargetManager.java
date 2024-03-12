@@ -213,6 +213,10 @@ public class TargetManager implements SecuredEntityManager {
         return targetDao.loadTargetsForAlignment();
     }
 
+    public List<Target> loadParasiteTargets() {
+        return targetDao.loadParasiteTargets();
+    }
+
     public List<Target> getTargetsForPatentsSearch() {
         return targetDao.getTargetsForPatentsSearch();
     }

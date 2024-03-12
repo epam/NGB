@@ -190,5 +190,30 @@
                 ]]>
             </value>
         </property>
+        <property name="loadParasiteTargetsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        t.target_id,
+                        t.target_name,
+                        t.diseases,
+                        t.owner,
+                        t.alignment_status,
+                        t.patents_search_status,
+                        t.products,
+                        t.type,
+                        g.target_gene_id,
+                        g.gene_id,
+                        g.additional_genes,
+                        g.gene_name,
+                        g.tax_id,
+                        g.species_name,
+                        g.priority
+                    FROM catgenome.target t left join catgenome.target_gene g on t.target_id = g.target_id
+                    WHERE t.type = 1
+                    ORDER BY t.target_id
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>

@@ -41,7 +41,6 @@ import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.externaldb.target.ttd.TTDDiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.target.*;
-import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.manager.externaldb.PubMedService;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIEnsemblIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
@@ -475,31 +474,27 @@ public class LaunchIdentificationManager {
     }
 
     public SearchResult<TTDDrugAssociation> getTTDDrugs(final AssociationSearchRequest request)
-            throws ParseException, IOException, BlastRequestException, InterruptedException {
-        final Map<String, Long> targetGenes = targetManager.getTargetGenes(request.getGeneIds(), true);
-        targetManager.expandTargetGenes(request.getGeneIds());
-        return ttdDatabaseManager.getTTDDrugs(request, targetGenes);
+            throws ParseException, IOException {
+        final List<TargetGene> genes = targetManager.getTargetGenes(request.getGeneIds());
+        return ttdDatabaseManager.getTTDDrugs(genes, request);
     }
 
     public TTDDrugFieldValues getTTDDrugFieldValues(final List<String> geneIds)
-            throws IOException, ParseException, BlastRequestException, InterruptedException {
-        final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, true);
-        targetManager.expandTargetGenes(geneIds);
-        return ttdDatabaseManager.getDrugFieldValues(geneIds, targetGenes);
+            throws ParseException, IOException {
+        final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
+        return ttdDatabaseManager.getDrugFieldValues(genes);
     }
 
     public SearchResult<TTDDiseaseAssociation> getTTDDiseases(final AssociationSearchRequest request)
-            throws ParseException, IOException, BlastRequestException, InterruptedException {
-        final Map<String, Long> targetGenes = targetManager.getTargetGenes(request.getGeneIds(), true);
-        targetManager.expandTargetGenes(request.getGeneIds());
-        return ttdDatabaseManager.getTTDDiseases(request, targetGenes);
+            throws ParseException, IOException {
+        final List<TargetGene> genes = targetManager.getTargetGenes(request.getGeneIds());
+        return ttdDatabaseManager.getTTDDiseases(genes, request);
     }
 
     public TTDDiseaseFieldValues getTTDDiseaseFieldValues(final List<String> geneIds)
-            throws IOException, ParseException, BlastRequestException, InterruptedException {
-        final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, true);
-        targetManager.expandTargetGenes(geneIds);
-        return ttdDatabaseManager.getDiseaseFieldValues(geneIds, targetGenes);
+            throws IOException, ParseException {
+        final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
+        return ttdDatabaseManager.getDiseaseFieldValues(genes);
     }
 
     private static Map<String, String> mergeDescriptions(final Map<GeneId, String> ncbiSummary,
