@@ -137,14 +137,14 @@ public class AlignmentManager {
                 } while (processed < totalCount);
             } catch (Exception e) {
                 log.error("Failed to process target with id {}", target.getTargetName());
-                log.debug(e.getMessage());
+                log.error(e.getMessage());
             } finally {
                 try {
                     if (!CollectionUtils.isEmpty(genes)) {
                         targetGeneManager.update(genes);
                     }
                 } catch (IOException | ParseException | TargetGenesException e) {
-                    log.debug(e.getMessage());
+                    log.error(e.getMessage());
                 }
             }
         });
