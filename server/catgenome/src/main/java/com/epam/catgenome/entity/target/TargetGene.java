@@ -27,6 +27,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -42,4 +43,6 @@ public class TargetGene {
     private String speciesName;
     private TargetGenePriority priority;
     private Map<String, String> metadata;
+    private TargetGeneStatus status;
+    private List<String> ttdTargets;
 }

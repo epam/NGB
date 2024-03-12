@@ -5,6 +5,12 @@ const PHARM_GKB_COLUMNS = ['target', 'drug', 'Source'];
 const DGI_DB_COLUMNS = ['target', 'drug', 'interaction claim source', 'interaction types'];
 const TTD_COLUMNS = ['target', 'ttd target', 'drug', 'company', 'type', 'therapeutic class', 'inChI', 'inChIKey', 'canonical smiles', 'status', 'compound class'];
 
+const DISPLAY_NAME = {
+    'ttd target': 'TTD target',
+    'inChI': 'inChI',
+    'inChIKey': 'inChIKey',
+};
+
 const FIELDS = {
     OPEN_TARGETS: {
         'target': 'GENE_ID',
@@ -157,6 +163,9 @@ export default class ngbDrugsTableService {
     get ttdColumns() {
         return TTD_COLUMNS;
     }
+    get displayName() {
+        return DISPLAY_NAME;
+    }
 
     static instance (dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService) {
         return new ngbDrugsTableService(dispatcher, ngbKnownDrugsPanelService, ngbTargetPanelService, targetDataService);
@@ -173,6 +182,13 @@ export default class ngbDrugsTableService {
 
     get sourceOptions() {
         return this.ngbKnownDrugsPanelService.sourceOptions;
+    }
+
+    getColumnName(field) {
+        if (Object.prototype.hasOwnProperty.call(this.displayName, field)) {
+            return this.displayName[field];
+        }
+        return field.charAt(0).toUpperCase() + field.slice(1);
     }
 
     getColumnList() {

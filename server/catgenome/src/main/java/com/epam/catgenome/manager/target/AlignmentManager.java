@@ -29,13 +29,22 @@ import com.epam.catgenome.entity.target.AlignmentStatus;
 import com.epam.catgenome.entity.target.GeneSequences;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
+import com.epam.catgenome.entity.target.TargetGeneStatus;
 import com.epam.catgenome.exception.AlignmentException;
+import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.exception.TargetGenesException;
+import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBISequencesManager;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDatabaseManager;
+import com.epam.catgenome.manager.index.Filter;
+import com.epam.catgenome.manager.index.SearchRequest;
 import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -52,6 +61,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -77,6 +89,8 @@ public class AlignmentManager {
     private final TargetManager targetManager;
     private final LaunchIdentificationManager launchIdentificationManager;
     private final NCBISequencesManager sequencesManager;
+    private final TargetGeneManager targetGeneManager;
+    private final TTDDatabaseManager ttdDatabaseManager;
 
     public void generateAlignment() {
         final List<Target> targets = targetManager.getTargetsForAlignment();
@@ -94,6 +108,78 @@ public class AlignmentManager {
                 targetManager.updateAlignmentStatus(target);
             }
         }
+    }
+
+    public void processParasiteTargets() {
+        final List<Target> targets = targetManager.loadParasiteTargets();
+        targets.forEach(target -> {
+            final List<TargetGene> genes = new ArrayList<>();
+            try {
+                final int pageSize = 100;
+                final SearchRequest searchRequest = new SearchRequest();
+                searchRequest.setPageSize(pageSize);
+                searchRequest.setFilters(Collections.singletonList(Filter.builder()
+                        .field(TargetGeneManager.IndexField.STATUS.getValue())
+                        .terms(Collections.singletonList(TargetGeneStatus.NEW.name()))
+                        .build()));
+                int pageNum = 1;
+                int processed = 0;
+                int totalCount;
+                do {
+                    searchRequest.setPage(pageNum);
+                    SearchResult<TargetGene> result = targetGeneManager.filter(target.getId(), searchRequest);
+                    if (!CollectionUtils.isEmpty(result.getItems())) {
+                        genes.addAll(assignTargetGenes(result.getItems()));
+                    }
+                    processed += ListUtils.emptyIfNull(result.getItems()).size();
+                    totalCount = result.getTotalCount();
+                    pageNum++;
+                } while (processed < totalCount);
+            } catch (Exception e) {
+                log.error("Failed to process target with id {}", target.getId());
+                log.error(e.getMessage(), e);
+            } finally {
+                try {
+                    if (!CollectionUtils.isEmpty(genes)) {
+                        targetGeneManager.update(genes);
+                    }
+                } catch (IOException | ParseException | TargetGenesException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        });
+
+    }
+
+    private List<TargetGene> assignTargetGenes(final List<TargetGene> items) {
+        return ListUtils.emptyIfNull(items)
+                .stream()
+                .map(this::assignTargetGenes)
+                .collect(Collectors.toList());
+    }
+
+    private TargetGene assignTargetGenes(final TargetGene gene) {
+        log.error("Checking TTD matches for gene {} {}", gene.getGeneId(), gene.getTaxId());
+        final Map<String, Long> genes = new HashMap<>();
+        genes.put(gene.getGeneId(), gene.getTaxId());
+        genes.putAll(MapUtils.emptyIfNull(gene.getAdditionalGenes()));
+        final List<String> ttdTargets = genes.entrySet()
+                .stream()
+                .map(entry -> {
+                    try {
+                        return ttdDatabaseManager.getBlastSequences(entry.getKey(), entry.getValue());
+                    } catch (IOException | InterruptedException | BlastRequestException e) {
+                        log.error(e.getMessage(), e);
+                        return new ArrayList<String>();
+                    }
+                }).flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        gene.setStatus(TargetGeneStatus.PROCESSED);
+        gene.setTtdTargets(ttdTargets);
+        if (!CollectionUtils.isEmpty(ttdTargets)) {
+            log.error("Adding TTD targets {} for gene {}", ttdTargets, gene.getGeneId());
+        }
+        return gene;
     }
 
     public List<ReferenceSequence> getAlignment(final Long targetId,

@@ -19,14 +19,16 @@
                             reference_genome_size,
                             gene_item_id,
                             index_id,
-                            species_version)
+                            species_version,
+                            protein_seq_file)
                         VALUES (
                             :REFERENCE_GENOME_ID,
                             :BIO_DATA_ITEM_ID,
                             :SIZE,
                             :GENE_ITEM_ID,
                             :INDEX_ID,
-                            :SPECIES_VERSION)
+                            :SPECIES_VERSION,
+                            :PROTEIN_SEQ_FILE)
                 ]]>
             </value>
         </property>
@@ -51,6 +53,7 @@
                         r.reference_genome_size,
                         null as compressed,
                         r.gene_item_id,
+                        r.protein_seq_file,
 
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
@@ -94,6 +97,7 @@
                         r.reference_genome_size,
                         null as compressed,
                         r.gene_item_id,
+                        r.protein_seq_file,
 
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
@@ -137,6 +141,7 @@
                         r.reference_genome_size,
                         null as compressed,
                         r.gene_item_id,
+                        r.protein_seq_file,
 
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
@@ -180,6 +185,7 @@
                         r.reference_genome_size,
                         null as compressed,
                         r.gene_item_id,
+                        r.protein_seq_file,
 
                         i.bio_data_item_id as index_id,
                         i.name as index_name,
@@ -220,6 +226,7 @@
                         r.bio_data_item_id,
                         r.reference_genome_size,
                         r.gene_item_id,
+                        r.protein_seq_file,
                         null as compressed,
 
                         i.bio_data_item_id as index_id,
@@ -375,6 +382,15 @@
                 <![CDATA[
                         SELECT reference_genome_id FROM catgenome.genome_annotation_data_item
                         WHERE bio_data_item_id = :BIO_DATA_ITEM_ID
+                ]]>
+            </value>
+        </property>
+        <property name="updateProteinSequenceFileQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.reference_genome
+                    SET protein_seq_file = :PROTEIN_SEQ_FILE
+                    WHERE reference_genome_id = :REFERENCE_GENOME_ID
                 ]]>
             </value>
         </property>

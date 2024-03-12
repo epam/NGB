@@ -23,16 +23,19 @@
  */
 package com.epam.catgenome.manager.target;
 
+import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.dao.target.TargetGeneDao;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.entity.index.SortType;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.TargetGeneField;
 import com.epam.catgenome.entity.target.TargetGenePriority;
+import com.epam.catgenome.entity.target.TargetGeneStatus;
 import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.*;
 import com.epam.catgenome.util.FileFormat;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import lombok.AllArgsConstructor;
@@ -93,7 +96,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.*;
 import static com.epam.catgenome.util.Utils.deSerialize;
 import static com.epam.catgenome.util.Utils.serialize;
 import static org.apache.poi.ss.usermodel.CellType.NUMERIC;
@@ -386,6 +388,14 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 case PRIORITY:
                     targetGene.setPriority(TargetGenePriority.getByValue((int) field.numericValue()));
                     break;
+                case STATUS:
+                    targetGene.setStatus(TargetGeneStatus.valueOf(field.stringValue()));
+                    break;
+                case TTD_TARGETS:
+                    final String value = field.stringValue();
+                    if (StringUtils.isNotBlank(value)) {
+                        targetGene.setTtdTargets(JsonMapper.parseData(value, new TypeReference<List<String>>() {}));
+                    }
                 case METADATA:
                     metadata.put(field.name(), field.stringValue());
                     break;
@@ -428,7 +438,10 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     private Map<String, TargetGeneField> getFieldsMap(final long targetId) throws ParseException, IOException {
         final List<TargetGeneField> targetGeneFields = getFields(targetId);
         return targetGeneFields.stream()
-                .collect(Collectors.toMap(TargetGeneField::getField, Function.identity()));
+                .collect(Collectors.toMap(TargetGeneField::getField, Function.identity(), (f1,f2) -> {
+                    log.error("Duplicate fields {} {}", f1.getField(), f2.getField());
+                    return f1;
+                }));
     }
 
     private Map<String, TargetGeneField> processMetadata(final List<TargetGene> entries, final Long targetId)
@@ -512,9 +525,19 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
         doc.add(new TextField(IndexField.GENE_ID.getValue(), entry.getGeneId(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexField.GENE_ID.getValue(), new BytesRef(entry.getGeneId())));
+        final String status = Optional.ofNullable(entry.getStatus())
+                .map(TargetGeneStatus::name)
+                .orElse(TargetGeneStatus.NEW.name());
+        doc.add(new TextField(IndexField.STATUS.getValue(), status, Field.Store.YES));
+        doc.add(new SortedDocValuesField(IndexField.STATUS.getValue(), new BytesRef(status)));
 
         doc.add(new TextField(IndexField.ADDITIONAL_GENES.getValue(),
                 serialize(entry.getAdditionalGenes()), Field.Store.YES));
+
+        if (CollectionUtils.isNotEmpty(entry.getTtdTargets())) {
+            doc.add(new TextField(IndexField.TTD_TARGETS.getValue(),
+                    serialize(entry.getTtdTargets()), Field.Store.YES));
+        }
 
         doc.add(new TextField(IndexField.GENE_NAME.getValue(), entry.getGeneName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexField.GENE_NAME.getValue(), new BytesRef(entry.getGeneName())));
@@ -558,7 +581,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
     @AllArgsConstructor
     @Getter
-    private enum IndexField {
+    public enum IndexField {
         TARGET_GENE_ID("ID", FilterType.TERM, SortType.NONE),
         TARGET_ID("Target ID", FilterType.TERM, SortType.LONG),
         GENE_ID("Gene ID", FilterType.TERM, SortType.STRING),
@@ -567,6 +590,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         TAX_ID("Tax ID", FilterType.OPTIONS, SortType.LONG),
         SPECIES_NAME("Species Name", FilterType.PHRASE, SortType.STRING),
         PRIORITY("Priority", FilterType.OPTIONS, SortType.LONG),
+        STATUS("Status", FilterType.TERM, SortType.STRING),
+        TTD_TARGETS("TTD Targets", FilterType.PHRASE, SortType.STRING),
         METADATA("Metadata", FilterType.NONE, SortType.NONE);
 
         private final String value;
@@ -582,6 +607,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             VALUES_MAP.put("Tax ID", TAX_ID);
             VALUES_MAP.put("Species Name", SPECIES_NAME);
             VALUES_MAP.put("Priority", PRIORITY);
+            VALUES_MAP.put("Status", STATUS);
+            VALUES_MAP.put("TTD Targets", TTD_TARGETS);
         }
 
         public static IndexField getByValue(String value) {
@@ -694,6 +721,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                 .priority(targetGenePriority)
                 .additionalGenes(additionalGenes)
                 .metadata(metadata)
+                .status(TargetGeneStatus.NEW)
                 .build();
         entries.add(gene);
     }
@@ -768,6 +796,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                     .priority(priority)
                     .metadata(metadata)
                     .additionalGenes(additionalGenes)
+                    .status(TargetGeneStatus.NEW)
                     .build();
             entries.add(gene);
         }

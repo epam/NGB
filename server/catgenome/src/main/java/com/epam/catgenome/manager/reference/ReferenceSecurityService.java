@@ -147,6 +147,12 @@ public class ReferenceSecurityService {
         return referenceGenomeManager.updateSpecies(referenceId, speciesVersion);
     }
 
+    @AclMask
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_REFERENCE_MANAGER)
+    public void updateProteinSeqFile(Long referenceId, String path) {
+        referenceGenomeManager.updateProteinSeqFile(referenceId, path);
+    }
+
     @PreAuthorize(ROLE_USER)
     @PostFilter(READ_ON_FILTER_OBJECT)
     public List<BiologicalDataItem> getReferenceAnnotationFiles(Long referenceId) {

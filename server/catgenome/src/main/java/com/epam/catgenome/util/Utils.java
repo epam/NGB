@@ -530,11 +530,18 @@ public final class Utils {
     }
 
     @SneakyThrows
+    public static String serialize(final List<?> data) {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(data);
+    }
+
+    @SneakyThrows
     public static Map<String, Long> deSerialize(final String data) {
         final ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.readValue(data, TypeFactory.defaultInstance()
                 .constructMapType(HashMap.class, String.class, Long.class));
     }
+
     public static List<String> dataToList(final String data) {
         return data != null ? Arrays.asList(data.split(SEPARATOR)) : new ArrayList<>();
     }

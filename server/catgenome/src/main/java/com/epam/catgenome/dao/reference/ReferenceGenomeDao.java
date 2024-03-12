@@ -138,6 +138,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
     private String loadGenomeIdsByAnnotationDataItemIdQuery;
     private String loadReferenceGenomeByNameQuery;
     private String updateSpeciesQuery;
+    private String updateProteinSequenceFileQuery;
 
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -166,7 +167,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
                                                               reference.getGeneFile().getId() : null);
         params.addValue(GenomeParameters.SPECIES_VERSION.name(), reference.getSpecies() != null ?
                                                                  reference.getSpecies().getVersion() : null);
-
+        params.addValue(GenomeParameters.PROTEIN_SEQ_FILE.name(), reference.getProteinSequenceFile());
         getNamedParameterJdbcTemplate().update(createReferenceGenomeQuery, params);
         return reference;
     }
@@ -178,6 +179,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         params.addValue(GenomeParameters.BIO_DATA_ITEM_ID.name(), reference.getBioDataItemId());
         params.addValue(GenomeParameters.SIZE.name(), reference.getSize());
         params.addValue(GenomeParameters.INDEX_ID.name(), reference.getIndex().getId());
+        params.addValue(GenomeParameters.PROTEIN_SEQ_FILE.name(), reference.getProteinSequenceFile());
         params.addValue(GenomeParameters.GENE_ITEM_ID.name(), reference.getGeneFile() != null ?
                 reference.getGeneFile().getId() : null);
         params.addValue(GenomeParameters.SPECIES_VERSION.name(), reference.getSpecies() != null ?
@@ -203,6 +205,15 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         params.addValue(GenomeParameters.SPECIES_VERSION.name(), speciesVersion);
 
         getNamedParameterJdbcTemplate().update(updateSpeciesQuery, params);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateProteinSeqFile(long referenceId, String path) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(GenomeParameters.REFERENCE_GENOME_ID.name(), referenceId);
+        params.addValue(GenomeParameters.PROTEIN_SEQ_FILE.name(), path);
+
+        getNamedParameterJdbcTemplate().update(updateProteinSequenceFileQuery, params);
     }
 
     /**
@@ -501,6 +512,11 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         this.loadReferenceGenomesByTaxIdQuery = loadReferenceGenomesByTaxIdQuery;
     }
 
+    @Required
+    public void setUpdateProteinSequenceFileQuery(String updateProteinSequenceFileQuery) {
+        this.updateProteinSequenceFileQuery = updateProteinSequenceFileQuery;
+    }
+
     enum GenomeParameters {
         NAME,
         SIZE,
@@ -530,7 +546,8 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
 
         SPECIES_NAME,
         SPECIES_VERSION,
-        TAX_ID;
+        TAX_ID,
+        PROTEIN_SEQ_FILE;
 
         private static final RowMapper<Long> ID_MAPPER = (rs, rowNum) -> rs.getLong(1);
 
@@ -543,6 +560,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
                 reference.setPath(rs.getString(PATH.name()));
                 reference.setSource(rs.getString(SOURCE.name()));
                 reference.setId(rs.getLong(REFERENCE_GENOME_ID.name()));
+                reference.setProteinSequenceFile(rs.getString(PROTEIN_SEQ_FILE.name()));
                 reference.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
 
                 Long longVal = rs.getLong(TYPE.name());
@@ -576,6 +594,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
             reference.setCreatedDate(rs.getDate(CREATED_DATE.name()));
             reference.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
             reference.setOwner(rs.getString(OWNER.name()));
+            reference.setProteinSequenceFile(rs.getString(PROTEIN_SEQ_FILE.name()));
             Long longVal = rs.getLong(TYPE.name());
             reference.setType(rs.wasNull() ? null : BiologicalDataItemResourceType.getById(longVal));
 

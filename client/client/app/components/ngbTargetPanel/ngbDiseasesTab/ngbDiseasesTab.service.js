@@ -90,6 +90,16 @@ export default class ngbDiseasesTabService {
         const {id} = disease;
         if (this._diseasesData && id === this._diseasesData.id) return;
         this._loadingData = true;
+        if (!id) {
+            return new Promise(resolve => {
+                this._loadingData = false;
+                this._failedResult = false;
+                this._errorMessageList = null;
+                this._diseasesData = null;
+                this.setTotalCounts(null);
+                this.$timeout(() => this.dispatcher.emit('target:diseases:disease:changed'));
+            });
+        }
         await this.getDiseaseData(id);
         await this.getDiseaseTotalCounts(id);
         this.targetContext.setCurrentDisease(disease);

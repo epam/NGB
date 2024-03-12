@@ -170,9 +170,10 @@ export default class ngbDrugsTableController {
         for (let i = 0; i < columnsList.length; i++) {
             let columnSettings = null;
             const column = columnsList[i];
+            const columnName = this.ngbDrugsTableService.getColumnName(column);
             columnSettings = {
                 name: column,
-                displayName: column.charAt(0).toUpperCase() + column.slice(1),
+                displayName: columnName,
                 enableHiding: false,
                 enableColumnMenu: true,
                 enableSorting: true,

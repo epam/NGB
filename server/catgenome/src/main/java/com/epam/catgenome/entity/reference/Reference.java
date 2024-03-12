@@ -68,6 +68,7 @@ public class Reference extends IndexedDataItem {
      * Represents a species associated with the reference genome
      */
     private Species species;
+    private String proteinSequenceFile;
 
     public Reference() {
         chromosomes = new ArrayList<>();

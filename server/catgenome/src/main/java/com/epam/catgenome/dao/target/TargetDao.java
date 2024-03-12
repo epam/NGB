@@ -78,6 +78,7 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
     private String totalCountQuery;
     private String productsQuery;
     private String updateOwnerQuery;
+    private String loadParasiteTargetsQuery;
 
     /**
      * Creates new Target record or updates an existing.
@@ -151,6 +152,10 @@ public class TargetDao extends NamedParameterJdbcDaoSupport {
 
     public List<Target> loadTargetsForAlignment() {
         return getJdbcTemplate().query(loadTargetsForAlignmentQuery, TargetParameters.getExtendedRowExtractor());
+    }
+
+    public List<Target> loadParasiteTargets() {
+        return getJdbcTemplate().query(loadParasiteTargetsQuery, TargetParameters.getExtendedRowExtractor());
     }
 
     public List<Target> getTargetsForPatentsSearch() {

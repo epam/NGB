@@ -37,4 +37,9 @@ public class AlignmentScheduledService {
     public void generateAlignment() {
         manager.generateAlignment();
     }
+
+    @Scheduled(fixedRateString = "${targets.process.parasites:60000}")
+    public void processParasiteTargets() {
+        manager.processParasiteTargets();
+    }
 }

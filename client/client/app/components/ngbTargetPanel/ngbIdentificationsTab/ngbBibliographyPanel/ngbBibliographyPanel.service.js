@@ -131,6 +131,11 @@ export default class NgbBibliographyPanelService {
         return this.ngbTargetPanelService.allGenes || [];
     }
 
+    get targetId() {
+        const {target} = this.ngbTargetPanelService.identificationTarget || {};
+        return target.id;
+    }
+
     updateGenes (targetIdentificationData) {
         this.selectedGeneIds = this.genes.map(g => g.geneId);
         this.clearSummary();
@@ -147,6 +152,19 @@ export default class NgbBibliographyPanelService {
         }
     }
 
+    getPublicationRequest(page) {
+        const request = {
+            geneIds: this.selectedGeneIds,
+            page: page,
+            pageSize: this.pageSize,
+            keywords: this.keyWords
+        };
+        if (this.targetId) {
+            request.targetId = this.targetId;
+        }
+        return request;
+    }
+
     getPublicationsResults(page) {
         if (!this.selectedGeneIds.length) {
             return new Promise(resolve => {
@@ -161,12 +179,8 @@ export default class NgbBibliographyPanelService {
         this._loadingPublications = true;
         const commit = this._getPublicationsCommitPhase();
         return new Promise(resolve => {
-            this.targetDataService.getPublications({
-                geneIds: this.selectedGeneIds,
-                page: page,
-                pageSize: this.pageSize,
-                keywords: this.keyWords
-            })
+            const request = this.getPublicationRequest(page);
+            this.targetDataService.getPublications(request)
                 .then(([data, totalCount]) => {
                     commit(() => {
                         this._failedPublications = false;

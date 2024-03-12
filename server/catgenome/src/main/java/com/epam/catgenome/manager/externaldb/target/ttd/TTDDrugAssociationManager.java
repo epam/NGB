@@ -27,6 +27,7 @@ import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.index.CaseInsensitiveWhitespaceAnalyzer;
+import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.util.FileFormat;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -35,8 +36,6 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.store.Directory;
@@ -57,7 +56,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.util.IndexUtils.buildTermQuery;
+import static com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseaseAssociationManager.getTargetName;
 
 @Service
 public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDrugAssociation> {
@@ -135,10 +134,11 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
                 if (groupedByField.containsKey("DRUGINFO")) {
                     List<TTDRecord> drugRecords = groupedByField.get("DRUGINFO");
                     drugRecords.forEach(r -> {
-                        if (groupedByField.containsKey("GENENAME") && groupedByField.containsKey("TARGETID")) {
+                        if (groupedByField.containsKey("TARGNAME") && groupedByField.containsKey("TARGETID")) {
+                            String targetFullName = groupedByField.get("TARGNAME").get(0).getValue();
                             TTDDrugAssociation entry = TTDDrugAssociation.builder()
                                     .ttdGeneId(groupedByField.get("TARGETID").get(0).getValue())
-                                    .ttdTarget(groupedByField.get("GENENAME").get(0).getValue())
+                                    .ttdTarget(getTargetName(targetFullName))
                                     .build();
                             String[] drugProperties = r.getValue().split(FileFormat.TSV.getSeparator());
                             entry.setId(drugProperties[0]);
@@ -217,16 +217,6 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
     }
 
     @Override
-    public Query getByOptionsQuery(final List<String> options, final String fieldName) {
-        final BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        for (String option : options) {
-            builder.add(buildTermQuery(TTDDrugField.TTD_TARGET.name().equals(fieldName) ?
-                    option.toLowerCase() : option, fieldName), BooleanClause.Occur.SHOULD);
-        }
-        return builder.build();
-    }
-
-    @Override
     public SortField getDefaultSortField() {
         return null;
     }
@@ -241,7 +231,8 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
     public void addDoc(final IndexWriter writer, final TTDDrugAssociation entry) throws IOException {
         final Document doc = new Document();
         doc.add(new TextField(TTDDrugField.TTD_GENE_ID.name(), entry.getTtdGeneId(), Field.Store.YES));
-        doc.add(new TextField(TTDDrugField.TTD_TARGET.name(), entry.getTtdTarget(), Field.Store.YES));
+        doc.add(new StringField(TTDDrugField.TTD_TARGET_CI.name(), entry.getTtdTarget().toLowerCase(), Field.Store.NO));
+        doc.add(new StringField(TTDDrugField.TTD_TARGET.name(), entry.getTtdTarget(), Field.Store.YES));
         doc.add(new StringField(TTDDrugField.DRUG_ID.name(), entry.getId(), Field.Store.YES));
         doc.add(new TextField(TTDDrugField.DRUG_NAME.name(), entry.getName(), Field.Store.YES));
 
@@ -295,5 +286,32 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
     @Override
     public FilterType getFilterType(String fieldName) {
         return TTDDrugField.valueOf(fieldName).getType();
+    }
+
+    public List<TTDDrugAssociation> searchByTargetNames(final List<String> values, final List<Filter> filters)
+            throws ParseException, IOException {
+        return search(buildQuery(getByTargetNamesQuery(values), filters), null);
+    }
+
+    public List<TTDDrugAssociation> searchByTargetNames(final List<String> values) throws ParseException, IOException {
+        return search(getByTargetNamesQuery(values), null);
+    }
+
+    public List<TTDDrugAssociation> searchByTargetIds(final List<String> values, final List<Filter> filters)
+            throws ParseException, IOException {
+        return search(buildQuery(getByTargetIdsQuery(values), filters), null);
+    }
+
+    public List<TTDDrugAssociation> searchByTargetIds(final List<String> values) throws ParseException, IOException {
+        return search(getByTargetIdsQuery(values), null);
+    }
+
+    private Query getByTargetNamesQuery(final List<String> values) {
+        final List<String> lowerCaseValues = values.stream().map(String::toLowerCase).collect(Collectors.toList());
+        return getByOptionsQuery(lowerCaseValues, TTDDrugField.TTD_TARGET_CI.name());
+    }
+
+    private Query getByTargetIdsQuery(final List<String> values) throws ParseException {
+        return getByTermsQuery(values, TTDDrugField.TTD_GENE_ID.name());
     }
 }
