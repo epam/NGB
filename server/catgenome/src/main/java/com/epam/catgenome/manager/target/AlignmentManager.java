@@ -135,7 +135,8 @@ public class AlignmentManager {
                     totalCount = result.getTotalCount();
                     pageNum++;
                 } while (processed < totalCount);
-            } catch (ParseException | IOException e) {
+            } catch (Exception e) {
+                log.error("Failed to process target with id {}", target.getTargetName());
                 log.debug(e.getMessage());
             } finally {
                 try {
