@@ -77,6 +77,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.apache.commons.collections4.CollectionUtils;
@@ -121,6 +122,10 @@ public class LaunchIdentificationManager {
     private final SequencesManager sequencesManager;
     private final TTDDatabaseManager ttdDatabaseManager;
 
+    @Value("${targets.parasites.include.additional:false}")
+    private boolean includeAdditionalGenes;
+
+
     public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
 
@@ -129,7 +134,7 @@ public class LaunchIdentificationManager {
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
                 "Either Species of interest or Translational species must me specified.");
 
-        final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, true);
+        final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, includeAdditionalGenes);
         geneIds = new ArrayList<>(targetGenes.keySet());
 
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
@@ -388,6 +393,7 @@ public class LaunchIdentificationManager {
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);
+        final List<TTDDrugAssociation> ttdDrugs = getTTDDrugs(geneIds);
 
         final List<String> pharmGKBDrugNames = pharmGKBDrugs.stream().map(UrlEntity::getName)
                 .collect(Collectors.toList());
@@ -395,15 +401,17 @@ public class LaunchIdentificationManager {
         final List<String> drugNames = drugAssociations.stream().map(UrlEntity::getName).collect(Collectors.toList());
         drugNames.addAll(pharmGKBDrugNames);
         drugNames.addAll(dgidbDrugsNames);
+        drugNames.addAll(ttdDrugs.stream().map(UrlEntity::getName).collect(Collectors.toList()));
         final long distinctCount = drugNames.stream().map(String::toLowerCase).distinct().count();
 
         final long pharmGKBDrugsCount = pharmGKBDrugs.size();
         final long dgidbDrugsCount = dgidbDrugs.size();
         final long openTargetDrugs = drugAssociations.size();
+        final long ttdDrugsCount = ttdDrugs.size();
 
         return DrugsCount.builder()
                 .distinctCount(distinctCount)
-                .totalCount(pharmGKBDrugsCount + dgidbDrugsCount + openTargetDrugs)
+                .totalCount(pharmGKBDrugsCount + dgidbDrugsCount + openTargetDrugs + ttdDrugsCount)
                 .build();
     }
 
@@ -425,7 +433,8 @@ public class LaunchIdentificationManager {
     public long getDiseasesCount(final List<String> geneIds) throws ParseException, IOException {
         final long openTargetsDiseasesCount = diseaseAssociationManager.totalCount(geneIds);
         final long pharmGKBDiseasesCount = pharmGKBDiseaseAssociationManager.totalCount(geneIds);
-        return openTargetsDiseasesCount + pharmGKBDiseasesCount;
+        final long ttdCount = getTTDDiseases(geneIds).size();
+        return openTargetsDiseasesCount + pharmGKBDiseasesCount + ttdCount;
     }
 
     public List<String> getGeneNames(final List<String> geneIds) throws ParseException, IOException {
@@ -479,6 +488,12 @@ public class LaunchIdentificationManager {
         return ttdDatabaseManager.getTTDDrugs(genes, request);
     }
 
+    public List<TTDDrugAssociation> getTTDDrugs(final List<String> geneIds)
+            throws ParseException, IOException {
+        final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
+        return ttdDatabaseManager.fetchTTDDrugs(genes, Collections.emptyList());
+    }
+
     public TTDDrugFieldValues getTTDDrugFieldValues(final List<String> geneIds)
             throws ParseException, IOException {
         final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
@@ -489,6 +504,12 @@ public class LaunchIdentificationManager {
             throws ParseException, IOException {
         final List<TargetGene> genes = targetManager.getTargetGenes(request.getGeneIds());
         return ttdDatabaseManager.getTTDDiseases(genes, request);
+    }
+
+    public List<TTDDiseaseAssociation> getTTDDiseases(final List<String> geneIds)
+            throws ParseException, IOException {
+        final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
+        return ttdDatabaseManager.fetchTTDDiseases(genes, Collections.emptyList());
     }
 
     public TTDDiseaseFieldValues getTTDDiseaseFieldValues(final List<String> geneIds)
