@@ -159,7 +159,7 @@ public class AlignmentManager {
     }
 
     private TargetGene assignTargetGenes(final TargetGene gene) {
-        log.debug("Checking TTD matches for gene {} {}", gene.getGeneId(), gene.getTaxId());
+        log.error("Checking TTD matches for gene {} {}", gene.getGeneId(), gene.getTaxId());
         final Map<String, Long> genes = new HashMap<>();
         genes.put(gene.getGeneId(), gene.getTaxId());
         genes.putAll(MapUtils.emptyIfNull(gene.getAdditionalGenes()));
@@ -176,6 +176,9 @@ public class AlignmentManager {
                 .collect(Collectors.toList());
         gene.setStatus(TargetGeneStatus.PROCESSED);
         gene.setTtdTargets(ttdTargets);
+        if (!CollectionUtils.isEmpty(ttdTargets)) {
+            log.error("Adding TTD targets {} for gene {}", ttdTargets, gene.getGeneId());
+        }
         return gene;
     }
 
