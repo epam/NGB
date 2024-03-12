@@ -154,7 +154,7 @@ public class LaunchIdentificationSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request)
-            throws ParseException, IOException {
+            throws ParseException, IOException, ExternalDbUnavailableException {
         return manager.getPublications(request);
     }
 

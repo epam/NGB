@@ -32,6 +32,7 @@ import java.util.List;
 public class PublicationSearchRequest {
     private List<String> geneIds;
     private String keywords;
+    private Long targetId;
     private Integer page;
     private Integer pageSize;
 }

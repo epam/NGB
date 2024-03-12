@@ -131,16 +131,16 @@ public class LaunchIdentificationManager {
                 "Either Species of interest or Translational species must me specified.");
 
         final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, true);
-        geneIds = new ArrayList<>(targetGenes.keySet());
+        final List<String> expandedGeneIds = new ArrayList<>(targetGenes.keySet());
 
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(expandedGeneIds);
         final List<String> entrezGeneIds = ncbiGeneIds.stream()
                 .map(g -> g.getEntrezId().toString())
                 .collect(Collectors.toList());
         final Map<String, String> description = getDescriptions(ncbiGeneIds);
-        final DrugsCount drugsCount = getDrugsCount(geneIds);
-        final long diseasesCount = getDiseasesCount(geneIds);
-        final long publicationsCount = pubMedService.getPublicationsCount(entrezGeneIds);
+        final DrugsCount drugsCount = getDrugsCount(expandedGeneIds);
+        final long diseasesCount = getDiseasesCount(expandedGeneIds);
+        final long publicationsCount = getPublicationsCount(geneIds, entrezGeneIds, request.getTargetId());
         final SequencesSummary sequencesCount = getGeneSequencesCount(targetGenes, ncbiGeneIds, true);
         final long structuresCount = getStructuresCount(geneIds);
         return TargetIdentificationResult.builder()
@@ -244,7 +244,13 @@ public class LaunchIdentificationManager {
     }
 
     public SearchResult<NCBISummaryVO> getPublications(final PublicationSearchRequest request)
-            throws ParseException, IOException {
+            throws ParseException, IOException, ExternalDbUnavailableException {
+        if (request.getTargetId() != null) {
+            final Target target = targetManager.getTarget(request.getTargetId());
+            if (TargetType.PARASITE.equals(target.getType())) {
+                return pubMedService.fetchPubMedArticles(request, getPublicationsQuery(request.getGeneIds()));
+            }
+        }
         targetManager.expandTargetGenes(request.getGeneIds());
         return pubMedService.fetchPubMedArticles(request);
     }
@@ -385,6 +391,17 @@ public class LaunchIdentificationManager {
         return localPdbFiles + structuresCount;
     }
 
+    public long getPublicationsCount(final List<String> geneIds, final List<String> entrezGeneIds, final Long targetId)
+            throws ParseException, IOException {
+        if (targetId != null) {
+            final Target target = targetManager.getTarget(targetId);
+            if (TargetType.PARASITE.equals(target.getType())) {
+                return pubMedService.getParasitesPublicationsCount(getPublicationsQuery(geneIds));
+            }
+        }
+        return pubMedService.getPublicationsCount(entrezGeneIds);
+    }
+
     public DrugsCount getDrugsCount(final List<String> geneIds) throws IOException, ParseException {
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
@@ -500,6 +517,28 @@ public class LaunchIdentificationManager {
         final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, true);
         targetManager.expandTargetGenes(geneIds);
         return ttdDatabaseManager.getDiseaseFieldValues(geneIds, targetGenes);
+    }
+
+    private String getPublicationsQuery(final List<String> geneIds) throws ParseException, IOException {
+        final List<String> terms = new ArrayList<>();
+        final List<TargetGene> targetGenes = targetManager.getTargetGenes(geneIds);
+        final Set<Long> taxIds = new HashSet<>();
+        final Map<String, Set<Long>> geneNamesTaxIdsMap = new HashMap<>();
+        targetGenes.forEach(g -> {
+            geneNamesTaxIdsMap.put(g.getGeneName(), new HashSet<>(g.getAdditionalGenes().values()));
+            taxIds.addAll(g.getAdditionalGenes().values());
+        });
+        final List<Taxonomy> organisms = taxonomyManager.searchOrganismsByIds(taxIds);
+        final Map<Long, Taxonomy> organismsMap = organisms.stream()
+                .collect(Collectors.toMap(Taxonomy::getTaxId, Function.identity()));
+        geneNamesTaxIdsMap.forEach((k, v) -> {
+            v.forEach(t -> {
+                if (organismsMap.containsKey(t)) {
+                    terms.add(String.format("(%s %s)", k, organismsMap.get(t).getScientificName()));
+                }
+            });
+        });
+        return String.join(" OR ", terms);
     }
 
     private static Map<String, String> mergeDescriptions(final Map<GeneId, String> ncbiSummary,
