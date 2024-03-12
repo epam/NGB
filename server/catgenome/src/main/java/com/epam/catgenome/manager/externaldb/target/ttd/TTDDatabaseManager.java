@@ -35,6 +35,7 @@ import com.epam.catgenome.manager.target.ParasiteProteinsManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Value;
@@ -206,7 +207,9 @@ public class TTDDatabaseManager {
         final List<String> sequences = sequencesManager.getGeneProteins(geneId, taxId);
         final List<String> blastSequences = new ArrayList<>();
         for (String s : sequences) {
-            blastSequences.addAll(parasiteProteinsManager.getSequences(s));
+            if (StringUtils.isNotBlank(s)) {
+                blastSequences.addAll(parasiteProteinsManager.getSequences(s));
+            }
         }
         return blastSequences;
     }
