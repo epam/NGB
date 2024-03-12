@@ -136,15 +136,15 @@ public class AlignmentManager {
                     pageNum++;
                 } while (processed < totalCount);
             } catch (Exception e) {
-                log.error("Failed to process target with id {}", target.getTargetName());
-                log.error(e.getMessage());
+                log.error("Failed to process target with id {}", target.getId());
+                log.error(e.getMessage(), e);
             } finally {
                 try {
                     if (!CollectionUtils.isEmpty(genes)) {
                         targetGeneManager.update(genes);
                     }
                 } catch (IOException | ParseException | TargetGenesException e) {
-                    log.error(e.getMessage());
+                    log.error(e.getMessage(), e);
                 }
             }
         });
