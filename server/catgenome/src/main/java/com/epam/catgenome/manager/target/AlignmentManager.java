@@ -173,6 +173,7 @@ public class AlignmentManager {
                         return new ArrayList<String>();
                     }
                 }).flatMap(Collection::stream)
+                .distinct()
                 .collect(Collectors.toList());
         gene.setStatus(TargetGeneStatus.PROCESSED);
         gene.setTtdTargets(ttdTargets);
