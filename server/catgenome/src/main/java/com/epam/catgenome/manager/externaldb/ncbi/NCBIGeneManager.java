@@ -80,6 +80,7 @@ public class NCBIGeneManager {
 
     private static final String RESULT_PATH = "result";
     public static final String OR = " or ";
+    private static final int MAX_RESULT = 1000;
 
     private JsonMapper mapper = new JsonMapper();
 
@@ -145,6 +146,14 @@ public class NCBIGeneManager {
         final String pubmedQueryXml = ncbiAuxiliaryManager.link(join(geneIds, ","), NCBIDatabase.GENE.name(),
                         NCBIDatabase.PUBMED.name(), "gene_pubmed", term);
         return geneInfoParser.parseHistoryResponse(pubmedQueryXml, NCBIUtility.NCBI_LINK);
+    }
+
+    public Pair<String, String> getPubmedHistoryQuery(final String query, final String term)
+            throws ExternalDbUnavailableException {
+        final String fullQuery = StringUtils.isNotBlank(term) ? String.format("%s AND %s", query, term) : query;
+        final String pubmedQueryXml = ncbiAuxiliaryManager.searchWithHistory(NCBIDatabase.PUBMED.name(),
+                fullQuery, MAX_RESULT);
+        return geneInfoParser.parseHistoryResponse(pubmedQueryXml, NCBIUtility.NCBI_SEARCH);
     }
 
     public NCBIGeneVO fetchGeneById(final String id) throws ExternalDbUnavailableException {

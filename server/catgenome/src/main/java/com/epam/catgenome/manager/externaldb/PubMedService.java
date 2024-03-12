@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.externaldb;
 import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
 import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
@@ -95,6 +96,22 @@ public class PubMedService {
         return result;
     }
 
+    public SearchResult<NCBISummaryVO> fetchPubMedArticles(final PublicationSearchRequest request, final String query)
+            throws ExternalDbUnavailableException {
+        final String retStart = String.valueOf(((request.getPage() - 1) * request.getPageSize()));
+        final String retMax = String.valueOf(request.getPageSize());
+        final String term = TextUtils.isBlank(request.getKeywords()) ? pubMedSearchContext :
+                String.format("%s %s", pubMedSearchContext, request.getKeywords()).trim();
+        final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(query, term);
+        final List<NCBISummaryVO> articles = ncbiGeneManager.fetchPubmedData(historyQuery, retStart, retMax);
+        final int totalCount = ncbiGeneManager.pubmedDataCount(historyQuery);
+
+        final SearchResult<NCBISummaryVO> result = new SearchResult<>();
+        result.setItems(articles);
+        result.setTotalCount(totalCount);
+        return result;
+    }
+
     @SneakyThrows
     public List<NCBISummaryVO> fetchPubMedArticles(final List<String> entrezIds, final long publicationsCount) {
         final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(entrezIds, pubMedSearchContext);
@@ -111,6 +128,13 @@ public class PubMedService {
     @SneakyThrows
     public int getPublicationsCount(final List<String> entrezIds) {
         final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(entrezIds, pubMedSearchContext);
+        return ncbiGeneManager.pubmedDataCount(historyQuery);
+    }
+
+    @SneakyThrows
+    public int getParasitesPublicationsCount(final String query) {
+        final Pair<String, String> historyQuery = ncbiGeneManager.getPubmedHistoryQuery(query,
+                pubMedSearchContext);
         return ncbiGeneManager.pubmedDataCount(historyQuery);
     }
 

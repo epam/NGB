@@ -358,7 +358,7 @@ public class LaunchIdentificationController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<NCBISummaryVO>> getPublications(@RequestBody final PublicationSearchRequest request)
-            throws ParseException, IOException {
+            throws ParseException, IOException, ExternalDbUnavailableException {
         return Result.success(launchIdentificationSecurityService.getPublications(request));
     }
 
