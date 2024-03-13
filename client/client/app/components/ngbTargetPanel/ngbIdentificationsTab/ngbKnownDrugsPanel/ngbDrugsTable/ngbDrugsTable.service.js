@@ -309,6 +309,19 @@ export default class ngbDrugsTableService {
             pageSize: this.pageSize,
             geneIds: this.geneIds,
         };
+        if (this.sourceModel.name === this.sourceOptions.TTD.name) {
+            if (this._filterInfo && this._filterInfo.target && this._filterInfo.target.length) {
+                const geneIds = this._filterInfo.target
+                    .map(t => {
+                        const chip = this.ngbTargetPanelService.getGeneIdByChip(t);
+                        return chip ? chip : '';
+                    })
+                    .filter(v => v);
+                if (geneIds && geneIds.length) {
+                    request.geneIds = geneIds;
+                }
+            }
+        }
         if (this.sortInfo && this.sortInfo.length) {
             request.orderInfos = this.sortInfo.map(i => ({
                 orderBy: this.fields[this.sourceModel.name][i.field],
@@ -317,25 +330,31 @@ export default class ngbDrugsTableService {
         }
         if (this._filterInfo) {
             const filters = Object.entries(this._filterInfo)
-                .filter(([key, values]) => values.length)
-                .map(([key, values]) => {
-                    return {
-                        field: this.fields[this.sourceModel.name][key],
-                        terms: values.map(v => {
-                            if (key === 'phase') {
-                                return v || '';
-                            }
-                            if (key === 'target') {
-                                const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
-                                return chip ? chip : '';
-                            }
-                            if (v === 'Empty value') {
-                                return '';
-                            }
-                            return v;
-                        })
-                    };
-                });
+                .filter(([key, values]) => {
+                    if (this.sourceModel.name === this.sourceOptions.TTD.name) {
+                        if (key === 'target') {
+                            return;
+                        }
+                    }
+                    if (!this.fields[this.sourceModel.name][key]) return;
+                    return values.length
+                })
+                .map(([key, values]) => ({
+                    field: this.fields[this.sourceModel.name][key],
+                    terms: values.map(v => {
+                        if (key === 'phase') {
+                            return v || '';
+                        }
+                        if (key === 'target') {
+                            const chip = this.ngbTargetPanelService.getGeneIdByChip(v);
+                            return chip ? chip : '';
+                        }
+                        if (v === 'Empty value') {
+                            return '';
+                        }
+                        return v;
+                    })
+                }));
             if (filters && filters.length) {
                 request.filters = filters;
             }

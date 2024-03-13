@@ -28,7 +28,7 @@ const FIELDS = {
     },
     TTD: {
         'target': 'TARGET',
-        'ttd target': 'TTD_TARGET',
+        'TTD target': 'TTD_TARGET',
         'disease': 'DISEASE_NAME',
         'clinical status': 'CLINICAL_STATUS'
     }
@@ -36,7 +36,7 @@ const FIELDS = {
 
 const FILTER_FIELDS_LIST = {
     TTD: {
-        'ttdTargets': 'ttd target',
+        'ttdTargets': 'TTD target',
         'phases': 'clinical status'
     }
 };
@@ -226,6 +226,19 @@ export default class ngbDiseasesTableService {
             pageSize: this.pageSize,
             geneIds: this.geneIds,
         };
+        if (this.sourceModel === SourceOptions.TTD) {
+            if (this._filterInfo && this._filterInfo.target && this._filterInfo.target.length) {
+                const geneIds = this._filterInfo.target
+                    .map(t => {
+                        const chip = this.ngbTargetPanelService.getGeneIdByChip(t);
+                        return chip ? chip : '';
+                    })
+                    .filter(v => v);
+                if (geneIds && geneIds.length) {
+                    request.geneIds = geneIds;
+                }
+            }
+        }
         if (this.sortInfo && this.sortInfo.length) {
             request.orderInfos = this.sortInfo.map(i => ({
                 orderBy: this.fields[this.sourceModel][i.field],
@@ -234,7 +247,15 @@ export default class ngbDiseasesTableService {
         }
         if (this._filterInfo) {
             const filters = Object.entries(this._filterInfo)
-                .filter(([key, values]) => values.length)
+                .filter(([key, values]) => {
+                    if (this.sourceModel === SourceOptions.TTD) {
+                        if (key === 'target') {
+                            return;
+                        }
+                    }
+                    if (!this.fields[this.sourceModel][key]) return;
+                    return values.length
+                })
                 .map(([key, values]) => {
                     const filter = {
                         field: this.fields[this.sourceModel][key]
@@ -247,9 +268,8 @@ export default class ngbDiseasesTableService {
                             });
                             return filter;
                         case 'disease':
-                            filter.terms = Array.isArray(values) ? values.map(v => v) : [values];
-                            return filter;
                         case 'clinical status':
+                        case 'TTD target':
                             filter.terms = Array.isArray(values) ? values.map(v => v) : [values];
                             return filter;
                         default:
