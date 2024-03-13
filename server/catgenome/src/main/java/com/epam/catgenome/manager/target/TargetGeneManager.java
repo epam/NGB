@@ -438,7 +438,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     private Map<String, TargetGeneField> getFieldsMap(final long targetId) throws ParseException, IOException {
         final List<TargetGeneField> targetGeneFields = getFields(targetId);
         return targetGeneFields.stream()
-                .collect(Collectors.toMap(TargetGeneField::getField, Function.identity(), (f1,f2) -> {
+                .collect(Collectors.toMap(TargetGeneField::getField, Function.identity(), (f1, f2) -> {
                     log.error("Duplicate fields {} {}", f1.getField(), f2.getField());
                     return f1;
                 }));

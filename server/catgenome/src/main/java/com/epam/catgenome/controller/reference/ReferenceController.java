@@ -389,7 +389,7 @@ public class ReferenceController extends AbstractRESTController {
     @ResponseBody
     @RequestMapping(value = "/secure/reference/{referenceId}/protein", method = RequestMethod.PUT)
     public Result<Boolean> updateProteinSeq(@PathVariable Long referenceId,
-                                             @RequestParam String path) {
+                                            @RequestParam String path) {
         referenceSecurityService.updateProteinSeqFile(referenceId, path);
         return Result.success(true);
     }
