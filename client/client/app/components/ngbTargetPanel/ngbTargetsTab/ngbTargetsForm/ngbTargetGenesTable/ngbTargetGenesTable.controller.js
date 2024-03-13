@@ -6,6 +6,15 @@ const PRIORITY_LIST = [{
     value: 'HIGH'
 }];
 
+const NEW_ADDITIONAL_GENES = {
+    limit: 1,
+};
+
+const NEW_ADDITIONAL_GENE = {
+    taxId: '',
+    geneId: '',
+};
+
 export default class ngbTargetGenesTableController {
 
     gridOptions = {
@@ -514,6 +523,7 @@ export default class ngbTargetGenesTableController {
     }
 
     saveSortConfiguration() {
+        if (!this.gridApi) return;
         this.savedSortConfiguration = this.gridApi.grid.columns
             .filter(column => !!column.sort)
             .map((column, priority) => ({
@@ -758,14 +768,17 @@ export default class ngbTargetGenesTableController {
         return genesEmpty.length;
     }
 
-    addAdditionalGene(genesArray, rowIndex, event) {
-        if (this.getIsAddAdditionalGeneDisabled(genesArray)) return;
-        if (genesArray.value.length === genesArray.limit) {
-            this.showOthers(rowIndex, genesArray, event)
+    async addAdditionalGene(row, rowIndex, event) {
+        if (this.getIsAddAdditionalGeneDisabled(row.additionalGenes)) return;
+        if (!row.additionalGenes) {
+            row.additionalGenes = {...NEW_ADDITIONAL_GENES};
+            row.additionalGenes.value = [];
+            row.additionalGenes.value.push({...NEW_ADDITIONAL_GENE});
+        } else {
+            if (row.additionalGenes.value.length === row.additionalGenes.limit) {
+                this.showOthers(rowIndex, row.additionalGenes, event)
+            }
+            row.additionalGenes.value.push({...NEW_ADDITIONAL_GENE});
         }
-        genesArray.value.push({
-            taxId: '',
-            geneId: ''
-        });
     }
 }
