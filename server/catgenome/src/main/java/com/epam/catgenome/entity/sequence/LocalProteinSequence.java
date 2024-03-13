@@ -29,8 +29,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class LocalSequence extends Sequence {
-    private Long referenceId;
-    private Long featureFileId;
-    private Long chromosomeId;
+public class LocalProteinSequence extends Sequence {
+    private String baseString;
 }

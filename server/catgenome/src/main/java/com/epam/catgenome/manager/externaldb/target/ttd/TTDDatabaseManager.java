@@ -138,7 +138,6 @@ public class TTDDatabaseManager {
         return result;
     }
 
-
     public TTDDrugFieldValues getDrugFieldValues(final List<TargetGene> targetGenes)
             throws IOException, ParseException {
         final List<TTDDrugAssociation> result = fetchTTDDrugs(targetGenes, Collections.emptyList());
@@ -265,5 +264,4 @@ public class TTDDatabaseManager {
         searchResult.setTotalCount(result.size());
         return searchResult;
     }
-
 }
