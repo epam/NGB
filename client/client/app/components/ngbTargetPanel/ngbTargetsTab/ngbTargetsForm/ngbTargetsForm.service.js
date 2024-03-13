@@ -11,10 +11,21 @@ const getNewGene = () => {
 }
 
 const PAGE_SIZE = 20;
-const ADDITIONAL_GENES = 'additionalGenes';
 
-const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'priority', 'additionalGenes'];
-const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority', 'Additional Genes'];
+const ADDITIONAL_GENES = {
+    name: 'additionalGenes',
+    displayName: 'additional gene',
+    add: 'gene'
+};
+
+const TTD_TARGETS = {
+    name: 'ttdTargets',
+    displayName: 'ttd target',
+    add: 'target'
+};
+
+const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'priority', 'additionalGenes', 'status', 'ttdTargets'];
+const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority', 'Additional Genes', 'Status', 'TTD Targets'];
 
 const REQUIRED_FIELDS = ['geneId', 'geneName', 'taxId', 'speciesName'];
 
@@ -55,6 +66,9 @@ export default class ngbTargetsFormService {
     }
     get additionalGenes() {
         return ADDITIONAL_GENES;
+    }
+    get ttdTargets() {
+        return TTD_TARGETS;
     }
 
     _targetModel;
@@ -172,7 +186,7 @@ export default class ngbTargetsFormService {
             Object.entries(gene)
                 .some(([key, value]) => {
                     if (!allFields.includes(key)) return false;
-                    if (key === this.additionalGenes) {
+                    if (key === this.additionalGenes.name) {
                         const additionalGenes = value.value.filter(v => v.geneId && v.taxId);
                         if (!originalGenes[index].additionalGenes) return additionalGenes.length;
                         const originalAdditionalGenes = originalGenes[index].additionalGenes.value;
@@ -347,6 +361,7 @@ export default class ngbTargetsFormService {
                 taxId: g.taxId,
                 speciesName: g.speciesName,
                 priority: g.priority,
+                status: g.status,
                 ...encodedMetadata(g.metadata)
             };
             if (g.additionalGenes) {
@@ -356,6 +371,12 @@ export default class ngbTargetsFormService {
                             geneId,
                             taxId,
                         })),
+                    limit: 1,
+                }
+            }
+            if (g.ttdTargets) {
+                gene.ttdTargets = {
+                    value: g.ttdTargets.map(t => ({geneId: t})),
                     limit: 1,
                 }
             }
@@ -369,6 +390,7 @@ export default class ngbTargetsFormService {
                 taxId: g.taxId,
                 speciesName: g.speciesName,
                 priority: g.priority,
+                status: g.status,
                 ...encodedMetadata(g.metadata)
             };
             if (g.additionalGenes) {
@@ -380,6 +402,12 @@ export default class ngbTargetsFormService {
                         })),
                     limit: 1,
                 };
+            }
+            if (g.ttdTargets) {
+                gene.ttdTargets = {
+                    value: [...g.ttdTargets],
+                    limit: 1,
+                }
             }
             return gene;
         });
@@ -654,7 +682,7 @@ export default class ngbTargetsFormService {
                 const originalGene = original.filter(o => o.targetGeneId === gene.targetGeneId)[0];
                 return Object.entries(gene).some(([key, value]) => {
                     if (!allFields.includes(key)) return false;
-                    if (key === this.additionalGenes) {
+                    if (key === this.additionalGenes.name) {
                         const additionalGenes = value.value;
                         if (!originalGene.additionalGenes) {
                             return additionalGenes.length;
@@ -907,7 +935,9 @@ export default class ngbTargetsFormService {
 
     setMetadataFields(fields) {
         this.metadataFields = fields.map(f => f.fieldName)
-            .filter(name => !this.defaultFields.includes(name));
+            .filter(name => {
+                return !this.defaultFields.includes(name);
+            });
     }
 
     setTargetGenesFields() {

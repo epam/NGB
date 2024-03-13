@@ -38,7 +38,7 @@ ngb-target-genes-table {
             }
         }
 
-        .additional-cell-wrapper {
+        .table-cell-wrapper {
             overflow-y: auto;
             box-sizing: border-box;
             height: 100%;
@@ -46,17 +46,17 @@ ngb-target-genes-table {
             background: #fafafa;
         }
 
-        .additional-genes {
+        .table-cell {
             padding: 2px 5px;
         }
 
-        .additional-gene-item {
+        .table-cell-item {
             display: flex;
             justify-content: space-between;
         }
 
-        .additional-gene-input,
-        .additional-gene-input.ng-valid {
+        .table-cell-input,
+        .table-cell-input.ng-valid {
             width: 58%;
             border-radius: 0;
             border: none;
@@ -74,12 +74,12 @@ ngb-target-genes-table {
             }
         }
 
-        .additional-gene-input:nth-child(2),
-        .additional-gene-input:nth-child(2).ng-valid {
+        .table-cell-input:nth-child(2),
+        .table-cell-input:nth-child(2).ng-valid {
             width: 30%;
         }
 
-        .additional-remove-btn {
+        .table-cell-remove-btn {
             min-height: 10px;
             min-width: 12px;
             line-height: 10px;
@@ -255,7 +255,7 @@ ngb-target-genes-table {
     }
 }
 
-.priority-select {
+.select-cell-container {
     md-select-menu:not(.md-overflow) md-content {
         padding: 0;
     }
