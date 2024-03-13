@@ -299,9 +299,9 @@ export default class ngbTargetGenesTableService {
             this.loading = false;
             return Promise.resolve(true);
         } else {
+            this._tableResults = this.targetModel.genes;
+            this.loading = false;
             return new Promise(resolve => {
-                this._tableResults = this.targetModel.genes;
-                this.loading = false;
                 resolve(true);
             });
         }
