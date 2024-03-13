@@ -832,27 +832,29 @@ export default class ngbTargetsFormService {
         this.loading = true;
         this.setEmptyTargetModel();
         this.ngbTargetsTabService.setAddMode();
-        this.$timeout(() => {
-            this._targetModel.name = info.targetName;
-            this._targetModel.diseases = [];
-            this._targetModel.products = [];
-            this._targetModel.genes = info.genes.map(g => ({
-                geneId: g.geneId,
-                geneName: g.geneName,
-                taxId: g.taxId,
-                speciesName: g.speciesName,
-                priority: ''
-            }));
-            const mdChips = document.getElementsByClassName('chip-input');
-            for (let i = 0; i < mdChips.length; i++) {
-                const input = mdChips[i].getElementsByClassName('md-input');
-                for (let j = 0; j < input.length; j++) {
-                    input[j].value = '';
-                    input[j].innerHTML = '';
-                }
+        this.setTargetFromHomolog(info);
+        this.loading = false;
+    }
+
+    setTargetFromHomolog(info) {
+        this._targetModel.name = info.targetName;
+        this._targetModel.diseases = [];
+        this._targetModel.products = [];
+        this._targetModel.genes = info.genes.map(g => ({
+            geneId: g.geneId,
+            geneName: g.geneName,
+            taxId: g.taxId,
+            speciesName: g.speciesName,
+            priority: ''
+        }));
+        const mdChips = document.getElementsByClassName('chip-input');
+        for (let i = 0; i < mdChips.length; i++) {
+            const input = mdChips[i].getElementsByClassName('md-input');
+            for (let j = 0; j < input.length; j++) {
+                input[j].value = '';
+                input[j].innerHTML = '';
             }
-            this.loading = false;
-        });
+        }
     }
 
     resetTarget() {
