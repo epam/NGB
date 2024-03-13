@@ -523,6 +523,7 @@ export default class ngbTargetGenesTableController {
     }
 
     saveSortConfiguration() {
+        if (!this.gridApi) return;
         this.savedSortConfiguration = this.gridApi.grid.columns
             .filter(column => !!column.sort)
             .map((column, priority) => ({
