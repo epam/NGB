@@ -109,6 +109,7 @@ export default class ngbTargetGenesTableController {
         dispatcher.on('target:form:restore:view', confirmRestoreDialog);
         dispatcher.on('target:form:confirm:filter', confirmFilterDialog);
         dispatcher.on('target:form:restore:row:height', restoreRowsHeight);
+        dispatcher.on('target:model:type:changed', refreshColumns);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:gene:added', initialize);
             dispatcher.removeListener('target:form:saved', reloadCurrentPage);
@@ -120,6 +121,7 @@ export default class ngbTargetGenesTableController {
             dispatcher.removeListener('target:form:restore:view', confirmRestoreDialog);
             dispatcher.removeListener('target:form:confirm:filter', confirmFilterDialog);
             dispatcher.removeListener('target:form:restore:row:height', restoreRowsHeight);
+            dispatcher.removeListener('target:model:type:changed', refreshColumns);
         });
     }
 

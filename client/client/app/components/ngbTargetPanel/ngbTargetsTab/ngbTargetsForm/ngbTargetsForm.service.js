@@ -25,7 +25,8 @@ const TTD_TARGETS = {
 };
 
 const GENE_MODEL_PROPERTIES = ['geneId', 'geneName', 'taxId', 'speciesName', 'priority', 'additionalGenes', 'status', 'ttdTargets'];
-const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority', 'Additional Genes', 'Status', 'TTD Targets'];
+const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Priority', 'Additional Genes'];
+const PARASITE_DEFAULT_FIELDS = [...DEFAULT_FIELDS, 'Status', 'TTD Targets'];
 
 const REQUIRED_FIELDS = ['geneId', 'geneName', 'taxId', 'speciesName'];
 
@@ -59,7 +60,7 @@ export default class ngbTargetsFormService {
         return PAGE_SIZE;
     }
     get defaultFields() {
-        return DEFAULT_FIELDS;
+        return this.isParasite ? PARASITE_DEFAULT_FIELDS : DEFAULT_FIELDS;
     }
     get requiredFields() {
         return REQUIRED_FIELDS;
@@ -248,40 +249,39 @@ export default class ngbTargetsFormService {
         return !!(this.parasiteGenesRemoved() || this.parasiteGenesAdded() || this.targetGenesChanged());
     }
 
-    getTargetModel(data) {
-        return {
-            id: data.id,
-            name: data.targetName,
-            type: data.type,
-            diseases: (data.diseases || []).filter(d => d),
-            products: (data.products || []).filter(p => p),
-            identifications: data.identifications,
-            genes: (data.targetGenes || []).map(gene => {
-                const geneObject = {
-                    geneId: gene.geneId,
-                    geneName: gene.geneName,
-                    taxId: gene.taxId,
-                    speciesName: gene.speciesName,
-                    priority: gene.priority,
-                };
-                if (gene.additionalGenes) {
-                    geneObject.additionalGenes = {
-                        value: Object.entries(gene.additionalGenes)
-                            .map(([geneId, taxId]) => ({
-                                geneId,
-                                taxId,
-                            })),
-                        limit: 1,
-                    };
-                }
-                return geneObject;
-            }),
-        }
-    }
-
     setTargetModel(data) {
-        this._targetModel = this.getTargetModel(data);
-        this._originalModel = this.getTargetModel(data);
+        const getTargetModel = (data) => {
+            return {
+                id: data.id,
+                name: data.targetName,
+                type: data.type,
+                diseases: (data.diseases || []).filter(d => d),
+                products: (data.products || []).filter(p => p),
+                identifications: data.identifications,
+                genes: (data.targetGenes || []).map(gene => {
+                    const geneObject = {
+                        geneId: gene.geneId,
+                        geneName: gene.geneName,
+                        taxId: gene.taxId,
+                        speciesName: gene.speciesName,
+                        priority: gene.priority,
+                    };
+                    if (gene.additionalGenes) {
+                        geneObject.additionalGenes = {
+                            value: Object.entries(gene.additionalGenes)
+                                .map(([geneId, taxId]) => ({
+                                    geneId,
+                                    taxId,
+                                })),
+                            limit: 1,
+                        };
+                    }
+                    return geneObject;
+                }),
+            }
+        }
+        this._targetModel = getTargetModel(data);
+        this._originalModel = getTargetModel(data);
         this.targetContext.targetModelType = data.type;
     }
 
