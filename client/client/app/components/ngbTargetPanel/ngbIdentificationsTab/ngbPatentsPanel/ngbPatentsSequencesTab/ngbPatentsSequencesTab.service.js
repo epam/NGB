@@ -260,12 +260,40 @@ export default class ngbPatentsSequencesTabService {
         this._errorSequence = value;
     }
 
-    static instance ($interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService, utilsDataService) {
-        return new ngbPatentsSequencesTabService($interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService, utilsDataService);
+    static instance (
+        $interval,
+        dispatcher,
+        ngbTargetPanelService,
+        targetDataService,
+        projectDataService,
+        utilsDataService
+    ) {
+        return new ngbPatentsSequencesTabService(
+            $interval,
+            dispatcher,
+            ngbTargetPanelService,
+            targetDataService,
+            projectDataService,
+            utilsDataService
+        );
     }
 
-    constructor($interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService, utilsDataService) {
-        Object.assign(this, {$interval, dispatcher, ngbTargetPanelService, targetDataService, projectDataService, utilsDataService});
+    constructor(
+        $interval,
+        dispatcher,
+        ngbTargetPanelService,
+        targetDataService,
+        projectDataService,
+        utilsDataService
+    ) {
+        Object.assign(this, {
+            $interval,
+            dispatcher,
+            ngbTargetPanelService,
+            targetDataService,
+            projectDataService,
+            utilsDataService
+        });
         dispatcher.on('target:identification:sequences:updated', this.setProteins.bind(this));
         dispatcher.on('target:identification:reset', this.resetData.bind(this));
     }
@@ -516,23 +544,35 @@ export default class ngbPatentsSequencesTabService {
     }
 
     async getSequence() {
-        const database = this.sequenceDB;
-        const id = this.selectedProtein.id;
-        return new Promise(resolve => {
-            this.targetDataService.getSequence(database, id)
-                .then(data => {
-                    this._failedSequence = false;
-                    this._errorSequence = null;
-                    this._loadingSequence = false;
-                    resolve(data);
-                })
-                .catch(err => {
-                    this._failedSequence = true;
-                    this._errorSequence = [err.message];
-                    this._loadingSequence = false;
-                    resolve(false);
-                });
-        });
+        if (this.selectedProtein.baseString) {
+            this._failedSequence = false;
+            this._errorSequence = null;
+            this._loadingSequence = false;
+            return Promise.resolve(this.selectedProtein.baseString);
+        }
+        if (this.selectedProtein.id) {
+            const database = this.sequenceDB;
+            const id = this.selectedProtein.id;
+            return new Promise(resolve => {
+                this.targetDataService.getSequence(database, id)
+                    .then(data => {
+                        this._failedSequence = false;
+                        this._errorSequence = null;
+                        this._loadingSequence = false;
+                        resolve(data);
+                    })
+                    .catch(err => {
+                        this._failedSequence = true;
+                        this._errorSequence = [err.message];
+                        this._loadingSequence = false;
+                        resolve(false);
+                    });
+            });
+        }
+        this._failedSequence = false;
+        this._errorSequence = null;
+        this._loadingSequence = false;
+        return Promise.resolve('');
     }
 
     resetTableResults() {
