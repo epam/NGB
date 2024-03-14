@@ -139,6 +139,9 @@ export default class ngbTargetsFormService {
     get isParasite() {
         return this.targetModel.type === this.targetType.PARASITE;
     }
+    get allFields () {
+        return [...this.geneModelProperties, ...this.metadataFields];
+    }
 
     static instance (dispatcher, ngbTargetsTabService, targetDataService, targetContext) {
         return new ngbTargetsFormService(dispatcher, ngbTargetsTabService, targetDataService, targetContext);
@@ -181,33 +184,7 @@ export default class ngbTargetsFormService {
         const originalGenes = this.originalModel.genes;
         const targetGenes = this.targetModel.genes;
         if (originalGenes.length !== targetGenes.length) return true;
-        const allFields = [...this.geneModelProperties, ...this.metadataFields];
-        return targetGenes.some((gene, index) => (
-            Object.entries(gene)
-                .some(([key, value]) => {
-                    if (!allFields.includes(key)) return false;
-                    if (key === this.additionalGenes.name) {
-                        const additionalGenes = value.value.filter(v => v.geneId && v.taxId);
-                        if (!originalGenes[index].additionalGenes) return additionalGenes.length;
-                        const originalAdditionalGenes = originalGenes[index].additionalGenes.value;
-                        if (originalAdditionalGenes.length !== additionalGenes.length) return true;
-                        return additionalGenes.some((g, i) => (
-                            g.geneId !== originalAdditionalGenes[i].geneId ||
-                            g.taxId !== originalAdditionalGenes[i].taxId
-                        ))
-                    } else if (key === this.ttdTargets.name) {
-                        const ttdTargets = value.value.filter(v => v.geneId);
-                        if (!originalGenes[index].ttdTargets) return ttdTargets.length;
-                        const originalTtdTargets = originalGenes[index].ttdTargets.value;
-                        if (originalTtdTargets.length !== ttdTargets.length) return true;
-                        return ttdTargets.some((t, i) => (
-                            t.geneId !== originalTtdTargets[i].geneId
-                        ))
-                    } else {
-                        return String(value) !== String(originalGenes[index][key]);
-                    }
-                })
-        ));
+        return targetGenes.some(gene => this.wasGeneChanged.call(this, gene));
     }
 
     targetInfoChanged() {
@@ -502,29 +479,8 @@ export default class ngbTargetsFormService {
 
     getParasiteGenesRequest(genes, targetId) {
         const request = genes.map(g => {
-            const gene = Object.fromEntries(this.requiredFields.map(field => (
-                [field, g[field]]
-            )));
-            gene.targetId = targetId;
+            const gene = this.getGeneForRequest(g, targetId);
             gene.metadata = {};
-            if (g.priority && g.priority !== 'None') {
-                gene.priority = g.priority;
-            }
-            if (g.status && g.status !== 'None') {
-                gene.status = g.status;
-            }
-            if (g.additionalGenes && g.additionalGenes.value) {
-                const additionalGenes = this.getAdditionalGenesForRequest(g.additionalGenes.value);
-                if (additionalGenes) {
-                    gene.additionalGenes = additionalGenes;
-                }
-            }
-            if (g.ttdTargets && g.ttdTargets.value) {
-                const ttdTargets = this.getTtdTargetsForRequest(g.ttdTargets.value);
-                if (ttdTargets) {
-                    gene.ttdTargets = ttdTargets;
-                }
-            }
             return gene;
         });
         return request;
@@ -647,49 +603,75 @@ export default class ngbTargetsFormService {
         });
     }
 
+    wasGeneChanged(gene) {
+        return Object.entries(gene)
+            .some(([key, value]) => {
+                if (!this.allFields.includes(key)) {
+                    return false;
+                }
+                const originalGene = this.originalModel.genes
+                    .filter(o => o.targetGeneId === gene.targetGeneId)[0];
+                if (key === this.additionalGenes.name) {
+                    const additionalGenes = value.value.filter(v => v.geneId && v.taxId);
+                    if (!originalGene.additionalGenes) {
+                        return additionalGenes.length;
+                    }
+                    const originalAdditionalGenes = originalGene.additionalGenes.value;
+                    if (originalAdditionalGenes.length !== additionalGenes.length) {
+                        return true;
+                    }
+                    return additionalGenes.some((g, i) => (
+                        g.geneId !== originalAdditionalGenes[i].geneId ||
+                        g.taxId !== originalAdditionalGenes[i].taxId
+                    ))
+                } else if (key === this.ttdTargets.name) {
+                    const ttdTargets = value.value.filter(v => v.geneId);
+                    if (!originalGene.ttdTargets) return ttdTargets.length;
+                    const originalTtdTargets = originalGene.ttdTargets.value;
+                    if (originalTtdTargets.length !== ttdTargets.length) return true;
+                    return ttdTargets.some((t, i) => (
+                        t.geneId !== originalTtdTargets[i].geneId
+                    ))
+                } else {
+                    return String(value) !== String(originalGene[key]);
+                }
+            });
+    }
+
+    getGeneForRequest(gene, targetId) {
+        const geneObject = Object.fromEntries(this.requiredFields
+                .map(field => [field, gene[field]]
+            ));
+        geneObject.targetId = targetId;
+        if (gene.priority && gene.priority !== 'None') {
+            geneObject.priority = gene.priority;
+        }
+        if (gene.status && gene.status !== 'None') {
+            geneObject.status = gene.status;
+        }
+        if (gene.additionalGenes && gene.additionalGenes.value) {
+            const additionalGenes = this.getAdditionalGenesForRequest(gene.additionalGenes.value);
+            if (additionalGenes) {
+                geneObject.additionalGenes = additionalGenes;
+            }
+        }
+        if (gene.ttdTargets && gene.ttdTargets.value) {
+            const ttdTargets = this.getTtdTargetsForRequest(gene.ttdTargets.value);
+            if (ttdTargets) {
+                geneObject.ttdTargets = ttdTargets;
+            }
+        }
+        return geneObject;
+    }
+
     getParasiteGenesMetadataRequest() {
-        const {id, genes} = this.targetModel;
-        const original = this.originalModel.genes;
-        const request = genes
-            .filter(gene => {
-                const allFields = [...this.geneModelProperties, ...this.metadataFields];
-                const originalGene = original.filter(o => o.targetGeneId === gene.targetGeneId)[0];
-                return Object.entries(gene).some(([key, value]) => {
-                    if (!allFields.includes(key)) return false;
-                    if (key === this.additionalGenes.name) {
-                        const additionalGenes = value.value;
-                        if (!originalGene.additionalGenes) {
-                            return additionalGenes.length;
-                        }
-                        const originalAdditionalGenes = originalGene.additionalGenes.value;
-                        if (originalAdditionalGenes.length !== additionalGenes.length) {
-                            return true;
-                        }
-                        return additionalGenes.some((g, i) => (
-                            g.geneId !== originalAdditionalGenes[i].geneId ||
-                            g.taxId !== originalAdditionalGenes[i].taxId
-                        ));
-                    } else {
-                        return String(value) !== String(originalGene[key]);
-                    }
-                });
-            })
+        const targetGenes = this.targetModel.genes;
+        const request = targetGenes
+            .filter(gene => this.wasGeneChanged.call(this, gene))
             .map(g => {
-                const gene = Object.fromEntries(this.requiredFields.map(field => (
-                    [field, g[field]]
-                )));
+                const gene = this.getGeneForRequest(g, this.targetModel.id);
                 gene.targetGeneId = g.targetGeneId;
-                gene.targetId = id;
                 gene.metadata = Object.fromEntries(this.metadataFields.map(c => [c, g[c]]));
-                if (g.priority && g.priority !== 'None') {
-                    gene.priority = g.priority;
-                }
-                if (g.additionalGenes && g.additionalGenes.value) {
-                    const additionalGenes = this.getAdditionalGenesForRequest(g.additionalGenes.value);
-                    if (additionalGenes) {
-                        gene.additionalGenes = additionalGenes;
-                    }
-                }
                 return gene;
             });
         return request;
@@ -697,14 +679,13 @@ export default class ngbTargetsFormService {
 
     getChangedFields() {
         const original = this.originalModel.genes;
-        const allFields = [...this.geneModelProperties, ...this.metadataFields];
         const keys = this.targetModel.genes
             .reduce((fields, gene) => {
                 const originalGene = original.filter(o => o.targetGeneId === gene.targetGeneId)[0];
                 const entries = Object.entries(gene);
                 for (let i = 0; i < entries.length; i++) {
                     const [key, value] = entries[i];
-                    if (allFields.includes(key)) {
+                    if (this.allFields.includes(key)) {
                         if (String(value) !== String(originalGene[key])) {
                             fields.push(key);
                         }
