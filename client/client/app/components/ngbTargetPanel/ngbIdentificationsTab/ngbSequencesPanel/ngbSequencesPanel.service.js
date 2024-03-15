@@ -136,7 +136,7 @@ export default class ngbSequencesPanelService {
             return {
                 target,
                 'transcript': {
-                    id: mrna.id,
+                    id: mrna.id || mrna.name,
                     url: mrna.url
                 },
                 'mrna length': mrna.length,
@@ -158,10 +158,16 @@ export default class ngbSequencesPanelService {
             this._sequencesReference = null;
             return;
         }
-        this._sequencesReference = reference.map(r => {
-            r.name = reference.name || 'reference';
-            return r;
-        });
+        const referencesObject = reference.reduce((acc, r) => {
+            r.name = r.name || 'reference';
+            acc[r.id] = acc[r.id] || r;
+            return acc;
+        }, {});
+        this._sequencesReference = Object.entries(referencesObject)
+            .map(([key, value]) => ({
+                id: key,
+                ...value
+            }));
     }
 
     setAllSequences(result) {
