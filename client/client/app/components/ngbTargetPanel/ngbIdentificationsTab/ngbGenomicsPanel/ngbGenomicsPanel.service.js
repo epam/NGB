@@ -116,6 +116,14 @@ export default class ngbGenomicsPanelService {
         return this.ngbTargetPanelService.translationalGeneIds;
     }
 
+    get targetId () {
+        const {target} = this.ngbTargetPanelService.identificationTarget;
+        if (target && target.id) {
+            return target.id;
+        }
+        return undefined;
+    }
+
     getChipByGeneId(id) {
         return this.ngbTargetPanelService.getChipByGeneId(id);
     }
@@ -400,8 +408,13 @@ export default class ngbGenomicsPanelService {
             });
         }
         if (this.translationalGeneIds && !this.translationalGeneIds.length) {
-            return this.targetDataService.getTargetExportGeneId(this.geneIdsOfInterest[0], source);
+            return this.targetDataService.getTargetExportGeneId(this.geneIdsOfInterest[0], source, this.targetId);
         }
-        return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
+        return this.targetDataService.getTargetExport(
+            this.geneIdsOfInterest,
+            this.translationalGeneIds,
+            source,
+            this.targetId
+        );
     }
 }

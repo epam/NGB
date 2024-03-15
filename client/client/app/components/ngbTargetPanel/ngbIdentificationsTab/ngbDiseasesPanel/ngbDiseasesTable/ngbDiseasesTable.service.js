@@ -159,6 +159,10 @@ export default class ngbDiseasesTableService {
         return [...this.ngbTargetPanelService.allGenes.map(i => i.geneId)];
     }
 
+    get targetId () {
+        return this.ngbDiseasesPanelService.targetId;
+    }
+
     getTarget(id) {
         if (!id) return;
         return this.ngbTargetPanelService.getChipByGeneId(id);
@@ -226,9 +230,8 @@ export default class ngbDiseasesTableService {
             pageSize: this.pageSize,
             geneIds: this.geneIds,
         };
-        const { target } = this.identificationTarget;
-        if (target && target.id) {
-            request.targetId = target.id;
+        if (this.targetId) {
+            request.targetId = this.targetId;
         }
         if (this.sortInfo && this.sortInfo.length) {
             request.orderInfos = this.sortInfo.map(i => ({
@@ -335,7 +338,7 @@ export default class ngbDiseasesTableService {
             });
         }
         return new Promise(resolve => {
-            this.targetDataService.getDiseasesFieldValues(this.sourceModel, geneIds)
+            this.targetDataService.getDiseasesFieldValues(this.sourceModel, geneIds, this.targetId)
                 .then((data) => {
                     resolve(data);
                 })

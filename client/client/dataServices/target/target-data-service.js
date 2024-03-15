@@ -315,9 +315,9 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getDrugsFieldValues(source, geneIds) {
+    getDrugsFieldValues(source, geneIds, targetId) {
         return new Promise((resolve) => {
-            this.get(`target/${ExternalDBFields[source]}/drugs/fieldValues?geneIds=${geneIds}`)
+            this.get(`target/${ExternalDBFields[source]}/drugs/fieldValues${getQueryString({geneIds, targetId})}`)
                 .then(data => {
                     if (data) {
                         resolve(data);
@@ -328,9 +328,9 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getDiseasesFieldValues(source, geneIds) {
+    getDiseasesFieldValues(source, geneIds, targetId) {
         return new Promise((resolve) => {
-            this.get(`target/${ExternalDBFields[source]}/diseases/fieldValues?geneIds=${geneIds}`)
+            this.get(`target/${ExternalDBFields[source]}/diseases/fieldValues${getQueryString({geneIds, targetId})}`)
                 .then(data => {
                     if (data) {
                         resolve(data);
@@ -343,9 +343,15 @@ export class TargetDataService extends DataService {
 
     getSequencesTableResults(geneIds, params) {
         const getComments = false;
-        const {includeLocal, includeAdditionalGenes} = params;
+        const {includeLocal, includeAdditionalGenes, targetId} = params;
         return new Promise((resolve, reject) => {
-            this.get(`target/sequences/table${getQueryString({geneIds, getComments, includeLocal, includeAdditionalGenes})}`)
+            this.get(`target/sequences/table${getQueryString({
+                geneIds,
+                getComments,
+                includeLocal,
+                includeAdditionalGenes,
+                targetId
+            })}`)
                 .then(data => {
                     if (data) {
                         resolve(data);
@@ -400,7 +406,7 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTargetExport(genesOfInterest, translationalGenes, source) {
+    getTargetExport(genesOfInterest, translationalGenes, source, targetId) {
         const format = 'CSV';
         const includeHeader = true;
         return new Promise((resolve, reject) => {
@@ -411,7 +417,8 @@ export class TargetDataService extends DataService {
                     translationalGenes,
                     format,
                     source,
-                    includeHeader
+                    includeHeader,
+                    targetId
                 })}`,
                 undefined,
                 {customResponseType: 'arraybuffer'}
@@ -427,7 +434,7 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTargetExportGeneId(geneId, source) {
+    getTargetExportGeneId(geneId, source, targetId) {
         const format = 'CSV';
         const includeHeader = true;
         return new Promise((resolve, reject) => {
@@ -436,7 +443,8 @@ export class TargetDataService extends DataService {
                 `target/export/${geneId}${getQueryString({
                     format,
                     source,
-                    includeHeader
+                    includeHeader,
+                    targetId
                 })}`,
                 undefined,
                 {customResponseType: 'arraybuffer'}
@@ -606,11 +614,11 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTargetExcelReport(genesOfInterest, translationalGenes) {
+    getTargetExcelReport(genesOfInterest, translationalGenes, targetId) {
         return new Promise((resolve, reject) => {
             this.downloadFile(
                 'get',
-                `target/report${getQueryString({genesOfInterest, translationalGenes})}`,
+                `target/report${getQueryString({genesOfInterest, translationalGenes, targetId})}`,
                 undefined,
                 {customResponseType: 'arraybuffer'}
             )
@@ -704,11 +712,11 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTargetExcelReportGeneId(geneId) {
+    getTargetExcelReportGeneId(geneId, targetId) {
         return new Promise((resolve, reject) => {
             this.downloadFile(
                 'get',
-                `target/report/${geneId}`,
+                `target/report/${geneId}${getQueryString({targetId})}`,
                 undefined,
                 {customResponseType: 'arraybuffer'}
             )
@@ -810,9 +818,9 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getDrugs(geneIds) {
+    getDrugs(geneIds, targetId) {
         return new Promise((resolve, reject) => {
-            this.get(`target/drugs?geneIds=${geneIds}`)
+            this.get(`target/drugs${getQueryString({geneIds, targetId})}`)
                 .then(data => {
                     if (data) {
                         resolve(data);
