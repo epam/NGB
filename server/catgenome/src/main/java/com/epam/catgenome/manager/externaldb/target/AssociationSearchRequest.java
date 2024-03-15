@@ -32,5 +32,6 @@ import java.util.List;
 @Getter
 @Setter
 public class AssociationSearchRequest extends SearchRequest {
+    private Long targetId;
     private List<String> geneIds;
 }

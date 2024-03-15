@@ -98,16 +98,17 @@ public class TargetExportXLSManager {
     private final LaunchIdentificationManager launchIdentificationManager;
     private final TargetManager targetManager;
 
-    public InputStream report(final List<String> genesOfInterest,
+    public InputStream report(final Long targetId,
+                              final List<String> genesOfInterest,
                               final List<String> translationalGenes)
             throws IOException, ParseException, ExternalDbUnavailableException {
 
         final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
 
-        targetManager.expandTargetGenes(geneIds);
-        final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(geneIds);
+        targetManager.expandTargetGenes(targetId, geneIds);
+        final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(targetId, geneIds);
         final Map<String, String> targetNames = targetExportManager.getTargetGeneNames(genesMap);
-        final List<TargetHomologue> homologyData = targetExportManager.getHomologyData(geneIds,
+        final List<TargetHomologue> homologyData = targetExportManager.getHomologyData(targetId, geneIds,
                 translationalGenes, targetNames);
         try (Workbook workbook = new XSSFWorkbook()) {
             writeSheet("Summary", CollectionUtils.isNotEmpty(translationalGenes) ?
@@ -115,7 +116,7 @@ public class TargetExportXLSManager {
                             Arrays.stream(TargetExportSummaryField.values())
                                     .filter(TargetExportSummaryField::isGene)
                                     .collect(Collectors.toList()),
-                    getSummary(genesOfInterest, translationalGenes, genesMap, homologyData), workbook);
+                    getSummary(targetId, genesOfInterest, translationalGenes, genesMap, homologyData), workbook);
             writeSheet("Associated Diseases(Open Targets)", getAssociationFields(DiseaseField.values()),
                     targetExportManager.getDiseaseAssociations(geneIds, targetNames), workbook);
             writeSheet("Known Drugs(Open Targets)", getAssociationFields(DrugField.values()),
@@ -127,28 +128,29 @@ public class TargetExportXLSManager {
             writeSheet("Known Drugs(DGIdb)", getAssociationFields(DGIDBField.values()),
                     targetExportManager.getDGIDBDrugs(geneIds, targetNames), workbook);
             writeSheet("Structures (PDB)", Arrays.asList(PdbStructureField.values()),
-                    targetExportManager.getStructures(geneIds), workbook);
+                    targetExportManager.getStructures(targetId, geneIds), workbook);
             writeSheet("Structures (Local)", Arrays.asList(PdbFileField.values()),
                     targetExportManager.getPdbFiles(geneIds), workbook);
             writeSheet("Sequences", Arrays.asList(GeneSequenceField.values()),
-                    targetExportManager.getSequenceTable(getGeneIds(genesOfInterest, translationalGenes), targetNames),
-                    workbook);
+                    targetExportManager.getSequenceTable(targetId,
+                            getGeneIds(genesOfInterest, translationalGenes), targetNames), workbook);
             writeSheet("Homology", Arrays.asList(TargetHomologyField.values()), homologyData, workbook);
             return ExcelExportUtils.export(workbook);
         }
     }
 
     public InputStream report(final String geneId) throws IOException, ParseException, ExternalDbUnavailableException {
-        return report(Collections.singletonList(geneId), Collections.emptyList());
+        return report(null, Collections.singletonList(geneId), Collections.emptyList());
     }
 
-    private List<TargetExportSummary> getSummary(final List<String> genesOfInterest,
+    private List<TargetExportSummary> getSummary(final Long targetId,
+                                                 final List<String> genesOfInterest,
                                                  final List<String> translationalGenes,
                                                  final Map<String, TargetGene> genesMap,
                                                  final List<TargetHomologue> homologyData)
             throws ParseException, IOException, ExternalDbUnavailableException {
         final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
-        targetManager.expandTargetGenes(geneIds);
+        targetManager.expandTargetGenes(targetId, geneIds);
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         final Map<String, GeneId> genes = ncbiGeneIds.stream()
                 .collect(Collectors.toMap(g -> g.getEnsemblId().toLowerCase(), Function.identity()));

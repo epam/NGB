@@ -39,7 +39,6 @@ import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.externaldb.target.ttd.TTDDiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.target.*;
-import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
@@ -116,7 +115,7 @@ public class LaunchIdentificationController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<TTDDrugAssociation>> getTTDDrugs(@RequestBody final AssociationSearchRequest request)
-            throws ParseException, IOException, BlastRequestException, InterruptedException {
+            throws ParseException, IOException {
         return Result.success(launchIdentificationSecurityService.getTTDDrugs(request));
     }
 
@@ -128,9 +127,10 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<TTDDrugFieldValues> getTTDDrugFieldValues(@RequestParam final List<String> geneIds)
-            throws ParseException, IOException, BlastRequestException, InterruptedException {
-        return Result.success(launchIdentificationSecurityService.getTTDDrugFieldValues(geneIds));
+    public Result<TTDDrugFieldValues> getTTDDrugFieldValues(@RequestParam(required = false) final Long targetId,
+                                                            @RequestParam final List<String> geneIds)
+            throws ParseException, IOException{
+        return Result.success(launchIdentificationSecurityService.getTTDDrugFieldValues(targetId, geneIds));
     }
 
     @PostMapping(value = "/target/ttd/diseases")
@@ -144,8 +144,7 @@ public class LaunchIdentificationController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<TTDDiseaseAssociation>> getTTDDiseases(
-            @RequestBody final AssociationSearchRequest request)
-            throws ParseException, IOException, BlastRequestException, InterruptedException {
+            @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
         return Result.success(launchIdentificationSecurityService.getTTDDiseases(request));
     }
 
@@ -157,9 +156,10 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<TTDDiseaseFieldValues> getTTDDiseaseFieldValues(@RequestParam final List<String> geneIds)
-            throws ParseException, IOException, BlastRequestException, InterruptedException {
-        return Result.success(launchIdentificationSecurityService.getTTDDiseaseFieldValues(geneIds));
+    public Result<TTDDiseaseFieldValues> getTTDDiseaseFieldValues(@RequestParam(required = false) final Long targetId,
+                                                                  @RequestParam final List<String> geneIds)
+            throws ParseException, IOException {
+        return Result.success(launchIdentificationSecurityService.getTTDDiseaseFieldValues(targetId, geneIds));
     }
 
     @PostMapping(value = "/target/pharmgkb/drugs")
@@ -319,8 +319,9 @@ public class LaunchIdentificationController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<PharmGKBDrugFieldValues> getPharmGKBDrugFieldValues(
+            @RequestParam(required = false) final Long targetId,
             @RequestParam final List<String> geneIds) throws IOException, ParseException {
-        return Result.success(launchIdentificationSecurityService.getPharmGKBDrugFieldValues(geneIds));
+        return Result.success(launchIdentificationSecurityService.getPharmGKBDrugFieldValues(targetId, geneIds));
     }
 
     @GetMapping(value = "/target/dgidb/drugs/fieldValues")
@@ -331,9 +332,10 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<DGIDBDrugFieldValues> getDGIDBDrugFieldValues(
-            @RequestParam final List<String> geneIds) throws IOException, ParseException {
-        return Result.success(launchIdentificationSecurityService.getDGIDBDrugFieldValues(geneIds));
+    public Result<DGIDBDrugFieldValues> getDGIDBDrugFieldValues(@RequestParam(required = false) final Long targetId,
+                                                                @RequestParam final List<String> geneIds)
+            throws IOException, ParseException {
+        return Result.success(launchIdentificationSecurityService.getDGIDBDrugFieldValues(targetId, geneIds));
     }
 
     @GetMapping(value = "/target/opentargets/drugs/fieldValues")
@@ -344,9 +346,10 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<DrugFieldValues> getDrugFieldValues(@RequestParam final List<String> geneIds)
+    public Result<DrugFieldValues> getDrugFieldValues(@RequestParam(required = false) final Long targetId,
+                                                      @RequestParam final List<String> geneIds)
             throws IOException, ParseException {
-        return Result.success(launchIdentificationSecurityService.getDrugFieldValues(geneIds));
+        return Result.success(launchIdentificationSecurityService.getDrugFieldValues(targetId, geneIds));
     }
 
     @PostMapping(value = "/target/publications")
@@ -384,12 +387,13 @@ public class LaunchIdentificationController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<GeneRefSection>> getGeneSequencesTable(
+            @RequestParam(required = false) final Long targetId,
             @RequestParam final List<String> geneIds,
             @RequestParam final Boolean getComments,
             @RequestParam(required = false, defaultValue = "false") final Boolean includeLocal,
             @RequestParam(required = false, defaultValue = "false") final Boolean includeAdditionalGenes)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return Result.success(launchIdentificationSecurityService.getGeneSequencesTable(geneIds, getComments,
+        return Result.success(launchIdentificationSecurityService.getGeneSequencesTable(targetId, geneIds, getComments,
                 includeLocal, includeAdditionalGenes));
     }
 
@@ -414,14 +418,15 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public void export(@RequestParam final List<String> genesOfInterest,
+    public void export(@RequestParam(required = false) final Long targetId,
+                       @RequestParam final List<String> genesOfInterest,
                        @RequestParam(required = false) final List<String> translationalGenes,
                        @RequestParam final FileFormat format,
                        @RequestParam final TargetExportTable source,
                        @RequestParam final boolean includeHeader,
                        HttpServletResponse response)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        final byte[] bytes = exportSecurityService.export(genesOfInterest, translationalGenes,
+        final byte[] bytes = exportSecurityService.export(targetId, genesOfInterest, translationalGenes,
                 format, source, includeHeader);
         response.getOutputStream().write(bytes);
         response.flushBuffer();
@@ -454,11 +459,12 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public void report(@RequestParam final List<String> genesOfInterest,
+    public void report(@RequestParam(required = false) final Long targetId,
+                       @RequestParam final List<String> genesOfInterest,
                        @RequestParam(required = false) final List<String> translationalGenes,
                        HttpServletResponse response)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        final InputStream inputStream = exportSecurityService.report(genesOfInterest, translationalGenes);
+        final InputStream inputStream = exportSecurityService.report(targetId, genesOfInterest, translationalGenes);
         writeStreamToResponse(response, inputStream, "Target_Identification_Report.xlsx");
     }
 
@@ -528,8 +534,9 @@ public class LaunchIdentificationController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<String>> getDrugs(@RequestParam final List<String> geneIds)
+    public Result<List<String>> getDrugs(@RequestParam(required = false) final Long targetId,
+                                         @RequestParam final List<String> geneIds)
             throws IOException, ParseException {
-        return Result.success(launchIdentificationSecurityService.getDrugs(geneIds));
+        return Result.success(launchIdentificationSecurityService.getDrugs(targetId, geneIds));
     }
 }

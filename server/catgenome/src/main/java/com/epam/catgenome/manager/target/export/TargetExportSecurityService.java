@@ -45,13 +45,15 @@ public class TargetExportSecurityService {
     private final TargetExportCSVManager targetExportCSVManager;
 
     @PreAuthorize(ROLE_USER)
-    public byte[] export(final List<String> genesOfInterest,
+    public byte[] export(final Long targetId,
+                         final List<String> genesOfInterest,
                          final List<String> translationalGenes,
                          final FileFormat format,
                          final TargetExportTable source,
                          boolean includeHeader)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return targetExportCSVManager.export(genesOfInterest, translationalGenes, format, source, includeHeader);
+        return targetExportCSVManager.export(targetId, genesOfInterest, translationalGenes,
+                format, source, includeHeader);
     }
 
     @PreAuthorize(ROLE_USER)
@@ -62,9 +64,10 @@ public class TargetExportSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public InputStream report(final List<String> genesOfInterest, final List<String> translationalGenes)
+    public InputStream report(final Long targetId, final List<String> genesOfInterest,
+                              final List<String> translationalGenes)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return targetExportXLSManager.report(genesOfInterest, translationalGenes);
+        return targetExportXLSManager.report(targetId, genesOfInterest, translationalGenes);
     }
 
     @PreAuthorize(ROLE_USER)

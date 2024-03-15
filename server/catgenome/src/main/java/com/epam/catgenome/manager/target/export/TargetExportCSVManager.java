@@ -79,29 +79,30 @@ public class TargetExportCSVManager {
         return result;
     }
 
-    public byte[] export(final List<String> genesOfInterest,
+    public byte[] export(final Long targetId,
+                         final List<String> genesOfInterest,
                          final List<String> translationalGenes,
                          final FileFormat format,
                          final TargetExportTable source,
                          final boolean includeHeader)
             throws IOException, ParseException, ExternalDbUnavailableException {
         final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
-        targetManager.expandTargetGenes(geneIds);
-        final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneIds);
-        return export(genesOfInterest, translationalGenes, format, source, includeHeader, geneIds, genesMap);
+        targetManager.expandTargetGenes(targetId, geneIds);
+        final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(targetId, geneIds);
+        return export(targetId, genesOfInterest, translationalGenes, format, source, includeHeader, geneIds, genesMap);
     }
 
     public byte[] exportGene(final String geneId, final TargetExportTable source,
                              final FileFormat format, final boolean includeHeader)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(geneId);
-        return export(Collections.singletonList(geneId), Collections.emptyList(),
+        final Map<String, String> genesMap = targetExportManager.getTargetGeneNames(null, geneId);
+        return export(null, Collections.singletonList(geneId), Collections.emptyList(),
                 format, source, includeHeader, Collections.singletonList(geneId), genesMap);
     }
 
-    private byte[] export(final List<String> genesOfInterest, final List<String> translationalGenes,
-                          final FileFormat format, final TargetExportTable source, final boolean includeHeader,
-                          final List<String> geneIds,
+    private byte[] export(final Long targetId, final List<String> genesOfInterest,
+                          final List<String> translationalGenes, final FileFormat format,
+                          final TargetExportTable source, final boolean includeHeader, final List<String> geneIds,
                           final Map<String, String> genesMap)
             throws IOException, ParseException, ExternalDbUnavailableException {
         byte[] result = null;
@@ -127,7 +128,7 @@ public class TargetExportCSVManager {
                         getAssociationFields(DGIDBField.values()), format, includeHeader);
                 break;
             case STRUCTURES:
-                result = ExportUtils.export(targetExportManager.getStructures(geneIds),
+                result = ExportUtils.export(targetExportManager.getStructures(targetId, geneIds),
                         Arrays.asList(PdbStructureField.values()), format, includeHeader);
                 break;
             case LOCAL_PDBS:
@@ -135,12 +136,12 @@ public class TargetExportCSVManager {
                         Arrays.asList(PdbFileField.values()), format, includeHeader);
                 break;
             case SEQUENCES:
-                result = ExportUtils.export(targetExportManager.getSequenceTable(
-                        getGeneIds(genesOfInterest, translationalGenes), genesMap),
+                result = ExportUtils.export(targetExportManager.getSequenceTable(targetId,
+                                getGeneIds(genesOfInterest, translationalGenes), genesMap),
                         Arrays.asList(GeneSequenceField.values()), format, includeHeader);
                 break;
             case HOMOLOGY:
-                result = ExportUtils.export(targetExportManager.getHomologyData(genesOfInterest,
+                result = ExportUtils.export(targetExportManager.getHomologyData(targetId, genesOfInterest,
                                 translationalGenes, genesMap),
                         Arrays.asList(TargetHomologyField.values()), format, includeHeader);
                 break;

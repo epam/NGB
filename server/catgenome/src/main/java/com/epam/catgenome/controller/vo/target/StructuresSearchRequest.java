@@ -31,6 +31,7 @@ import java.util.List;
 
 @Data
 public class StructuresSearchRequest {
+    private Long targetId;
     private List<String> geneIds;
     private List<String> entryIds;
     private String name;

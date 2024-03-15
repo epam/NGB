@@ -236,28 +236,34 @@ public class TargetManager implements SecuredEntityManager {
         }).collect(Collectors.toList());
     }
 
-    public List<String> getTargetGeneNames(final List<String> geneIds) throws ParseException, IOException {
-        final List<TargetGene> targetGenes = getTargetGenes(geneIds);
+    public List<String> getTargetGeneNames(final Long targetId, final List<String> geneIds)
+            throws ParseException, IOException {
+        final List<TargetGene> targetGenes = getTargetGenes(targetId, geneIds);
         return targetGenes.stream().map(TargetGene::getGeneName).distinct().collect(Collectors.toList());
     }
 
-    public List<Long> getTargetGeneSpecies(final List<String> geneIds) throws ParseException, IOException {
-        final List<TargetGene> targetGenes = getTargetGenes(geneIds);
+    public List<Long> getTargetGeneSpecies(final Long targetId, final List<String> geneIds)
+            throws ParseException, IOException {
+        final List<TargetGene> targetGenes = getTargetGenes(targetId, geneIds);
         return targetGenes.stream().map(TargetGene::getTaxId).distinct().collect(Collectors.toList());
     }
 
-    public List<TargetGene> getTargetGenes(final List<String> geneIds) throws ParseException, IOException {
-        final List<TargetGene> indexTargetGenes = targetGeneManager.load(geneIds);
+    public List<TargetGene> getTargetGenes(final Long targetId,
+                                           final List<String> geneIds) throws ParseException, IOException {
+        final List<TargetGene> indexTargetGenes = targetGeneManager.load(targetId, geneIds);
         final List<String> clauses = new ArrayList<>();
         clauses.add(getGeneIdsClause(geneIds));
+        if (targetId != null) {
+            clauses.add(String.format(EQUAL_CLAUSE_NUMBER, "target_id", targetId));
+        }
         final List<TargetGene> targetGenes = targetGeneDao.loadTargetGenes(join(clauses, Condition.AND.getValue()));
         indexTargetGenes.addAll(targetGenes);
         return indexTargetGenes;
     }
 
-    public void expandTargetGenes(final List<String> geneIds) throws ParseException, IOException {
+    public void expandTargetGenes(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
         final Set<String> result = new HashSet<>();
-        final List<TargetGene> targetGenes = getTargetGenes(geneIds);
+        final List<TargetGene> targetGenes = getTargetGenes(targetId, geneIds);
         targetGenes.forEach(r -> {
             result.add(r.getGeneId().toLowerCase());
             if (!CollectionUtils.isEmpty(r.getAdditionalGenes())) {
@@ -268,10 +274,12 @@ public class TargetManager implements SecuredEntityManager {
         geneIds.addAll(result);
     }
 
-    public Map<String, Long> getTargetGenes(final List<String> geneIds, final boolean includeAdditionalGenes)
+    public Map<String, Long> getTargetGenes(final Long targetId,
+                                            final List<String> geneIds,
+                                            final boolean includeAdditionalGenes)
             throws ParseException, IOException {
         final Map<String, Long> result = new HashMap<>();
-        final List<TargetGene> targetGenes = getTargetGenes(geneIds);
+        final List<TargetGene> targetGenes = getTargetGenes(targetId, geneIds);
         targetGenes.forEach(r -> {
             result.put(r.getGeneId().toLowerCase(), r.getTaxId());
             if (includeAdditionalGenes) {

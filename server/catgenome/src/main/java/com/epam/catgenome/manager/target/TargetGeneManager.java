@@ -157,6 +157,17 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return search(geneIds, IndexField.GENE_ID.getValue());
     }
 
+    public List<TargetGene> load(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        final Query geneIdsdQuery = getByTermsQuery(geneIds, IndexField.GENE_ID.getValue());
+        mainBuilder.add(geneIdsdQuery, BooleanClause.Occur.MUST);
+        if (targetId != null) {
+            final Query targetIdQuery = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
+            mainBuilder.add(targetIdQuery, BooleanClause.Occur.MUST);
+        }
+        return search(mainBuilder.build(), null);
+    }
+
     public List<TargetGeneField> getFields(final Long targetId) throws ParseException, IOException {
         final Set<IndexField> indexFields = new LinkedHashSet<>(IndexField.VALUES_MAP.values());
         indexFields.remove(IndexField.TARGET_GENE_ID);
@@ -525,11 +536,11 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
         doc.add(new TextField(IndexField.GENE_ID.getValue(), entry.getGeneId(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexField.GENE_ID.getValue(), new BytesRef(entry.getGeneId())));
-        final String status = Optional.ofNullable(entry.getStatus())
-                .map(TargetGeneStatus::name)
-                .orElse(TargetGeneStatus.NEW.name());
-        doc.add(new TextField(IndexField.STATUS.getValue(), status, Field.Store.YES));
-        doc.add(new SortedDocValuesField(IndexField.STATUS.getValue(), new BytesRef(status)));
+
+        if (entry.getStatus() != null) {
+            doc.add(new TextField(IndexField.STATUS.getValue(), entry.getStatus().name(), Field.Store.YES));
+            doc.add(new SortedDocValuesField(IndexField.STATUS.getValue(), new BytesRef(entry.getStatus().name())));
+        }
 
         doc.add(new TextField(IndexField.ADDITIONAL_GENES.getValue(),
                 serialize(entry.getAdditionalGenes()), Field.Store.YES));
@@ -590,7 +601,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         TAX_ID("Tax ID", FilterType.OPTIONS, SortType.LONG),
         SPECIES_NAME("Species Name", FilterType.PHRASE, SortType.STRING),
         PRIORITY("Priority", FilterType.OPTIONS, SortType.LONG),
-        STATUS("Status", FilterType.TERM, SortType.STRING),
+        STATUS("Status", FilterType.OPTIONS, SortType.STRING),
         TTD_TARGETS("TTD Targets", FilterType.PHRASE, SortType.STRING),
         METADATA("Metadata", FilterType.NONE, SortType.NONE);
 

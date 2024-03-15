@@ -134,7 +134,8 @@ public class LaunchIdentificationManager {
         Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
                 "Either Species of interest or Translational species must me specified.");
 
-        final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, includeAdditionalGenes);
+        final Map<String, Long> targetGenes = targetManager.getTargetGenes(request.getTargetId(), geneIds,
+                includeAdditionalGenes);
         final List<String> expandedGeneIds = new ArrayList<>(targetGenes.keySet());
 
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(expandedGeneIds);
@@ -142,11 +143,11 @@ public class LaunchIdentificationManager {
                 .map(g -> g.getEntrezId().toString())
                 .collect(Collectors.toList());
         final Map<String, String> description = getDescriptions(ncbiGeneIds);
-        final DrugsCount drugsCount = getDrugsCount(expandedGeneIds);
-        final long diseasesCount = getDiseasesCount(expandedGeneIds);
+        final DrugsCount drugsCount = getDrugsCount(request.getTargetId(), expandedGeneIds);
+        final long diseasesCount = getDiseasesCount(request.getTargetId(), expandedGeneIds);
         final long publicationsCount = getPublicationsCount(geneIds, entrezGeneIds, request.getTargetId());
         final SequencesSummary sequencesCount = getGeneSequencesCount(targetGenes, ncbiGeneIds, true);
-        final long structuresCount = getStructuresCount(geneIds);
+        final long structuresCount = getStructuresCount(request.getTargetId(), geneIds);
         return TargetIdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)
@@ -160,31 +161,31 @@ public class LaunchIdentificationManager {
 
     public SearchResult<DGIDBDrugAssociation> getDGIDbDrugs(final AssociationSearchRequest request)
             throws IOException, ParseException {
-        targetManager.expandTargetGenes(request.getGeneIds());
+        targetManager.expandTargetGenes(request.getTargetId(), request.getGeneIds());
         return dgidbDrugAssociationManager.search(request);
     }
 
     public SearchResult<PharmGKBDrug> getPharmGKBDrugs(final AssociationSearchRequest request)
             throws IOException, ParseException {
-        targetManager.expandTargetGenes(request.getGeneIds());
+        targetManager.expandTargetGenes(request.getTargetId(), request.getGeneIds());
         return pharmGKBDrugAssociationManager.search(request);
     }
 
     public SearchResult<PharmGKBDisease> getPharmGKBDiseases(final AssociationSearchRequest request)
             throws IOException, ParseException {
-        targetManager.expandTargetGenes(request.getGeneIds());
+        targetManager.expandTargetGenes(request.getTargetId(), request.getGeneIds());
         return pharmGKBDiseaseAssociationManager.search(request);
     }
 
     public SearchResult<DrugAssociation> getOpenTargetsDrugs(final AssociationSearchRequest request)
             throws IOException, ParseException {
-        targetManager.expandTargetGenes(request.getGeneIds());
+        targetManager.expandTargetGenes(request.getTargetId(), request.getGeneIds());
         return drugAssociationManager.search(request);
     }
 
     public SearchResult<DiseaseAssociationAggregated> getOpenTargetsDiseases(final AssociationSearchRequest request)
             throws IOException, ParseException {
-        targetManager.expandTargetGenes(request.getGeneIds());
+        targetManager.expandTargetGenes(request.getTargetId(), request.getGeneIds());
         final SearchResult<DiseaseAssociation> result = diseaseAssociationManager.search(request);
         final List<DiseaseAssociationAggregated> converted = result.getItems().stream()
                 .map(this::aggregate)
@@ -197,7 +198,7 @@ public class LaunchIdentificationManager {
 
     public List<DiseaseAssociationAggregated> getAllOpenTargetsDiseases(final AssociationSearchRequest request)
             throws IOException, ParseException {
-        targetManager.expandTargetGenes(request.getGeneIds());
+        targetManager.expandTargetGenes(request.getTargetId(), request.getGeneIds());
         final List<DiseaseAssociation> result = diseaseAssociationManager.searchAll(request.getGeneIds());
         final List<DiseaseAssociationAggregated> converted = result.stream()
                 .map(this::aggregate)
@@ -226,20 +227,21 @@ public class LaunchIdentificationManager {
         dgidbDrugAssociationManager.importData(path);
     }
 
-    public PharmGKBDrugFieldValues getPharmGKBDrugFieldValues(final List<String> geneIds)
+    public PharmGKBDrugFieldValues getPharmGKBDrugFieldValues(final Long targetId, final List<String> geneIds)
             throws IOException, ParseException {
-        targetManager.expandTargetGenes(geneIds);
+        targetManager.expandTargetGenes(targetId, geneIds);
         return pharmGKBDrugAssociationManager.getFieldValues(geneIds);
     }
 
-    public DGIDBDrugFieldValues getDGIDBDrugFieldValues(final List<String> geneIds)
+    public DGIDBDrugFieldValues getDGIDBDrugFieldValues(final Long targetId, final List<String> geneIds)
             throws IOException, ParseException {
-        targetManager.expandTargetGenes(geneIds);
+        targetManager.expandTargetGenes(targetId, geneIds);
         return dgidbDrugAssociationManager.getFieldValues(geneIds);
     }
 
-    public DrugFieldValues getDrugFieldValues(final List<String> geneIds) throws IOException, ParseException {
-        targetManager.expandTargetGenes(geneIds);
+    public DrugFieldValues getDrugFieldValues(final Long targetId, final List<String> geneIds)
+            throws IOException, ParseException {
+        targetManager.expandTargetGenes(targetId, geneIds);
         return drugAssociationManager.getFieldValues(geneIds);
     }
 
@@ -252,22 +254,25 @@ public class LaunchIdentificationManager {
         if (request.getTargetId() != null) {
             final Target target = targetManager.getTarget(request.getTargetId());
             if (TargetType.PARASITE.equals(target.getType())) {
-                return pubMedService.fetchPubMedArticles(request, getPublicationsQuery(request.getGeneIds()));
+                return pubMedService.fetchPubMedArticles(request,
+                        getPublicationsQuery(request.getTargetId(), request.getGeneIds()));
             }
         }
-        targetManager.expandTargetGenes(request.getGeneIds());
+        targetManager.expandTargetGenes(request.getTargetId(), request.getGeneIds());
         return pubMedService.fetchPubMedArticles(request);
     }
 
     public String getArticlesAbstracts(final PublicationSearchRequest request) throws ParseException, IOException {
-        targetManager.expandTargetGenes(request.getGeneIds());
+        targetManager.expandTargetGenes(request.getTargetId(), request.getGeneIds());
         return pubMedService.getArticleAbstracts(request);
     }
 
-    public List<GeneSequences> getGeneSequences(final List<String> geneIds, final boolean includeAdditionalGenes)
+    public List<GeneSequences> getGeneSequences(final Long targetId,
+                                                final List<String> geneIds,
+                                                final boolean includeAdditionalGenes)
             throws ParseException, IOException {
         if (includeAdditionalGenes) {
-            targetManager.expandTargetGenes(geneIds);
+            targetManager.expandTargetGenes(targetId, geneIds);
         }
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         if (CollectionUtils.isEmpty(ncbiGeneIds)) {
@@ -278,31 +283,32 @@ public class LaunchIdentificationManager {
         return geneSequencesManager.fetchGeneSequences(entrezMap);
     }
 
-    public List<GeneRefSection> getGeneSequencesTable(final List<String> geneIds,
+    public List<GeneRefSection> getGeneSequencesTable(final Long targetId,
+                                                      final List<String> geneIds,
                                                       final Boolean getComments,
                                                       final Boolean includeLocal,
                                                       final Boolean includeAdditionalGenes)
             throws ParseException, IOException, ExternalDbUnavailableException {
 
         List<GeneRefSection> result = new ArrayList<>();
+        for (String geneId: geneIds) {
+            final Map<String, Long> targetGenes = targetManager.getTargetGenes(targetId,
+                    Collections.singletonList(geneId), includeAdditionalGenes);
 
-        if (includeLocal) {
-            final Map<String, Long> targetGenes = targetManager.getTargetGenes(geneIds, includeAdditionalGenes);
-            result = sequencesManager.getGeneSequencesTable(targetGenes);
+            if (includeLocal) {
+                result = sequencesManager.getGeneSequencesTable(geneId, targetGenes);
+            }
+
+            List<String> expandedGenes = new ArrayList<>(targetGenes.keySet());
+
+            final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(expandedGenes);
+            if (CollectionUtils.isNotEmpty(ncbiGeneIds)) {
+                final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
+                        .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
+                result.addAll(geneSequencesManager.getGeneSequencesTable(geneId, entrezMap, getComments));
+            }
+
         }
-
-        if (includeAdditionalGenes) {
-            targetManager.expandTargetGenes(geneIds);
-        }
-
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
-        if (CollectionUtils.isEmpty(ncbiGeneIds)) {
-            return result;
-        }
-
-        final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
-                .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
-        result.addAll(geneSequencesManager.getGeneSequencesTable(entrezMap, getComments));
         return result;
     }
 
@@ -312,7 +318,7 @@ public class LaunchIdentificationManager {
             throws IOException, ExternalDbUnavailableException {
         final SequencesSummary localSequencesSummary = SequencesSummary.builder().build();
         if (includeLocal) {
-            final List<GeneRefSection> result = sequencesManager.getGeneSequencesTable(targetGenes);
+            final List<GeneRefSection> result = sequencesManager.getGeneSequencesTable(null, targetGenes);
             localSequencesSummary.setDNAs(result.stream()
                     .map(GeneRefSection::getReference)
                     .filter(Objects::nonNull)
@@ -343,8 +349,8 @@ public class LaunchIdentificationManager {
 
     public SearchResult<Structure> getStructures(final StructuresSearchRequest request)
             throws ParseException, IOException {
-        targetManager.expandTargetGenes(request.getGeneIds());
-        final List<String> geneNames = getGeneNames(request.getGeneIds());
+        targetManager.expandTargetGenes(request.getTargetId(), request.getGeneIds());
+        final List<String> geneNames = getGeneNames(request.getTargetId(), request.getGeneIds());
         return pdbEntriesManager.getStructures(request, geneNames);
     }
 
@@ -388,9 +394,9 @@ public class LaunchIdentificationManager {
         return genes;
     }
 
-    public long getStructuresCount(final List<String> geneIds) throws ParseException, IOException {
+    public long getStructuresCount(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
         long localPdbFiles = pdbFileManager.totalCount(geneIds);
-        final List<String> geneNames = getGeneNames(geneIds);
+        final List<String> geneNames = getGeneNames(targetId, geneIds);
         long structuresCount = pdbEntriesManager.getStructuresCount(geneNames);
         return localPdbFiles + structuresCount;
     }
@@ -400,17 +406,18 @@ public class LaunchIdentificationManager {
         if (targetId != null) {
             final Target target = targetManager.getTarget(targetId);
             if (TargetType.PARASITE.equals(target.getType())) {
-                return pubMedService.getParasitesPublicationsCount(getPublicationsQuery(geneIds));
+                return pubMedService.getParasitesPublicationsCount(getPublicationsQuery(targetId, geneIds));
             }
         }
         return pubMedService.getPublicationsCount(entrezGeneIds);
     }
 
-    public DrugsCount getDrugsCount(final List<String> geneIds) throws IOException, ParseException {
+    public DrugsCount getDrugsCount(final Long targetId, final List<String> geneIds)
+            throws IOException, ParseException {
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);
-        final List<TTDDrugAssociation> ttdDrugs = getTTDDrugs(geneIds);
+        final List<TTDDrugAssociation> ttdDrugs = getTTDDrugs(targetId, geneIds);
 
         final List<String> pharmGKBDrugNames = pharmGKBDrugs.stream().map(UrlEntity::getName)
                 .collect(Collectors.toList());
@@ -432,8 +439,8 @@ public class LaunchIdentificationManager {
                 .build();
     }
 
-    public List<String> getDrugs(final List<String> geneIds) throws IOException, ParseException {
-        targetManager.expandTargetGenes(geneIds);
+    public List<String> getDrugs(final Long targetId, final List<String> geneIds) throws IOException, ParseException {
+        targetManager.expandTargetGenes(targetId, geneIds);
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);
@@ -447,17 +454,18 @@ public class LaunchIdentificationManager {
         return drugNames.stream().map(String::toLowerCase).distinct().sorted().collect(Collectors.toList());
     }
 
-    public long getDiseasesCount(final List<String> geneIds) throws ParseException, IOException {
+    public long getDiseasesCount(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
         final long openTargetsDiseasesCount = diseaseAssociationManager.totalCount(geneIds);
         final long pharmGKBDiseasesCount = pharmGKBDiseaseAssociationManager.totalCount(geneIds);
-        final long ttdCount = getTTDDiseases(geneIds).size();
+        final long ttdCount = getTTDDiseases(targetId, geneIds).size();
         return openTargetsDiseasesCount + pharmGKBDiseasesCount + ttdCount;
     }
 
-    public List<String> getGeneNames(final List<String> geneIds) throws ParseException, IOException {
+    public List<String> getGeneNames(final Long targetId, final List<String> geneIds)
+            throws ParseException, IOException {
         final Set<String> geneNames = new HashSet<>();
         for (String g : geneIds) {
-            List<String> targetGeneNames = targetManager.getTargetGeneNames(Collections.singletonList(g));
+            List<String> targetGeneNames = targetManager.getTargetGeneNames(targetId, Collections.singletonList(g));
             if (CollectionUtils.isEmpty(targetGeneNames)) {
                 List<TargetDetails> targetDetails = Collections.emptyList();
                 try {
@@ -474,10 +482,11 @@ public class LaunchIdentificationManager {
         return new ArrayList<>(geneNames);
     }
 
-    public Map<String, String> getGeneNamesMap(final List<String> geneIds) throws ParseException, IOException {
+    public Map<String, String> getGeneNamesMap(final Long targetId, final List<String> geneIds)
+            throws ParseException, IOException {
         final Map<String, String> geneNames = new HashMap<>();
         for (String g : geneIds) {
-            List<String> targetGeneNames = targetManager.getTargetGeneNames(Collections.singletonList(g));
+            List<String> targetGeneNames = targetManager.getTargetGeneNames(targetId, Collections.singletonList(g));
             if (CollectionUtils.isEmpty(targetGeneNames)) {
                 List<TargetDetails> targetDetails = Collections.emptyList();
                 try {
@@ -501,48 +510,52 @@ public class LaunchIdentificationManager {
 
     public SearchResult<TTDDrugAssociation> getTTDDrugs(final AssociationSearchRequest request)
             throws ParseException, IOException {
-        final List<TargetGene> genes = targetManager.getTargetGenes(request.getGeneIds());
+        final List<TargetGene> genes = targetManager.getTargetGenes(request.getTargetId(), request.getGeneIds());
         return ttdDatabaseManager.getTTDDrugs(genes, request);
     }
 
-    public List<TTDDrugAssociation> getTTDDrugs(final List<String> geneIds)
+    public List<TTDDrugAssociation> getTTDDrugs(final Long targetId, final List<String> geneIds)
             throws ParseException, IOException {
-        final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
+        final List<TargetGene> genes = targetManager.getTargetGenes(targetId, geneIds);
         return ttdDatabaseManager.fetchTTDDrugs(genes, Collections.emptyList());
     }
 
-    public TTDDrugFieldValues getTTDDrugFieldValues(final List<String> geneIds)
+    public TTDDrugFieldValues getTTDDrugFieldValues(final Long targetId, final List<String> geneIds)
             throws ParseException, IOException {
-        final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
+        final List<TargetGene> genes = targetManager.getTargetGenes(targetId, geneIds);
         return ttdDatabaseManager.getDrugFieldValues(genes);
     }
 
     public SearchResult<TTDDiseaseAssociation> getTTDDiseases(final AssociationSearchRequest request)
             throws ParseException, IOException {
-        final List<TargetGene> genes = targetManager.getTargetGenes(request.getGeneIds());
+        final List<TargetGene> genes = targetManager.getTargetGenes(request.getTargetId(), request.getGeneIds());
         return ttdDatabaseManager.getTTDDiseases(genes, request);
     }
 
-    public List<TTDDiseaseAssociation> getTTDDiseases(final List<String> geneIds)
+    public List<TTDDiseaseAssociation> getTTDDiseases(final Long targetId, final List<String> geneIds)
             throws ParseException, IOException {
-        final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
+        final List<TargetGene> genes = targetManager.getTargetGenes(targetId, geneIds);
         return ttdDatabaseManager.fetchTTDDiseases(genes, Collections.emptyList());
     }
 
-    public TTDDiseaseFieldValues getTTDDiseaseFieldValues(final List<String> geneIds)
+    public TTDDiseaseFieldValues getTTDDiseaseFieldValues(final Long targetId, final List<String> geneIds)
             throws IOException, ParseException {
-        final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
+        final List<TargetGene> genes = targetManager.getTargetGenes(targetId, geneIds);
         return ttdDatabaseManager.getDiseaseFieldValues(genes);
     }
 
-    private String getPublicationsQuery(final List<String> geneIds) throws ParseException, IOException {
+    private String getPublicationsQuery(final Long targetId, final List<String> geneIds)
+            throws ParseException, IOException {
         final List<String> terms = new ArrayList<>();
-        final List<TargetGene> targetGenes = targetManager.getTargetGenes(geneIds);
+        final List<TargetGene> targetGenes = targetManager.getTargetGenes(targetId, geneIds);
         final Set<Long> taxIds = new HashSet<>();
         final Map<String, Set<Long>> geneNamesTaxIdsMap = new HashMap<>();
         targetGenes.forEach(g -> {
-            geneNamesTaxIdsMap.put(g.getGeneName(), new HashSet<>(g.getAdditionalGenes().values()));
+            Set<Long> geneTaxIds = new HashSet<>(g.getAdditionalGenes().values());
+            geneTaxIds.add(g.getTaxId());
+            geneNamesTaxIdsMap.put(g.getGeneName(), geneTaxIds);
             taxIds.addAll(g.getAdditionalGenes().values());
+            taxIds.add(g.getTaxId());
         });
         final List<Taxonomy> organisms = taxonomyManager.searchOrganismsByIds(taxIds);
         final Map<Long, Taxonomy> organismsMap = organisms.stream()

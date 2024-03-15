@@ -114,13 +114,15 @@ public class SequencesManager {
         }
     }
 
-    public List<GeneRefSection> getGeneSequencesTable(final Map<String, Long> targetGenes) throws IOException {
+    public List<GeneRefSection> getGeneSequencesTable(final String geneId,
+                                                      final Map<String, Long> targetGenes) throws IOException {
         final List<GeneRefSection> geneRefSections = new ArrayList<>();
         for (Map.Entry<String, Long> targetGene : targetGenes.entrySet()) {
             List<Reference> references = referenceGenomeManager.loadAllReferenceGenomesByTaxId(targetGene.getValue());
             for (Reference ref : references) {
                 GeneRefSection geneRefSection = new GeneRefSection();
-                geneRefSection.setGeneId(targetGene.getKey());
+                geneRefSection.setGeneId(geneId);
+                geneRefSection.setAdditionalGeneId(targetGene.getKey());
                 UrlEntity refSectionReference = new UrlEntity();
                 refSectionReference.setId(ref.getId().toString());
                 refSectionReference.setName(ref.getName());

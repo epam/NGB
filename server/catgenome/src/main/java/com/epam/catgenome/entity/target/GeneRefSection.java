@@ -33,6 +33,7 @@ import java.util.List;
 @Setter
 public class GeneRefSection {
     private String geneId;
+    private String additionalGeneId;
     private UrlEntity reference;
     private List<GeneSequence> sequences;
 }
