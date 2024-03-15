@@ -226,6 +226,10 @@ export default class ngbDiseasesTableService {
             pageSize: this.pageSize,
             geneIds: this.geneIds,
         };
+        const { target } = this.identificationTarget;
+        if (target && target.id) {
+            request.targetId = target.id;
+        }
         if (this.sortInfo && this.sortInfo.length) {
             request.orderInfos = this.sortInfo.map(i => ({
                 orderBy: this.fields[this.sourceModel][i.field],

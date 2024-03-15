@@ -120,10 +120,14 @@ class NgbIdentificationChatService {
                 this.ngbTargetPanelService.genesIds.length > 0
             ) {
                 this._abstractsRequest = new Promise((resolve, reject) => {
-                    const genes = this.ngbTargetPanelService.genesIds;
-                    this.targetDataService.getAbstracts(
-                        {geneIds: genes}
-                    )
+                    const request = {
+                        geneIds: this.ngbTargetPanelService.genesIds
+                    };
+                    const { target } = this.ngbTargetPanelService.identificationTarget;
+                    if (target && target.id) {
+                        request.targetId = target.id;
+                    }
+                    this.targetDataService.getAbstracts(request)
                         .then(resolve)
                         .catch(reject);
                 });
