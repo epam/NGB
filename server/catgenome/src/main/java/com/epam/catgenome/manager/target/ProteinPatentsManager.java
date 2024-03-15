@@ -106,7 +106,8 @@ public class ProteinPatentsManager {
         if (CollectionUtils.isEmpty(geneIds)) {
             return;
         }
-        final List<GeneSequences> sequences = launchIdentificationManager.getGeneSequences(geneIds, false);
+        final List<GeneSequences> sequences = launchIdentificationManager.getGeneSequences(target.getId(),
+                geneIds, false);
 
         final List<String> proteinIds = sequences.stream()
                 .map(geneSequences -> geneSequences.getProteins().stream()

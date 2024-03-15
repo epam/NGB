@@ -156,12 +156,12 @@ public class TMapManager {
         }
     }
 
-    private List<TMapDrug> getDrugs(final List<String> geneIds)
+    private List<TMapDrug> getDrugs(final Long targetId, final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException {
         final Map<String, TMapDrug> result = getDrugsByGeneIds(geneIds);
         final List<TMapDrug> drugs = getTMapDrugs(result);
         if (CollectionUtils.isNotEmpty(drugs)) {
-            final Map<String, String> geneNames = launchIdentificationManager.getGeneNamesMap(geneIds);
+            final Map<String, String> geneNames = launchIdentificationManager.getGeneNamesMap(targetId, geneIds);
             drugs.forEach(d -> {
                 if (geneNames.containsKey(d.getGeneId().toLowerCase())) {
                     d.setGeneName(geneNames.get(d.getGeneId().toLowerCase()));
@@ -277,7 +277,7 @@ public class TMapManager {
 
     private byte[] export(final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return ExportUtils.export(getDrugs(geneIds), Arrays.asList(TMapDrugField.values()), FileFormat.CSV, true);
+        return ExportUtils.export(getDrugs(null, geneIds), Arrays.asList(TMapDrugField.values()), FileFormat.CSV, true);
     }
 
     private byte[] export(final String diseaseId)

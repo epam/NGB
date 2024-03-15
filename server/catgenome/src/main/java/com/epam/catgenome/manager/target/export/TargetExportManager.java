@@ -94,13 +94,13 @@ public class TargetExportManager {
                 .collect(Collectors.toList());
     }
 
-    public List<TargetHomologue> getHomologyData(final List<String> genesOfInterest,
+    public List<TargetHomologue> getHomologyData(final Long targetId, final List<String> genesOfInterest,
                                                  final List<String> translationalGenes,
                                                  final Map<String, String> geneNames)
             throws IOException, ParseException {
         final List<Long> species = CollectionUtils.isEmpty(translationalGenes) ?
                 Collections.emptyList() :
-                targetManager.getTargetGeneSpecies(translationalGenes);
+                targetManager.getTargetGeneSpecies(targetId, translationalGenes);
         final Map<String, List<HomologGroup>> homologueGroups = homologManager.searchHomolog(genesOfInterest);
         final Map<String, List<HomologeneEntry>> homologenes = homologeneManager.searchHomologenes(genesOfInterest);
         final List<TargetHomologue> homology = new ArrayList<>();
@@ -155,9 +155,10 @@ public class TargetExportManager {
         return homology;
     }
 
-    public long getHomologyCount(final List<String> genesOfInterest, final List<String> translationalGenes)
+    public long getHomologyCount(final Long targetId, final List<String> genesOfInterest,
+                                 final List<String> translationalGenes)
             throws IOException, ParseException {
-        final List<Long> species = targetManager.getTargetGeneSpecies(translationalGenes);
+        final List<Long> species = targetManager.getTargetGeneSpecies(targetId, translationalGenes);
         final Map<String, List<HomologGroup>> homologueGroups = homologManager.searchHomolog(genesOfInterest);
         final Map<String, List<HomologeneEntry>> homologenes = homologeneManager.searchHomologenes(genesOfInterest);
         long homology = 0;
@@ -180,9 +181,10 @@ public class TargetExportManager {
         return homology;
     }
 
-    public Map<String, String> getTargetGeneNames(final List<String> geneIds) throws ParseException, IOException {
+    public Map<String, String> getTargetGeneNames(final Long targetId, final List<String> geneIds)
+            throws ParseException, IOException {
         final Map<String, String> genesMap = new HashMap<>();
-        final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
+        final List<TargetGene> genes = targetManager.getTargetGenes(targetId, geneIds);
         for (TargetGene gene: genes) {
             genesMap.put(gene.getGeneId().toLowerCase(),
                     String.format(TARGET_NAME, gene.getGeneName(), gene.getSpeciesName()));
@@ -190,9 +192,10 @@ public class TargetExportManager {
         return genesMap;
     }
 
-    public Map<String, String> getTargetGeneNames(final String geneId) throws ParseException, IOException {
+    public Map<String, String> getTargetGeneNames(final Long targetId, final String geneId)
+            throws ParseException, IOException {
         final Map<String, String> genesMap = new HashMap<>();
-        final List<String> geneNames = identificationManager.getGeneNames(Collections.singletonList(geneId));
+        final List<String> geneNames = identificationManager.getGeneNames(targetId, Collections.singletonList(geneId));
         for (String geneName: geneNames) {
             genesMap.put(geneId.toLowerCase(), geneName);
         }
@@ -207,9 +210,10 @@ public class TargetExportManager {
         return genesMap;
     }
 
-    public Map<String, TargetGene> getTargetGenesMap(final List<String> geneIds) throws ParseException, IOException {
+    public Map<String, TargetGene> getTargetGenesMap(final Long targetId, final List<String> geneIds)
+            throws ParseException, IOException {
         final Map<String, TargetGene> genesMap = new HashMap<>();
-        final List<TargetGene> genes = targetManager.getTargetGenes(geneIds);
+        final List<TargetGene> genes = targetManager.getTargetGenes(targetId, geneIds);
         for (TargetGene gene: genes) {
             genesMap.put(gene.getGeneId().toLowerCase(), gene);
         }
@@ -262,8 +266,9 @@ public class TargetExportManager {
         return dgidbDrugAssociations;
     }
 
-    public List<Structure> getStructures(final List<String> geneIds) throws ParseException, IOException {
-        final List<String> geneNames = identificationManager.getGeneNames(geneIds);
+    public List<Structure> getStructures(final Long targetId, final List<String> geneIds)
+            throws ParseException, IOException {
+        final List<String> geneNames = identificationManager.getGeneNames(targetId, geneIds);
         return pdbEntriesManager.getAllStructures(geneNames);
     }
 
@@ -271,9 +276,10 @@ public class TargetExportManager {
         return pdbFileManager.load(geneIds);
     }
 
-    public List<GeneSequence> getSequenceTable(final List<String> geneIds, final Map<String, String> genesMap)
+    public List<GeneSequence> getSequenceTable(final Long targetId, final List<String> geneIds,
+                                               final Map<String, String> genesMap)
             throws ParseException, IOException, ExternalDbUnavailableException {
-        final List<GeneRefSection> sequencesTable = identificationManager.getGeneSequencesTable(geneIds,
+        final List<GeneRefSection> sequencesTable = identificationManager.getGeneSequencesTable(targetId, geneIds,
                 false, true, true);
         final List<GeneSequence> result = new ArrayList<>();
         for (GeneRefSection geneRefSection : sequencesTable) {

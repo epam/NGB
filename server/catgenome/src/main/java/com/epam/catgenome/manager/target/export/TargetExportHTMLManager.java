@@ -99,17 +99,17 @@ public class TargetExportHTMLManager {
         final String template = getTemplate();
 
         final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
-        targetManager.expandTargetGenes(geneIds);
+        targetManager.expandTargetGenes(targetId, geneIds);
         String name;
         if (targetId != null) {
             final Target target = targetManager.getTarget(targetId);
             name = target.getTargetName();
         } else {
-            final List<String> geneNames = launchIdentificationManager.getGeneNames(geneIds);
+            final List<String> geneNames = launchIdentificationManager.getGeneNames(targetId, geneIds);
             name = geneNames.get(0);
         }
 
-        final Map<String, String> geneNamesMap = targetExportManager.getTargetGeneNames(geneIds);
+        final Map<String, String> geneNamesMap = targetExportManager.getTargetGeneNames(targetId, geneIds);
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
         final List<String> entrezIds = ncbiGeneIds.stream()
                 .map(g -> g.getEntrezId().toString())
@@ -121,14 +121,15 @@ public class TargetExportHTMLManager {
         final List<DiseaseAssociation> diseaseAssociations = targetExportManager.getDiseaseAssociations(geneIds,
                 geneNamesMap);
         final List<SourceData<DiseaseData>> diseases = getDiseases(pharmGKBDiseases, diseaseAssociations);
-        final List<Sequence> sequences = getSequences(getGeneIds(genesOfInterest, translationalGenes), geneNamesMap);
-        final List<SourceData<StructureData>> structures = getStructures(geneIds);
+        final List<Sequence> sequences = getSequences(targetId,
+                getGeneIds(genesOfInterest, translationalGenes), geneNamesMap);
+        final List<SourceData<StructureData>> structures = getStructures(targetId, geneIds);
         final long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
         final List<Publication> publications = getPublications(entrezIds, publicationsCount);
-        final List<ComparativeGenomics> comparativeGenomics = getComparativeGenomics(genesOfInterest,
+        final List<ComparativeGenomics> comparativeGenomics = getComparativeGenomics(targetId, genesOfInterest,
                 translationalGenes, geneNamesMap);
 
-        final DrugsCount drugsCount = launchIdentificationManager.getDrugsCount(geneIds);
+        final DrugsCount drugsCount = launchIdentificationManager.getDrugsCount(targetId, geneIds);
         final long structuresCount = structures.stream().mapToInt(d -> d.getData().size()).sum();
         final long homologsCount = comparativeGenomics.size();
         final SequencesSummary sequencesSummary = geneSequencesManager.getSequencesCount(ncbiGeneIds);
@@ -154,7 +155,7 @@ public class TargetExportHTMLManager {
 
         final List<GeneDetails> interest = new ArrayList<>();
         final List<GeneDetails> translational = new ArrayList<>();
-        final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(geneIds);
+        final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(targetId, geneIds);
         final Map<String, String> descriptions = launchIdentificationManager.getDescriptions(ncbiGeneIds);
         for (String geneId : geneIds) {
             TargetGene gene = genesMap.containsKey(geneId) ? genesMap.get(geneId) : TargetGene.builder().build();
@@ -210,10 +211,12 @@ public class TargetExportHTMLManager {
 
     }
 
-    private List<Sequence> getSequences(final List<String> geneIds, final Map<String, String> geneNamesMap)
+    private List<Sequence> getSequences(final Long targetId,
+                                        final List<String> geneIds,
+                                        final Map<String, String> geneNamesMap)
             throws ParseException, IOException, ExternalDbUnavailableException {
-        final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(geneIds);
-        final List<GeneRefSection> sequencesTable = launchIdentificationManager.getGeneSequencesTable(geneIds,
+        final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(targetId, geneIds);
+        final List<GeneRefSection> sequencesTable = launchIdentificationManager.getGeneSequencesTable(targetId, geneIds,
                 false, true, true);
         final List<Sequence> sequences = new ArrayList<>();
         for (GeneRefSection geneRefSection : sequencesTable) {
@@ -282,11 +285,12 @@ public class TargetExportHTMLManager {
         return publications;
     }
 
-    private List<ComparativeGenomics> getComparativeGenomics(final List<String> genesOfInterest,
+    private List<ComparativeGenomics> getComparativeGenomics(final Long targetId,
+                                                             final List<String> genesOfInterest,
                                                              final List<String> translationalGenes,
                                                              final Map<String, String> geneNamesMap)
             throws IOException, ParseException {
-        final List<TargetHomologue> targetHomologs = targetExportManager.getHomologyData(genesOfInterest,
+        final List<TargetHomologue> targetHomologs = targetExportManager.getHomologyData(targetId, genesOfInterest,
                 translationalGenes, geneNamesMap);
         final List<ComparativeGenomics> result = new ArrayList<>();
         for (TargetHomologue targetHomologue : targetHomologs) {
@@ -308,9 +312,9 @@ public class TargetExportHTMLManager {
         return result;
     }
 
-    private List<SourceData<StructureData>> getStructures(final List<String> geneIds)
+    private List<SourceData<StructureData>> getStructures(final Long targetId, final List<String> geneIds)
             throws ParseException, IOException {
-        final List<Structure> pdbStructures = targetExportManager.getStructures(geneIds);
+        final List<Structure> pdbStructures = targetExportManager.getStructures(targetId, geneIds);
         final List<PdbFile> pdbFiles = targetExportManager.getPdbFiles(geneIds);
 
         final List<SourceData<StructureData>> result = new ArrayList<>();

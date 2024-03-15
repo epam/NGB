@@ -73,11 +73,14 @@ public class NCBISequenceManager {
         return parseSequences(json, entrezMap);
     }
 
-    public List<GeneRefSection> getGeneSequencesTable(final Map<String, GeneId> entrezMap, final Boolean getComments)
+    public List<GeneRefSection> getGeneSequencesTable(final String geneId,
+                                                      final Map<String, GeneId> entrezMap,
+                                                      final Boolean getComments)
             throws ExternalDbUnavailableException, IOException {
         final String link = String.format(NCBI_GENE_INFO_LINK, join(entrezMap.keySet(), "%2C"));
         final String json = ncbiDataManager.getResultFromURL(link);
         final List<GeneRefSection> geneRefSections = parseSequencesAsTable(json, entrezMap);
+        geneRefSections.forEach(s -> s.setGeneId(geneId));
         if (getComments) {
             final List<String> proteinIds = geneRefSections.stream()
                     .map(sec -> sec.getSequences().stream()
@@ -103,7 +106,7 @@ public class NCBISequenceManager {
             throws IOException, ExternalDbUnavailableException {
         final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
                 .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
-        final List<GeneRefSection> refSections = getGeneSequencesTable(entrezMap, false);
+        final List<GeneRefSection> refSections = getGeneSequencesTable(null, entrezMap, false);
 
         final List<GeneSequence> sequences = refSections.stream()
                 .map(sec -> Optional.ofNullable(sec.getSequences()).orElse(Collections.emptyList()))
@@ -134,7 +137,7 @@ public class NCBISequenceManager {
             throws IOException, ExternalDbUnavailableException {
         final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
                 .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
-        final List<GeneRefSection> refSections = getGeneSequencesTable(entrezMap, false);
+        final List<GeneRefSection> refSections = getGeneSequencesTable(null, entrezMap, false);
         final Map<String, List<GeneRefSection>> refSectionsMap = refSections.stream()
                 .collect(groupingBy(GeneRefSection::getGeneId));
         final Map<String, SequencesSummary> summaries = new HashMap<>();
@@ -307,7 +310,7 @@ public class NCBISequenceManager {
                 final JsonNode node = elements.next();
 
                 final String entrezId = node.at("/gene/gene_id").asText();
-                geneRefSection.setGeneId(entrezMap.get(entrezId).getEnsemblId());
+                geneRefSection.setAdditionalGeneId(entrezMap.get(entrezId).getEnsemblId());
 
                 final JsonNode referenceNodes = node.at("/gene/reference_standards");
                 if (referenceNodes.isArray()) {

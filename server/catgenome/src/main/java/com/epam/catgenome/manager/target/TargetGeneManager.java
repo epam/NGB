@@ -157,6 +157,17 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         return search(geneIds, IndexField.GENE_ID.getValue());
     }
 
+    public List<TargetGene> load(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        final Query geneIdsdQuery = getByTermsQuery(geneIds, IndexField.GENE_ID.getValue());
+        mainBuilder.add(geneIdsdQuery, BooleanClause.Occur.MUST);
+        if (targetId != null) {
+            final Query targetIdQuery = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
+            mainBuilder.add(targetIdQuery, BooleanClause.Occur.MUST);
+        }
+        return search(mainBuilder.build(), null);
+    }
+
     public List<TargetGeneField> getFields(final Long targetId) throws ParseException, IOException {
         final Set<IndexField> indexFields = new LinkedHashSet<>(IndexField.VALUES_MAP.values());
         indexFields.remove(IndexField.TARGET_GENE_ID);
