@@ -6,12 +6,32 @@ const PRIORITY_LIST = [{
     value: 'HIGH'
 }];
 
-const NEW_ADDITIONAL_GENES = {
+const STATUS_LIST = [{
+    name: 'New',
+    value: 'NEW'
+}, {
+    name: 'Processed',
+    value: 'PROCESSED'
+}, {
+    name: 'Error',
+    value: 'ERROR'
+}];
+
+const OPTIONS_LIST = {
+    priority: PRIORITY_LIST,
+    status: STATUS_LIST,
+}
+
+const NEW_TABLE_CELL_ITEM = {
     limit: 1,
 };
 
 const NEW_ADDITIONAL_GENE = {
     taxId: '',
+    geneId: '',
+};
+
+const NEW_TTD_TARGET = {
     geneId: '',
 };
 
@@ -46,8 +66,8 @@ export default class ngbTargetGenesTableController {
         useExternalSorting: true
     };
 
-    get priorityList() {
-        return PRIORITY_LIST;
+    get optionsList() {
+        return OPTIONS_LIST;
     }
 
     static get UID() {
@@ -89,6 +109,7 @@ export default class ngbTargetGenesTableController {
         dispatcher.on('target:form:restore:view', confirmRestoreDialog);
         dispatcher.on('target:form:confirm:filter', confirmFilterDialog);
         dispatcher.on('target:form:restore:row:height', restoreRowsHeight);
+        dispatcher.on('target:model:type:changed', refreshColumns);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:form:gene:added', initialize);
             dispatcher.removeListener('target:form:saved', reloadCurrentPage);
@@ -100,6 +121,7 @@ export default class ngbTargetGenesTableController {
             dispatcher.removeListener('target:form:restore:view', confirmRestoreDialog);
             dispatcher.removeListener('target:form:confirm:filter', confirmFilterDialog);
             dispatcher.removeListener('target:form:restore:row:height', restoreRowsHeight);
+            dispatcher.removeListener('target:model:type:changed', refreshColumns);
         });
     }
 
@@ -147,6 +169,12 @@ export default class ngbTargetGenesTableController {
     }
     set addedGenes(value) {
         this.ngbTargetsFormService.addedGenes = value;
+    }
+    get additionalGenes() {
+        return this.ngbTargetsFormService.additionalGenes;
+    }
+    get ttdTargets() {
+        return this.ngbTargetsFormService.ttdTargets;
     }
 
     $onInit() {
@@ -238,7 +266,7 @@ export default class ngbTargetGenesTableController {
         const listCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_listCell.tpl.html');
         const removeCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_removeCell.tpl.html');
         const additionalCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_additionalCell.tpl.html');
-        const additionalGenes = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_genesCell.tpl.html')
+        const tableCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_tableCell.tpl.html')
 
         const result = [];
         const columnsList = this.ngbTargetGenesTableService.currentColumnFields;
@@ -272,6 +300,8 @@ export default class ngbTargetGenesTableController {
             };
             switch (column) {
                 case 'geneId':
+                case 'taxId':
+                case 'speciesName':
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
@@ -297,33 +327,8 @@ export default class ngbTargetGenesTableController {
                         };
                     }
                     break;
-                case 'taxId':
-                    if (this.isParasite) {
-                        columnSettings = {
-                            ...parasiteSettings,
-                            cellTemplate: inputCell,
-                        };
-                    } else {
-                        columnSettings = {
-                            ...defaultSettings,
-                            cellTemplate: inputCell,
-                        };
-                    }
-                    break;
-                case 'speciesName':
-                    if (this.isParasite) {
-                        columnSettings = {
-                            ...parasiteSettings,
-                            cellTemplate: inputCell,
-                        };
-                    } else {
-                        columnSettings = {
-                            ...defaultSettings,
-                            cellTemplate: inputCell,
-                        };
-                    }
-                    break;
                 case 'priority':
+                case 'status':
                     if (this.isParasite) {
                         columnSettings = {
                             ...parasiteSettings,
@@ -337,12 +342,13 @@ export default class ngbTargetGenesTableController {
                     }
                     break;
                 case 'additionalGenes':
+                case 'ttdTargets':
                     columnSettings = {
                         ...parasiteSettings,
                         enableColumnMenu: false,
                         enableSorting: false,
                         enableFiltering: this.displayFilters,
-                        cellTemplate: additionalGenes,
+                        cellTemplate: tableCell,
                     };
                     break;
                 case 'remove':
@@ -708,17 +714,33 @@ export default class ngbTargetGenesTableController {
 
     showOthers(rowIndex, cell, event) {
         event.stopPropagation();
-        this.ngbTargetGenesTableService.rowsHeight[rowIndex] = Math.min(cell.value.length, 5);
+        const rowsHeight = this.ngbTargetGenesTableService.rowsHeight;
+        rowsHeight[rowIndex] = Math.max(Math.min(cell.value.length, 5), (rowsHeight[rowIndex] || 0));
         cell.limit = 100000;
     }
 
-    showLess(rowIndex, cell, event) {
+    showLess(rowIndex, row, field, event) {
         event.stopPropagation();
-        const rowHeight = 40;
-        const cellPadding = 10;
-        const itemHeight = 16.5;
-        this.ngbTargetGenesTableService.rowsHeight[rowIndex] = ((rowHeight - cellPadding) / itemHeight) - 2;
-        cell.limit = 1;
+        row[field].limit = 1;
+        const rowsHeight = this.ngbTargetGenesTableService.rowsHeight;
+        if (row.additionalGenes.limit === 1 && row.ttdTargets.limit === 1) {
+            const rowHeight = 40;
+            const cellPadding = 10;
+            const itemHeight = 16.5;
+            rowsHeight[rowIndex] = ((rowHeight - cellPadding) / itemHeight) - 2;
+        } else {
+            const maxLength = [this.additionalGenes, this.ttdTargets]
+                .map(item => {
+                    if (row[item.name].limit !== 1) {
+                        return row[item.name];
+                    }
+                })
+                .filter(i => i)
+                .reduce((acc, item) => (
+                    Math.max(item.value.length, acc)
+                ), 0)
+            rowsHeight[rowIndex] = Math.min(maxLength, rowsHeight[rowIndex]);
+        }
     }
 
     restoreRowsHeight() {
@@ -726,16 +748,20 @@ export default class ngbTargetGenesTableController {
             if (this.gridOptions.data[i].additionalGenes) {
                 this.gridOptions.data[i].additionalGenes.limit = 1;
             }
+            if (this.gridOptions.data[i].ttdTargets) {
+                this.gridOptions.data[i].ttdTargets.limit = 1;
+            }
         }
     }
 
     getRowStyle(rowIndex, viewport) {
         let style = {};
-        if (this.ngbTargetGenesTableService.rowsHeight[rowIndex]) {
+        const rowsHeight = this.ngbTargetGenesTableService.rowsHeight;
+        if (rowsHeight[rowIndex]) {
             const itemHeight = 16.5;
             const cellPadding = 10;
-            const itemsCountPlusButtons = this.ngbTargetGenesTableService.rowsHeight[rowIndex] + 2;
-            style.height = itemsCountPlusButtons * itemHeight + cellPadding + 'px'
+            const itemsCountPlusButtons = rowsHeight[rowIndex] + 2;
+            style.height = itemsCountPlusButtons * itemHeight + cellPadding + 'px';
         }
         if (viewport) {
             style = {
@@ -750,35 +776,36 @@ export default class ngbTargetGenesTableController {
         this.ngbTargetsFormService.setGeneModel(row, field, text);
     }
 
-    onClickAdditionalRemove(event, genesArray, index) {
+    onClickTableCellRemove(event, genesArray, index) {
         if (index > -1) {
             genesArray.value.splice(index, 1);
         }
     }
 
-    getIsAddAdditionalGeneDisabled (genesArray) {
+    getIsAddButtonDisabled(array) {
         if (this.loading) return true;
-        if (!genesArray || !genesArray.value) {
-            return false;
-        }
-        const genesEmpty = genesArray.value.filter(gene => {
-            return ((!gene.taxId || !String(gene.taxId).length) ||
-                    (!gene.geneId || !String(gene.geneId).length))
-        });
-        return genesEmpty.length;
+        if (!array || !array.value) return false;
+        const inputsEmpty = array.value.filter(item => (
+            Object.values(item)
+                .some(value => (!value || !String(value).length))
+        ));
+        return inputsEmpty.length;
     }
 
-    async addAdditionalGene(row, rowIndex, event) {
-        if (this.getIsAddAdditionalGeneDisabled(row.additionalGenes)) return;
-        if (!row.additionalGenes) {
-            row.additionalGenes = {...NEW_ADDITIONAL_GENES};
-            row.additionalGenes.value = [];
-            row.additionalGenes.value.push({...NEW_ADDITIONAL_GENE});
+    async addNewItemToTableCell(row, field, rowIndex, event) {
+        if (this.getIsAddButtonDisabled(row[field])) return;
+        const newItemValue = field === this.additionalGenes.name
+            ? {...NEW_ADDITIONAL_GENE}
+            : {...NEW_TTD_TARGET};
+        if (!row[field]) {
+            row[field] = {...NEW_TABLE_CELL_ITEM};
+            row[field].value = [];
+            row[field].value.push(newItemValue);
         } else {
-            if (row.additionalGenes.value.length === row.additionalGenes.limit) {
-                this.showOthers(rowIndex, row.additionalGenes, event)
+            if (row[field].value.length === row[field].limit) {
+                this.showOthers(rowIndex, row[field], event)
             }
-            row.additionalGenes.value.push({...NEW_ADDITIONAL_GENE});
+            row[field].value.push(newItemValue);
         }
     }
 }

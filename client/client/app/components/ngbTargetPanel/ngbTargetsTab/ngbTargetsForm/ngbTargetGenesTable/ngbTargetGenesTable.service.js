@@ -9,6 +9,8 @@ const DISPLAY_NAME = {
     speciesName: 'Species Name',
     priority: 'Priority',
     additionalGenes: 'Additional Genes',
+    status: 'Status',
+    ttdTargets: 'TTD targets',
     remove: ''
 };
 
@@ -19,6 +21,8 @@ const COLUMN_FIELD = {
     'Species Name': 'speciesName',
     'Priority': 'priority',
     'Additional Genes': 'additionalGenes',
+    'Status': 'status',
+    'TTD Targets': 'ttdTargets',
     'Remove': 'remove'
 };
 
