@@ -51,7 +51,6 @@ import static com.epam.catgenome.entity.target.Sequence.parseStrand;
 import static com.epam.catgenome.util.Utils.NEW_LINE;
 import static com.epam.catgenome.util.Utils.SPACE;
 import static com.epam.catgenome.util.Utils.SPACES;
-import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.lang3.StringUtils.join;
 
 
@@ -132,48 +131,6 @@ public class NCBISequenceManager {
                 .proteins(proteins)
                 .build();
     }
-
-    public Map<String, SequencesSummary> getSequencesCountMap(final List<GeneId> ncbiGeneIds)
-            throws IOException, ExternalDbUnavailableException {
-        final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
-                .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
-        final List<GeneRefSection> refSections = getGeneSequencesTable(null, entrezMap, false);
-        final Map<String, List<GeneRefSection>> refSectionsMap = refSections.stream()
-                .collect(groupingBy(GeneRefSection::getGeneId));
-        final Map<String, SequencesSummary> summaries = new HashMap<>();
-        for (Map.Entry<String, List<GeneRefSection>> entry : refSectionsMap.entrySet()) {
-            String k = entry.getKey();
-            List<GeneRefSection> v = entry.getValue();
-            List<GeneSequence> sequences = v.stream()
-                    .map(geneRefSection -> geneRefSection.getSequences() == null ? null : geneRefSection.getSequences())
-                    .filter(Objects::nonNull)
-                    .flatMap(List::stream)
-                    .collect(Collectors.toList());
-            List<String> genomic = sequences.stream()
-                    .map(s -> s.getMRNA() == null ? null : s.getMRNA().getGenomic())
-                    .collect(Collectors.toList());
-            List<String> references = v.stream()
-                    .map(s -> s.getReference() == null ? null : s.getReference().getId())
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            genomic.addAll(references);
-            long dNAs = genomic.stream().filter(Objects::nonNull).distinct().count();
-            long mRNAs = sequences.stream()
-                    .map(s -> s.getMRNA()).filter(Objects::nonNull)
-                    .count();
-            long proteins = sequences.stream()
-                    .map(s -> s.getProtein()).filter(Objects::nonNull)
-                    .count();
-            SequencesSummary summary = SequencesSummary.builder()
-                    .dNAs(dNAs)
-                    .mRNAs(mRNAs)
-                    .proteins(proteins)
-                    .build();
-            summaries.put(k, summary);
-        }
-        return summaries;
-    }
-
 
     public String getFasta(final NCBISequenceDatabase database, final String id) throws ExternalDbUnavailableException {
         return ncbiDataManager.fetchTextById(database.getName(), id, "fasta");

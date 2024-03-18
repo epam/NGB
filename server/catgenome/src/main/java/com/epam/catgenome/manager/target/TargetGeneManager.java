@@ -698,7 +698,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             String priority = cells[header.getPriorityIndex()].trim();
             if (!TextUtils.isBlank(priority)) {
                 try {
-                    targetGenePriority = TargetGenePriority.getByValue(Integer.parseInt(priority));
+                    targetGenePriority = TargetGenePriority.valueOf(priority);
                 } catch (NumberFormatException e) {
                     throw new TargetGenesException("Priority should be numeric");
                 }
@@ -769,8 +769,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             if (header.getPriorityIndex() != null) {
                 Cell priorityCell = row.getCell(header.getPriorityIndex());
                 if (priorityCell != null) {
-                    Assert.isTrue(priorityCell.getCellTypeEnum() == NUMERIC, "Priority should be numeric");
-                    priority = TargetGenePriority.getByValue((int) priorityCell.getNumericCellValue());
+                    priority = TargetGenePriority.valueOf(getCellValue(priorityCell));
                 }
             }
 
