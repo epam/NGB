@@ -48,6 +48,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.catgenome.manager.target.LaunchIdentificationManager.getGeneIds;
 import static com.epam.catgenome.manager.target.export.TargetExportManager.*;
 
 

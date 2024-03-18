@@ -61,7 +61,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.manager.target.export.TargetExportManager.getGeneIds;
+import static com.epam.catgenome.manager.target.LaunchIdentificationManager.getGeneIds;
 import static org.apache.commons.lang3.StringUtils.join;
 
 

@@ -49,6 +49,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
@@ -264,11 +265,17 @@ public class TargetManager implements SecuredEntityManager {
     public void expandTargetGenes(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
         final Set<String> result = new HashSet<>();
         final List<TargetGene> targetGenes = getTargetGenes(targetId, geneIds);
-        targetGenes.forEach(r -> {
-            result.add(r.getGeneId().toLowerCase());
-            if (!CollectionUtils.isEmpty(r.getAdditionalGenes())) {
-                result.addAll(r.getAdditionalGenes().keySet());
+        final Map<String, TargetGene> targetGenesMap = targetGenes.stream()
+                .collect(Collectors.toMap(tg -> tg.getGeneId().toLowerCase(),
+                        Function.identity(), (existing, replacement) -> existing));
+        geneIds.forEach(g -> {
+            TargetGene targetGene = Optional.ofNullable(targetGenesMap.get(g)).orElse(TargetGene.builder().build());
+            if (!CollectionUtils.isEmpty(targetGene.getAdditionalGenes())) {
+                result.addAll(targetGene.getAdditionalGenes().keySet().stream()
+                        .map(String::toLowerCase)
+                        .collect(Collectors.toSet()));
             }
+            result.add(g.toLowerCase());
         });
         geneIds.clear();
         geneIds.addAll(result);

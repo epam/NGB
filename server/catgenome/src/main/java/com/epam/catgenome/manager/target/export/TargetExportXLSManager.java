@@ -76,8 +76,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.manager.export.ExcelExportUtils.writeSheet;
+import static com.epam.catgenome.manager.target.LaunchIdentificationManager.getGeneIds;
 import static com.epam.catgenome.manager.target.export.TargetExportManager.getAssociationFields;
-import static com.epam.catgenome.manager.target.export.TargetExportManager.getGeneIds;
 
 
 @Service
@@ -162,7 +162,7 @@ public class TargetExportXLSManager {
         final Map<String, Long> diseases = diseaseAssociationManager.totalCountMap(geneIds);
 
         final Map<String, SequencesSummary> sequencesSummaryMap =
-                geneSequencesManager.getSequencesCountMap(ncbiGeneIds);
+                targetExportManager.getGeneSequencesCount(targetId, geneIds, ncbiGeneIds);
 
         final Map<String, Long> structuresCount = getStructuresCount(genesMap);
 

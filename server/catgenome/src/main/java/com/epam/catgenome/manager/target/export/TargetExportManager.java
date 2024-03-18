@@ -27,6 +27,7 @@ import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
 import com.epam.catgenome.entity.externaldb.homolog.HomologType;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
+import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
@@ -34,6 +35,7 @@ import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
 import com.epam.catgenome.entity.pdb.PdbFile;
 import com.epam.catgenome.entity.target.GeneRefSection;
+import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.export.GeneSequence;
 import com.epam.catgenome.entity.target.export.TargetHomologue;
@@ -60,9 +62,17 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.groupingBy;
 
 
 @Service
@@ -308,11 +318,49 @@ public class TargetExportManager {
         return result;
     }
 
-    public static List<String> getGeneIds(final List<String> genesOfInterest, final List<String> translationalGenes) {
-        return Stream.concat(genesOfInterest.stream(),
-                        Optional.ofNullable(translationalGenes).orElse(Collections.emptyList()).stream())
-                .map(String::toLowerCase)
-                .distinct()
-                .collect(Collectors.toList());
+    public Map<String, SequencesSummary> getGeneSequencesCount(final Long targetId,
+                                                               final List<String> geneIds,
+                                                               final List<GeneId> ncbiGeneIds)
+            throws IOException, ExternalDbUnavailableException, ParseException {
+        final List<GeneRefSection> geneRefSections = identificationManager.getGeneSequencesTable(targetId, geneIds,
+                ncbiGeneIds, false, true, true);
+        return toCountMap(geneRefSections);
+    }
+
+    private static Map<String, SequencesSummary> toCountMap(final List<GeneRefSection> geneRefSections) {
+        final Map<String, SequencesSummary> summaries = new HashMap<>();
+        final Map<String, List<GeneRefSection>> refSectionsMap = geneRefSections.stream()
+                .collect(groupingBy(GeneRefSection::getGeneId));
+        for (Map.Entry<String, List<GeneRefSection>> entry : refSectionsMap.entrySet()) {
+            String k = entry.getKey();
+            List<GeneRefSection> v = entry.getValue();
+            List<com.epam.catgenome.entity.target.GeneSequence> sequences = v.stream()
+                    .map(geneRefSection -> geneRefSection.getSequences() == null ? null : geneRefSection.getSequences())
+                    .filter(Objects::nonNull)
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
+            List<String> genomic = sequences.stream()
+                    .map(s -> s.getMRNA() == null ? null : s.getMRNA().getGenomic())
+                    .collect(Collectors.toList());
+            List<String> references = v.stream()
+                    .map(s -> s.getReference() == null ? null : s.getReference().getId())
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            genomic.addAll(references);
+            long dNAs = genomic.stream().filter(Objects::nonNull).distinct().count();
+            long mRNAs = sequences.stream()
+                    .map(s -> s.getMRNA()).filter(Objects::nonNull)
+                    .count();
+            long proteins = sequences.stream()
+                    .map(s -> s.getProtein()).filter(Objects::nonNull)
+                    .count();
+            SequencesSummary summary = SequencesSummary.builder()
+                    .dNAs(dNAs)
+                    .mRNAs(mRNAs)
+                    .proteins(proteins)
+                    .build();
+            summaries.put(k, summary);
+        }
+        return summaries;
     }
 }
