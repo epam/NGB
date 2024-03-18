@@ -125,6 +125,9 @@ public class LaunchIdentificationManager {
     @Value("${targets.parasites.include.additional:false}")
     private boolean includeAdditionalGenes;
 
+    @Value("${targets.parasites.include.additional.sequences:true}")
+    private boolean includeAdditionalGenesSequences;
+
 
     public TargetIdentificationResult launchIdentification(final IdentificationRequest request)
             throws ExternalDbUnavailableException, IOException, ParseException {
@@ -147,8 +150,7 @@ public class LaunchIdentificationManager {
         final DrugsCount drugsCount = getDrugsCount(request.getTargetId(), expandedGeneIds);
         final long diseasesCount = getDiseasesCount(request.getTargetId(), expandedGeneIds);
         final long publicationsCount = getPublicationsCount(geneIds, entrezGeneIds, request.getTargetId());
-        final SequencesSummary sequencesCount = getGeneSequencesCount(request.getTargetId(),
-                expandedGeneIds, ncbiGeneIds);
+        final SequencesSummary sequencesCount = getGeneSequencesCount(request.getTargetId(), geneIds, ncbiGeneIds);
         final long structuresCount = getStructuresCount(request.getTargetId(), geneIds);
         return TargetIdentificationResult.builder()
                 .description(description)
@@ -323,7 +325,6 @@ public class LaunchIdentificationManager {
                         .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
                 result.addAll(geneSequencesManager.getGeneSequencesTable(geneId, entrezMap, getComments));
             }
-
         }
         return result;
     }
@@ -350,7 +351,6 @@ public class LaunchIdentificationManager {
                         .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
                 result.addAll(geneSequencesManager.getGeneSequencesTable(geneId, entrezMap, getComments));
             }
-
         }
         return result;
     }
@@ -359,7 +359,7 @@ public class LaunchIdentificationManager {
                                                   final List<String> geneIds, final List<GeneId> ncbiGeneIds)
             throws IOException, ExternalDbUnavailableException, ParseException {
         final List<GeneRefSection> geneRefSections = getGeneSequencesTable(targetId, geneIds, ncbiGeneIds, false,
-                true, includeAdditionalGenes);
+                true, includeAdditionalGenesSequences);
         final SequencesSummary result = SequencesSummary.builder().build();
         result.setDNAs(geneRefSections.stream()
                 .map(GeneRefSection::getReference)
