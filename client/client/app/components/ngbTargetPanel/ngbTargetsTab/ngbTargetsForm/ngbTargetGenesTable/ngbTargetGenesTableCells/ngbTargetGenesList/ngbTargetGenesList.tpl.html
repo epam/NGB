@@ -12,6 +12,7 @@
                  md-selected-item-change="$ctrl.selectedItemChange(item)"
                  md-search-text-change="$ctrl.searchTextChange($ctrl.searchText)"
                  spellcheck="false"
+                 ng-disabled="!$ctrl.changeAllowed"
                  ng-class="{error: !$ctrl.searchText}"
                  class="ngb-targets-form-autocomplete">
     <md-item-template>

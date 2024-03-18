@@ -1,3 +1,5 @@
+import maskModel from './utils/maskModel';
+
 const NEW_GENE = {
     geneId: '',
     geneName: '',
@@ -29,6 +31,8 @@ const DEFAULT_FIELDS = ['Gene ID', 'Gene Name', 'Tax ID', 'Species Name', 'Prior
 const PARASITE_DEFAULT_FIELDS = [...DEFAULT_FIELDS, 'Status', 'TTD Targets'];
 
 const REQUIRED_FIELDS = ['geneId', 'geneName', 'taxId', 'speciesName'];
+
+const WRITE_ROLES = ['ROLE_ADMIN', 'ROLE_TARGET_MANAGER'];
 
 export const encodeName = (name) => {
     if (name.includes('(') || name.includes(')')) {
@@ -70,6 +74,9 @@ export default class ngbTargetsFormService {
     }
     get ttdTargets() {
         return TTD_TARGETS;
+    }
+    get writeRoles() {
+        return WRITE_ROLES;
     }
 
     _targetModel;
@@ -144,12 +151,40 @@ export default class ngbTargetsFormService {
         return [...this.geneModelProperties, ...this.metadataFields];
     }
 
-    static instance (dispatcher, ngbTargetsTabService, targetDataService, targetContext) {
-        return new ngbTargetsFormService(dispatcher, ngbTargetsTabService, targetDataService, targetContext);
+    static instance (
+        dispatcher,
+        ngbTargetsTabService,
+        targetDataService,
+        targetContext,
+        utilsDataService,
+        userDataService,
+    ) {
+        return new ngbTargetsFormService(
+            dispatcher,
+            ngbTargetsTabService,
+            targetDataService,
+            targetContext,
+            utilsDataService,
+            userDataService,
+        );
     }
 
-    constructor(dispatcher, ngbTargetsTabService, targetDataService, targetContext) {
-        Object.assign(this, {dispatcher, ngbTargetsTabService, targetDataService, targetContext});
+    constructor(
+        dispatcher,
+        ngbTargetsTabService,
+        targetDataService,
+        targetContext,
+        utilsDataService,
+        userDataService,
+    ) {
+        Object.assign(this, {
+            dispatcher,
+            ngbTargetsTabService,
+            targetDataService,
+            targetContext,
+            utilsDataService,
+            userDataService,
+        });
         dispatcher.on('homologs:create:target', this.createTargetFromHomologs.bind(this));
     }
 
@@ -167,7 +202,7 @@ export default class ngbTargetsFormService {
             genes: [],
             diseases: [],
             products: [],
-            type: this.targetType.DEFAULT
+            type: this.targetType.DEFAULT,
         };
         this._originalModel = undefined;
         this.dispatcher.emit('target:model:changed');
@@ -249,7 +284,7 @@ export default class ngbTargetsFormService {
         return !!(this.parasiteGenesRemoved() || this.parasiteGenesAdded() || this.targetGenesChanged());
     }
 
-    setTargetModel(data) {
+    async setTargetModel(data) {
         const getTargetModel = (data) => {
             return {
                 id: data.id,
@@ -282,7 +317,28 @@ export default class ngbTargetsFormService {
         }
         this._targetModel = getTargetModel(data);
         this._originalModel = getTargetModel(data);
+        this._targetModel.changeAllowed = await this.getIsChangeAllowed(data.mask)
         this.targetContext.targetModelType = data.type;
+    }
+
+    async getIsChangeAllowed(mask) {
+        const allowed = await this.utilsDataService.isRoleModelEnabled()
+            .then(utilsDataService => {
+                if (utilsDataService) {
+                    return this.userDataService.getCurrentUser()
+                        .then(user => {
+                            const hasRoles = user.hasRoles(this.writeRoles);
+                            if (hasRoles) return hasRoles;
+                            if (mask === undefined) return false;
+                            const isOwner = maskModel.isOwner({ mask });
+                            const writeAllowed = maskModel.writeAllowed({ mask });
+                            return isOwner || writeAllowed;
+                        });
+                } else {
+                    return true;
+                }
+            });
+        return allowed;
     }
 
     async getTarget(id) {

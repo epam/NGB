@@ -68,6 +68,18 @@ export default class ngbTargetsFormController {
         this.ngbTargetsFormService.geneFile = value;
     }
 
+    get showDiseaseTags() {
+        return this.changeAllowed ||
+               (this.targetModel.diseases && this.targetModel.diseases.length);
+    }
+    get showProductTags() {
+        return this.changeAllowed ||
+               (this.targetModel.products && this.targetModel.products.length);
+    }
+    get changeAllowed() {
+        return this.isAddMode || this.targetModel.changeAllowed;
+    }
+
     async backToTable() {
         this.ngbTargetsFormService.resetTarget();
         this.ngbTargetsTabService.setTableMode();

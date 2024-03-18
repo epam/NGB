@@ -8,7 +8,8 @@
     <md-select ng-model="row.entity[col.field]"
                class="ngb-targets-form-table-select"
                aria-label="Select {{col.field}}"
-               md-container-class="select-cell-container">
+               md-container-class="select-cell-container"
+               ng-disabled="!grid.appScope.$ctrl.changeAllowed">
         <md-option><em>None</em></md-option>
         <md-option ng-repeat="option in grid.appScope.$ctrl.optionsList[col.field]"
                    ng-value="option.value">

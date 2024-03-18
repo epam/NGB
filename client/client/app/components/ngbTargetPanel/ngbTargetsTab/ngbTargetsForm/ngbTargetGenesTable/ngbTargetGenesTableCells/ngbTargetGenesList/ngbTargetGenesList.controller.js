@@ -21,6 +21,10 @@ export default class ngbTargetGenesListController{
         this.searchText = this.value;
     }
 
+    get changeAllowed() {
+        return this.ngbTargetsFormService.isAddMode || this.ngbTargetsFormService.targetModel.changeAllowed;
+    }
+
     async getList (text) {
         const result = await this.ngbTargetsFormService.searchGenes(text);
         const list = result.map(item => {
