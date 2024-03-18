@@ -9,6 +9,15 @@
         fill: #fff;
     }
 
+    .action-container {
+        display: flex;
+        align-items: center;
+    }
+
+    .apply-button {
+        fill: rgb(51,103,214);
+    }
+
     md-dialog-content {
         flex: 1;
         display: flex;
