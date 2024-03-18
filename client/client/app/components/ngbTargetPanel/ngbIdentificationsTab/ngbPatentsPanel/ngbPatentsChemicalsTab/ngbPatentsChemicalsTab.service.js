@@ -278,6 +278,14 @@ export default class ngbPatentsChemicalsTabService {
         return [...this.ngbTargetPanelService.allGenes.map(i => i.geneId)];
     }
 
+    get targetId () {
+        const {target} = this.ngbTargetPanelService.identificationTarget;
+        if (target && target.id) {
+            return target.id;
+        }
+        return undefined;
+    }
+
     async setDrugs() {
         this._loadingDrugs = true;
         this.drugs = await this.getDrugs();
@@ -293,7 +301,7 @@ export default class ngbPatentsChemicalsTabService {
             });
         }
         return new Promise(resolve => {
-            this.targetDataService.getDrugs(this.geneIds)
+            this.targetDataService.getDrugs(this.geneIds, this.targetId)
                 .then(data => {
                     this._failedDrugs = false;
                     this._errorDrugsMessage = null;

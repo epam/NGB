@@ -88,6 +88,14 @@ export default class ngbKnownDrugsPanelService {
         return this.ngbTargetPanelService.translationalGeneIds;
     }
 
+    get targetId () {
+        const {target} = this.ngbTargetPanelService.identificationTarget;
+        if (target && target.id) {
+            return target.id;
+        }
+        return undefined;
+    }
+
     exportResults() {
         const source = this.exportSource[this.sourceModel.name];
         if (!this.geneIdsOfInterest || !this.geneIdsOfInterest.length) {
@@ -96,9 +104,14 @@ export default class ngbKnownDrugsPanelService {
             });
         }
         if (this.translationalGeneIds && !this.translationalGeneIds.length) {
-            return this.targetDataService.getTargetExportGeneId(this.geneIdsOfInterest[0], source);
+            return this.targetDataService.getTargetExportGeneId(this.geneIdsOfInterest[0], source, this.targetId);
         }
-        return this.targetDataService.getTargetExport(this.geneIdsOfInterest, this.translationalGeneIds, source);
+        return this.targetDataService.getTargetExport(
+            this.geneIdsOfInterest,
+            this.translationalGeneIds,
+            source,
+            this.targetId
+        );
     }
 
     async generateTMAP() {
