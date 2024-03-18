@@ -1,0 +1,55 @@
+<md-dialog aria-label="Add {{ctrl.itemType}}"
+           class="target-add-user-dlg">
+    <md-dialog-content>
+        <md-content class="md-padding">
+            <div class="column">
+                <div layout="row">
+                    <md-input-container flex>
+                        <label>Select {{ctrl.itemType}} to add</label>
+                        <md-select ng-model="ctrl.selectedItem"
+                                   name="add_role_or_user"
+                                   md-on-close="ctrl.clearSearchTerm()"
+                                   md-container-class="target-user-role-selector">
+                            <md-select-header class="role-select-header">
+                                <input type="search"
+                                       ng-model="ctrl.searchTerm"
+                                       ng-keydown="$event.stopPropagation()"
+                                       ng-change="ctrl.search()"
+                                       placeholder="Search for a {{ctrl.itemType}}..."
+                                       class="md-text role-header-searchbox" />
+                            </md-select-header>
+                            <md-optgroup label="{{ctrl.itemType}}">
+                                <md-option ng-value="item"
+                                           ng-repeat="item in ctrl.filteredItems">
+                                    <span ng-if="!ctrl.isUser">
+                                        {{ctrl.getItemDisplayName(item)}}
+                                    </span>
+                                    <div ng-if="ctrl.isUser"
+                                         class="username-container">
+                                        <span>{{item.userName}}</span>
+                                        <span class="user-attributes"
+                                              ng-if="item.userAttributes">
+                                            {{item.userAttributes}}
+                                        </span>
+                                    </div>
+                                </md-option>
+                            </md-optgroup>
+                        </md-select>
+                    </md-input-container>
+                </div>
+            </div>
+        </md-content>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button class="md-primary"
+                   ng-disabled="!ctrl.isValid"
+                   ng-click="ctrl.save()">
+            Save
+        </md-button>
+        <span flex></span>
+        <md-button ng-click="ctrl.cancel()"
+                   class="target-add-user-cancel-button">
+            Cancel
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

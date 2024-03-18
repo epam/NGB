@@ -167,13 +167,14 @@ export default class ngbTargetsTableService {
                     limit: 2
                 },
                 owner: item.owner,
-                identifications: item.identifications
+                identifications: item.identifications,
+                mask: item.mask,
             }
         ))];
     }
 
     getTargetsResult(request) {
-        const isFiltered = JSON.stringify(this.filterInfo) !== '{}';
+        const isFiltered = this.filterInfo && JSON.stringify(this.filterInfo) !== '{}';
         return new Promise(resolve => {
             this.targetDataService.getTargetsResult(request)
                 .then(([data, totalCount]) => {

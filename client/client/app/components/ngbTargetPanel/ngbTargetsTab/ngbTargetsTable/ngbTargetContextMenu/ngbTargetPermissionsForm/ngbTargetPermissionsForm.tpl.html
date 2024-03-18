@@ -1,0 +1,144 @@
+<md-dialog aria-label="Permissions"
+           class="target-permissions-dlg">
+    <form name="permissionsForm">
+        <md-toolbar class="ngb-reduced-popup-toolbar">
+            <div class="md-toolbar-tools">
+                <h2 ng-if="$ctrl.target">{{$ctrl.target.name}}</h2>
+                <span flex></span>
+                <md-button aria-label="Close"
+                           class="md-icon-button"
+                           ng-click="$ctrl.close()">
+                    <ng-md-icon class="clear-button" icon="clear"></ng-md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content>
+            <md-content class="md-padding">
+                <div layout="column">
+                    <div layout="row" class="action-container">
+                        <md-input-container flex>
+                            <label>Owner</label>
+                            <md-select name="owner"
+                                       ng-model="$ctrl.selectedOwner"
+                                       ng-disabled="!$ctrl.ownerChangeAllowed"
+                                       md-selected-text="$ctrl.selectedOwner"
+                                       md-on-close="$ctrl.clearOwnerSearchTerm()"
+                                       md-container-class="target-owner-selector">
+                                <md-select-header class="owner-select-header">
+                                    <input type="search"
+                                           ng-model="$ctrl.ownerSearchTerm"
+                                           ng-keydown="$event.stopPropagation()"
+                                           placeholder="Select new owner..."
+                                           class="md-text owner-header-searchbox" />
+                                </md-select-header>
+                                <md-optgroup label="Select owner">
+                                    <md-option ng-value="(user.userName || '').toUpperCase()"
+                                               ng-repeat="user in $ctrl.users | filter: $ctrl.ownerSearchTerm">
+                                        <div class="username-container">
+                                            <span>{{user.userName}}</span>
+                                            <span class="user-attributes"
+                                                  ng-if="user.userAttributes">
+                                                {{user.userAttributes}}
+                                            </span>
+                                        </div>
+                                    </md-option>
+                                </md-optgroup>
+                            </md-select>
+                        </md-input-container>
+                        <md-button aria-label="apply"
+                                   class="md-icon-button apply-button"
+                                   ng-if="$ctrl.ownerChanged"
+                                   ng-click="$ctrl.changeOwner()">
+                            <ng-md-icon icon="done">
+                        </md-button>
+                        <md-button aria-label="deny"
+                                   class="md-icon-button"
+                                   ng-if="$ctrl.ownerChanged"
+                                   ng-click="$ctrl.clearSelectedOwner()">
+                            <ng-md-icon icon="clear">
+                        </md-button>
+                        <md-button aria-label="Add user"
+                                   class="md-icon-button"
+                                   ng-if="$ctrl.permissionsChangeAllowed"
+                                   ng-click="$ctrl.onAddUser()">
+                            <ng-md-icon icon="person_add"></ng-md-icon>
+                        </md-button>
+                        <md-button aria-label="Add group or role"
+                                   class="md-icon-button"
+                                   ng-if="$ctrl.permissionsChangeAllowed"
+                                   ng-click="$ctrl.onAddRole()">
+                            <ng-md-icon icon="group_add"></ng-md-icon>
+                        </md-button>
+                    </div>
+                </div>
+                <div class="ui-grid-container target-permissions-grid-container">
+                    <div ui-grid="$ctrl.formGridOptions"
+                         ui-grid-save-state
+                         ui-grid-selection
+                         ui-grid-resize-columns
+                         ui-grid-auto-resize
+                         ui-grid-move-columns
+                         ui-grid-pinning
+                         ui-grid-infinite-scroll>
+                    </div>
+                </div>
+                <div ng-if="$ctrl.subject">
+                    <table class="target-permissions-table">
+                        <tr>
+                            <th colspan="3">
+                                <span class="target-permissions-subject-title">
+                                    Permissions for {{$ctrl.getSubjectDisplayType()}} <b>{{$ctrl.getSubjectDisplayName()}}</b>
+                                </span>
+                            </th>
+                        </tr>
+                        <tr>
+                            <td>&nbsp</td>
+                            <td class="allow"><b>Allow</b></td>
+                            <td class="deny"><b>Deny</b></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <b>Read</b>
+                                <i>
+                                    {{!$ctrl.subjectPermissions.readAllowed && !$ctrl.subjectPermissions.readDenied ? '(inherit)' : ''}}
+                                </i>
+                            </td>
+                            <td class="allow">
+                                <md-checkbox aria-label="Allow read"
+                                             ng-disabled="!$ctrl.permissionsChangeAllowed"
+                                             ng-checked="$ctrl.subjectPermissions.readAllowed"
+                                             ng-click="$ctrl.changeMask(0)" />
+                            </td>
+                            <td class="deny">
+                                <md-checkbox aria-label="Deny read"
+                                             ng-disabled="!$ctrl.permissionsChangeAllowed"
+                                             ng-checked="$ctrl.subjectPermissions.readDenied"
+                                             ng-click="$ctrl.changeMask(1)" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <b>Write</b>
+                                <i>
+                                    {{!$ctrl.subjectPermissions.writeAllowed && !$ctrl.subjectPermissions.writeDenied ? '(inherit)' : ''}}
+                                </i>
+                            </td>
+                            <td class="allow">
+                                <md-checkbox aria-label="Allow write"
+                                             ng-disabled="!$ctrl.permissionsChangeAllowed"
+                                             ng-checked="$ctrl.subjectPermissions.writeAllowed"
+                                             ng-click="$ctrl.changeMask(2)" />
+                            </td>
+                            <td class="deny">
+                                <md-checkbox aria-label="Deny write"
+                                             ng-disabled="!$ctrl.permissionsChangeAllowed"
+                                             ng-checked="$ctrl.subjectPermissions.writeDenied"
+                                             ng-click="$ctrl.changeMask(3)" />
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </md-content>
+        </md-dialog-content>
+    </form>
+</md-dialog>

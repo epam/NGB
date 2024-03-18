@@ -53,12 +53,14 @@ export default class ngbTargetsTableController {
         const getDataOnPage = this.getDataOnPage.bind(this);
         const showTargetsTable = this.showTargetsTable.bind(this);
         const refreshTable = this.refreshTable.bind(this);
+        const initialize = this.initialize.bind(this);
         dispatcher.on('target:table:update', filterChanged);
         dispatcher.on('targets:filters:changed', filterChanged);
         dispatcher.on('targets:pagination:changed', getDataOnPage);
         dispatcher.on('show:targets:table', showTargetsTable);
         dispatcher.on('target:launch:failed', refreshTable);
         dispatcher.on('target:launch:failed:refresh', refreshTable);
+        dispatcher.on('target:owner:changed', initialize);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:table:update', filterChanged);
             dispatcher.removeListener('targets:filters:changed', filterChanged);
@@ -66,6 +68,7 @@ export default class ngbTargetsTableController {
             dispatcher.removeListener('show:targets:table', showTargetsTable);
             dispatcher.removeListener('target:launch:failed', refreshTable);
             dispatcher.removeListener('target:launch:failed:refresh', refreshTable);
+            dispatcher.removeListener('target:owner:changed', initialize);
         });
     }
 
@@ -140,6 +143,7 @@ export default class ngbTargetsTableController {
     async initialize() {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
+            rowTemplate: require('./ngbTargetsTable_row.tpl.html'),
             columnDefs: this.getTargetsTableGridColumns(),
             paginationPageSize: this.pageSize,
             onRegisterApi: (gridApi) => {

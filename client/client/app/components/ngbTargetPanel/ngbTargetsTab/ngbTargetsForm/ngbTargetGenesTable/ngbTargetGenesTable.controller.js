@@ -177,6 +177,10 @@ export default class ngbTargetGenesTableController {
         return this.ngbTargetsFormService.ttdTargets;
     }
 
+    get changeAllowed() {
+        return this.ngbTargetsFormService.isAddMode || this.targetModel.changeAllowed;
+    }
+
     $onInit() {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
