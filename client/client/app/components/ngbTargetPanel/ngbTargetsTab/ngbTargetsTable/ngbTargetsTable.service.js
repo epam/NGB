@@ -174,7 +174,7 @@ export default class ngbTargetsTableService {
     }
 
     getTargetsResult(request) {
-        const isFiltered = JSON.stringify(this.filterInfo) !== '{}';
+        const isFiltered = this.filterInfo && JSON.stringify(this.filterInfo) !== '{}';
         return new Promise(resolve => {
             this.targetDataService.getTargetsResult(request)
                 .then(([data, totalCount]) => {

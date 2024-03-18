@@ -27,6 +27,11 @@
             height: 36px;
         }
     }
+
+    &.hidden {
+        border: none;
+        min-width: 0;
+    }
 }
 
 .ngb-context-menu-opened {
