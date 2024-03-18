@@ -288,6 +288,10 @@ export default class ngbStructurePanelService {
                 page: this.currentPage,
                 pageSize: this.pageSize,
             };
+            const { target } = this.ngbTargetPanelService.identificationTarget;
+            if (target && target.id) {
+                request.targetId = target.id;
+            }
             if (this.sortInfo && this.sortInfo.length) {
                 request.orderBy = this.fields[this.sortInfo[0].field],
                 request.reverse = !this.sortInfo[0].ascending
