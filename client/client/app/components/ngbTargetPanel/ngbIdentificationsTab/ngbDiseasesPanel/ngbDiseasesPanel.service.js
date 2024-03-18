@@ -102,8 +102,8 @@ class NgbDiseasesPanelService {
                 resolve(true);
             });
         }
-        if (this.translationalGeneIds && !this.translationalGeneIds.length) {
-            return this.targetDataService.getTargetExportGeneId(this.geneIdsOfInterest[0], source, this.targetId);
+        if (!this.targetId) {
+            return this.targetDataService.getTargetExportGeneId(this.geneIdsOfInterest[0], source);
         }
         return this.targetDataService.getTargetExport(
             this.geneIdsOfInterest,
