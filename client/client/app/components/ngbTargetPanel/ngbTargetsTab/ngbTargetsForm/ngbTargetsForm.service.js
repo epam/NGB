@@ -300,6 +300,7 @@ export default class ngbTargetsFormService {
                         taxId: gene.taxId,
                         speciesName: gene.speciesName,
                         priority: gene.priority,
+                        targetGeneId: gene.targetGeneId,
                     };
                     if (gene.additionalGenes) {
                         geneObject.additionalGenes = {
@@ -682,9 +683,13 @@ export default class ngbTargetsFormService {
                     ))
                 } else if (key === this.ttdTargets.name) {
                     const ttdTargets = value.value.filter(v => v.geneId);
-                    if (!originalGene.ttdTargets) return ttdTargets.length;
+                    if (!originalGene.ttdTargets) {
+                        return ttdTargets.length;
+                    }
                     const originalTtdTargets = originalGene.ttdTargets.value;
-                    if (originalTtdTargets.length !== ttdTargets.length) return true;
+                    if (originalTtdTargets.length !== ttdTargets.length) {
+                        return true;
+                    }
                     return ttdTargets.some((t, i) => (
                         t.geneId !== originalTtdTargets[i].geneId
                     ))
