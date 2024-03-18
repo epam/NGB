@@ -184,6 +184,10 @@ export default class ngbDrugsTableService {
         return this.ngbKnownDrugsPanelService.sourceOptions;
     }
 
+    get targetId () {
+        return this.ngbKnownDrugsPanelService.targetId;
+    }
+
     getColumnName(field) {
         if (Object.prototype.hasOwnProperty.call(this.displayName, field)) {
             return this.displayName[field];
@@ -322,6 +326,9 @@ export default class ngbDrugsTableService {
                 }
             }
         }
+        if (this.targetId) {
+            request.targetId = this.targetId;
+        }
         if (this.sortInfo && this.sortInfo.length) {
             request.orderInfos = this.sortInfo.map(i => ({
                 orderBy: this.fields[this.sourceModel.name][i.field],
@@ -421,7 +428,7 @@ export default class ngbDrugsTableService {
         }
         const source = this.sourceModel.name;
         return new Promise(resolve => {
-            this.targetDataService.getDrugsFieldValues(source, geneIds)
+            this.targetDataService.getDrugsFieldValues(source, geneIds, this.targetId)
                 .then((data) => {
                     resolve(data);
                 })

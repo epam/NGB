@@ -193,7 +193,8 @@ export default class NgbTargetPanelService {
         if (!this.geneIdsOfInterest.length || !this.translationalGeneIds.length) {
             return new Promise(resolve => resolve(true));
         }
-        return this.targetDataService.getTargetExcelReport(this.geneIdsOfInterest, this.translationalGeneIds);
+        const {target} = this.identificationTarget || {};
+        return this.targetDataService.getTargetExcelReport(this.geneIdsOfInterest, this.translationalGeneIds, target.id);
     }
 
     exportHtml() {
@@ -208,7 +209,8 @@ export default class NgbTargetPanelService {
         if (!this.geneIdsOfInterest.length) {
             return new Promise(resolve => resolve(true));
         }
-        return this.targetDataService.getTargetExcelReportGeneId(this.geneIdsOfInterest[0]);
+        const {target} = this.identificationTarget || {};
+        return this.targetDataService.getTargetExcelReportGeneId(this.geneIdsOfInterest[0], target.id);
     }
 
     exportHtmlGeneId() {
