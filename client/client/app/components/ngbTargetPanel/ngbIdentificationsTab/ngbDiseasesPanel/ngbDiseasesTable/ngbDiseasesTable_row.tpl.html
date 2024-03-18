@@ -1,5 +1,6 @@
 <div class="ui-grid-cell"
-     ng-if="grid.appScope.$ctrl.sourceModel !== grid.appScope.$ctrl.sourceOptions.OPEN_TARGETS"
+     ng-if="(grid.appScope.$ctrl.sourceModel === grid.appScope.$ctrl.sourceOptions.PHARM_GKB) ||
+            (grid.appScope.$ctrl.sourceModel === grid.appScope.$ctrl.sourceOptions.TTD)"
      ng-class="{'ui-grid-row-selected': row.isSelected,
                 'ui-grid-tree-header-row': row.treeLevel > -1,
                 'ui-grid-row-header-cell': col.isRowHeader }"
