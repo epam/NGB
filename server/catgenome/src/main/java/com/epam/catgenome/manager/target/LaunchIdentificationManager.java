@@ -473,13 +473,16 @@ public class LaunchIdentificationManager {
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);
+        final List<TTDDrugAssociation> ttdDrugs = getTTDDrugs(targetId, geneIds);
 
         final List<String> pharmGKBDrugNames = pharmGKBDrugs.stream().map(UrlEntity::getName)
                 .collect(Collectors.toList());
         final List<String> dgidbDrugsNames = dgidbDrugs.stream().map(UrlEntity::getName).collect(Collectors.toList());
         final List<String> drugNames = drugAssociations.stream().map(UrlEntity::getName).collect(Collectors.toList());
+        final List<String> tddDrugNames = ttdDrugs.stream().map(UrlEntity::getName).collect(Collectors.toList());
         drugNames.addAll(pharmGKBDrugNames);
         drugNames.addAll(dgidbDrugsNames);
+        drugNames.addAll(tddDrugNames);
         return drugNames.stream().map(String::toLowerCase).distinct().sorted().collect(Collectors.toList());
     }
 
