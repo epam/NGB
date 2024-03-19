@@ -32,6 +32,8 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociatio
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDiseaseAssociation;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.pdb.PdbFile;
 import com.epam.catgenome.entity.target.GeneRefSection;
 import com.epam.catgenome.entity.target.GeneSequence;
@@ -115,12 +117,15 @@ public class TargetExportHTMLManager {
                 .map(g -> g.getEntrezId().toString())
                 .collect(Collectors.toList());
 
-        final List<SourceData<KnownDrugData>> knownDrugs = getKnownDrugs(geneIds, geneNamesMap);
+        final List<SourceData<KnownDrugData>> knownDrugs = getKnownDrugs(targetId, geneIds, geneNamesMap);
         final List<PharmGKBDisease> pharmGKBDiseases = targetExportManager.getPharmGKBDiseases(geneIds,
                 geneNamesMap);
         final List<DiseaseAssociation> diseaseAssociations = targetExportManager.getDiseaseAssociations(geneIds,
                 geneNamesMap);
-        final List<SourceData<DiseaseData>> diseases = getDiseases(pharmGKBDiseases, diseaseAssociations);
+        final List<TTDDiseaseAssociation> ttdDiseaseAssociations = targetExportManager.getTTDDiseases(targetId,
+                geneIds, geneNamesMap);
+        final List<SourceData<DiseaseData>> diseases = getDiseases(pharmGKBDiseases,
+                diseaseAssociations, ttdDiseaseAssociations);
         final List<Sequence> sequences = getSequences(targetId,
                 getGeneIds(genesOfInterest, translationalGenes), geneNamesMap);
         final List<SourceData<StructureData>> structures = getStructures(targetId, geneIds);
@@ -147,7 +152,7 @@ public class TargetExportHTMLManager {
         final TotalCounts totalCounts = TotalCounts.builder()
                 .knownDrugs(knownDrugsCount)
                 .sequences(sequencesCount)
-                .diseases((long) (pharmGKBDiseases.size() + diseaseAssociations.size()))
+                .diseases((long) (pharmGKBDiseases.size() + diseaseAssociations.size() + ttdDiseaseAssociations.size()))
                 .genomics(homologsCount)
                 .structures(structuresCount)
                 .publications(publicationsCount)
@@ -363,7 +368,8 @@ public class TargetExportHTMLManager {
         return result;
     }
 
-    private List<SourceData<KnownDrugData>> getKnownDrugs(final List<String> geneIds,
+    private List<SourceData<KnownDrugData>> getKnownDrugs(final Long targetId,
+                                                          final List<String> geneIds,
                                                           final Map<String, String> geneNames)
             throws ParseException, IOException {
 
@@ -391,6 +397,14 @@ public class TargetExportHTMLManager {
             dgidbDrugs.setData(dgidbDrugsDataList);
             dgidbDrugs.setSource("DGIDB");
             knownDrugsList.add(dgidbDrugs);
+        }
+
+        final List<KnownDrugData> ttdDrugsDataList = getTTDDrugsData(targetId, geneIds, geneNames);
+        if (CollectionUtils.isNotEmpty(ttdDrugsDataList)) {
+            final SourceData<KnownDrugData> ttdDrugs = new SourceData<>();
+            ttdDrugs.setData(dgidbDrugsDataList);
+            ttdDrugs.setSource("TTD");
+            knownDrugsList.add(ttdDrugs);
         }
 
         return knownDrugsList;
@@ -471,8 +485,38 @@ public class TargetExportHTMLManager {
         return knownDrugDataList;
     }
 
+    private List<KnownDrugData> getTTDDrugsData(final Long targetId,
+                                                final List<String> geneIds,
+                                                final Map<String, String> geneNames)
+            throws ParseException, IOException {
+        final List<TTDDrugAssociation> ttdDrugs = targetExportManager.getTTDDrugs(targetId, geneIds, geneNames);
+        final List<KnownDrugData> knownDrugDataList = new ArrayList<>();
+        for (TTDDrugAssociation drugAssociation : ttdDrugs) {
+            LinkEntity drug = LinkEntity.builder()
+                    .value(drugAssociation.getName())
+                    .link(drugAssociation.getUrl())
+                    .build();
+            KnownDrugData knownDrugData = KnownDrugData.builder()
+                    .target(drugAssociation.getTarget())
+                    .ttdTarget(drugAssociation.getTtdTarget())
+                    .drug(drug)
+                    .company(drugAssociation.getCompany())
+                    .type(drugAssociation.getType())
+                    .therapeuticClass(drugAssociation.getTherapeuticClass())
+                    .inChI(drugAssociation.getInChI())
+                    .inChIKey(drugAssociation.getInChIKey())
+                    .canonicalSmiles(drugAssociation.getCanonicalSmiles())
+                    .status(drugAssociation.getStatus())
+                    .compoundClass(drugAssociation.getCompoundClass())
+                    .build();
+            knownDrugDataList.add(knownDrugData);
+        }
+        return knownDrugDataList;
+    }
+
     private List<SourceData<DiseaseData>> getDiseases(final List<PharmGKBDisease> pharmGKBDiseases,
-                                                      final List<DiseaseAssociation> diseaseAssociations) {
+                                                      final List<DiseaseAssociation> diseaseAssociations,
+                                                      final List<TTDDiseaseAssociation> ttdDiseaseAssociations) {
         final List<SourceData<DiseaseData>> result = new ArrayList<>();
 
         final List<DiseaseData> pharmGKBDiseasesList = getPharmGKBDiseasesData(pharmGKBDiseases);
@@ -488,6 +532,14 @@ public class TargetExportHTMLManager {
             final SourceData<DiseaseData> diseasesData = new SourceData<>();
             diseasesData.setSource("OPEN_TARGETS");
             diseasesData.setData(diseasesList);
+            result.add(diseasesData);
+        }
+
+        final List<DiseaseData> ttdDiseasesList = getTTDDiseasesData(ttdDiseaseAssociations);
+        if (CollectionUtils.isNotEmpty(ttdDiseasesList)) {
+            final SourceData<DiseaseData> diseasesData = new SourceData<>();
+            diseasesData.setSource("TTD");
+            diseasesData.setData(ttdDiseasesList);
             result.add(diseasesData);
         }
 
@@ -530,6 +582,24 @@ public class TargetExportHTMLManager {
                     .textMining(diseaseAssociation.getLiteratureScore())
                     .animalModels(diseaseAssociation.getAnimalModelScore())
                     .rnaExpression(diseaseAssociation.getRnaExpressionScore())
+                    .build();
+            result.add(diseaseData);
+        }
+        return result;
+    }
+
+    private List<DiseaseData> getTTDDiseasesData(
+            final List<TTDDiseaseAssociation> diseaseAssociations) {
+        final List<DiseaseData> result = new ArrayList<>();
+        for (TTDDiseaseAssociation diseaseAssociation : diseaseAssociations) {
+            LinkEntity disease = LinkEntity.builder()
+                    .value(diseaseAssociation.getName())
+                    .build();
+            DiseaseData diseaseData = DiseaseData.builder()
+                    .target(diseaseAssociation.getTarget())
+                    .disease(disease)
+                    .ttdTarget(diseaseAssociation.getTtdTarget())
+                    .clinicalStatus(diseaseAssociation.getClinicalStatus())
                     .build();
             result.add(diseaseData);
         }
