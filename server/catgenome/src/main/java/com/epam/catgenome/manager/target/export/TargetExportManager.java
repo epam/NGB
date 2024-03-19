@@ -68,10 +68,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.epam.catgenome.manager.target.LaunchIdentificationManager.getSequencesSummary;
 import static java.util.stream.Collectors.groupingBy;
 
 
@@ -291,6 +291,20 @@ public class TargetExportManager {
             throws ParseException, IOException, ExternalDbUnavailableException {
         final List<GeneRefSection> sequencesTable = identificationManager.getGeneSequencesTable(targetId, geneIds,
                 false, true, true);
+        return toGeneSequences(genesMap, sequencesTable);
+    }
+
+    public Map<String, SequencesSummary> getGeneSequencesCount(final Long targetId,
+                                                               final List<String> geneIds,
+                                                               final List<GeneId> ncbiGeneIds)
+            throws IOException, ExternalDbUnavailableException, ParseException {
+        final List<GeneRefSection> geneRefSections = identificationManager.getGeneSequencesTable(targetId, geneIds,
+                ncbiGeneIds, false, true, true);
+        return toCountMap(geneRefSections);
+    }
+
+    private static List<GeneSequence> toGeneSequences(final Map<String, String> genesMap,
+                                                      final List<GeneRefSection> sequencesTable) {
         final List<GeneSequence> result = new ArrayList<>();
         for (GeneRefSection geneRefSection : sequencesTable) {
             for (com.epam.catgenome.entity.target.GeneSequence sequence :
@@ -318,49 +332,14 @@ public class TargetExportManager {
         return result;
     }
 
-    public Map<String, SequencesSummary> getGeneSequencesCount(final Long targetId,
-                                                               final List<String> geneIds,
-                                                               final List<GeneId> ncbiGeneIds)
-            throws IOException, ExternalDbUnavailableException, ParseException {
-        final List<GeneRefSection> geneRefSections = identificationManager.getGeneSequencesTable(targetId, geneIds,
-                ncbiGeneIds, false, true, true);
-        return toCountMap(geneRefSections);
-    }
-
-    private static Map<String, SequencesSummary> toCountMap(final List<GeneRefSection> geneRefSections) {
+    private Map<String, SequencesSummary> toCountMap(final List<GeneRefSection> geneRefSections) {
         final Map<String, SequencesSummary> summaries = new HashMap<>();
         final Map<String, List<GeneRefSection>> refSectionsMap = geneRefSections.stream()
                 .collect(groupingBy(GeneRefSection::getGeneId));
-        for (Map.Entry<String, List<GeneRefSection>> entry : refSectionsMap.entrySet()) {
-            String k = entry.getKey();
-            List<GeneRefSection> v = entry.getValue();
-            List<com.epam.catgenome.entity.target.GeneSequence> sequences = v.stream()
-                    .map(geneRefSection -> geneRefSection.getSequences() == null ? null : geneRefSection.getSequences())
-                    .filter(Objects::nonNull)
-                    .flatMap(List::stream)
-                    .collect(Collectors.toList());
-            List<String> genomic = sequences.stream()
-                    .map(s -> s.getMRNA() == null ? null : s.getMRNA().getGenomic())
-                    .collect(Collectors.toList());
-            List<String> references = v.stream()
-                    .map(s -> s.getReference() == null ? null : s.getReference().getId())
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            genomic.addAll(references);
-            long dNAs = genomic.stream().filter(Objects::nonNull).distinct().count();
-            long mRNAs = sequences.stream()
-                    .map(s -> s.getMRNA()).filter(Objects::nonNull)
-                    .count();
-            long proteins = sequences.stream()
-                    .map(s -> s.getProtein()).filter(Objects::nonNull)
-                    .count();
-            SequencesSummary summary = SequencesSummary.builder()
-                    .dNAs(dNAs)
-                    .mRNAs(mRNAs)
-                    .proteins(proteins)
-                    .build();
-            summaries.put(k, summary);
-        }
+        refSectionsMap.forEach((key, value) -> {
+            SequencesSummary summary = getSequencesSummary(value);
+            summaries.put(key, summary);
+        });
         return summaries;
     }
 }

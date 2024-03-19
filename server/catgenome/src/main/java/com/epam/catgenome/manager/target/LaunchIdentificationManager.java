@@ -314,10 +314,11 @@ public class LaunchIdentificationManager {
                     Collections.singletonList(geneId), includeAdditionalGenes);
 
             if (includeLocal) {
-                result = sequencesManager.getGeneSequencesTable(geneId, targetGenes);
+                result.addAll(sequencesManager.getGeneSequencesTable(geneId, targetGenes));
             }
 
-            final List<String> expandedGeneIds = getExpandedGeneIds(geneIds, targetGenes.keySet());
+            final List<String> expandedGeneIds = getExpandedGeneIds(Collections.singletonList(geneId),
+                    targetGenes.keySet());
 
             final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(expandedGeneIds);
             if (CollectionUtils.isNotEmpty(ncbiGeneIds)) {
@@ -343,11 +344,12 @@ public class LaunchIdentificationManager {
                     Collections.singletonList(geneId), includeAdditionalGenes);
 
             if (includeLocal) {
-                result = sequencesManager.getGeneSequencesTable(geneId, targetGenes);
+                result.addAll(sequencesManager.getGeneSequencesTable(geneId, targetGenes));
             }
 
             if (CollectionUtils.isNotEmpty(ncbiGeneIds)) {
-                final Map<String, GeneId> entrezMap = ncbiGeneIds.stream().filter(n -> n.getEnsemblId().equals(geneId))
+                final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
+                        .filter(n -> n.getEnsemblId().equalsIgnoreCase(geneId))
                         .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
                 result.addAll(geneSequencesManager.getGeneSequencesTable(geneId, entrezMap, getComments));
             }
@@ -356,10 +358,15 @@ public class LaunchIdentificationManager {
     }
 
     public SequencesSummary getGeneSequencesCount(final Long targetId,
-                                                  final List<String> geneIds, final List<GeneId> ncbiGeneIds)
+                                                  final List<String> geneIds,
+                                                  final List<GeneId> ncbiGeneIds)
             throws IOException, ExternalDbUnavailableException, ParseException {
-        final List<GeneRefSection> geneRefSections = getGeneSequencesTable(targetId, geneIds, ncbiGeneIds, false,
-                true, includeAdditionalGenesSequences);
+        final List<GeneRefSection> geneRefSections = getGeneSequencesTable(targetId, geneIds,
+                ncbiGeneIds, false, true, includeAdditionalGenesSequences);
+        return getSequencesSummary(geneRefSections);
+    }
+
+    public static SequencesSummary getSequencesSummary(final List<GeneRefSection> geneRefSections) {
         final SequencesSummary result = SequencesSummary.builder().build();
         result.setDNAs(geneRefSections.stream()
                 .map(GeneRefSection::getReference)
