@@ -237,6 +237,19 @@ export default class ngbTargetsFormService {
         return nameChanged || typeChanged || changed('diseases') || changed('products');
     }
 
+    isIdentifyDisabled() {
+        if (this.loading || this.isAddMode) return true;
+        const {name, genes} = this.targetModel;
+        if (!name || !name.length || !genes || !genes.length) return true;
+        if (this.isSomeGeneEmpty()) return true;
+        if (this.isSomeAdditionalGeneEmpty()) return true;
+        return (this.targetInfoChanged()
+            || this.targetGenesChanged()
+            || this.parasiteGenesAdded()
+            || this.geneFile
+        );
+    }
+
     isSomeGeneEmpty() {
         let {genes} = this.targetModel;
         if (this.isParasite) {
@@ -300,6 +313,7 @@ export default class ngbTargetsFormService {
                         taxId: gene.taxId,
                         speciesName: gene.speciesName,
                         priority: gene.priority,
+                        targetGeneId: gene.targetGeneId,
                     };
                     if (gene.additionalGenes) {
                         geneObject.additionalGenes = {
@@ -682,9 +696,13 @@ export default class ngbTargetsFormService {
                     ))
                 } else if (key === this.ttdTargets.name) {
                     const ttdTargets = value.value.filter(v => v.geneId);
-                    if (!originalGene.ttdTargets) return ttdTargets.length;
+                    if (!originalGene.ttdTargets) {
+                        return ttdTargets.length;
+                    }
                     const originalTtdTargets = originalGene.ttdTargets.value;
-                    if (originalTtdTargets.length !== ttdTargets.length) return true;
+                    if (originalTtdTargets.length !== ttdTargets.length) {
+                        return true;
+                    }
                     return ttdTargets.some((t, i) => (
                         t.geneId !== originalTtdTargets[i].geneId
                     ))
@@ -898,6 +916,7 @@ export default class ngbTargetsFormService {
 
     resetTarget() {
         this.setEmptyTargetModel();
+        this.targetContext.targetModelType = null;
         this.loading = false;
         this.failed = false;
         this.errorMessageList = null;

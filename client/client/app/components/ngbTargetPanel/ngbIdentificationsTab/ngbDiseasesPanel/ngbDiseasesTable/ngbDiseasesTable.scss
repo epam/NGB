@@ -94,11 +94,11 @@ ngb-diseases-table {
         text-overflow: ellipsis;
         text-decoration: none;
         overflow: hidden;
-        cursor: pointer;
 
         a {
             color: rgb(102, 153, 255);
             text-decoration: none;
+            cursor: pointer;
         }
     }
 

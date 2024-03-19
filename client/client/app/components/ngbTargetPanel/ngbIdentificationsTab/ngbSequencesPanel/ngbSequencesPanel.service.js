@@ -1,6 +1,7 @@
 const PAGE_SIZE = 10;
 
 const EXPORT_SOURCE = 'SEQUENCES';
+const PARASITE = 'PARASITE';
 
 export default class ngbSequencesPanelService {
 
@@ -10,6 +11,9 @@ export default class ngbSequencesPanelService {
 
     get exportSource() {
         return EXPORT_SOURCE;
+    }
+    get parasiteType() {
+        return PARASITE;
     }
 
     _loadingData = false;
@@ -88,6 +92,7 @@ export default class ngbSequencesPanelService {
     constructor($timeout, dispatcher, ngbTargetPanelService, targetDataService) {
         Object.assign(this, {$timeout, dispatcher, ngbTargetPanelService, targetDataService});
         this.updateGenes();
+        this.updateSettings();
         dispatcher.on('target:identification:changed', this.targetChanged.bind(this));
     }
 
@@ -111,15 +116,26 @@ export default class ngbSequencesPanelService {
         return undefined;
     }
 
+    get isParasite() {
+        const {target} = (this.ngbTargetPanelService.identificationTarget || {});
+        return target && target.type === this.parasiteType;
+    }
+
     async targetChanged() {
         this.resetSequencesData();
         this.updateGenes();
+        this.updateSettings();
     }
 
     updateGenes() {
         this._genes = this.ngbTargetPanelService.allGenes.slice();
         const gene = this._genes[0];
         this.selectedGeneId = gene ? gene.geneId : undefined;
+    }
+
+    updateSettings() {
+        this._includeLocal = this.isParasite;
+        this._includeAdditionalGenes = this.isParasite;
     }
 
     getTarget(id) {
@@ -271,8 +287,8 @@ export default class ngbSequencesPanelService {
                 resolve(true);
             });
         }
-        if (this.translationalGeneIds && !this.translationalGeneIds.length) {
-            return this.targetDataService.getTargetExportGeneId(this.geneIdsOfInterest[0], source, this.targetId);
+        if (!this.targetId) {
+            return this.targetDataService.getTargetExportGeneId(this.geneIdsOfInterest[0], source);
         }
         return this.targetDataService.getTargetExport(
             this.geneIdsOfInterest,

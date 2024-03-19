@@ -88,16 +88,7 @@ export default class ngbTargetsFormController {
 
 
     isIdentifyDisabled() {
-        if (this.loading || this.isAddMode) return true;
-        const {name, genes} = this.targetModel;
-        if (!name || !name.length || !genes || !genes.length) return true;
-        if (this.ngbTargetsFormService.isSomeGeneEmpty()) return true;
-        if (this.ngbTargetsFormService.isSomeAdditionalGeneEmpty()) return true;
-        return (this.ngbTargetsFormService.targetInfoChanged()
-            || this.ngbTargetsFormService.targetGenesChanged()
-            || this.ngbTargetsFormService.parasiteGenesAdded()
-            || this.geneFile
-        );
+        return this.ngbTargetsFormService.isIdentifyDisabled();
     }
 
     identifyTarget() {

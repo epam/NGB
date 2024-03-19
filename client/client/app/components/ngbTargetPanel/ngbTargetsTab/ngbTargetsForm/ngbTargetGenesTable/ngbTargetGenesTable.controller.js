@@ -181,6 +181,10 @@ export default class ngbTargetGenesTableController {
         return this.ngbTargetsFormService.isAddMode || this.targetModel.changeAllowed;
     }
 
+    get isLaunchDisabled() {
+        return this.ngbTargetsFormService.isIdentifyDisabled();
+    }
+
     $onInit() {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
@@ -202,6 +206,11 @@ export default class ngbTargetGenesTableController {
         return columnField[removeColumn];
     }
 
+    get launchColumnName() {
+        const {columnField, launchColumn} = this.ngbTargetGenesTableService;
+        return columnField[launchColumn];
+    }
+
     onColumnMoved(movedColumn) {
         if (!this.gridApi) {
             return;
@@ -210,6 +219,9 @@ export default class ngbTargetGenesTableController {
         let orderedColumns = columns.map(c => c.name);
         if (movedColumn.name !== this.removeColumnName) {
             orderedColumns = orderedColumns.filter(c => c !== this.removeColumnName);
+        }
+        if (movedColumn.name !== this.launchColumnName) {
+            orderedColumns = orderedColumns.filter(c => c !== this.launchColumnName);
         }
         localStorage.setItem('targetGenesColumnsOrder', JSON.stringify(orderedColumns));
     }
@@ -240,7 +252,7 @@ export default class ngbTargetGenesTableController {
 
     refreshColumns() {
         this.gridOptions.columnDefs = this.getTableColumns();
-        this.$timeout(() => this.$scope.$apply());
+        this.$timeout(() => this.sortColumns());
     }
 
     sortColumns() {
@@ -252,11 +264,26 @@ export default class ngbTargetGenesTableController {
                     if (c2.name === this.removeColumnName) return 1;
                     if (c1.name === this.removeColumnName) return -1;
                 }
+                if (!ordered.includes(this.launchColumnName)) {
+                    if (c2.name === this.launchColumnName) return 1;
+                    if (c1.name === this.launchColumnName) return -1;
+                }
                 if (ordered.includes(c2.name) && ordered.includes(c1.name)) {
                     return ordered.indexOf(c2.name) < ordered.indexOf(c1.name) ? -1 : 1;
                 } else if (ordered.includes(c2.name) || ordered.includes(c1.name)) {
                     if (ordered.includes(c2.name)) return -1;
                     if (ordered.includes(c1.name)) return 1;
+                }
+                return 0;
+            })
+        } else {
+            const defaultOrder = this.gridOptions.columnDefs.map(c => c.name);
+            this.gridApi.grid.columns.sort((c2, c1) => {
+                if (defaultOrder.includes(c2.name) && defaultOrder.includes(c1.name)) {
+                    return defaultOrder.indexOf(c2.name) < defaultOrder.indexOf(c1.name) ? -1 : 1;
+                } else if (defaultOrder.includes(c2.name) || defaultOrder.includes(c1.name)) {
+                    if (defaultOrder.includes(c2.name)) return -1;
+                    if (defaultOrder.includes(c1.name)) return 1;
                 }
                 return 0;
             })
@@ -271,6 +298,7 @@ export default class ngbTargetGenesTableController {
         const removeCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_removeCell.tpl.html');
         const additionalCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_additionalCell.tpl.html');
         const tableCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_tableCell.tpl.html')
+        const launchCell = require('./ngbTargetGenesTableCells/ngbTargetGenesTable_launchCell.tpl.html');
 
         const result = [];
         const columnsList = this.ngbTargetGenesTableService.currentColumnFields;
@@ -361,6 +389,18 @@ export default class ngbTargetGenesTableController {
                         minWidth: 38,
                         maxWidth: 38,
                         cellTemplate: removeCell,
+                        enableColumnMenu: false,
+                        enableSorting: false,
+                        enableFiltering: false,
+                        enableMove: false,
+                    };
+                    break;
+                case 'launch':
+                    columnSettings = {
+                        ...defaultSettings,
+                        minWidth: 38,
+                        maxWidth: 38,
+                        cellTemplate: launchCell,
                         enableColumnMenu: false,
                         enableSorting: false,
                         enableFiltering: false,
@@ -811,5 +851,33 @@ export default class ngbTargetGenesTableController {
             }
             row[field].value.push(newItemValue);
         }
+    }
+
+    onClickLaunch(event, row) {
+        event.stopPropagation();
+        const {id, name, genes, type, genesTotal} = this.targetModel;
+        if (!id || !name || !genes || !genes.length) return;
+        const target = {
+            id,
+            name,
+            type,
+            genesTotal,
+            species: {
+                value: this.targetModel.genes.map(g => ({
+                    geneId: g.geneId,
+                    geneName: g.geneName,
+                    speciesName: g.speciesName,
+                    taxId: g.taxId,
+                    targetGeneId: g.targetGeneId
+                }))
+            }
+        };
+        const selectedGene = {
+            geneId: row.geneId,
+        };
+        if (this.isParasite) {
+            selectedGene.targetGeneId = row.targetGeneId;
+        }
+        this.dispatcher.emit('target:launch:identification', target, selectedGene);
     }
 }

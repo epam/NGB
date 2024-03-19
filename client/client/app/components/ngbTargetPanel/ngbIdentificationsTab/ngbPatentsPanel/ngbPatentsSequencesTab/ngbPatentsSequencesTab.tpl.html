@@ -16,7 +16,8 @@
                        md-container-class="sequences-protein-select-container">
                 <md-option ng-repeat="protein in $ctrl.proteins"
                            ng-value="protein">
-                    {{protein.id}} ({{protein.name}})
+                    <span ng-if="protein.id">{{protein.id}} ({{protein.name}})</span>
+                    <span ng-if="!protein.id">{{protein.name}}</span>
                 </md-option>
             </md-select>
         </md-input-container>

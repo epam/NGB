@@ -434,7 +434,7 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTargetExportGeneId(geneId, source, targetId) {
+    getTargetExportGeneId(geneId, source) {
         const format = 'CSV';
         const includeHeader = true;
         return new Promise((resolve, reject) => {
@@ -443,8 +443,7 @@ export class TargetDataService extends DataService {
                 `target/export/${geneId}${getQueryString({
                     format,
                     source,
-                    includeHeader,
-                    targetId
+                    includeHeader
                 })}`,
                 undefined,
                 {customResponseType: 'arraybuffer'}
