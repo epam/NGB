@@ -4,6 +4,7 @@ import type {
   DiseasesItem,
   DiseasesOpenTargetsItem,
   DiseasesPharmGKBItem,
+  DiseasesTTDItem,
 } from '../../model/types';
 import {
   DiseasesSource,
@@ -27,6 +28,13 @@ const pharmGKBColumns: TableColumn<DiseasesPharmGKBItem>[] = [
   'disease',
 ];
 
+const ttdColumns: TableColumn<DiseasesTTDItem>[] = [
+  'target',
+  {key: 'ttdTarget', title: 'TTD target'},
+  'disease',
+  {key: 'clinicalStatus', title: 'clinical status'},
+];
+
 export function useColumnsForSource(source: DiseasesSource): TableColumn<DiseasesItem>[] {
   return useMemo(() => {
     if (source === DiseasesSource.openTargets) {
@@ -34,6 +42,9 @@ export function useColumnsForSource(source: DiseasesSource): TableColumn<Disease
     }
     if (source === DiseasesSource.pharmGKB) {
       return pharmGKBColumns as TableColumn<DiseasesItem>[];
+    }
+    if (source === DiseasesSource.ttd) {
+      return ttdColumns as TableColumn<DiseasesItem>[];
     }
     return [];
   }, [source]);

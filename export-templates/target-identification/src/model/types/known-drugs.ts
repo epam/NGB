@@ -3,13 +3,15 @@ import type {ItemValue} from "./base";
 export enum KnownDrugsSource {
   openTargets = 'OPEN_TARGETS',
   dgIdb = 'DGIDB',
-  pharmGKB = 'PHARMGKB'
+  pharmGKB = 'PHARMGKB',
+  ttd = 'TTD',
 }
 
 export const KnownDrugsSourceNames: Record<KnownDrugsSource, string> = {
   [KnownDrugsSource.openTargets]: 'Open Targets',
   [KnownDrugsSource.dgIdb]: 'DGIdb',
   [KnownDrugsSource.pharmGKB]: 'PharmGKB',
+  [KnownDrugsSource.ttd]: 'TTD',
 };
 
 export type KnownDrugsOpenTargetsItem = {
@@ -37,6 +39,20 @@ export type KnownDrugsPharmGKBItem = {
   source?: ItemValue;
 }
 
+export type KnownDrugsTTDItem = {
+  target: ItemValue;
+  ttdTarget: ItemValue;
+  drug: ItemValue;
+  company?: ItemValue;
+  type?: ItemValue;
+  therapeuticClass?: ItemValue;
+  inChI?: ItemValue;
+  inChIKey?: ItemValue;
+  canonicalSmiles?: ItemValue;
+  status?: ItemValue;
+  compoundClass?: ItemValue;
+}
+
 export type KnownDrugsOpenTargetsData = {
   source: KnownDrugsSource.openTargets;
   data: KnownDrugsOpenTargetsItem[];
@@ -52,6 +68,11 @@ export type KnownDrugsPharmGKBData = {
   data: KnownDrugsPharmGKBItem[];
 }
 
-export type KnownDrugsItem = KnownDrugsOpenTargetsItem | KnownDrugsDGIdbItem | KnownDrugsPharmGKBItem;
+export type KnownDrugsTTDData = {
+  source: KnownDrugsSource.ttd;
+  data: KnownDrugsTTDItem[];
+}
 
-export type KnownDrugsData = KnownDrugsOpenTargetsData | KnownDrugsDGIdbData | KnownDrugsPharmGKBData;
+export type KnownDrugsItem = KnownDrugsOpenTargetsItem | KnownDrugsDGIdbItem | KnownDrugsPharmGKBItem | KnownDrugsTTDItem;
+
+export type KnownDrugsData = KnownDrugsOpenTargetsData | KnownDrugsDGIdbData | KnownDrugsPharmGKBData | KnownDrugsTTDData;

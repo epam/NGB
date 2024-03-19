@@ -5,6 +5,7 @@ import type {
   KnownDrugsItem,
   KnownDrugsOpenTargetsItem,
   KnownDrugsPharmGKBItem,
+  KnownDrugsTTDItem,
 } from '../../model/types';
 import {
   KnownDrugsSource,
@@ -35,6 +36,20 @@ const pharmGKBColumns: TableColumn<KnownDrugsPharmGKBItem>[] = [
   'source',
 ];
 
+const ttdColumns: TableColumn<KnownDrugsTTDItem>[] = [
+  'target',
+  {key: 'ttdTarget', title: 'ttd target'},
+  'drug',
+  'company',
+  'type',
+  {key: 'therapeuticClass', title: 'therapeutic class'},
+  'inChI',
+  'inChIKey',
+  {key: 'canonicalSmiles', title: 'canonical smiles'},
+  'status',
+  {key: 'compoundClass', title: 'compound class'},
+];
+
 export function useColumnsForSource(source: KnownDrugsSource): TableColumn<KnownDrugsItem>[] {
   return useMemo(() => {
     if (source === KnownDrugsSource.openTargets) {
@@ -45,6 +60,9 @@ export function useColumnsForSource(source: KnownDrugsSource): TableColumn<Known
     }
     if (source === KnownDrugsSource.pharmGKB) {
       return pharmGKBColumns as TableColumn<KnownDrugsItem>[];
+    }
+    if (source === KnownDrugsSource.ttd) {
+      return ttdColumns as TableColumn<KnownDrugsItem>[];
     }
     return [];
   }, [source]);

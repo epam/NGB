@@ -3,8 +3,10 @@ import type {
   KnownDrugsDGIdbItem,
   KnownDrugsOpenTargetsItem,
   KnownDrugsPharmGKBItem,
+  KnownDrugsTTDItem,
   DiseasesOpenTargetsItem,
   DiseasesPharmGKBItem,
+  DiseasesTTDItem,
   SequencesItem,
   SequencesData,
   GenomicsItem,
@@ -41,6 +43,7 @@ for (let i = 0; i < 5; i += 1) {
 const knownDrugsOpenTargets: KnownDrugsOpenTargetsItem[] = [];
 const knownDrugsDGIdb: KnownDrugsDGIdbItem[] = [];
 const knownDrugsPharmGKB: KnownDrugsPharmGKBItem[] = [];
+const knownDrugsTTD: KnownDrugsTTDItem[] = [];
 const generateData = (count, name) => (new Array(count)).fill(name).map((o, i) => `${o} ${i + 1}`);
 const types = ['Small molecule', 'Large molecule'];
 const mechanisms = generateData(10, 'Mechanism');
@@ -65,6 +68,17 @@ const owner = generateData(5, 'Owner');
 
 const authors = generateData(6, 'Author');
 
+const ttdTarget = generateData(2, 'TTD target');
+const company = generateData(5, 'company');
+const type = generateData(4, 'type');
+const therapeuticClass = generateData(2, 'therapeutic class');
+const inChI = generateData(10, 'inChI');
+const inChIKey = generateData(7, 'inChIKey');
+const canonicalSmiles = generateData(4, 'canonical smiles');
+const status = generateData(3, 'status');
+const compoundClass = generateData(6, 'compound class');
+const clinicalStatus = generateData(4, 'clinical status');
+
 const knownDrugsCount: KnownDrugsCount = {
   drugs: 17,
   records: 122
@@ -81,6 +95,7 @@ const publicationsCount: PublicationsCount = 122;
 
 const diseasesOpenTargets: DiseasesOpenTargetsItem[] = [];
 const diseasesPharmGKB: DiseasesPharmGKBItem[] = [];
+const diseasesTTD: DiseasesTTDItem[] = [];
 
 const sequences1: SequencesItem[] = [];
 const sequences2: SequencesItem[] = [];
@@ -121,6 +136,19 @@ for (let i = 0; i < 10000; i += 1) {
     drug: i % 5 === 0 ? `DRUG${i + 1}` : {value: `DRUG${i + 1}`, link: 'https://platform.opentargets.org/drug/CHEMBL4594350'},
     source: getElement(i, sources),
   });
+  knownDrugsTTD.push({
+    target: getElement(i, interest).id,
+    ttdTarget: getElement(i, ttdTarget),
+    drug: i % 5 === 0 ? `DRUG${i + 1}` : {value: `DRUG${i + 1}`, link: 'https://platform.opentargets.org/drug/CHEMBL4594350'},
+    company: getElement(i, company),
+    type: getElement(i, type),
+    therapeuticClass: getElement(i, therapeuticClass),
+    inChI: getElement(i, inChI),
+    inChIKey: getElement(i, inChIKey),
+    canonicalSmiles: getElement(i, canonicalSmiles),
+    status: getElement(i, status),
+    compoundClass: getElement(i, compoundClass),
+  });
 }
 
 for (let i = 0; i < 1000; i += 1) {
@@ -139,6 +167,12 @@ for (let i = 0; i < 1000; i += 1) {
   diseasesPharmGKB.push({
     target: getElement(i, interest).id,
     disease: {value: `Disease${i + 1}`, link: 'https://platform.opentargets.org/disease/EFO_0003060'},
+  });
+  diseasesTTD.push({
+    target: getElement(i, interest).id,
+    ttdTarget: getElement(i, ttdTarget),
+    disease: {value: `Disease${i + 1}`, link: 'https://platform.opentargets.org/disease/EFO_0003060'},
+    clinicalStatus: getElement(i, clinicalStatus),
   });
 }
 
@@ -278,6 +312,10 @@ window.injected_data = typeof (window as any).injected_data === 'object' ? (wind
       source: KnownDrugsSource.pharmGKB,
       data: knownDrugsPharmGKB,
     },
+    {
+      source: KnownDrugsSource.ttd,
+      data: knownDrugsTTD,
+    },
   ],
   associatedDiseases: [
     {
@@ -287,6 +325,10 @@ window.injected_data = typeof (window as any).injected_data === 'object' ? (wind
     {
       source: DiseasesSource.pharmGKB,
       data: diseasesPharmGKB,
+    },
+    {
+      source: DiseasesSource.ttd,
+      data: diseasesTTD,
     },
   ],
   sequences: sequencesData,
