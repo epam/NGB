@@ -252,7 +252,7 @@ export default class ngbTargetGenesTableController {
 
     refreshColumns() {
         this.gridOptions.columnDefs = this.getTableColumns();
-        this.$timeout(() => this.$scope.$apply());
+        this.$timeout(() => this.sortColumns());
     }
 
     sortColumns() {
@@ -264,11 +264,26 @@ export default class ngbTargetGenesTableController {
                     if (c2.name === this.removeColumnName) return 1;
                     if (c1.name === this.removeColumnName) return -1;
                 }
+                if (!ordered.includes(this.launchColumnName)) {
+                    if (c2.name === this.launchColumnName) return 1;
+                    if (c1.name === this.launchColumnName) return -1;
+                }
                 if (ordered.includes(c2.name) && ordered.includes(c1.name)) {
                     return ordered.indexOf(c2.name) < ordered.indexOf(c1.name) ? -1 : 1;
                 } else if (ordered.includes(c2.name) || ordered.includes(c1.name)) {
                     if (ordered.includes(c2.name)) return -1;
                     if (ordered.includes(c1.name)) return 1;
+                }
+                return 0;
+            })
+        } else {
+            const defaultOrder = this.gridOptions.columnDefs.map(c => c.name);
+            this.gridApi.grid.columns.sort((c2, c1) => {
+                if (defaultOrder.includes(c2.name) && defaultOrder.includes(c1.name)) {
+                    return defaultOrder.indexOf(c2.name) < defaultOrder.indexOf(c1.name) ? -1 : 1;
+                } else if (defaultOrder.includes(c2.name) || defaultOrder.includes(c1.name)) {
+                    if (defaultOrder.includes(c2.name)) return -1;
+                    if (defaultOrder.includes(c1.name)) return 1;
                 }
                 return 0;
             })

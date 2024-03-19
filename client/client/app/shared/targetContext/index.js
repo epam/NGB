@@ -124,6 +124,9 @@ export default class TargetContext {
         this._targetsFormActionsIsVisible = value;
     }
     get targetModelType() {
+        if (!this._targetModelType) {
+            return this.targetType.DEFAULT;
+        }
         return this._targetModelType;
     }
     set targetModelType(value) {

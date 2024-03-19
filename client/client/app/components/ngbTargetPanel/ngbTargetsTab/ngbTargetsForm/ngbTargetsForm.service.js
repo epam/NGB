@@ -916,6 +916,7 @@ export default class ngbTargetsFormService {
 
     resetTarget() {
         this.setEmptyTargetModel();
+        this.targetContext.targetModelType = null;
         this.loading = false;
         this.failed = false;
         this.errorMessageList = null;
