@@ -310,8 +310,8 @@ public class TargetController extends AbstractRESTController {
 
     @GetMapping(value = "/target/genes")
     @ApiOperation(
-            value = "Returns target genes by ids.",
-            notes = "Returns target genes by ids.",
+            value = "Returns target genes by internal ids.",
+            notes = "Returns target genes by internal ids.",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
@@ -319,5 +319,19 @@ public class TargetController extends AbstractRESTController {
     public Result<List<TargetGene>> load(@RequestParam final List<Long> targetGeneIds)
             throws ParseException, IOException {
         return Result.success(targetGeneSecurityService.load(targetGeneIds));
+    }
+
+    @GetMapping(value = "/target/{targetId}/genes")
+    @ApiOperation(
+            value = "Returns target genes by string ids.",
+            notes = "Returns target genes by string ids.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<List<TargetGene>> load(@PathVariable final Long targetId,
+                                         @RequestParam final List<String> geneIds)
+            throws ParseException, IOException {
+        return Result.success(targetGeneSecurityService.load(targetId, geneIds));
     }
 }

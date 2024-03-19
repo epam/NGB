@@ -30,6 +30,7 @@ import com.epam.catgenome.manager.index.FieldInfo;
 import com.epam.catgenome.manager.index.SearchRequest;
 import com.opencsv.exceptions.CsvValidationException;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -92,5 +93,11 @@ public class TargetGeneSecurityService {
     @PreAuthorize(ROLE_USER)
     public List<String> getFieldValues(final long targetId, final String field) throws ParseException, IOException {
         return targetGeneManager.getOptions(targetId, field);
+    }
+
+    @SneakyThrows
+    @PreAuthorize(ROLE_USER)
+    public List<TargetGene> load(final Long targetId, final List<String> geneIds) {
+        return targetGeneManager.load(targetId, geneIds);
     }
 }
