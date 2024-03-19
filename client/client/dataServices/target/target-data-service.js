@@ -1012,4 +1012,17 @@ export class TargetDataService extends DataService {
                 });
         });
     }
+
+    getTargetGenesInfo(targetId, geneIds) {
+        return new Promise((resolve, reject) => {
+            this.get(`target/${targetId}/genes?geneIds=${geneIds}`)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error getting target genes info';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
 }
