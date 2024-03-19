@@ -253,6 +253,10 @@ ngb-target-genes-table {
     .add-button:hover {
         text-decoration: none;
     }
+
+    .md-button.md-icon-button .icon-launch {
+        fill: rgb(102, 153, 255);
+    }
 }
 
 .select-cell-container {

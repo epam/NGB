@@ -237,6 +237,19 @@ export default class ngbTargetsFormService {
         return nameChanged || typeChanged || changed('diseases') || changed('products');
     }
 
+    isIdentifyDisabled() {
+        if (this.loading || this.isAddMode) return true;
+        const {name, genes} = this.targetModel;
+        if (!name || !name.length || !genes || !genes.length) return true;
+        if (this.isSomeGeneEmpty()) return true;
+        if (this.isSomeAdditionalGeneEmpty()) return true;
+        return (this.targetInfoChanged()
+            || this.targetGenesChanged()
+            || this.parasiteGenesAdded()
+            || this.geneFile
+        );
+    }
+
     isSomeGeneEmpty() {
         let {genes} = this.targetModel;
         if (this.isParasite) {

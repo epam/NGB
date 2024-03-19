@@ -1,6 +1,7 @@
 import {encodeName, decodeName} from '../ngbTargetsForm.service';
 
 const REMOVE = 'Remove';
+const LAUNCH = 'Launch';
 
 const DISPLAY_NAME = {
     geneId: 'Gene ID',
@@ -11,7 +12,8 @@ const DISPLAY_NAME = {
     additionalGenes: 'Additional Genes',
     status: 'Status',
     ttdTargets: 'TTD targets',
-    remove: ''
+    remove: '',
+    launch: '',
 };
 
 const COLUMN_FIELD = {
@@ -23,7 +25,8 @@ const COLUMN_FIELD = {
     'Additional Genes': 'additionalGenes',
     'Status': 'status',
     'TTD Targets': 'ttdTargets',
-    'Remove': 'remove'
+    'Remove': 'remove',
+    'Launch': 'launch',
 };
 
 const FILTER_TYPE = {
@@ -45,6 +48,9 @@ export default class ngbTargetGenesTableService {
 
     get removeColumn() {
         return REMOVE;
+    }
+    get launchColumn() {
+        return LAUNCH;
     }
 
     get filterType() {
@@ -100,7 +106,7 @@ export default class ngbTargetGenesTableService {
     }
 
     get currentColumns () {
-        return [...this.defaultColumns, ...this.additionalColumns, this.removeColumn];
+        return [...this.defaultColumns, ...this.additionalColumns, this.removeColumn, this.launchColumn];
     }
 
     get currentColumnFields() {
@@ -349,7 +355,7 @@ export default class ngbTargetGenesTableService {
     async onChangeShowFilters() {
         if (this.displayFilters) {
             const promises = this.currentColumns
-                .filter(c => c !== this.removeColumn)
+                .filter(c => c !== this.removeColumn && c !== this.launchColumn)
                 .map(field => this.getGeneFieldValues(field));
             return Promise.allSettled(promises)
                 .then(values => values.some(v => v))

@@ -3,7 +3,7 @@ const TYPE = {
     DEFAULT: 'DEFAULT'
 };
 
-export function getGenes (species, type = 'DEFAULT', genesOfInterest, translationalGenes) {
+export function getGenes (species, type = TYPE.DEFAULT, genesOfInterest, translationalGenes) {
     const isParasite = type === TYPE.PARASITE;
     if (isParasite) {
         return getParasiteGenes(species, genesOfInterest, translationalGenes);

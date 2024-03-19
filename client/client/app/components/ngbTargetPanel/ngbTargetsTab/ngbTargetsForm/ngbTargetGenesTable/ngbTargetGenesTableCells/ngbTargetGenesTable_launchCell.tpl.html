@@ -1,0 +1,11 @@
+<md-button aria-label="Launch gene"
+           title="Launch gene"
+           class="md-icon-button"
+           ng-click="grid.appScope.$ctrl.onClickLaunch($event, row.entity)"
+           ng-disabled="grid.appScope.$ctrl.isLaunchDisabled">
+    <ng-md-icon aria-label="launch"
+                class="icon-launch"
+                icon="launch"
+                size="15">
+    </ng-md-icon>
+</md-button>

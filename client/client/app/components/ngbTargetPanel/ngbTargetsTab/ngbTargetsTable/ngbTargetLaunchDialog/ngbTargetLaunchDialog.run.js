@@ -3,7 +3,10 @@ import {
     createFilterFor,
 } from '../utilities/autocompleteFunctions';
 
-const PARASITE = 'PARASITE';
+const TYPE = {
+    PARASITE: 'PARASITE',
+    DEFAULT: 'DEFAULT'
+};
 
 export default function run(
     $mdDialog,
@@ -14,18 +17,47 @@ export default function run(
     targetContext,
     targetDataService
 ) {
-    const displayLaunchDialog = async (target) => {
+    const displayLaunchDialog = async (target, selectedGene = null) => {
         $mdDialog.show({
             template: require('./ngbTargetLaunchDialog.tpl.html'),
             controller: function ($scope) {
                 $scope.target = target;
                 $scope.name = target.name;
-                $scope.parasite = PARASITE;
+                $scope.parasite = TYPE.PARASITE;
 
                 $scope.genesOfInterest = [];
                 $scope.translationalGenes = [];
                 $scope.genes = getGenes(target.species.value, $scope.target.type, $scope.genesOfInterest, $scope.translationalGenes);
 
+                $scope.genesOfInterestChanged = (item) => {
+                    if (item) {
+                        if (item.group) {
+                            const items = getGroupItems(item);
+                            for (let i = 0; i < items.length; i++) {
+                                $scope.genesOfInterest.push(items[i]);
+                            }
+                            $timeout(() => {
+                                const index = $scope.genesOfInterest.indexOf(item);
+                                if (index !== -1) {
+                                    $scope.genesOfInterest.splice(index, 1);
+                                }
+                            });
+                        } else {
+                            $scope.genesOfInterest.push(item);
+                        }
+                    }
+                };
+
+                if (selectedGene) {
+                    if (target.type === TYPE.DEFAULT) {
+                        const gene = $scope.genes.filter(g => g.geneId === selectedGene.geneId)[0];
+                        $scope.genesOfInterestChanged(gene);
+                    }
+                    if (target.type === TYPE.PARASITE) {
+                        const gene = $scope.genes.filter(g => g.targetGeneId === selectedGene.targetGeneId)[0];
+                        $scope.genesOfInterestChanged(gene);
+                    }
+                }
                 $scope.identifyDisabled = () => (
                     !$scope.genesOfInterest.length
                 );
@@ -57,25 +89,6 @@ export default function run(
                     if (!text) return genes;
                     return genes.filter(createFilterFor(text));
                 }
-
-                $scope.genesOfInterestChanged = (item) => {
-                    if (item) {
-                        if (item.group) {
-                            const items = getGroupItems(item);
-                            for (let i = 0; i < items.length; i++) {
-                                $scope.genesOfInterest.push(items[i]);
-                            }
-                            $timeout(() => {
-                                const index = $scope.genesOfInterest.indexOf(item);
-                                if (index !== -1) {
-                                    $scope.genesOfInterest.splice(index, 1);
-                                }
-                            });
-                        } else {
-                            $scope.genesOfInterest.push(item);
-                        }
-                    }
-                };
 
                 $scope.translationalGenesChanged = (item) => {
                     if (item) {
