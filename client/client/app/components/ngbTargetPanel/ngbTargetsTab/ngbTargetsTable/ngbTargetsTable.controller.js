@@ -46,8 +46,8 @@ export default class ngbTargetsTableController {
         return 'ngbTargetsTableController';
     }
 
-    constructor($scope, $timeout, dispatcher, ngbTargetsTableService, ngbTargetsTabService, ngbTargetsFormService) {
-        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetsTableService, ngbTargetsTabService, ngbTargetsFormService});
+    constructor($scope, $timeout, dispatcher, ngbTargetsTableService, ngbTargetsTabService, ngbTargetsFormService, ngbTargetContextMenu) {
+        Object.assign(this, {$scope, $timeout, dispatcher, ngbTargetsTableService, ngbTargetsTabService, ngbTargetsFormService, ngbTargetContextMenu});
 
         const filterChanged = this.filterChanged.bind(this);
         const getDataOnPage = this.getDataOnPage.bind(this);
@@ -250,6 +250,9 @@ export default class ngbTargetsTableController {
     }
 
     async rowClick(row, event) {
+        if (this.ngbTargetContextMenu && this.ngbTargetContextMenu.visible()) {
+            this.ngbTargetContextMenu.close();
+        }
         await this.openTarget(row.entity, event);
     }
 

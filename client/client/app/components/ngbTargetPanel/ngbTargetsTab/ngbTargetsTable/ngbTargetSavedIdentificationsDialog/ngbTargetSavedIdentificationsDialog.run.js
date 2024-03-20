@@ -1,5 +1,10 @@
 const COLUMN_LIST = ['name', 'genes of interest', 'translational genes'];
 
+const TYPE = {
+    DEFAULT: 'DEFAULT',
+    PARASITE: 'PARASITE'
+};
+
 export default function run(
     $mdDialog,
     $timeout,
@@ -19,6 +24,7 @@ export default function run(
                 $scope.isChanged = false;
                 $scope.isLaunched = false;
                 $scope.name = target.name;
+                $scope.type = target.type;
 
                 $scope.identifications = target.identifications.map(t => {
                     const {id, name, genesOfInterest, translationalGenes} = t;
@@ -40,14 +46,56 @@ export default function run(
                             }, [])
                             .filter(i => i);
                     }
-                    return {
+                    const identification = {
                         id,
                         name,
-                        genesOfInterest: getGenesById(genesOfInterest),
-                        translationalGenes: getGenesById(translationalGenes),
                         deleteLoading: false,
+                    };
+                    if ($scope.type === TYPE.PARASITE) {
+                        identification.genesOfInterest = genesOfInterest;
+                        identification.translationalGenes = translationalGenes;
+                        identification.launchDisabled = true;
                     }
+                    if ($scope.type === TYPE.DEFAULT) {
+                        identification.genesOfInterest = getGenesById(genesOfInterest);
+                        identification.translationalGenes = getGenesById(translationalGenes);
+                    }
+                    return identification;
                 })
+
+                async function setGenesInfo(geneIds) {
+                    const genesInfo = await getGenesInfo(target.id, geneIds);
+                    if (genesInfo && genesInfo.length) {
+                        const info = genesInfo.reduce((acc, item) => {
+                            acc[item.geneId] = item;
+                            return acc;
+                        }, {});
+                        const getIdentificationInfo = (geneIds) => {
+                            return geneIds.map(id => ({
+                                chip: `${info[id].geneName} (${info[id].speciesName}) (${info[id].geneId})`,
+                                geneId: info[id].geneId,
+                                geneName: info[id].geneName,
+                                speciesName: info[id].speciesName,
+                                taxId: info[id].taxId,
+                            }));
+                        };
+                        for (let i = 0; i < $scope.identifications.length; i++) {
+                            const identification = $scope.identifications[i];
+                            identification.genesOfInterest = getIdentificationInfo(identification.genesOfInterest);
+                            identification.translationalGenes = getIdentificationInfo(identification.translationalGenes);
+                            identification.launchDisabled = false;
+                        }
+                    }
+                }
+
+                if ($scope.type === TYPE.PARASITE) {
+                    const geneIds = $scope.identifications.reduce((acc, identification) => {
+                        const {genesOfInterest, translationalGenes} = identification;
+                        acc = Array.from(new Set([...acc, ...genesOfInterest, ...translationalGenes]));
+                        return acc;
+                    }, []);
+                    setGenesInfo(geneIds);
+                }
 
                 function deleteIdentification(id) {
                     return new Promise((resolve) => {
@@ -89,6 +137,22 @@ export default function run(
                     }
                 }
 
+                async function getGenesInfo(targetId, geneIds) {
+                    return new Promise((resolve) => {
+                        targetDataService.getTargetGenesInfo(targetId, geneIds)
+                            .then((data) => {
+                                $scope.errorMessageList = null;
+                                $scope.actionFailed = false;
+                                resolve(data);
+                            })
+                            .catch(error => {
+                                $scope.errorMessageList = [error.message];
+                                $scope.actionFailed = true;
+                                resolve(null);
+                            });
+                    });
+                }
+
                 async function launchIdentification(launchIdentification) {
                     const params = {
                         targetId: target.id,
@@ -98,7 +162,7 @@ export default function run(
                     const info = {
                         target: target,
                         interest: launchIdentification.genesOfInterest,
-                        translational: launchIdentification.translationalGenes
+                        translational: launchIdentification.translationalGenes,
                     };
                     const result = await ngbTargetsTabService.getIdentificationData(params, info);
                     if (result) {

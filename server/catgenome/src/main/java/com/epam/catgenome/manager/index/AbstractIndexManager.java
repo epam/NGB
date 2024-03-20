@@ -29,6 +29,7 @@ import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.FloatPoint;
@@ -167,7 +168,7 @@ public abstract class AbstractIndexManager<T> {
     public Query buildQuery(final Query query, final List<Filter> filters) throws ParseException {
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
         mainBuilder.add(query, BooleanClause.Occur.MUST);
-        if (filters != null) {
+        if (CollectionUtils.isNotEmpty(filters)) {
             for (Filter filter: filters) {
                 addFieldQuery(mainBuilder, filter);
             }

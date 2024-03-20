@@ -711,11 +711,11 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTargetExcelReportGeneId(geneId, targetId) {
+    getTargetExcelReportGeneId(geneId) {
         return new Promise((resolve, reject) => {
             this.downloadFile(
                 'get',
-                `target/report/${geneId}${getQueryString({targetId})}`,
+                `target/report/${geneId}`,
                 undefined,
                 {customResponseType: 'arraybuffer'}
             )
@@ -1008,6 +1008,19 @@ export class TargetDataService extends DataService {
                 })
                 .catch(error => {
                     const message = 'Error uploading target genes';
+                    reject(new Error((error && error.message) || message));
+                });
+        });
+    }
+
+    getTargetGenesInfo(targetId, geneIds) {
+        return new Promise((resolve, reject) => {
+            this.get(`target/${targetId}/genes?geneIds=${geneIds}`)
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(error => {
+                    const message = 'Error getting target genes info';
                     reject(new Error((error && error.message) || message));
                 });
         });

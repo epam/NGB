@@ -33,6 +33,8 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociatio
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDisease;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDiseaseAssociation;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.pdb.PdbFile;
 import com.epam.catgenome.entity.target.GeneRefSection;
 import com.epam.catgenome.entity.target.SequencesSummary;
@@ -51,6 +53,7 @@ import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseAssociati
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDiseaseAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugAssociationManager;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDatabaseManager;
 import com.epam.catgenome.manager.pdb.PdbFileManager;
 import com.epam.catgenome.manager.target.LaunchIdentificationManager;
 import com.epam.catgenome.manager.target.TargetManager;
@@ -92,6 +95,7 @@ public class TargetExportManager {
     private final LaunchIdentificationManager identificationManager;
     private final HomologManager homologManager;
     private final HomologeneManager homologeneManager;
+    private final TTDDatabaseManager ttdDatabaseManager;
 
     public static <T> List<AssociationExportField<T>> getAssociationFields(final AssociationExportField<T>[] array) {
         return Arrays.stream(array).filter(AssociationExportField::isExport).collect(Collectors.toList());
@@ -274,6 +278,32 @@ public class TargetExportManager {
             dgidbDrugAssociations.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
         }
         return dgidbDrugAssociations;
+    }
+
+    public List<TTDDiseaseAssociation> getTTDDiseases(final Long targetId,
+                                                      final List<String> geneIds,
+                                                      final Map<String, String> genesMap)
+            throws ParseException, IOException {
+        final List<TargetGene> genes = targetManager.getTargetGenes(targetId, geneIds);
+        final List<TTDDiseaseAssociation> diseaseAssociations = ttdDatabaseManager.fetchTTDDiseases(genes,
+                Collections.emptyList());
+        if (MapUtils.isNotEmpty(genesMap)) {
+            diseaseAssociations.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
+        }
+        return diseaseAssociations;
+    }
+
+    public List<TTDDrugAssociation> getTTDDrugs(final Long targetId,
+                                                final List<String> geneIds,
+                                                final Map<String, String> genesMap)
+            throws ParseException, IOException {
+        final List<TargetGene> genes = targetManager.getTargetGenes(targetId, geneIds);
+        final List<TTDDrugAssociation> drugAssociations = ttdDatabaseManager.fetchTTDDrugs(genes,
+                Collections.emptyList());
+        if (MapUtils.isNotEmpty(genesMap)) {
+            drugAssociations.forEach(d -> d.setTarget(genesMap.get(d.getGeneId().toLowerCase())));
+        }
+        return drugAssociations;
     }
 
     public List<Structure> getStructures(final Long targetId, final List<String> geneIds)
