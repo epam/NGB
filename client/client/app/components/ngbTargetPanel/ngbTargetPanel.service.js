@@ -171,13 +171,13 @@ export default class NgbTargetPanelService {
     }
 
     exportResults(format) {
-        const isTranslational = this.translationalGeneIds && this.translationalGeneIds.length;
-        if (isTranslational) {
+        const {target} = this.identificationTarget || {};
+        if (target && target.id) {
             if (format === this.format.XLSX) {
-                return this.exportExcel();
+                return this.exportExcel(target.id);
             }
             if (format === this.format.HTML) {
-                return this.exportHtml();
+                return this.exportHtml(target.id);
             }
         } else {
             if (format === this.format.XLSX) {
@@ -189,32 +189,29 @@ export default class NgbTargetPanelService {
         }
     }
 
-    exportExcel() {
-        if (!this.geneIdsOfInterest.length || !this.translationalGeneIds.length) {
+    exportExcel(targetId) {
+        if (!this.geneIdsOfInterest || !this.geneIdsOfInterest.length) {
             return new Promise(resolve => resolve(true));
         }
-        const {target} = this.identificationTarget || {};
-        return this.targetDataService.getTargetExcelReport(this.geneIdsOfInterest, this.translationalGeneIds, target.id);
+        return this.targetDataService.getTargetExcelReport(this.geneIdsOfInterest, this.translationalGeneIds, targetId);
     }
 
-    exportHtml() {
-        const {target} = this.identificationTarget || {};
-        if (!this.geneIdsOfInterest.length || !this.translationalGeneIds.length || !target.id) {
+    exportHtml(targetId) {
+        if (!this.geneIdsOfInterest || !this.geneIdsOfInterest.length || !targetId) {
             return new Promise(resolve => resolve(true));
         }
-        return this.targetDataService.getTargetHtmlReport(this.geneIdsOfInterest, this.translationalGeneIds, target.id);
+        return this.targetDataService.getTargetHtmlReport(this.geneIdsOfInterest, this.translationalGeneIds, targetId);
     }
 
     exportExcelGeneId() {
-        if (!this.geneIdsOfInterest.length) {
+        if (!this.geneIdsOfInterest || !this.geneIdsOfInterest.length) {
             return new Promise(resolve => resolve(true));
         }
-        const {target} = this.identificationTarget || {};
-        return this.targetDataService.getTargetExcelReportGeneId(this.geneIdsOfInterest[0], target.id);
+        return this.targetDataService.getTargetExcelReportGeneId(this.geneIdsOfInterest[0]);
     }
 
     exportHtmlGeneId() {
-        if (!this.geneIdsOfInterest.length) {
+        if (!this.geneIdsOfInterest || !this.geneIdsOfInterest.length) {
             return new Promise(resolve => resolve(true));
         }
         return this.targetDataService.getTargetHtmlReportGeneId(this.geneIdsOfInterest[0]);
