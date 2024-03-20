@@ -12,91 +12,96 @@
         EXPORT
     </span>
 </div>
-<ngb-genomics-table></ngb-genomics-table>
-<div ng-if="$ctrl.genesIds && $ctrl.genesIds.length > 1">
-    <div class="genomics-button-block">
-        <md-button type="button"
-                   class="md-raised md-accent genomics-button align"
-                   ng-disabled="!$ctrl.targetModel.protein || !$ctrl.queryModel.protein"
-                   aria-label="Align comparison"
-                   ng-click="$ctrl.alignComparison()">
-            Align
-        </md-button>
-        <md-button type="button"
-                   class="md-raised genomics-button track"
-                   ng-disabled="$ctrl.isTrackButtonDisabled"
-                   aria-label="View on track"
-                   ng-click="$ctrl.viewOnTrack()">
-            View on track
-        </md-button>
+<div ng-if="!$ctrl.targetType || $ctrl.targetType === $ctrl.type.DEFAULT">
+    <ngb-genomics-table></ngb-genomics-table>
+    <div ng-if="$ctrl.genesIds && $ctrl.genesIds.length > 1">
+        <div class="genomics-button-block">
+            <md-button type="button"
+                       class="md-raised md-accent genomics-button align"
+                       ng-disabled="!$ctrl.targetModel.protein || !$ctrl.queryModel.protein"
+                       aria-label="Align comparison"
+                       ng-click="$ctrl.alignComparison()">
+                Align
+            </md-button>
+            <md-button type="button"
+                       class="md-raised genomics-button track"
+                       ng-disabled="$ctrl.isTrackButtonDisabled"
+                       aria-label="View on track"
+                       ng-click="$ctrl.viewOnTrack()">
+                View on track
+            </md-button>
+        </div>
+        <div class="genomics-block">
+            <label>Target:</label>
+            <md-input-container class="gene-select">
+                <md-select ng-model="$ctrl.targetModel.gene"
+                           placeholder="Select gene"
+                           aria-label="Target gene"
+                           ng-change="$ctrl.onChangeGene('target', $ctrl.targetModel.gene)"
+                           md-container-class="genomics-select-container">
+                    <md-option ng-repeat="item in $ctrl.targetGeneOptions"
+                               ng-disabled="$ctrl.isProteinOptionDisabled(item.geneId)"
+                               ng-value="item.geneId">
+                        <span ng-if="$ctrl.isProteinOptionDisabled(item.geneId)"
+                              data-tooltip="No sequences found">
+                            {{item.chip}}
+                        </span>
+                        <span ng-if="!$ctrl.isProteinOptionDisabled(item.geneId)">
+                            {{item.chip}}
+                        </span>
+                    </md-option>
+                </md-select>
+            </md-input-container>
+            <md-input-container class="protein-select"
+                                ng-if="$ctrl.targetModel.gene">
+                <md-select ng-model="$ctrl.targetModel.protein"
+                           placeholder="Select protein"
+                           aria-label="Target protein"
+                           md-container-class="genomics-select-container">
+                    <md-option ng-repeat="item in $ctrl.targetProteinOptions"
+                               ng-value="item.value">
+                        {{item.name}}
+                    </md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+        <div class="genomics-block">
+            <label>Query:</label>
+            <md-input-container class="gene-select">
+                <md-select ng-model="$ctrl.queryModel.gene"
+                           placeholder="Select gene"
+                           aria-label="Query gene"
+                           ng-change="$ctrl.onChangeGene('query', $ctrl.queryModel.gene)"
+                           md-container-class="genomics-select-container">
+                    <md-option ng-repeat="item in $ctrl.queryGeneOptions"
+                               ng-disabled="$ctrl.isProteinOptionDisabled(item.geneId)"
+                               ng-value="item.geneId">
+                        <span ng-if="$ctrl.isProteinOptionDisabled(item.geneId)"
+                              data-tooltip="No sequences found">
+                            {{item.chip}}
+                        </span>
+                        <span ng-if="!$ctrl.isProteinOptionDisabled(item.geneId)">
+                            {{item.chip}}
+                        </span>
+                    </md-option>
+                </md-select>
+            </md-input-container>
+            <md-input-container class="protein-select"
+                                ng-if="$ctrl.queryModel.gene">
+                <md-select ng-model="$ctrl.queryModel.protein"
+                           placeholder="Select protein"
+                           aria-label="Query protein"
+                           md-container-class="genomics-select-container">
+                    <md-option ng-repeat="item in $ctrl.queryProteinOptions"
+                               ng-value="item.value">
+                        {{item.name}}
+                    </md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+        <ngb-genomics-alignment></ngb-genomics-alignment>
     </div>
-    <div class="genomics-block">
-        <label>Target:</label>
-        <md-input-container class="gene-select">
-            <md-select ng-model="$ctrl.targetModel.gene"
-                       placeholder="Select gene"
-                       aria-label="Target gene"
-                       ng-change="$ctrl.onChangeGene('target', $ctrl.targetModel.gene)"
-                       md-container-class="genomics-select-container">
-                <md-option ng-repeat="item in $ctrl.targetGeneOptions"
-                           ng-disabled="$ctrl.isProteinOptionDisabled(item.geneId)"
-                           ng-value="item.geneId">
-                    <span ng-if="$ctrl.isProteinOptionDisabled(item.geneId)"
-                          data-tooltip="No sequences found">
-                        {{item.chip}}
-                    </span>
-                    <span ng-if="!$ctrl.isProteinOptionDisabled(item.geneId)">
-                        {{item.chip}}
-                    </span>
-                </md-option>
-            </md-select>
-        </md-input-container>
-        <md-input-container class="protein-select"
-                            ng-if="$ctrl.targetModel.gene">
-            <md-select ng-model="$ctrl.targetModel.protein"
-                       placeholder="Select protein"
-                       aria-label="Target protein"
-                       md-container-class="genomics-select-container">
-                <md-option ng-repeat="item in $ctrl.targetProteinOptions"
-                           ng-value="item.value">
-                    {{item.name}}
-                </md-option>
-            </md-select>
-        </md-input-container>
-    </div>
-    <div class="genomics-block">
-        <label>Query:</label>
-        <md-input-container class="gene-select">
-            <md-select ng-model="$ctrl.queryModel.gene"
-                       placeholder="Select gene"
-                       aria-label="Query gene"
-                       ng-change="$ctrl.onChangeGene('query', $ctrl.queryModel.gene)"
-                       md-container-class="genomics-select-container">
-                <md-option ng-repeat="item in $ctrl.queryGeneOptions"
-                           ng-disabled="$ctrl.isProteinOptionDisabled(item.geneId)"
-                           ng-value="item.geneId">
-                    <span ng-if="$ctrl.isProteinOptionDisabled(item.geneId)"
-                          data-tooltip="No sequences found">
-                        {{item.chip}}
-                    </span>
-                    <span ng-if="!$ctrl.isProteinOptionDisabled(item.geneId)">
-                        {{item.chip}}
-                    </span>
-                </md-option>
-            </md-select>
-        </md-input-container>
-        <md-input-container class="protein-select"
-                            ng-if="$ctrl.queryModel.gene">
-            <md-select ng-model="$ctrl.queryModel.protein"
-                       placeholder="Select protein"
-                       aria-label="Query protein"
-                       md-container-class="genomics-select-container">
-                <md-option ng-repeat="item in $ctrl.queryProteinOptions"
-                           ng-value="item.value">
-                    {{item.name}}
-                </md-option>
-            </md-select>
-        </md-input-container>
-    </div>
-    <ngb-genomics-alignment></ngb-genomics-alignment>
+</div>
+<div ng-if="$ctrl.targetType === $ctrl.type.PARASITE">
+    <ngb-genomics-parasite-table></ngb-genomics-parasite-table>
 </div>
