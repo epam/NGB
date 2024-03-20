@@ -36,21 +36,31 @@
                         <td>
                             <div class="identification-genes">
                                 <p ng-repeat="gene in identification.genesOfInterest track by $index">
-                                    {{gene.geneName}} ({{gene.speciesName}})
+                                    <span ng-if="gene.geneName && gene.speciesName">
+                                        {{gene.geneName}} ({{gene.speciesName}})
+                                    </span>
+                                    <span ng-if="!(gene.geneName && gene.speciesName)">
+                                        {{gene}}
+                                    </span>
                                 </p>
                             </div>
                         </td>
                         <td>
                             <div class="identification-genes">
                                 <p ng-repeat="gene in identification.translationalGenes track by $index">
-                                    {{gene.geneName}} ({{gene.speciesName}})
+                                    <span ng-if="gene.geneName && gene.speciesName">
+                                        {{gene.geneName}} ({{gene.speciesName}})
+                                    </span>
+                                    <span ng-if="!(gene.geneName && gene.speciesName)">
+                                        {{gene}}
+                                    </span>
                                 </p>
                             </div>
                         </td>
                         <td class="button-column">
                             <md-button class="md-icon-button"
                                        ng-click="onClickLaunch($index)"
-                                       ng-disabled="identification.deleteLoading"
+                                       ng-disabled="identification.deleteLoading || identification.launchDisabled"
                                        aria-label="Launch">
                                 <ng-md-icon icon="launch" size="14pt"></ng-md-icon>
                             </md-button>
