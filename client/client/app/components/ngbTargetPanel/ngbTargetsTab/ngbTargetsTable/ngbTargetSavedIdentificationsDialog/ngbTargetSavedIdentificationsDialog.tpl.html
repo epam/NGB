@@ -60,9 +60,15 @@
                         <td class="button-column">
                             <md-button class="md-icon-button"
                                        ng-click="onClickLaunch($index)"
-                                       ng-disabled="identification.deleteLoading || identification.launchDisabled"
+                                       ng-disabled="identification.deleteLoading || identification.launchLoading || identification.launchDisabled"
                                        aria-label="Launch">
-                                <ng-md-icon icon="launch" size="14pt"></ng-md-icon>
+                                <ng-md-icon icon="launch"
+                                            size="14pt"
+                                            ng-if="!identification.launchLoading">
+                                </ng-md-icon>
+                                <md-progress-circular ng-if="identification.launchLoading"
+                                                      md-diameter="20pt">
+                                </md-progress-circular>
                             </md-button>
                         </td>
                         <td class="button-column">

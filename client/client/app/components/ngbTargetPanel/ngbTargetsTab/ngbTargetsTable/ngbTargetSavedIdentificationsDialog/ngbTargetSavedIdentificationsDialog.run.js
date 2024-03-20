@@ -55,6 +55,7 @@ export default function run(
                         identification.genesOfInterest = genesOfInterest;
                         identification.translationalGenes = translationalGenes;
                         identification.launchDisabled = true;
+                        identification.launchLoading = true;
                     }
                     if ($scope.type === TYPE.DEFAULT) {
                         identification.genesOfInterest = getGenesById(genesOfInterest);
@@ -86,6 +87,10 @@ export default function run(
                             identification.launchDisabled = false;
                         }
                     }
+                    for (let i = 0; i < $scope.identifications.length; i++) {
+                        $scope.identifications[i].launchLoading = false;
+                    }
+                    $timeout(() => $scope.$apply());
                 }
 
                 if ($scope.type === TYPE.PARASITE) {

@@ -890,9 +890,9 @@ export class TargetDataService extends DataService {
         });
     }
 
-    generateTMAP(geneIds) {
+    generateTMAP(geneIds, targetId) {
         return new Promise((resolve, reject) => {
-            this.get(`drug/tmap?geneIds=${geneIds}`)
+            this.get(`drug/tmap${getQueryString({geneIds, targetId})}`)
                 .then(data => {
                     if (data) {
                         resolve(data);
