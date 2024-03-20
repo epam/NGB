@@ -50,7 +50,11 @@ export default function run(
 
                 if (selectedGene) {
                     if (target.type === TYPE.DEFAULT) {
-                        const gene = $scope.genes.filter(g => g.geneId === selectedGene.geneId)[0];
+                        const gene = $scope.genes
+                            .filter(g => (
+                                !g.group &&
+                                g.geneId === selectedGene.geneId
+                            ))[0];
                         $scope.genesOfInterestChanged(gene);
                     }
                     if (target.type === TYPE.PARASITE) {
