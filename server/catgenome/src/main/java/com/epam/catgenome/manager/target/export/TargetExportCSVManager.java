@@ -33,6 +33,8 @@ import com.epam.catgenome.manager.externaldb.target.opentargets.DrugAssociationM
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugField;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDiseaseField;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugField;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseaseField;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugField;
 import com.epam.catgenome.manager.pdb.PdbFileField;
 import com.epam.catgenome.entity.target.export.GeneSequenceField;
 import com.epam.catgenome.entity.target.export.TargetHomologyField;
@@ -127,6 +129,14 @@ public class TargetExportCSVManager {
             case DGIDB_DRUGS:
                 result = ExportUtils.export(targetExportManager.getDGIDBDrugs(geneIds, genesMap),
                         getAssociationFields(DGIDBField.values()), format, includeHeader);
+                break;
+            case TTD_DISEASES:
+                result = ExportUtils.export(targetExportManager.getTTDDiseases(targetId, geneIds, genesMap),
+                        getAssociationFields(TTDDiseaseField.values()), format, includeHeader);
+                break;
+            case TTD_DRUGS:
+                result = ExportUtils.export(targetExportManager.getTTDDrugs(targetId, geneIds, genesMap),
+                        getAssociationFields(TTDDrugField.values()), format, includeHeader);
                 break;
             case STRUCTURES:
                 result = ExportUtils.export(targetExportManager.getStructures(targetId, geneIds),

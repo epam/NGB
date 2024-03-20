@@ -32,6 +32,7 @@ import lombok.Setter;
 @Builder
 public class KnownDrugData {
     private String target;
+    private String ttdTarget;
     private LinkEntity drug;
     private String type;
     private String mechanism;
@@ -42,4 +43,10 @@ public class KnownDrugData {
     private LinkEntity source;
     private String interactionSource;
     private String interactionType;
+    private String company;
+    private String therapeuticClass;
+    private String inChI;
+    private String inChIKey;
+    private String canonicalSmiles;
+    private String compoundClass;
 }

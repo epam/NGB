@@ -33,6 +33,8 @@ import lombok.Setter;
 @Builder
 public class DiseaseData {
     private String target;
+    private String ttdTarget;
+    private String clinicalStatus;
     private LinkEntity disease;
     private Float overallScore;
     private Float geneticAssociation;

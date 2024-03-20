@@ -29,6 +29,8 @@ import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDiseaseAssociation;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.export.GeneSequenceField;
@@ -53,6 +55,8 @@ import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDiseaseAsso
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDiseaseField;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugAssociationManager;
 import com.epam.catgenome.manager.externaldb.target.pharmgkb.PharmGKBDrugField;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDiseaseField;
+import com.epam.catgenome.manager.externaldb.target.ttd.TTDDrugField;
 import com.epam.catgenome.manager.pdb.PdbFileField;
 import com.epam.catgenome.manager.pdb.PdbFileManager;
 import com.epam.catgenome.manager.target.LaunchIdentificationManager;
@@ -125,6 +129,10 @@ public class TargetExportXLSManager {
                     targetExportManager.getPharmGKBDiseases(geneIds, targetNames), workbook);
             writeSheet("Known Drugs(PharmGKB)", getAssociationFields(PharmGKBDrugField.values()),
                     targetExportManager.getPharmGKBDrugs(geneIds, targetNames), workbook);
+            writeSheet("Associated Diseases(TTD)", getAssociationFields(TTDDiseaseField.values()),
+                    targetExportManager.getTTDDiseases(targetId, geneIds, targetNames), workbook);
+            writeSheet("Known Drugs(TTD)", getAssociationFields(TTDDrugField.values()),
+                    targetExportManager.getTTDDrugs(targetId, geneIds, targetNames), workbook);
             writeSheet("Known Drugs(DGIdb)", getAssociationFields(DGIDBField.values()),
                     targetExportManager.getDGIDBDrugs(geneIds, targetNames), workbook);
             writeSheet("Structures (PDB)", Arrays.asList(PdbStructureField.values()),
@@ -156,10 +164,14 @@ public class TargetExportXLSManager {
                 .collect(Collectors.toMap(g -> g.getEnsemblId().toLowerCase(), Function.identity()));
         final Map<String, String> descriptions = launchIdentificationManager.getDescriptions(ncbiGeneIds);
 
-        final Map<String, DrugsCount> drugsCountMap = getDrugsCount(geneIds);
+        final Map<String, DrugsCount> drugsCountMap = getDrugsCount(targetId, geneIds);
 
         final Map<String, Long> pharmGKBDiseases = pharmGKBDiseaseAssociationManager.totalCountMap(geneIds);
         final Map<String, Long> diseases = diseaseAssociationManager.totalCountMap(geneIds);
+        final List<TTDDiseaseAssociation> ttdDiseases = targetExportManager.getTTDDiseases(targetId,
+                geneIds, Collections.emptyMap());
+        final Map<String, List<TTDDiseaseAssociation>> ttdDiseasesMap = ttdDiseases.stream()
+                .collect(Collectors.groupingBy(d -> d.getGeneId().toLowerCase()));
 
         final Map<String, SequencesSummary> sequencesSummaryMap =
                 targetExportManager.getGeneSequencesCount(targetId, geneIds, ncbiGeneIds);
@@ -179,7 +191,8 @@ public class TargetExportXLSManager {
                     homologyData.stream().filter(g -> g.getGeneId().equals(geneId)).count() : null;
 
             long diseasesCount = (pharmGKBDiseases.containsKey(geneId) ? pharmGKBDiseases.get(geneId) : 0) +
-                    (diseases.containsKey(geneId) ? diseases.get(geneId) : 0);
+                    (diseases.containsKey(geneId) ? diseases.get(geneId) : 0) +
+                    (ttdDiseasesMap.containsKey(geneId) ? ttdDiseasesMap.get(geneId).size() : 0);
 
             String sequences = sequencesSummaryMap.containsKey(geneId) ?
                     sequencesSummaryMap.get(geneId).toString() : "";
@@ -213,18 +226,23 @@ public class TargetExportXLSManager {
         return summaries;
     }
 
-    private Map<String, DrugsCount> getDrugsCount(final List<String> geneIds) throws IOException, ParseException {
+    private Map<String, DrugsCount> getDrugsCount(final Long targetId, final List<String> geneIds)
+            throws IOException, ParseException {
         final Map<String, DrugsCount> result = new HashMap<>();
 
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);
+        final List<TTDDrugAssociation> ttdDrugs = targetExportManager.getTTDDrugs(targetId,
+                geneIds, Collections.emptyMap());
 
         final Map<String, List<PharmGKBDrug>> pharmGKBDrugsMap = pharmGKBDrugs.stream()
                 .collect(Collectors.groupingBy(d -> d.getGeneId().toLowerCase()));
         final Map<String, List<DGIDBDrugAssociation>> dgidbDrugsMap = dgidbDrugs.stream()
                 .collect(Collectors.groupingBy(d -> d.getGeneId().toLowerCase()));
         final Map<String, List<DrugAssociation>> drugAssociationsMap = drugAssociations.stream()
+                .collect(Collectors.groupingBy(d -> d.getGeneId().toLowerCase()));
+        final Map<String, List<TTDDrugAssociation>> ttdDrugsMap = ttdDrugs.stream()
                 .collect(Collectors.groupingBy(d -> d.getGeneId().toLowerCase()));
 
         for (String geneId : geneIds) {
@@ -234,12 +252,16 @@ public class TargetExportXLSManager {
                     .stream().map(UrlEntity::getName).collect(Collectors.toList());
             List<String> drugNames = drugAssociationsMap.getOrDefault(geneId, Collections.emptyList())
                     .stream().map(UrlEntity::getName).collect(Collectors.toList());
+            List<String> ttdDrugNames = ttdDrugsMap.getOrDefault(geneId, Collections.emptyList())
+                    .stream().map(UrlEntity::getName).collect(Collectors.toList());
             drugNames.addAll(pharmGKBDrugNames);
             drugNames.addAll(dgidbDrugsNames);
+            drugNames.addAll(ttdDrugNames);
             long distinctCount = drugNames.stream().map(String::toLowerCase).distinct().count();
             long totalCount = pharmGKBDrugsMap.getOrDefault(geneId, Collections.emptyList()).size() +
                     dgidbDrugsMap.getOrDefault(geneId, Collections.emptyList()).size() +
-                    drugAssociationsMap.getOrDefault(geneId, Collections.emptyList()).size();
+                    drugAssociationsMap.getOrDefault(geneId, Collections.emptyList()).size() +
+                    ttdDrugsMap.getOrDefault(geneId, Collections.emptyList()).size();
             DrugsCount drugsCount = DrugsCount.builder()
                     .distinctCount(distinctCount)
                     .totalCount(totalCount)

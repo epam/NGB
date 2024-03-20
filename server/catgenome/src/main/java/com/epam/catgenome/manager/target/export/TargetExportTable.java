@@ -30,6 +30,8 @@ public enum TargetExportTable {
     PHARM_GKB_DISEASES,
     PHARM_GKB_DRUGS,
     DGIDB_DRUGS,
+    TTD_DISEASES,
+    TTD_DRUGS,
     STRUCTURES,
     LOCAL_PDBS,
     SEQUENCES,
