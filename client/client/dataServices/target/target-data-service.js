@@ -711,11 +711,11 @@ export class TargetDataService extends DataService {
         });
     }
 
-    getTargetExcelReportGeneId(geneId, targetId) {
+    getTargetExcelReportGeneId(geneId) {
         return new Promise((resolve, reject) => {
             this.downloadFile(
                 'get',
-                `target/report/${geneId}${getQueryString({targetId})}`,
+                `target/report/${geneId}`,
                 undefined,
                 {customResponseType: 'arraybuffer'}
             )

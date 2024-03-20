@@ -20,7 +20,8 @@ const SOURCE_OPTIONS = {
 const EXPORT_SOURCE = {
     OPEN_TARGETS: 'OPEN_TARGETS_DRUGS',
     PHARM_GKB: 'PHARM_GKB_DRUGS',
-    DGI_DB: 'DGIDB_DRUGS'
+    DGI_DB: 'DGIDB_DRUGS',
+    TTD: 'TTD_DRUGS',
 };
 
 export default class ngbKnownDrugsPanelService {

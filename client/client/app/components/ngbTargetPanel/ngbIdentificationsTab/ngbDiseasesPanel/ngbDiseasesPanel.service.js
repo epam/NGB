@@ -23,8 +23,9 @@ const SourceOptionNames = {
 };
 
 const EXPORT_SOURCE = {
-    OPEN_TARGETS: 'OPEN_TARGETS_DISEASES',
-    PHARM_GKB: 'PHARM_GKB_DISEASES'
+    [SourceOptions.OPEN_TARGETS]: 'OPEN_TARGETS_DISEASES',
+    [SourceOptions.PHARM_GKB]: 'PHARM_GKB_DISEASES',
+    [SourceOptions.TTD]: 'TTD_DIESASES',
 };
 
 class NgbDiseasesPanelService {
