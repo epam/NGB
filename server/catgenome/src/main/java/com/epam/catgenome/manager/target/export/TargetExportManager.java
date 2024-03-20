@@ -27,7 +27,6 @@ import com.epam.catgenome.entity.externaldb.homolog.HomologGroup;
 import com.epam.catgenome.entity.externaldb.homolog.HomologType;
 import com.epam.catgenome.entity.externaldb.homologene.Gene;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
-import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DiseaseAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
@@ -324,12 +323,12 @@ public class TargetExportManager {
         return toGeneSequences(genesMap, sequencesTable);
     }
 
-    public Map<String, SequencesSummary> getGeneSequencesCount(final Long targetId,
-                                                               final List<String> geneIds,
-                                                               final List<GeneId> ncbiGeneIds)
-            throws IOException, ExternalDbUnavailableException, ParseException {
-        final List<GeneRefSection> geneRefSections = identificationManager.getGeneSequencesTable(targetId, geneIds,
-                ncbiGeneIds, false, true, true);
+    public List<GeneSequence> getSequenceTable(final List<GeneRefSection> geneRefSections,
+                                               final Map<String, String> genesMap) {
+        return toGeneSequences(genesMap, geneRefSections);
+    }
+
+    public Map<String, SequencesSummary> getGeneSequencesCount(final List<GeneRefSection> geneRefSections) {
         return toCountMap(geneRefSections);
     }
 
