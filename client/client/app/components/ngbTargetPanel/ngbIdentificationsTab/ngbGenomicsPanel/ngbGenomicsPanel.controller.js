@@ -8,6 +8,11 @@ const MODEL = {
     QUERY: 'query'
 };
 
+const TYPE = {
+    DEFAULT: 'DEFAULT',
+    PARASITE: 'PARASITE'
+};
+
 function findGeneByName(reference, gene) {
     if (!reference || !gene) {
         return Promise.resolve(undefined);
@@ -46,6 +51,10 @@ function findReferenceById(id, projectContext) {
 }
 
 export default class ngbGenomicsPanelController {
+
+    get type() {
+        return TYPE;
+    }
 
     targetModel = {};
     queryModel = {};
@@ -88,6 +97,14 @@ export default class ngbGenomicsPanelController {
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:identification:sequences:results:updated', setAllProteinOptions);
         });
+    }
+
+    get targetType() {
+        const identificationTarget = this.ngbTargetPanelService.identificationTarget;
+        if (identificationTarget && identificationTarget.target) {
+            return identificationTarget.target.type;
+        }
+        return undefined;
     }
 
     get loadingData() {

@@ -32,6 +32,9 @@ export default class ngbGenomicsPanelService {
     _filterInfo = null;
     fieldList = {};
 
+    _genomicsParasiteData = null;
+    _genomicsParasiteResults = null;
+
     get alignment() {
         return this._alignment;
     }
@@ -81,6 +84,9 @@ export default class ngbGenomicsPanelService {
     get tableResults() {
         return this._genomicsResults && this._genomicsResults.length;
     }
+    get genomicsParasiteData() {
+        return this._genomicsParasiteData;
+    }
 
     static instance (dispatcher, ngbTargetPanelService, targetDataService, genomeDataService) {
         return new ngbGenomicsPanelService(dispatcher, ngbTargetPanelService, targetDataService, genomeDataService);
@@ -94,6 +100,14 @@ export default class ngbGenomicsPanelService {
     get translationalSpecies() {
         const { translational = [] } = this.ngbTargetPanelService.identificationTarget || {};
         return translational.map(s => ({
+            taxId: s.taxId,
+            name: s.speciesName
+        }));
+    }
+
+    get interestSpecies() {
+        const { interest = [] } = this.ngbTargetPanelService.identificationTarget || {};
+        return interest.map(s => ({
             taxId: s.taxId,
             name: s.speciesName
         }));
@@ -416,5 +430,115 @@ export default class ngbGenomicsPanelService {
             source,
             this.targetId
         );
+    }
+
+    getTarget(id) {
+        if (!id) return;
+        return this.ngbTargetPanelService.getChipByGeneId(id);
+    }
+
+    setGenomicsParasiteData(data) {
+        if (!data) {
+            this._totalPages = 0;
+            this._emptyResults = true;
+            this.dispatcher.emit('target:identification:genomics:total:updated', 0);
+        } else {
+            this._genomicsParasiteData = data.reduce((acc, item) => {
+                return [
+                    ...acc,
+                    ...Object.entries(item.additionalGenes)
+                        .map(([geneId, taxId]) => ({
+                            target: this.getTarget(item.geneId),
+                            species: {
+                                taxId: item.taxId,
+                                name: item.speciesName
+                            },
+                            geneId,
+                            taxId
+                        }))
+                ];
+            }, []);
+            const totalCount = this._genomicsParasiteData.length;
+            this._emptyResults = !totalCount;
+            this.dispatcher.emit('target:identification:genomics:total:updated', totalCount);
+        }
+        this.setParasiteFieldList();
+    }
+
+    setParasiteFieldList() {
+        const targets = Array.from(new Set(this.genomicsParasiteData.map(i => i.target)));
+        const speciesObject = [...this.interestSpecies, ...this.translationalSpecies].reduce((acc, curr) => {
+            acc[curr.taxId] = curr.name;
+            return acc;
+        }, {});
+        this.fieldList = {
+            target: targets,
+            species: Object.entries(speciesObject)
+            .map(([taxId, name]) => ({
+                taxId,
+                name
+            })),
+        };
+        this.dispatcher.emitSimpleEvent('genomics:filters:list');
+    }
+
+    async getGenomicsParasiteData() {
+        this.loadingData = true;
+        if (!this.targetId || !this.geneIdsOfInterest.length) {
+            return new Promise(resolve => {
+                this.loadingData = false;
+                resolve(true);
+            });
+        }
+        const geneIds = [...this.geneIdsOfInterest, ...this.translationalGeneIds];
+        return new Promise(resolve => {
+            this.targetDataService.getTargetGenesInfo(this.targetId, geneIds)
+                .then((data) => {
+                    this._failedResult = false;
+                    this._errorMessageList = null;
+                    this.setGenomicsParasiteData(data);
+                    this.loadingData = false;
+                    resolve(true);
+                })
+                .catch(err => {
+                    this._failedResult = true;
+                    this._errorMessageList = [err.message];
+                    this.setGenomicsParasiteData(null);
+                    this.loadingData = false;
+                    resolve(false);
+                });
+        });
+    }
+
+    getFilteredParasiteResults() {
+        let data = [...(this._genomicsParasiteData || [])];
+        if (!data || !data.length) {
+            return [];
+        }
+        if (this._filterInfo) {
+            Object.entries(this._filterInfo).map(([key, value]) => {
+                const isInclude = (item) => {
+                    if (key === 'species') {
+                        return value.some(v => item[key].taxId === v.taxId);
+                    }
+                    return value.some(v => item[key].toLowerCase().includes(v.toLowerCase()));
+                };
+                data = data.filter(item => {
+                    return (
+                        value.includes(item[key]) ||
+                        isInclude(item)
+                    );
+                });
+            })
+        }
+        return data;
+    }
+
+    getGenomicsParasiteResults() {
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = this.currentPage * this.pageSize;
+        const filteredResults = this.getFilteredParasiteResults();
+        this._totalPages = Math.ceil(filteredResults.length / this.pageSize);
+        return filteredResults.slice(start, end);
     }
 }
