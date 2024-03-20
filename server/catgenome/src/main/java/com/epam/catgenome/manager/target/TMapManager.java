@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.target;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.opentargets.DrugAssociation;
 import com.epam.catgenome.entity.externaldb.target.pharmgkb.PharmGKBDrug;
+import com.epam.catgenome.entity.externaldb.target.ttd.TTDDrugAssociation;
 import com.epam.catgenome.entity.tmap.Compound;
 import com.epam.catgenome.entity.tmap.TMapDrug;
 import com.epam.catgenome.entity.tmap.TMapDrugField;
@@ -61,6 +62,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -101,7 +103,7 @@ public class TMapManager {
         this.tMapReportName = tMapReportName;
     }
 
-    public String generateTMapReport(final List<String> geneIds)
+    public String generateTMapReport(final Long targetId, final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException, InterruptedException, TMapException {
         final String folderName = geneIds.stream()
                 .map(String::toLowerCase)
@@ -110,7 +112,7 @@ public class TMapManager {
         final Path outputPath = Paths.get(tMapReportPath, folderName);
         final File outputFile = outputPath.toFile();
         if (!outputFile.exists()) {
-            getTMapReport(generateCSV(geneIds), outputPath.toString());
+            getTMapReport(generateCSV(targetId, geneIds), outputPath.toString());
         }
         return FilenameUtils.concat(folderName, tMapReportName);
     }
@@ -125,10 +127,10 @@ public class TMapManager {
         return FilenameUtils.concat(diseaseId, tMapReportName);
     }
 
-    private String generateCSV(final List<String> geneIds)
+    private String generateCSV(final Long targetId, final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException {
         final File tempFile = File.createTempFile(UUID.randomUUID().toString(), CSV);
-        FileUtils.writeByteArrayToFile(tempFile, export(geneIds));
+        FileUtils.writeByteArrayToFile(tempFile, export(targetId, geneIds));
         return tempFile.toString();
     }
 
@@ -158,7 +160,7 @@ public class TMapManager {
 
     private List<TMapDrug> getDrugs(final Long targetId, final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        final Map<String, TMapDrug> result = getDrugsByGeneIds(geneIds);
+        final Map<String, TMapDrug> result = getDrugsByGeneIds(targetId, geneIds);
         final List<TMapDrug> drugs = getTMapDrugs(result);
         if (CollectionUtils.isNotEmpty(drugs)) {
             final Map<String, String> geneNames = launchIdentificationManager.getGeneNamesMap(targetId, geneIds);
@@ -198,10 +200,14 @@ public class TMapManager {
         return drugs;
     }
 
-    private Map<String, TMapDrug> getDrugsByGeneIds(final List<String> geneIds) throws ParseException, IOException {
+    private Map<String, TMapDrug> getDrugsByGeneIds(final Long targetId, final List<String> geneIds)
+            throws ParseException, IOException {
         final List<PharmGKBDrug> pharmGKBDrugs = pharmGKBDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DGIDBDrugAssociation> dgidbDrugs = dgidbDrugAssociationManager.searchByGeneIds(geneIds);
         final List<DrugAssociation> drugAssociations = drugAssociationManager.searchByGeneIds(geneIds);
+        final List<TTDDrugAssociation> ttdDrugs = Objects.isNull(targetId) ? Collections.emptyList() :
+                launchIdentificationManager.getTTDDrugs(targetId, geneIds);
+
         final Map<String, TMapDrug> result = new HashMap<>();
         pharmGKBDrugs.forEach(d -> result.put(d.getName().toLowerCase(), TMapDrug.builder()
                     .geneId(d.getGeneId().toLowerCase())
@@ -214,6 +220,11 @@ public class TMapManager {
                 .drugName(d.getName())
                 .build()));
         drugAssociations.forEach(d -> result.put(d.getName().toLowerCase(), TMapDrug.builder()
+                .geneId(d.getGeneId().toLowerCase())
+                .drugId(d.getId())
+                .drugName(d.getName())
+                .build()));
+        ttdDrugs.forEach(d -> result.put(d.getName().toLowerCase(), TMapDrug.builder()
                 .geneId(d.getGeneId().toLowerCase())
                 .drugId(d.getId())
                 .drugName(d.getName())
@@ -275,9 +286,10 @@ public class TMapManager {
         return drugIdsAll;
     }
 
-    private byte[] export(final List<String> geneIds)
+    private byte[] export(final Long targetId, final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException {
-        return ExportUtils.export(getDrugs(null, geneIds), Arrays.asList(TMapDrugField.values()), FileFormat.CSV, true);
+        return ExportUtils.export(getDrugs(targetId, geneIds),
+                Arrays.asList(TMapDrugField.values()), FileFormat.CSV, true);
     }
 
     private byte[] export(final String diseaseId)

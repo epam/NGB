@@ -59,9 +59,10 @@ public class DrugController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<String> generateTMapReport(@RequestParam final List<String> geneIds)
+    public Result<String> generateTMapReport(@RequestParam final List<String> geneIds,
+                                             @RequestParam(required = false) final Long targetId)
             throws IOException, ParseException, ExternalDbUnavailableException, InterruptedException, TMapException {
-        return Result.success(tMapSecurityService.generateTMapReport(geneIds));
+        return Result.success(tMapSecurityService.generateTMapReport(targetId, geneIds));
     }
 
     @GetMapping(value = "/drug/tmap/{diseaseId}")

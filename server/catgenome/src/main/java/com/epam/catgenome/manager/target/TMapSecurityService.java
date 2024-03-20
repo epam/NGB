@@ -42,9 +42,9 @@ public class TMapSecurityService {
     private final TMapManager tMapManager;
 
     @PreAuthorize(ROLE_USER)
-    public String generateTMapReport(final List<String> geneIds)
+    public String generateTMapReport(final Long targetId, final List<String> geneIds)
             throws IOException, ParseException, ExternalDbUnavailableException, InterruptedException, TMapException {
-        return tMapManager.generateTMapReport(geneIds);
+        return tMapManager.generateTMapReport(targetId, geneIds);
     }
 
     @PreAuthorize(ROLE_USER)
