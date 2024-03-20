@@ -2,12 +2,14 @@ import type {ItemValue} from "./base";
 
 export enum DiseasesSource {
   openTargets = 'OPEN_TARGETS',
-  pharmGKB = 'PHARMGKB'
+  pharmGKB = 'PHARMGKB',
+  ttd = 'TTD',
 }
 
 export const DiseasesSourceNames: Record<DiseasesSource, string> = {
   [DiseasesSource.openTargets]: 'Open Targets',
   [DiseasesSource.pharmGKB]: 'PharmGKB',
+  [DiseasesSource.ttd]: 'TTD',
 };
 
 export type DiseasesOpenTargetsItem = {
@@ -28,6 +30,13 @@ export type DiseasesPharmGKBItem = {
   disease: ItemValue;
 }
 
+export type DiseasesTTDItem = {
+  target: ItemValue;
+  ttdTarget: ItemValue;
+  disease: ItemValue;
+  clinicalStatus?: ItemValue;
+}
+
 export type DiseasesOpenTargetsData = {
   source: DiseasesSource.openTargets;
   data: DiseasesOpenTargetsItem[];
@@ -38,6 +47,11 @@ export type DiseasesPharmGKBData = {
   data: DiseasesPharmGKBItem[];
 }
 
-export type DiseasesItem = DiseasesOpenTargetsItem | DiseasesPharmGKBItem;
+export type DiseasesTTDData = {
+  source: DiseasesSource.ttd;
+  data: DiseasesTTDItem[];
+}
 
-export type DiseasesData = DiseasesOpenTargetsData | DiseasesPharmGKBData;
+export type DiseasesItem = DiseasesOpenTargetsItem | DiseasesPharmGKBItem | DiseasesTTDItem;
+
+export type DiseasesData = DiseasesOpenTargetsData | DiseasesPharmGKBData | DiseasesTTDData;
