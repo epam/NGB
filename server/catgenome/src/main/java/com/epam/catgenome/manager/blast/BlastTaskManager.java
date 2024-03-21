@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2021-2023 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -208,15 +208,18 @@ public class BlastTaskManager {
     }
 
     public BlastRequestResult getResult(final long taskId) throws BlastRequestException {
-        return blastRequestManager.getResult(taskId);
+        final BlastTask task = getBlastTask(taskId);
+        return blastRequestManager.getResult(task.getBlastTaskId());
     }
 
     public Collection<BlastSequence> getGroupedResult(final long taskId) throws BlastRequestException {
-        return groupResult(blastRequestManager.getResult(taskId));
+        final BlastTask task = getBlastTask(taskId);
+        return groupResult(blastRequestManager.getResult(task.getBlastTaskId()));
     }
 
     public ResponseBody getRawResult(final long taskId) throws BlastRequestException {
-        return blastRequestManager.getRawResult(taskId);
+        final BlastTask task = getBlastTask(taskId);
+        return blastRequestManager.getRawResult(task.getBlastTaskId());
     }
 
     public CreateDatabaseResponse createDatabase(final CreateDatabaseRequest request) throws BlastRequestException {
@@ -296,7 +299,7 @@ public class BlastTaskManager {
                                      final BlastDatabase blastDatabase,
                                      final BlastRequestInfo blastRequestInfo) {
         final BlastTask blastTask = new BlastTask();
-        blastTask.setId(blastRequestInfo.getRequestId());
+        blastTask.setBlastTaskId(blastRequestInfo.getRequestId());
         blastTask.setTitle(taskVO.getTitle());
         blastTask.setQuery(taskVO.getQuery());
         blastTask.setDatabase(blastDatabase);
@@ -331,5 +334,11 @@ public class BlastTaskManager {
             blastRequest.setExpectedThreshold(Double.parseDouble(params.get(EVALUE)));
         }
         return blastRequest;
+    }
+
+    private BlastTask getBlastTask(final long taskId) {
+        final BlastTask task = blastTaskDao.loadTaskById(taskId);
+        Assert.notNull(task, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
+        return task;
     }
 }

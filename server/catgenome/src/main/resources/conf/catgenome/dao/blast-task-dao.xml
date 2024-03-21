@@ -3,11 +3,13 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <bean class="com.epam.catgenome.dao.blast.BlastTaskDao" autowire="byName">
+        <property name="taskSequenceName" value="catgenome.s_task"/>
         <property name="insertTaskQuery">
             <value>
                 <![CDATA[
                     INSERT INTO catgenome.task (
                         task_id,
+                        blast_task_id,
                         title,
                         created_date,
                         status,
@@ -21,6 +23,7 @@
                         owner
                     ) VALUES (
                         :TASK_ID,
+                        :BLAST_TASK_ID,
                         :TITLE,
                         :CREATED_DATE,
                         :STATUS,
@@ -60,6 +63,7 @@
                 <![CDATA[
                     SELECT
                         task_id,
+                        blast_task_id,
                         title,
                         created_date,
                         status,
@@ -88,6 +92,7 @@
                 <![CDATA[
                     SELECT
                         task_id,
+                        blast_task_id,
                         title,
                         created_date,
                         status,
