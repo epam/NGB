@@ -133,6 +133,7 @@ public class AlignmentManager {
         targets.forEach(target -> {
             final List<TargetGene> genes = new ArrayList<>();
             try {
+                log.error("Processing target {} {}", target.getId(), target.getTargetName());
                 final int pageSize = 10;
                 final SearchRequest searchRequest = new SearchRequest();
                 searchRequest.setPageSize(pageSize);
