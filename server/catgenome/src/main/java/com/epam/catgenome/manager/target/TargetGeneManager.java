@@ -606,7 +606,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         SPECIES_NAME("Species Name", FilterType.PHRASE, SortType.STRING),
         PRIORITY("Priority", FilterType.OPTIONS, SortType.LONG),
         STATUS("Status", FilterType.OPTIONS, SortType.STRING),
-        TTD_TARGETS("TTD Targets", FilterType.PHRASE, SortType.STRING),
+        TTD_TARGETS("TTD Targets", FilterType.PHRASE, SortType.NONE),
         METADATA("Metadata", FilterType.NONE, SortType.NONE);
 
         private final String value;
