@@ -538,7 +538,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         doc.add(new SortedDocValuesField(IndexField.GENE_ID.getValue(), new BytesRef(entry.getGeneId())));
 
         if (entry.getStatus() != null) {
-            doc.add(new TextField(IndexField.STATUS.getValue(), entry.getStatus().name(), Field.Store.YES));
+            doc.add(new StringField(IndexField.STATUS.getValue(), entry.getStatus().name(), Field.Store.YES));
             doc.add(new SortedDocValuesField(IndexField.STATUS.getValue(), new BytesRef(entry.getStatus().name())));
         }
 
