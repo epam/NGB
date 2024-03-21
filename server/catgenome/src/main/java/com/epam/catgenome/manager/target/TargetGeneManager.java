@@ -581,7 +581,11 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                     throw new TargetGenesException(String.format("Can't add string value to numerical field '%s'", k));
                 }
             } else {
-                doc.add(new TextField(k, v, Field.Store.YES));
+                if (targetGeneField.getFilterType() == FilterType.OPTIONS) {
+                    doc.add(new StringField(k, v, Field.Store.YES));
+                } else {
+                    doc.add(new TextField(k, v, Field.Store.YES));
+                }
                 if (targetGeneField.getSortType() != SortType.NONE) {
                     doc.add(new SortedDocValuesField(k, new BytesRef(v)));
                 }
