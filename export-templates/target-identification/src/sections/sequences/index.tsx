@@ -19,7 +19,7 @@ export default function Sequences() {
   const genesOptions = genes.map(useGeneAndSpecies);
   const {dnas, mrnas, proteins} = useTotalCountSequences();
   const data = useSequencesData(geneId);
-  const reference = useSequencesReference(geneId);
+  const references = useSequencesReference(geneId);
   const columns = useSequencesColumns();
   return (
     <Section
@@ -49,14 +49,18 @@ export default function Sequences() {
         ) : null
       }
       {
-        (reference && reference.value) ? (
+        (references && references.length) ? (
           <div>
             <h4><b>GENOMIC</b></h4>
-            <div>
-              <span>{reference.value}</span>
-              <span> reference </span>
-              {reference.link ? <span><a href={reference.link}>NCBI</a></span> : null}
-            </div>
+            {references.map(reference => {
+              return reference ? (
+                <div>
+                  <span>{reference.value}</span>
+                  <span> reference </span>
+                  {reference.link ? <span><a href={reference.link}>NCBI</a></span> : null}
+                </div>
+              ) : null
+            })}
           </div>
         ) : null
       }

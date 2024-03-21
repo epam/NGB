@@ -11,7 +11,7 @@ import {
   DiseasesSource,
   SequencesCount,
   SequencesItem,
-  SequencesReference,
+  SequencesReferences,
   GeneAndSpecies,
   StructuresSource,
   StructuresItem,
@@ -83,19 +83,33 @@ export function useAssociatedDiseases(source: DiseasesSource): DiseasesItem[] {
 
 export function useSequencesGenes(): Gene[] {
   const {sequences = empty} =  useInjectedData();
-  const genes = sequences.map(s => s.gene);
+  const genes = [...new Set(sequences
+    .map(s => JSON.stringify(s.gene))
+  )].map(s =>JSON.parse(s));
   return genes.length ? genes : empty;
 }
 
 export function useSequencesData(geneId: string): SequencesItem[] {
   const {sequences = empty} =  useInjectedData();
-  const geneData = sequences.find((o) => o.gene.id.toLowerCase() === geneId.toLowerCase());
+  const geneData = sequences
+    .filter((o) => o.gene.id.toLowerCase() === geneId.toLowerCase())
+    .reduce((acc, s) => {
+      acc.data = acc.data ? [...acc.data, ...s.data] : [...s.data];
+      return acc;
+    }, {})
   return geneData ? geneData.data : empty;
 }
 
-export function useSequencesReference(geneId: string): SequencesReference {
+export function useSequencesReference(geneId: string): SequencesReferences {
   const {sequences = empty} =  useInjectedData();
-  const geneReference = sequences.find((o) => o.gene.id.toLowerCase() === geneId.toLowerCase());
+  const geneReference = sequences
+    .filter((o) => o.gene.id.toLowerCase() === geneId.toLowerCase())
+    .reduce((acc, s) => {
+      if (s.reference.value || s.reference.link) {
+        acc.reference = acc.reference ? [...acc.reference, s.reference] : [s.reference];
+      }
+      return acc;
+    }, {});
   return geneReference ? geneReference.reference : empty;
 }
 
