@@ -133,25 +133,15 @@ public class LaunchIdentificationManager {
             throws ExternalDbUnavailableException, IOException, ParseException {
 
         final List<String> geneIds = getGeneIds(request.getGenesOfInterest(), request.getTranslationalGenes());
-        Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
-                "Either Species of interest or Translational species must me specified.");
-
-        final Map<String, Long> targetGenes = targetManager.getTargetGenes(request.getTargetId(), geneIds,
-                includeAdditionalGenes);
-
-        final List<String> expandedGeneIds = getExpandedGeneIds(geneIds, targetGenes.keySet());
-
+        final List<String> expandedGeneIds = getExpandedGeneIds(request.getTargetId(), geneIds, includeAdditionalGenes);
         final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(expandedGeneIds);
-        final List<String> entrezGeneIds = ncbiGeneIds.stream()
-                .map(g -> g.getEntrezId().toString())
-                .collect(Collectors.toList());
 
         final Map<String, String> description = getDescriptions(ncbiGeneIds);
         final DrugsCount drugsCount = getDrugsCount(request.getTargetId(), expandedGeneIds);
         final long diseasesCount = getDiseasesCount(request.getTargetId(), expandedGeneIds);
-        final long publicationsCount = getPublicationsCount(geneIds, entrezGeneIds, request.getTargetId());
-        final SequencesSummary sequencesCount = getGeneSequencesCount(request.getTargetId(), geneIds, ncbiGeneIds);
-        final long structuresCount = getStructuresCount(request.getTargetId(), geneIds);
+        final long publicationsCount = getPublicationsCount(request.getTargetId(), geneIds, ncbiGeneIds);
+        final SequencesSummary sequencesCount = getGeneSequencesCount(request.getTargetId(), geneIds);
+        final long structuresCount = getStructuresCount(request.getTargetId(), expandedGeneIds);
         return TargetIdentificationResult.builder()
                 .description(description)
                 .diseasesCount(diseasesCount)
@@ -163,18 +153,24 @@ public class LaunchIdentificationManager {
                 .build();
     }
 
-    public static List<String> getExpandedGeneIds(final List<String> geneIds, final Set<String> tr) {
-        final Set<String> result = tr.stream().map(String::toLowerCase).collect(Collectors.toSet());
+    public List<String> getExpandedGeneIds(final Long targetId,
+                                           final List<String> geneIds,
+                                           final boolean includeAdditionalGenes) throws ParseException, IOException {
+        final Map<String, Long> targetGenes = targetManager.getTargetGenes(targetId, geneIds, includeAdditionalGenes);
+        final Set<String> result = targetGenes.keySet().stream().map(String::toLowerCase).collect(Collectors.toSet());
         result.addAll(geneIds);
         return new ArrayList<>(result);
     }
 
     public static List<String> getGeneIds(final List<String> genesOfInterest, final List<String> translationalGenes) {
-        return Stream.concat(genesOfInterest.stream(),
+        final List<String> geneIds = Stream.concat(genesOfInterest.stream(),
                         Optional.ofNullable(translationalGenes).orElse(Collections.emptyList()).stream())
                 .map(String::toLowerCase)
                 .distinct()
                 .collect(Collectors.toList());
+        Assert.isTrue(!CollectionUtils.isEmpty(geneIds),
+                "Either Species of interest or Translational species must me specified.");
+        return geneIds;
     }
 
     public SearchResult<DGIDBDrugAssociation> getDGIDbDrugs(final AssociationSearchRequest request)
@@ -276,7 +272,8 @@ public class LaunchIdentificationManager {
                         getPublicationsQuery(request.getTargetId(), request.getGeneIds()));
             }
         }
-        targetManager.expandTargetGenes(request.getTargetId(), request.getGeneIds());
+        final List<String> expandedGeneIds = getExpandedGeneIds(request.getTargetId(), request.getGeneIds(), true);
+        request.setGeneIds(expandedGeneIds);
         return pubMedService.fetchPubMedArticles(request);
     }
 
@@ -317,8 +314,8 @@ public class LaunchIdentificationManager {
                 result.addAll(sequencesManager.getGeneSequencesTable(geneId, targetGenes));
             }
 
-            final List<String> expandedGeneIds = getExpandedGeneIds(Collections.singletonList(geneId),
-                    targetGenes.keySet());
+            final List<String> expandedGeneIds = getExpandedGeneIds(targetId, Collections.singletonList(geneId),
+                    includeAdditionalGenes);
 
             final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(expandedGeneIds);
             if (CollectionUtils.isNotEmpty(ncbiGeneIds)) {
@@ -330,39 +327,11 @@ public class LaunchIdentificationManager {
         return result;
     }
 
-    public List<GeneRefSection> getGeneSequencesTable(final Long targetId,
-                                                      final List<String> geneIds,
-                                                      final List<GeneId> ncbiGeneIds,
-                                                      final Boolean getComments,
-                                                      final Boolean includeLocal,
-                                                      final Boolean includeAdditionalGenes)
-            throws ParseException, IOException, ExternalDbUnavailableException {
-
-        List<GeneRefSection> result = new ArrayList<>();
-        for (String geneId: geneIds) {
-            final Map<String, Long> targetGenes = targetManager.getTargetGenes(targetId,
-                    Collections.singletonList(geneId), includeAdditionalGenes);
-
-            if (includeLocal) {
-                result.addAll(sequencesManager.getGeneSequencesTable(geneId, targetGenes));
-            }
-
-            if (CollectionUtils.isNotEmpty(ncbiGeneIds)) {
-                final Map<String, GeneId> entrezMap = ncbiGeneIds.stream()
-                        .filter(n -> n.getEnsemblId().equalsIgnoreCase(geneId))
-                        .collect(Collectors.toMap(i -> i.getEntrezId().toString(), Function.identity()));
-                result.addAll(geneSequencesManager.getGeneSequencesTable(geneId, entrezMap, getComments));
-            }
-        }
-        return result;
-    }
-
     public SequencesSummary getGeneSequencesCount(final Long targetId,
-                                                  final List<String> geneIds,
-                                                  final List<GeneId> ncbiGeneIds)
+                                                  final List<String> geneIds)
             throws IOException, ExternalDbUnavailableException, ParseException {
         final List<GeneRefSection> geneRefSections = getGeneSequencesTable(targetId, geneIds,
-                ncbiGeneIds, false, true, includeAdditionalGenesSequences);
+                false, true, includeAdditionalGenesSequences);
         return getSequencesSummary(geneRefSections);
     }
 
@@ -437,7 +406,7 @@ public class LaunchIdentificationManager {
         return localPdbFiles + structuresCount;
     }
 
-    public long getPublicationsCount(final List<String> geneIds, final List<String> entrezGeneIds, final Long targetId)
+    public long getPublicationsCount(final Long targetId, final List<String> geneIds, final List<GeneId> ncbiGeneIds)
             throws ParseException, IOException {
         if (targetId != null) {
             final Target target = targetManager.getTarget(targetId);
@@ -445,7 +414,10 @@ public class LaunchIdentificationManager {
                 return pubMedService.getParasitesPublicationsCount(getPublicationsQuery(targetId, geneIds));
             }
         }
-        return pubMedService.getPublicationsCount(entrezGeneIds);
+        final List<String> entrezGeneIds = ncbiGeneIds.stream()
+                .map(g -> g.getEntrezId().toString())
+                .collect(Collectors.toList());
+        return CollectionUtils.isNotEmpty(entrezGeneIds) ? pubMedService.getPublicationsCount(entrezGeneIds) : 0;
     }
 
     public DrugsCount getDrugsCount(final Long targetId, final List<String> geneIds)

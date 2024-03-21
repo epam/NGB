@@ -25,6 +25,7 @@ package com.epam.catgenome.manager.target.export;
 
 import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.controller.vo.externaldb.NCBISummaryVO;
+import com.epam.catgenome.controller.vo.target.PublicationSearchRequest;
 import com.epam.catgenome.entity.externaldb.ncbi.GeneId;
 import com.epam.catgenome.entity.externaldb.target.DrugsCount;
 import com.epam.catgenome.entity.externaldb.target.dgidb.DGIDBDrugAssociation;
@@ -40,12 +41,26 @@ import com.epam.catgenome.entity.target.GeneSequence;
 import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
-import com.epam.catgenome.entity.target.export.html.*;
+import com.epam.catgenome.entity.target.export.html.ComparativeGenomics;
+import com.epam.catgenome.entity.target.export.html.DiseaseData;
+import com.epam.catgenome.entity.target.export.html.GeneDetails;
+import com.epam.catgenome.entity.target.export.html.KnownDrugData;
+import com.epam.catgenome.entity.target.export.html.KnownDrugsCount;
+import com.epam.catgenome.entity.target.export.html.LinkEntity;
+import com.epam.catgenome.entity.target.export.html.Publication;
+import com.epam.catgenome.entity.target.export.html.Sequence;
+import com.epam.catgenome.entity.target.export.html.SequenceData;
+import com.epam.catgenome.entity.target.export.html.SequenceGene;
+import com.epam.catgenome.entity.target.export.html.SequencesCount;
+import com.epam.catgenome.entity.target.export.html.SourceData;
+import com.epam.catgenome.entity.target.export.html.StructureData;
+import com.epam.catgenome.entity.target.export.html.TargetExportHTML;
+import com.epam.catgenome.entity.target.export.html.Title;
+import com.epam.catgenome.entity.target.export.html.TotalCounts;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.externaldb.PubMedService;
+import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Structure;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
-import com.epam.catgenome.manager.externaldb.sequence.NCBISequenceManager;
 import com.epam.catgenome.manager.target.LaunchIdentificationManager;
 import com.epam.catgenome.manager.target.TargetManager;
 import com.epam.catgenome.entity.target.export.TargetHomologue;
@@ -60,36 +75,35 @@ import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.manager.target.LaunchIdentificationManager.getGeneIds;
+import static com.epam.catgenome.manager.target.LaunchIdentificationManager.*;
 import static org.apache.commons.lang3.StringUtils.join;
 
 
 @Service
 public class TargetExportHTMLManager {
     private static final String DATA_PLACEHOLDER = "\"TARGET_IDENTIFICATION_DATA\"";
+    private static final Integer BATCH_SIZE = 500;
     private final LaunchIdentificationManager launchIdentificationManager;
     private final TargetExportManager targetExportManager;
     private final NCBIGeneIdsManager ncbiGeneIdsManager;
-    private final PubMedService pubMedService;
-    private final NCBISequenceManager geneSequencesManager;
     private final TargetManager targetManager;
     private final String templatePath;
 
     public TargetExportHTMLManager(final LaunchIdentificationManager launchIdentificationManager,
                                    final TargetExportManager targetExportManager,
                                    final NCBIGeneIdsManager ncbiGeneIdsManager,
-                                   final PubMedService pubMedService,
-                                   final NCBISequenceManager geneSequencesManager,
                                    final TargetManager targetManager,
                                    final @Value("${target.export.html.template:}") String templatePath) {
         this.launchIdentificationManager = launchIdentificationManager;
         this.targetExportManager = targetExportManager;
         this.ncbiGeneIdsManager = ncbiGeneIdsManager;
-        this.pubMedService = pubMedService;
-        this.geneSequencesManager = geneSequencesManager;
         this.targetManager = targetManager;
         this.templatePath = templatePath;
     }
@@ -101,43 +115,36 @@ public class TargetExportHTMLManager {
         final String template = getTemplate();
 
         final List<String> geneIds = getGeneIds(genesOfInterest, translationalGenes);
-        targetManager.expandTargetGenes(targetId, geneIds);
-        String name;
-        if (targetId != null) {
-            final Target target = targetManager.getTarget(targetId);
-            name = target.getTargetName();
-        } else {
-            final List<String> geneNames = launchIdentificationManager.getGeneNames(targetId, geneIds);
-            name = geneNames.get(0);
-        }
+        final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(targetId, geneIds);
 
-        final Map<String, String> geneNamesMap = targetExportManager.getTargetGeneNames(targetId, geneIds);
-        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(geneIds);
-        final List<String> entrezIds = ncbiGeneIds.stream()
-                .map(g -> g.getEntrezId().toString())
-                .collect(Collectors.toList());
+        final List<String> expandedGeneIds = launchIdentificationManager.getExpandedGeneIds(targetId, geneIds, true);
+        final Map<String, String> geneNamesMap = targetExportManager.getTargetGeneNames(targetId, expandedGeneIds);
+        final List<GeneId> ncbiGeneIds = ncbiGeneIdsManager.getNcbiGeneIds(expandedGeneIds);
 
-        final List<SourceData<KnownDrugData>> knownDrugs = getKnownDrugs(targetId, geneIds, geneNamesMap);
-        final List<PharmGKBDisease> pharmGKBDiseases = targetExportManager.getPharmGKBDiseases(geneIds,
+        final List<SourceData<KnownDrugData>> knownDrugs = getKnownDrugs(targetId, expandedGeneIds, geneNamesMap);
+
+        final List<PharmGKBDisease> pharmGKBDiseases = targetExportManager.getPharmGKBDiseases(expandedGeneIds,
                 geneNamesMap);
-        final List<DiseaseAssociation> diseaseAssociations = targetExportManager.getDiseaseAssociations(geneIds,
+        final List<DiseaseAssociation> diseaseAssociations = targetExportManager.getDiseaseAssociations(expandedGeneIds,
                 geneNamesMap);
         final List<TTDDiseaseAssociation> ttdDiseaseAssociations = targetExportManager.getTTDDiseases(targetId,
                 geneIds, geneNamesMap);
         final List<SourceData<DiseaseData>> diseases = getDiseases(pharmGKBDiseases,
                 diseaseAssociations, ttdDiseaseAssociations);
-        final List<Sequence> sequences = getSequences(targetId,
-                getGeneIds(genesOfInterest, translationalGenes), geneNamesMap);
-        final List<SourceData<StructureData>> structures = getStructures(targetId, geneIds);
-        final long publicationsCount = pubMedService.getPublicationsCount(entrezIds);
-        final List<Publication> publications = getPublications(entrezIds, publicationsCount);
+
+        final List<GeneRefSection> geneRefSections = launchIdentificationManager.getGeneSequencesTable(targetId,
+                geneIds, false, true, true);
+        final List<Sequence> sequences = getSequences(targetId, geneIds, geneNamesMap, geneRefSections);
+        final List<SourceData<StructureData>> structures = getStructures(targetId, expandedGeneIds);
+        final long publicationsCount = launchIdentificationManager.getPublicationsCount(targetId, geneIds, ncbiGeneIds);
+        final List<Publication> publications = getPublications(targetId, geneIds, publicationsCount);
         final List<ComparativeGenomics> comparativeGenomics = getComparativeGenomics(targetId, genesOfInterest,
                 translationalGenes, geneNamesMap);
 
-        final DrugsCount drugsCount = launchIdentificationManager.getDrugsCount(targetId, geneIds);
+        final DrugsCount drugsCount = launchIdentificationManager.getDrugsCount(targetId, expandedGeneIds);
         final long structuresCount = structures.stream().mapToInt(d -> d.getData().size()).sum();
         final long homologsCount = comparativeGenomics.size();
-        final SequencesSummary sequencesSummary = geneSequencesManager.getSequencesCount(ncbiGeneIds);
+        final SequencesSummary sequencesSummary = getGeneSequencesCount(geneRefSections);
         final KnownDrugsCount knownDrugsCount = KnownDrugsCount
                 .builder()
                 .drugs(drugsCount.getDistinctCount())
@@ -160,7 +167,6 @@ public class TargetExportHTMLManager {
 
         final List<GeneDetails> interest = new ArrayList<>();
         final List<GeneDetails> translational = new ArrayList<>();
-        final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(targetId, geneIds);
         final Map<String, String> descriptions = launchIdentificationManager.getDescriptions(ncbiGeneIds);
         for (String geneId : geneIds) {
             TargetGene gene = genesMap.containsKey(geneId) ? genesMap.get(geneId) : TargetGene.builder().build();
@@ -181,7 +187,7 @@ public class TargetExportHTMLManager {
         }
 
         final TargetExportHTML result = TargetExportHTML.builder()
-                .name(name)
+                .name(getTargetName(targetId, geneIds))
                 .interest(interest)
                 .translational(translational)
                 .totalCounts(totalCounts)
@@ -200,6 +206,18 @@ public class TargetExportHTMLManager {
         return getHTMLSummary(Collections.singletonList(geneId), Collections.emptyList(), null);
     }
 
+    private String getTargetName(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
+        String name;
+        if (targetId != null) {
+            final Target target = targetManager.getTarget(targetId);
+            name = target.getTargetName();
+        } else {
+            final List<String> geneNames = launchIdentificationManager.getGeneNames(targetId, geneIds);
+            name = geneNames.get(0);
+        }
+        return name;
+    }
+
     private InputStream fillTemplate(final String template,
                                      final TargetExportHTML result) {
         final String html = template.replace(DATA_PLACEHOLDER,
@@ -216,15 +234,18 @@ public class TargetExportHTMLManager {
 
     }
 
+    private SequencesSummary getGeneSequencesCount(final List<GeneRefSection> geneRefSections) {
+        return getSequencesSummary(geneRefSections);
+    }
+
     private List<Sequence> getSequences(final Long targetId,
                                         final List<String> geneIds,
-                                        final Map<String, String> geneNamesMap)
-            throws ParseException, IOException, ExternalDbUnavailableException {
+                                        final Map<String, String> geneNamesMap,
+                                        final List<GeneRefSection> geneRefSections)
+            throws ParseException, IOException {
         final Map<String, TargetGene> genesMap = targetExportManager.getTargetGenesMap(targetId, geneIds);
-        final List<GeneRefSection> sequencesTable = launchIdentificationManager.getGeneSequencesTable(targetId, geneIds,
-                false, true, true);
         final List<Sequence> sequences = new ArrayList<>();
-        for (GeneRefSection geneRefSection : sequencesTable) {
+        for (GeneRefSection geneRefSection : geneRefSections) {
             SequenceGene sequenceGene = SequenceGene.builder()
                     .id(geneRefSection.getGeneId().toLowerCase())
                     .name(geneNamesMap.get(geneRefSection.getGeneId().toLowerCase()))
@@ -270,10 +291,23 @@ public class TargetExportHTMLManager {
         return sequences;
     }
 
-    private List<Publication> getPublications(final List<String> entrezIds, final long publicationsCount) {
-        final List<NCBISummaryVO> articles = pubMedService.fetchPubMedArticles(entrezIds, publicationsCount);
+    private List<Publication> getPublications(final Long targetId,
+                                              final List<String> geneIds,
+                                              final long publicationsCount)
+            throws ParseException, IOException, ExternalDbUnavailableException {
+        final List<NCBISummaryVO> result = new ArrayList<>();
+        final int pages = (int) Math.ceil((double) publicationsCount / BATCH_SIZE);
+        for (int i = 1; i <= pages; i++) {
+            PublicationSearchRequest request = new PublicationSearchRequest();
+            request.setTargetId(targetId);
+            request.setGeneIds(geneIds);
+            request.setPage(i);
+            request.setPageSize(BATCH_SIZE);
+            SearchResult<NCBISummaryVO> articles = launchIdentificationManager.getPublications(request);
+            result.addAll(articles.getItems());
+        }
         final List<Publication> publications = new ArrayList<>();
-        for (NCBISummaryVO article : articles) {
+        for (NCBISummaryVO article : result) {
             final Title title = Title.builder()
                     .name(article.getTitle())
                     .link(article.getLink())
@@ -402,7 +436,7 @@ public class TargetExportHTMLManager {
         final List<KnownDrugData> ttdDrugsDataList = getTTDDrugsData(targetId, geneIds, geneNames);
         if (CollectionUtils.isNotEmpty(ttdDrugsDataList)) {
             final SourceData<KnownDrugData> ttdDrugs = new SourceData<>();
-            ttdDrugs.setData(dgidbDrugsDataList);
+            ttdDrugs.setData(ttdDrugsDataList);
             ttdDrugs.setSource("TTD");
             knownDrugsList.add(ttdDrugs);
         }
