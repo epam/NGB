@@ -342,7 +342,8 @@ export default class ngbSequencesPanelController {
     }
 
     getLocalReference(referenceId) {
-        return this.projectContext.references.find(r => r.id && referenceId);
+        return this.projectContext.references
+            .find(r => r.id === Number(referenceId));
     }
 
     onClickReference(referenceId) {

@@ -265,6 +265,7 @@ export default class ngbSequencesPanelService {
         this._emptyResults = false;
         this._sequencesResults = null;
         this._totalPages = 0;
+        this._sequencesReference = null;
     }
 
     async resetSequencesData() {
