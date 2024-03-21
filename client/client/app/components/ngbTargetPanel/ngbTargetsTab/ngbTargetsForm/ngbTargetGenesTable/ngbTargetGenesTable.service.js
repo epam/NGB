@@ -11,7 +11,7 @@ const DISPLAY_NAME = {
     priority: 'Priority',
     additionalGenes: 'Additional Genes',
     status: 'Status',
-    ttdTargets: 'TTD targets',
+    ttdTargets: 'TTD Targets',
     remove: '',
     launch: '',
 };
