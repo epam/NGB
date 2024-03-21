@@ -332,7 +332,7 @@ public class LaunchIdentificationManager {
                                                   final List<String> geneIds)
             throws IOException, ExternalDbUnavailableException, ParseException {
         final List<TargetGene> targetGenes = ListUtils.emptyIfNull(targetManager.getTargetGenes(targetId, geneIds));
-        if (targetGenes.stream().allMatch(g -> g.getStatus().equals(TargetGeneStatus.PROCESSED))) {
+        if (targetGenes.stream().allMatch(g -> TargetGeneStatus.PROCESSED.equals(g.getStatus()))) {
             return targetGenes.stream().map(TargetGene::getSequencesSummary)
                     .filter(Objects::nonNull).reduce(new SequencesSummary(), SequencesSummary::sum);
         }
