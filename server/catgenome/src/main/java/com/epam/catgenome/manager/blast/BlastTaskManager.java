@@ -335,10 +335,4 @@ public class BlastTaskManager {
         }
         return blastRequest;
     }
-
-    private BlastTask getBlastTask(final long taskId) {
-        final BlastTask task = blastTaskDao.loadTaskById(taskId);
-        Assert.notNull(task, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
-        return task;
-    }
 }
