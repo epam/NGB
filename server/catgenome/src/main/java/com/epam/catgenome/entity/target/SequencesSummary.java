@@ -23,11 +23,14 @@
  */
 package com.epam.catgenome.entity.target;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -43,5 +46,20 @@ public class SequencesSummary {
     @Override
     public String toString() {
         return String.format(TOTAL_PATTERN, dNAs, mRNAs, proteins);
+    }
+
+    @JsonIgnore
+    public SequencesSummary sum(final SequencesSummary other) {
+        return SequencesSummary.builder()
+                .dNAs(sum(dNAs, other.getDNAs()))
+                .mRNAs(sum(mRNAs, other.getMRNAs()))
+                .proteins(sum(proteins, other.getProteins()))
+                .build();
+    }
+
+    private static Long sum(final Long l1, final Long l2) {
+        final Long value1 = Optional.ofNullable(l1).orElse(0L);
+        final Long value2 = Optional.ofNullable(l2).orElse(0L);
+        return value1 + value2;
     }
 }

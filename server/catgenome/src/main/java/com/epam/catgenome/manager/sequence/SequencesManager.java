@@ -37,7 +37,6 @@ import com.epam.catgenome.entity.protein.ProteinSequenceEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.sequence.LocalProteinSequence;
-import com.epam.catgenome.entity.sequence.LocalMRNASequence;
 import com.epam.catgenome.entity.target.*;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.exception.GeneReadingException;
@@ -115,7 +114,7 @@ public class SequencesManager {
     }
 
     public List<GeneRefSection> getGeneSequencesTable(final String geneId,
-                                                      final Map<String, Long> targetGenes) throws IOException {
+                                                      final Map<String, Long> targetGenes) {
         final List<GeneRefSection> geneRefSections = new ArrayList<>();
         for (Map.Entry<String, Long> targetGene : targetGenes.entrySet()) {
             List<Reference> references = referenceGenomeManager.loadAllReferenceGenomesByTaxId(targetGene.getValue());
@@ -131,13 +130,6 @@ public class SequencesManager {
                 if (CollectionUtils.isNotEmpty(proteins)) {
                     geneRefSection.setSequences(proteins);
                     geneRefSections.add(geneRefSection);
-                } else {
-                    List<GeneIndexEntry> features = getFeatures(targetGene.getKey(), ref);
-                    if (CollectionUtils.isNotEmpty(features)) {
-                        List<GeneSequence> mRNASequences = processFeatures(features);
-                        geneRefSection.setSequences(mRNASequences);
-                        geneRefSections.add(geneRefSection);
-                    }
                 }
             }
         }
@@ -157,8 +149,7 @@ public class SequencesManager {
                         ReferenceSequence seq = referenceReader.nextSequence();
                         while (seq != null) {
                             if (seq.getName().equalsIgnoreCase(geneId)) {
-                                log.error("Found matching sequence {} for gene {} {}",
-                                        seq.getName(), geneId, seq.getBaseString());
+                                log.error("Found matching sequence {} for gene {}", seq.getName(), geneId);
                                 sequences.add(seq.getBaseString());
                                 return sequences;
                             }
@@ -192,6 +183,7 @@ public class SequencesManager {
                             GeneSequence geneSequence = new GeneSequence();
                             LocalProteinSequence protein = new LocalProteinSequence();
                             protein.setName(seq.getName());
+                            protein.setId(seq.getName());
                             protein.setLength(seq.length());
                             protein.setBaseString(seq.getBaseString());
                             geneSequence.setProtein(protein);
@@ -234,24 +226,6 @@ public class SequencesManager {
         filterForm.setFeatureTypes(Arrays.asList(FeatureType.CDS.getFileValue(), FeatureType.MRNA.getFileValue(),
                 FeatureType.GENE.getFileValue()));
         return filterForm;
-    }
-
-    private List<GeneSequence> processFeatures(final List<GeneIndexEntry> features) {
-        final List<GeneSequence> sequences = new ArrayList<>();
-        features.forEach(f -> {
-            GeneSequence geneSequence = new GeneSequence();
-            LocalMRNASequence mRNASequence = new LocalMRNASequence();
-            mRNASequence.setId(f.getFeatureId());
-            mRNASequence.setName(f.getFeatureName());
-            mRNASequence.setBegin(Long.valueOf(f.getStartIndex()));
-            mRNASequence.setEnd(Long.valueOf(f.getEndIndex()));
-            mRNASequence.setStrand(Sequence.parseStrand(f.getStrand()));
-            mRNASequence.setFeatureFileId(f.getFeatureFileId());
-            mRNASequence.setChromosomeId(f.getChromosome().getId());
-            geneSequence.setMRNA(mRNASequence);
-            sequences.add(geneSequence);
-        });
-        return sequences;
     }
 
     private String getProteinSequence(final Long referenceId, final GeneIndexEntry feature)

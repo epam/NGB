@@ -27,6 +27,7 @@ import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.dao.target.TargetGeneDao;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.entity.index.SortType;
+import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.TargetGeneField;
 import com.epam.catgenome.entity.target.TargetGenePriority;
@@ -91,6 +92,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -407,6 +409,14 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                     if (StringUtils.isNotBlank(value)) {
                         targetGene.setTtdTargets(JsonMapper.parseData(value, new TypeReference<List<String>>() {}));
                     }
+                    break;
+                case SEQUENCE_SUMMARY:
+                    final String data = field.stringValue();
+                    if (StringUtils.isNotBlank(data)) {
+                        targetGene.setSequencesSummary(
+                                JsonMapper.parseData(data, new TypeReference<SequencesSummary>() {}));
+                    }
+                    break;
                 case METADATA:
                     metadata.put(field.name(), field.stringValue());
                     break;
@@ -549,6 +559,10 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             doc.add(new TextField(IndexField.TTD_TARGETS.getValue(),
                     serialize(entry.getTtdTargets()), Field.Store.YES));
         }
+        if (Objects.nonNull(entry.getSequencesSummary())) {
+            doc.add(new TextField(IndexField.SEQUENCE_SUMMARY.getValue(),
+                    JsonMapper.convertDataToJsonStringForQuery(entry.getSequencesSummary()), Field.Store.YES));
+        }
 
         doc.add(new TextField(IndexField.GENE_NAME.getValue(), entry.getGeneName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexField.GENE_NAME.getValue(), new BytesRef(entry.getGeneName())));
@@ -603,6 +617,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         PRIORITY("Priority", FilterType.OPTIONS, SortType.LONG),
         STATUS("Status", FilterType.OPTIONS, SortType.STRING),
         TTD_TARGETS("TTD Targets", FilterType.PHRASE, SortType.STRING),
+        SEQUENCE_SUMMARY("Sequence Summary", FilterType.PHRASE, SortType.STRING),
         METADATA("Metadata", FilterType.NONE, SortType.NONE);
 
         private final String value;
@@ -620,6 +635,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             VALUES_MAP.put("Priority", PRIORITY);
             VALUES_MAP.put("Status", STATUS);
             VALUES_MAP.put("TTD Targets", TTD_TARGETS);
+            VALUES_MAP.put("Sequence Summary", SEQUENCE_SUMMARY);
         }
 
         public static IndexField getByValue(String value) {

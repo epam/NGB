@@ -45,4 +45,5 @@ public class TargetGene {
     private Map<String, String> metadata;
     private TargetGeneStatus status;
     private List<String> ttdTargets;
+    private SequencesSummary sequencesSummary;
 }

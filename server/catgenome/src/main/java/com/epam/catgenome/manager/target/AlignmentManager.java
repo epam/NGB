@@ -27,6 +27,7 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.target.AlignmentStatus;
 import com.epam.catgenome.entity.target.GeneSequences;
+import com.epam.catgenome.entity.target.SequencesSummary;
 import com.epam.catgenome.entity.target.Target;
 import com.epam.catgenome.entity.target.TargetGene;
 import com.epam.catgenome.entity.target.TargetGeneStatus;
@@ -41,7 +42,6 @@ import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.SearchRequest;
 import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -67,6 +67,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
@@ -74,7 +78,6 @@ import static com.epam.catgenome.manager.externaldb.ncbi.NCBISequencesManager.ge
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class AlignmentManager {
     public static final String MUSCLE_COMMAND = "%s -align %s -output %s";
     public static final String ALIGNMENT_FILE_NAME = "%s-%s.fa";
@@ -91,6 +94,21 @@ public class AlignmentManager {
     private final NCBISequencesManager sequencesManager;
     private final TargetGeneManager targetGeneManager;
     private final TTDDatabaseManager ttdDatabaseManager;
+    private final ExecutorService executorService;
+
+    public AlignmentManager(final TargetManager targetManager,
+                            final LaunchIdentificationManager launchIdentificationManager,
+                            final NCBISequencesManager sequencesManager,
+                            final TargetGeneManager targetGeneManager,
+                            final TTDDatabaseManager ttdDatabaseManager,
+                            final @Value("${targets.alignment.threads:4}") int threads) {
+        this.targetManager = targetManager;
+        this.launchIdentificationManager = launchIdentificationManager;
+        this.sequencesManager = sequencesManager;
+        this.targetGeneManager = targetGeneManager;
+        this.ttdDatabaseManager = ttdDatabaseManager;
+        this.executorService = Executors.newFixedThreadPool(threads);
+    }
 
     public void generateAlignment() {
         final List<Target> targets = targetManager.getTargetsForAlignment();
@@ -115,7 +133,7 @@ public class AlignmentManager {
         targets.forEach(target -> {
             final List<TargetGene> genes = new ArrayList<>();
             try {
-                final int pageSize = 100;
+                final int pageSize = 10;
                 final SearchRequest searchRequest = new SearchRequest();
                 searchRequest.setPageSize(pageSize);
                 searchRequest.setFilters(Collections.singletonList(Filter.builder()
@@ -125,16 +143,25 @@ public class AlignmentManager {
                 int pageNum = 1;
                 int processed = 0;
                 int totalCount;
+                final List<CompletableFuture<List<TargetGene>>> tasks = new ArrayList<>();
                 do {
                     searchRequest.setPage(pageNum);
                     SearchResult<TargetGene> result = targetGeneManager.filter(target.getId(), searchRequest);
                     if (!CollectionUtils.isEmpty(result.getItems())) {
-                        genes.addAll(assignTargetGenes(result.getItems()));
+                        tasks.add(CompletableFuture.supplyAsync(() -> assignTargetGenes(result.getItems()),
+                                executorService));
                     }
                     processed += ListUtils.emptyIfNull(result.getItems()).size();
                     totalCount = result.getTotalCount();
                     pageNum++;
                 } while (processed < totalCount);
+                tasks.forEach(t -> {
+                    try {
+                        genes.addAll(t.get());
+                    } catch (InterruptedException | ExecutionException e) {
+                        log.error(e.getMessage(), e);
+                    }
+                });
             } catch (Exception e) {
                 log.error("Failed to process target with id {}", target.getId());
                 log.error(e.getMessage(), e);
@@ -177,6 +204,14 @@ public class AlignmentManager {
                 .collect(Collectors.toList());
         gene.setStatus(TargetGeneStatus.PROCESSED);
         gene.setTtdTargets(ttdTargets);
+        try {
+            final SequencesSummary sequenceCount = launchIdentificationManager.getGeneSequencesCount(
+                    gene.getTargetId(), Collections.singletonList(gene.getGeneId()));
+            log.error("Setting sequence summary {} for gene {}", sequenceCount, gene.getGeneId());
+            gene.setSequencesSummary(sequenceCount);
+        } catch (IOException | ExternalDbUnavailableException | ParseException e) {
+            log.error(e.getMessage(), e);
+        }
         if (!CollectionUtils.isEmpty(ttdTargets)) {
             log.error("Adding TTD targets {} for gene {}", ttdTargets, gene.getGeneId());
         }
