@@ -46,15 +46,22 @@
     <span class="reference-title">GENOMIC</span>
     <div class="reference-content"
          ng-repeat="reference in $ctrl.sequencesReference track by reference.id">
-        <span ng-class="{'link': $ctrl.isRegistered}"
-              ng-click="$ctrl.onClickSequence()">
-            {{reference.id}}
+        <span ng-if="reference.url">
+            <span ng-class="{'link': $ctrl.isRegistered}"
+                  ng-click="$ctrl.onClickSequence()">
+                {{reference.id}}
+            </span>
+            <span>{{reference.name}}</span>
+            <span>
+                <a ng-if="reference.url" ng-href="{{reference.url}}" target="_blank">
+                    NCBI
+                </a>
+            </span>
         </span>
-        <span>{{reference.name}}</span>
-        <span>
-            <a ng-if="reference.url" ng-href="{{reference.url}}" target="_blank">
-                NCBI
-            </a>
+        <span ng-if="!reference.url">
+            <span class="link" ng-click="$ctrl.onClickReference(reference.id)">
+                {{reference.name}}
+            </span>
         </span>
     </div>
 </div>
