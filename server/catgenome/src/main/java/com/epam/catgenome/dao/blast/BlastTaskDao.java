@@ -53,6 +53,7 @@ import static com.epam.catgenome.util.Utils.addParametersToQuery;
 
 @Slf4j
 public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
+    private String taskSequenceName;
     private String insertTaskQuery;
     private String updateTaskStatusQuery;
     private String deleteTaskQuery;
@@ -88,6 +89,9 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void saveTask(final BlastTask blastTask) {
+        if (blastTask.getId() == null) {
+            blastTask.setId(daoHelper.createId(taskSequenceName));
+        }
         getNamedParameterJdbcTemplate().update(insertTaskQuery, TaskParameters.getParameters(blastTask));
     }
 
@@ -545,5 +549,10 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setGetTaskCountQuery(final String getTaskCountQuery) {
         this.getTaskCountQuery = getTaskCountQuery;
+    }
+
+    @Required
+    public void setTaskSequenceName(String taskSequenceName) {
+        this.taskSequenceName = taskSequenceName;
     }
 }

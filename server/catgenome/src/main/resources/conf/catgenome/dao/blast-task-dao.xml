@@ -3,6 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <bean class="com.epam.catgenome.dao.blast.BlastTaskDao" autowire="byName">
+        <property name="taskSequenceName" value="catgenome.s_task"/>
         <property name="insertTaskQuery">
             <value>
                 <![CDATA[
