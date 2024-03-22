@@ -60,7 +60,7 @@ export default function($injector, $window, $timeout) {
                     if (viewport.right < bounds.right) {
                         $element.css('left', pointerPosition.left - $element.outerWidth());
                     }
-                    if (viewport.bottom < bounds.bottom) {
+                    if (viewport.bottom <= bounds.bottom) {
                         $element.css('top', pointerPosition.top - $element.outerHeight() - (targetHeight || 0));
                     }
                 }, 500);
