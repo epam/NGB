@@ -226,6 +226,7 @@ const genes = [...interest, ...translational];
 sequencesData.push({
   gene: genes[0],
   reference: {
+    id: 'id',
     value: getElement(1, reference),
     link: 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007524.2',
   },
@@ -235,6 +236,7 @@ sequencesData.push({
 sequencesData.push({
   gene: genes[1],
   reference: {
+    id: 'id',
     value: getElement(2, reference),
     link: 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007524.2',
   },
@@ -244,8 +246,8 @@ sequencesData.push({
 sequencesData.push({
   gene: genes[2],
   reference: {
-    value: getElement(3, reference),
-    link: 'https://www.ncbi.nlm.nih.gov/nuccore/NG_007524.2',
+    id: "reference id",
+    value: "reference name",
   },
   data: sequences3,
 });

@@ -27,9 +27,21 @@ export default function Sequences() {
       if (ref.link) {
         return (
           <div>
-            <span>{ref.value}</span>
-            <span> reference </span>
-            <span><a href={ref.link}>NCBI</a></span>
+            {
+              ref.id
+                ? <span>{ref.id}</span>
+                : null
+            }
+            {
+              ref.value
+                ? <span> {ref.value} </span>
+                : <span> reference </span>
+            }
+            {
+              ref.link
+              ? <span><a href={ref.link}>NCBI</a></span>
+              : null
+            }
           </div>
         )
       } else {
