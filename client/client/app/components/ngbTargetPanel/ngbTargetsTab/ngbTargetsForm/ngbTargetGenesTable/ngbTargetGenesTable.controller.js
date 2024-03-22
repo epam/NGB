@@ -326,7 +326,7 @@ export default class ngbTargetGenesTableController {
             };
             const parasiteSettings = {
                 ...settings,
-                enableColumnMenu: true,
+                enableColumnMenu: isColumnSort,
                 enableSorting: isColumnSort,
                 enableFiltering: this.displayFilters,
             };
