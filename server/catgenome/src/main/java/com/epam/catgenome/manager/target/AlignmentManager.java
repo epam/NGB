@@ -89,12 +89,16 @@ public class AlignmentManager {
     @Value("${targets.alignment.directory}")
     private String alignmentDirectory;
 
+    @Value("${targets.alignment.page.size:4}")
+    private Integer pageSize;
+
     private final TargetManager targetManager;
     private final LaunchIdentificationManager launchIdentificationManager;
     private final NCBISequencesManager sequencesManager;
     private final TargetGeneManager targetGeneManager;
     private final TTDDatabaseManager ttdDatabaseManager;
     private final ExecutorService executorService;
+
 
     public AlignmentManager(final TargetManager targetManager,
                             final LaunchIdentificationManager launchIdentificationManager,
@@ -134,7 +138,6 @@ public class AlignmentManager {
             final List<TargetGene> genes = new ArrayList<>();
             try {
                 log.error("Processing target {} {}", target.getId(), target.getTargetName());
-                final int pageSize = 10;
                 final SearchRequest searchRequest = new SearchRequest();
                 searchRequest.setPageSize(pageSize);
                 searchRequest.setFilters(Collections.singletonList(Filter.builder()
