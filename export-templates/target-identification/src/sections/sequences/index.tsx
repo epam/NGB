@@ -21,6 +21,27 @@ export default function Sequences() {
   const data = useSequencesData(geneId);
   const references = useSequencesReference(geneId);
   const columns = useSequencesColumns();
+
+  const defaultReference = (ref) => {
+    if (ref) {
+      if (ref.link) {
+        return (
+          <div>
+            <span>{ref.value}</span>
+            <span> reference </span>
+            <span><a href={ref.link}>NCBI</a></span>
+          </div>
+        )
+      } else {
+        return (
+          <div>
+            <span>{ref.value}</span>
+          </div>
+        );
+      }
+    }
+    return null;
+  };
   return (
     <Section
       title="Sequences"
@@ -52,15 +73,7 @@ export default function Sequences() {
         (references && references.length) ? (
           <div>
             <h4><b>GENOMIC</b></h4>
-            {references.map(reference => {
-              return reference ? (
-                <div>
-                  <span>{reference.value}</span>
-                  <span> reference </span>
-                  {reference.link ? <span><a href={reference.link}>NCBI</a></span> : null}
-                </div>
-              ) : null
-            })}
+            {references.map(defaultReference)}
           </div>
         ) : null
       }
