@@ -34,6 +34,7 @@ import com.epam.catgenome.entity.target.TargetGeneStatus;
 import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.*;
+import com.epam.catgenome.manager.index.FieldInfo;
 import com.epam.catgenome.util.FileFormat;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.opencsv.CSVReader;
@@ -45,6 +46,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.document.*;
@@ -57,12 +59,9 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -76,23 +75,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -129,7 +115,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         this.targetGeneDao = targetGeneDao;
     }
 
-    public void importData(final long targetId, final String path, final MultipartFile file)
+    public void importData(final Long targetId, final String path, final MultipartFile file)
             throws IOException, ParseException, TargetGenesException, CsvValidationException {
         Assert.isTrue(path != null || file != null, "Genes file path or content should be defined");
         final InputStream inputStream = file != null ?  file.getInputStream() :
@@ -138,7 +124,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         final List<TargetGene> entries = readEntries(inputStream, extension);
         final Map<String, TargetGeneField> targetGeneFields = processMetadata(entries, targetId);
         setIds(targetId, entries);
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory, targetId.toString()));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
@@ -149,12 +135,13 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     public List<TargetGene> loadByIds(final List<Long> targetGeneIds) throws ParseException, IOException {
-        return search(targetGeneIds.stream().map(Object::toString).collect(Collectors.toList()),
-                IndexField.TARGET_GENE_ID.getValue());
+        return search(getIndexesForTargets(),
+                getByTermsQuery(targetGeneIds.stream().map(Object::toString).collect(Collectors.toList()),
+                        IndexField.TARGET_GENE_ID.getValue()), null);
     }
 
     public List<TargetGene> load(final List<String> geneIds) throws ParseException, IOException {
-        return search(geneIds, IndexField.GENE_ID.getValue());
+        return search(getIndexesForTargets(), getByTermsQuery(geneIds, IndexField.GENE_ID.getValue()), null);
     }
 
     public List<TargetGene> load(final Long targetId, final List<String> geneIds) throws ParseException, IOException {
@@ -164,8 +151,9 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         if (targetId != null) {
             final Query targetIdQuery = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
             mainBuilder.add(targetIdQuery, BooleanClause.Occur.MUST);
+            return search(Paths.get(indexDirectory, targetId.toString()), mainBuilder.build(), null);
         }
-        return search(mainBuilder.build(), null);
+        return search(getIndexesForTargets(), mainBuilder.build(), null);
     }
 
     public List<TargetGeneField> getFields(final Long targetId) throws ParseException, IOException {
@@ -205,18 +193,11 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             return Collections.emptyList();
         }
         final Set<String> values = new LinkedHashSet<>();
-        final Query query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory, targetId.toString()));
              IndexReader indexReader = DirectoryReader.open(index)) {
-            IndexSearcher searcher = new IndexSearcher(indexReader);
-            final OrderInfo orderInfo = OrderInfo.builder()
-                    .orderBy(field)
-                    .reverse(false)
-                    .build();
-            final Sort sort = getSort(Collections.singletonList(orderInfo), targetGeneFields);
-            TopDocs topDocs = sort != null ? searcher.search(query, topHits, sort) : searcher.search(query, topHits);
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
+            int maxDoc = indexReader.maxDoc();
+            for (int i = 0; i < maxDoc; i++) {
+                Document doc = indexReader.document(i);
                 IndexableField indexableField = doc.getField(field);
                 if (indexableField != null) {
                     values.add(indexableField.stringValue());
@@ -229,26 +210,29 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                     .collect(Collectors.toList());
         }
         final List<String> result = new ArrayList<>(values);
-        return result.stream().limit(FIELD_VALUES_TOP_HITS).collect(Collectors.toList());
+        return result.stream().sorted().limit(FIELD_VALUES_TOP_HITS).collect(Collectors.toList());
     }
 
     public void delete(final Long targetId) throws ParseException, IOException {
-        final Query query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
-        delete(query);
+        deleteIndex(Paths.get(indexDirectory, targetId.toString()));
         targetGeneFieldManager.delete(targetId);
     }
 
     public void delete(final List<Long> targetGeneIds) throws ParseException, IOException {
         final Query query = getByTermsQuery(targetGeneIds.stream().map(Object::toString).collect(Collectors.toList()),
                 IndexField.TARGET_GENE_ID.getValue());
-        delete(query);
+        for (File file : Objects.requireNonNull(Paths.get(indexDirectory).toFile().listFiles())) {
+            if (file.exists()) {
+                delete(file.toPath(), query);
+            }
+        }
     }
 
-    public void create(final long targetId, final List<TargetGene> targetGenes)
+    public void create(final Long targetId, final List<TargetGene> targetGenes)
             throws IOException, ParseException, TargetGenesException {
         final Map<String, TargetGeneField> targetGeneFields = processMetadata(targetGenes, targetId);
         setIds(targetId, targetGenes);
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory, targetId.toString()));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
@@ -259,9 +243,9 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     }
 
     public void update(final List<TargetGene> targetGenes) throws IOException, ParseException, TargetGenesException {
-        final Map<String, TargetGeneField> targetGeneFields = processMetadata(targetGenes,
-                targetGenes.get(0).getTargetId());
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+        final Long targetId = targetGenes.get(0).getTargetId();
+        final Map<String, TargetGeneField> targetGeneFields = processMetadata(targetGenes, targetId);
+        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory, targetId.toString()));
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
@@ -272,11 +256,12 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         }
     }
 
-    public SearchResult<TargetGene> filter(final long targetId, final SearchRequest request)
+    public SearchResult<TargetGene> filter(final Long targetId, final SearchRequest request)
             throws ParseException, IOException {
         final Map<String, TargetGeneField> fieldsMap = getFieldsMap(targetId);
         final Query query = buildQuery(targetId, request.getFilters(), fieldsMap);
-        return search(request, query, getSort(request.getOrderInfos(), fieldsMap));
+        return search(Paths.get(indexDirectory, targetId.toString()), request, query,
+                getSort(request.getOrderInfos(), fieldsMap));
     }
 
     public List<TargetGene> search(final String geneName, final Long taxId) throws ParseException, IOException {
@@ -287,7 +272,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             final Query taxIdQuery = getByTermQuery(String.valueOf(taxId), IndexField.TAX_ID.getValue());
             mainBuilder.add(taxIdQuery, BooleanClause.Occur.MUST);
         }
-        return search(mainBuilder.build(), null);
+        return search(getIndexesForTargets(), mainBuilder.build(), null);
     }
 
     public Query buildQuery(final long targetId,
@@ -339,7 +324,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
     @Override
     public SortField getDefaultSortField() {
-        return new SortField(IndexField.GENE_ID.name(), SortField.Type.STRING, false);
+        return new SortField(IndexField.GENE_ID.getValue(), SortField.Type.STRING, false);
     }
 
     @Override
@@ -415,6 +400,25 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             }
         }
         return targetGene;
+    }
+
+    public SimpleFSDirectory[] getIndexesForTargets() throws IOException {
+        final List<SimpleFSDirectory> indexes = new ArrayList<>();
+        try {
+            for (File file : Objects.requireNonNull(Paths.get(indexDirectory).toFile().listFiles())) {
+                if (file.exists()) {
+                    indexes.add(new SimpleFSDirectory(file.toPath()));
+                }
+            }
+        } catch (IOException e) {
+            for (SimpleFSDirectory index : indexes) {
+                if (index != null) {
+                    IOUtils.closeQuietly(index);
+                }
+            }
+            throw e;
+        }
+        return indexes.toArray(new SimpleFSDirectory[indexes.size()]);
     }
 
     private Sort getSort(final List<OrderInfo> orderInfos, final Map<String, TargetGeneField> fieldsMap) {
