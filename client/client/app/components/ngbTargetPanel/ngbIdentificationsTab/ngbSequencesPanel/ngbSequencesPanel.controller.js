@@ -149,8 +149,9 @@ export default class ngbSequencesPanelController {
     onClickSequence() {
         if (!this.projectContext || !this.isRegistered) return;
         this.panelAddBrowserPanel();
-        this.navigateToReference();
-        this.navigateToGene();
+        const reference = this.references[0];
+        this.navigateToReference(reference);
+        this.navigateToGene(reference.id);
         this.setGeneTrack();
     }
 
@@ -169,9 +170,8 @@ export default class ngbSequencesPanelController {
         }
     }
 
-    navigateToReference() {
-        const referenceObj = this.references[0];
-        const payload = this.getOpenReferencePayload(referenceObj);
+    navigateToReference(reference) {
+        const payload = this.getOpenReferencePayload(reference);
         if (payload) {
             setTimeout(() => {
                 this.projectContext.changeState(payload);
@@ -217,7 +217,7 @@ export default class ngbSequencesPanelController {
         return undefined;
     }
 
-    navigateToGene() {
+    navigateToGene(referenceId) {
         if (
             !this.selectedGene ||
             !this.projectContext ||
@@ -243,7 +243,7 @@ export default class ngbSequencesPanelController {
                     if (result) {
                         return Promise.resolve(result);
                     }
-                    const reference = findReferenceById(this.references[0].id, this.projectContext);
+                    const reference = findReferenceById(referenceId, this.projectContext);
                     return findPromise(reference, request);
                 })
                 .then(geneInfo => {
@@ -263,7 +263,7 @@ export default class ngbSequencesPanelController {
                             startIndex !== undefined &&
                             endIndex !== undefined
                         ) {
-                            this.navigateToCoordinates(`${reference.name}:${chromosome.name}:${startIndex}-${endIndex}`)
+                            this.navigateToCoordinates(`${reference.name}:${chromosome.name}:${startIndex}-${endIndex}`, referenceId)
                                 .then(resolve);
                             return;
                         }
@@ -273,7 +273,7 @@ export default class ngbSequencesPanelController {
         });
     }
 
-    navigateToCoordinates(coordinates) {
+    navigateToCoordinates(coordinates, referenceId) {
         if (!coordinates || !this.projectContext) {
             return Promise.resolve(false);
         }
@@ -284,7 +284,7 @@ export default class ngbSequencesPanelController {
             // we're parsing "chr: start - end" format
             coords = chr;
             chr = ref;
-            reference = findReferenceById(this.references[0].id, this.projectContext);
+            reference = findReferenceById(referenceId, this.projectContext);
         } else {
             reference = findReferenceByName(ref, this.projectContext);
         }
@@ -339,5 +339,19 @@ export default class ngbSequencesPanelController {
                 }
                 this.$timeout(() => this.$scope.$apply());
             });
+    }
+
+    getLocalReference(referenceId) {
+        return this.projectContext.references
+            .find(r => r.id === Number(referenceId));
+    }
+
+    onClickReference(referenceId) {
+        if (!this.projectContext) return;
+        this.panelAddBrowserPanel();
+        const reference = this.getLocalReference(referenceId);
+        this.navigateToReference(reference);
+        this.navigateToGene(referenceId);
+        this.setGeneTrack();
     }
 }

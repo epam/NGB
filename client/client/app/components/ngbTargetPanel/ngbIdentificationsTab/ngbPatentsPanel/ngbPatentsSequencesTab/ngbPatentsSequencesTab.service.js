@@ -407,23 +407,30 @@ export default class ngbPatentsSequencesTabService {
         try {
             const {target} = this.ngbTargetPanelService.identificationTarget || {};
             const protein = this.selectedProtein;
-            if (target && target.id && protein && protein.id) {
-                const task = await this.targetDataService.getPatentsByProteinId(target.id, protein.id)
-                if (task && task.id) {
-                    this.taskId = task.id;
-                    const {DONE, FAILURE, CANCELED} = this.blastSearchState;
-                    if (task.status === DONE || task.status === FAILURE || task.status === CANCELED) {
-                        this.blastStatus = task.status;
-                        this.getBlastResultLoad();
-                    } else {
-                        this.updateInterval = this.$interval(this.getBlastSearch.bind(this), this.refreshInterval);
-                    }
-                }
-            } else {
+            const getBlastTaskBySequence = async () => {
                 const task = await this.targetDataService.getBlastTaskBySequence(this.searchSequence);
                 if (task && task.id) {
                     this.taskId = task.id;
                     this.updateInterval = this.$interval(this.getBlastSearch.bind(this), this.refreshInterval);
+                }
+            }
+            if (protein.baseString) {
+                await getBlastTaskBySequence();
+            } else {
+                if (target && target.id && protein && protein.id) {
+                    const task = await this.targetDataService.getPatentsByProteinId(target.id, protein.id)
+                    if (task && task.id) {
+                        this.taskId = task.id;
+                        const {DONE, FAILURE, CANCELED} = this.blastSearchState;
+                        if (task.status === DONE || task.status === FAILURE || task.status === CANCELED) {
+                            this.blastStatus = task.status;
+                            this.getBlastResultLoad();
+                        } else {
+                            this.updateInterval = this.$interval(this.getBlastSearch.bind(this), this.refreshInterval);
+                        }
+                    }
+                } else {
+                    await getBlastTaskBySequence();
                 }
             }
         } catch(err) {
@@ -438,6 +445,7 @@ export default class ngbPatentsSequencesTabService {
     }
 
     async getBlastSearch() {
+        if (!this.taskId) return;
         const blast = await this.projectDataService.getBlastSearch(this.taskId);
         const {DONE, FAILURE, CANCELED} = this.blastSearchState;
         if (blast.status === DONE || blast.status === FAILURE || blast.status === CANCELED) {

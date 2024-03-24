@@ -75,6 +75,7 @@ import com.epam.catgenome.manager.pdb.PdbFileManager;
 import com.epam.catgenome.manager.sequence.SequencesManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -330,6 +331,11 @@ public class LaunchIdentificationManager {
     public SequencesSummary getGeneSequencesCount(final Long targetId,
                                                   final List<String> geneIds)
             throws IOException, ExternalDbUnavailableException, ParseException {
+        final List<TargetGene> targetGenes = ListUtils.emptyIfNull(targetManager.getTargetGenes(targetId, geneIds));
+        if (targetGenes.stream().allMatch(g -> TargetGeneStatus.PROCESSED.equals(g.getStatus()))) {
+            return targetGenes.stream().map(TargetGene::getSequencesSummary)
+                    .filter(Objects::nonNull).reduce(new SequencesSummary(), SequencesSummary::sum);
+        }
         final List<GeneRefSection> geneRefSections = getGeneSequencesTable(targetId, geneIds,
                 false, true, includeAdditionalGenesSequences);
         return getSequencesSummary(geneRefSections);

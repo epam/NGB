@@ -34,7 +34,6 @@ import com.epam.catgenome.entity.target.TargetGeneStatus;
 import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.*;
-import com.epam.catgenome.manager.index.FieldInfo;
 import com.epam.catgenome.util.FileFormat;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.opencsv.CSVReader;
@@ -46,7 +45,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.document.*;
@@ -59,9 +57,12 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -75,10 +76,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -392,6 +406,14 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
                     if (StringUtils.isNotBlank(value)) {
                         targetGene.setTtdTargets(JsonMapper.parseData(value, new TypeReference<List<String>>() {}));
                     }
+                    break;
+                case SEQUENCE_SUMMARY:
+                    final String data = field.stringValue();
+                    if (StringUtils.isNotBlank(data)) {
+                        targetGene.setSequencesSummary(
+                                JsonMapper.parseData(data, new TypeReference<SequencesSummary>() {}));
+                    }
+                    break;
                 case METADATA:
                     metadata.put(field.name(), field.stringValue());
                     break;
@@ -553,6 +575,10 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             doc.add(new TextField(IndexField.TTD_TARGETS.getValue(),
                     serialize(entry.getTtdTargets()), Field.Store.YES));
         }
+        if (Objects.nonNull(entry.getSequencesSummary())) {
+            doc.add(new TextField(IndexField.SEQUENCE_SUMMARY.getValue(),
+                    JsonMapper.convertDataToJsonStringForQuery(entry.getSequencesSummary()), Field.Store.YES));
+        }
 
         doc.add(new TextField(IndexField.GENE_NAME.getValue(), entry.getGeneName(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexField.GENE_NAME.getValue(), new BytesRef(entry.getGeneName())));
@@ -610,7 +636,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         SPECIES_NAME("Species Name", FilterType.PHRASE, SortType.STRING),
         PRIORITY("Priority", FilterType.OPTIONS, SortType.LONG),
         STATUS("Status", FilterType.OPTIONS, SortType.STRING),
-        TTD_TARGETS("TTD Targets", FilterType.PHRASE, SortType.NONE),
+        TTD_TARGETS("TTD Targets", FilterType.PHRASE, SortType.STRING),
+        SEQUENCE_SUMMARY("Sequence Summary", FilterType.PHRASE, SortType.STRING),
         METADATA("Metadata", FilterType.NONE, SortType.NONE);
 
         private final String value;
@@ -628,6 +655,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             VALUES_MAP.put("Priority", PRIORITY);
             VALUES_MAP.put("Status", STATUS);
             VALUES_MAP.put("TTD Targets", TTD_TARGETS);
+            VALUES_MAP.put("Sequence Summary", SEQUENCE_SUMMARY);
         }
 
         public static IndexField getByValue(String value) {

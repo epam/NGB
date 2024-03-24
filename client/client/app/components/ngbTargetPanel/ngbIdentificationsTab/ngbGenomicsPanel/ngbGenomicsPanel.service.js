@@ -412,6 +412,8 @@ export default class ngbGenomicsPanelService {
         this._totalPages = 0;
         this._emptyResults = false;
         this._filterInfo = null;
+        this._genomicsParasiteData = null;
+        this._genomicsParasiteResults = null;
     }
 
     exportResults() {
