@@ -149,8 +149,8 @@ public class ReferenceSecurityService {
 
     @AclMask
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_REFERENCE_MANAGER)
-    public void updateProteinSeqFile(Long referenceId, String path) {
-        referenceGenomeManager.updateProteinSeqFile(referenceId, path);
+    public Reference updateProteinSeqFile(Long referenceId, String path) {
+        return referenceGenomeManager.updateProteinSeqFile(referenceId, path);
     }
 
     @PreAuthorize(ROLE_USER)

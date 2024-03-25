@@ -150,6 +150,11 @@
         <type>PUT</type>
         <url>/restapi/secure/reference/%d/species</url>
     </remove_species>
+    <add_protein>
+        <name>add_protein</name>
+        <type>PUT</type>
+        <url>/restapi/secure/reference/%d/protein</url>
+    </add_protein>
     <chmod>
         <name>chmod</name>
         <type>POST</type>

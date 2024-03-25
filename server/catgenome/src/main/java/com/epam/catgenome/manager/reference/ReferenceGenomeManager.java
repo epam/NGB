@@ -376,12 +376,13 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void updateProteinSeqFile(long referenceId, String path) {
+    public Reference updateProteinSeqFile(long referenceId, String path) {
         final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
         Assert.isTrue(Paths.get(path).toFile().exists(),
                 String.format("Specified path %s doesn't exist", path));
         referenceGenomeDao.updateProteinSeqFile(referenceId, path);
+        return load(referenceId);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
