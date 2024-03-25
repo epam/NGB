@@ -11,7 +11,7 @@ import {
   DiseasesSource,
   SequencesCount,
   SequencesItem,
-  SequencesReferences,
+  SequencesReference,
   GeneAndSpecies,
   StructuresSource,
   StructuresItem,
@@ -100,7 +100,7 @@ export function useSequencesData(geneId: string): SequencesItem[] {
   return geneData ? geneData.data : empty;
 }
 
-export function useSequencesReference(geneId: string): SequencesReferences {
+export function useSequencesReference(geneId: string): SequencesReference[] {
   const {sequences = empty} =  useInjectedData();
   const geneReference = sequences
     .filter((o) => o.gene.id.toLowerCase() === geneId.toLowerCase())
