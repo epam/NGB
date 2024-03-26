@@ -12,17 +12,34 @@
     - [Associated diseases block](#associated-diseases-block)
     - [Sequences block](#sequences-block)
     - [Comparative genomics block](#comparative-genomics-block)
+        - [Alignment panel](#alignment-panel)
     - [Structure block](#structure-block)
     - [Bibliography block](#bibliography-block)
+    - [Patents block](#patents-block)
+        - [Patented aminoacid sequences](#patented-aminoacid-sequences)
+        - [Patented chemicals](#patented-chemicals)
     - [Chat with AI](#chat-with-ai)
         - [AI model settings](#ai-model-settings)
+    - [Store and share report](#store-and-share-report)
+        - [Saving](#saving)
+        - [Sharing](#sharing)
+    - [Export](#export)
+        - [Export section](#export-section)
+        - [Export report](#export-report)
+- [Diseases search](#diseases-search)
+    - [Associated drugs](#associated-drugs)
+    - [Associated targets](#associated-targets)
+        - ["Ad hoc" target identification](#ad-hoc-target-identification)
+
+***
 
 Via the **Target Identification** panel users can collect identification information about targets of interest (genes), store this information and use it for their own research purposes.
 
 **Target identification** panel can be opened via the **VIEWS** menu and includes sub-tabs:
 
-- **Targets** (_opened by default_) - sub-panel where user can manage targets
-- **Identifications** - sub-panel where user can view and manage target identification reports
+- [**Targets**](#manage-targets) (_opened by default_) - sub-panel where user can manage targets
+- [**Identifications**](#identification-results) - sub-panel where user can view and manage target identification reports
+- [**Diseases**](#diseases-search) - sub-panel where user can search for drugs and targets associated with a specific disease
 
 ![NGB GUI](images/targets-01.png)
 
@@ -62,8 +79,8 @@ To clear all filters - use the menu ![NGB GUI](images/targets-09.png) in the rig
 To create a new target, there are following ways:
 
 - Via GUI:
-    - Add a new target manually from the **Targets** sub-tab
-    - Create a target from any found orthogroup (using the **Homologs** panel)
+    - Add a new target manually [from the **Targets** sub-tab](#creation-from-targets-sub-panel)
+    - Create a target [from any found orthogroup](#creation-from-homologs-panel) (using the **Homologs** panel)
 - Via CLI
 
 #### Creation from "Targets" sub-panel
@@ -80,7 +97,8 @@ To create a new target:
     - button to add a gene/transcript to the target
     - button to add an associated disease to the target
     - button to add an associated product to the target
-    - button to save the creating target
+    - button to launch identification - **Identify**
+    - button to save the creating target - **Create**
 3. Specify the new target name.
 4. Click the button "**Add gene**" to add a gene/transcript to the target.  
     A new row with empty fields will appear - for the specifying info for a gene - **Gene ID**, **Gene Name**, **Tax ID** (taxonomy ID of species), **Species Name** and **Priority** (priority of the adding gene in the current target's genes list):  
@@ -105,10 +123,12 @@ To create a new target:
   To add a product, click the corresponding field and specify the product manually. After the input, press _Enter_ key, e.g.:  
   ![NGB GUI](images/targets-18.png)  
   You may add any count of associated products by the described way. To remove a product from the list - use the cross button near the product name.
-10. Once all desired values are added - click the **Create** button.  
-  Target will be saved, the **Remove** button will appear, the **Save** button will become disabled:  
-  ![NGB GUI](images/targets-19.png)  
-  Click the button ![NGB GUI](images/targets-20.png) to return to the **Targets** table. Just created target will appear in the list:  
+10. Once all desired values are added - click the **Create** button. Target will be saved:  
+    - The **Identify** button will become enabled
+    - The **Create** button will disappear, instead the disabled **Save** button will appear
+    - The **Remove** button will appear - to delete the target  
+    ![NGB GUI](images/targets-19.png)  
+11. Click the button ![NGB GUI](images/targets-20.png) to return to the **Targets** table. Just created target will appear in the list:  
   ![NGB GUI](images/targets-21.png)
 
 #### Creation from "Homologs" panel
@@ -142,7 +162,9 @@ Here, you can edit the target (edit target name, add/edit/remove genes from the 
 To launch a new identifying process:
 
 1. Find the target in the **Targets** table and click the button to launch identification process, e.g.:  
-  ![NGB GUI](images/targets-26.png)
+  ![NGB GUI](images/targets-26.png)  
+> Or you can open the target and click the **Identify** button from the target's details block:  
+> ![NGB GUI](images/targets-86.png)  
 2. The pop-up will appear according to the selected target - to define parameters (species of interest and translational species):  
   ![NGB GUI](images/targets-27.png)
 3. Here, the following items shall be specified:
@@ -158,17 +180,18 @@ To launch a new identifying process:
 
 - view summary results of the current/selected identification process
 - view the current/selected identification details
-- go up a level to view a list of previously identifications with the ability to open any of them
+- store target identification to have a quick access to it later
+- download identifications results to the local workstation
 
 Once the new identifying process is finished, the **Identifications** sub-tab will be automatically opened with the identification results (report):  
   ![NGB GUI](images/targets-30.png)
 
 Identification report form contains:
 
-- Button to go up a level to view identification reports' list form
+- Button to save the report. **_Note_**: if this button is not clicked for a report, and any new identification was launched - current report will be removed
+- Button to download identifications results - to load results as separate file(s) to the local workstation
 - Label with the target name
 - List of _species of interest_ and list of _translational species_ used for the identification
-- Button to store the report. **_Note_**: if this button is not clicked for a report - it will be removed once closed
 - Description section with short overview of the main target gene with link(s) to the source(s) from which the description is
 - Set of expandable sections - these sections contain detailed info of the target identification
 
@@ -187,7 +210,7 @@ Example of view:
 
 This block contains info about _drugs_ with investigational or approved indications targeting the current target gene(s) according to their curated mechanism of action.
 
-When the block is collapsed - its header contains short info about the count of associated drugs to the target gene(s):  
+When the block is collapsed - its header contains short info about the count of unique drugs associated to the target gene(s) and the total count of records with these drugs in databases:  
   ![NGB GUI](images/targets-33.png)
 
 When the block is expanded - it contains a table with known drugs that treat diseases associated with the current target:  
@@ -237,6 +260,9 @@ Table supports sorting by any column. Click the column header to sort by this co
 
 Table supports filtering. To filter displayed drugs - specify the desired value(s) to the filter field(s) under headers row.
 
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.  
+> **_Note_**: only table content from the currently selected source (database) will be exported.
+
 ### Associated diseases block
 
 This block contains info about _diseases associated_ with the current target gene(s).
@@ -271,6 +297,10 @@ Table itself is colorized as a heatmap - according to the score value in each ce
 
 By default, table is sorted descending by the _Overall score_ column.  
 Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+
+Table supports filtering by columns _Target_ and _Disease_. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
+
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
 
 **Bubbles view**
 
@@ -326,6 +356,13 @@ The table includes columns:
 
 ![NGB GUI](images/targets-48.png)
 
+By default, table is sorted descending by the _Target_ column.  
+Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+
+Table supports filtering. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
+
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
+
 ### Sequences block
 
 This block contains list of sequence(s) corresponding to the target - DNA, RNA, proteins.
@@ -360,12 +397,71 @@ Such table includes columns:
 - _Length (aa)_ - protein length (number of amino acid items in the sequence)
 - _Protein name_ - name of the protein
 
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
+
 ### Comparative genomics block
 
-This block contains information about homologous genes for the target genes:
+This block contains info about homologous genes of the target genes.
 
-- paralogs of the current target gene(s)/transcrition(s) in the _species of interest_
-- orthologs of the current target gene(s) in the _translational species_
+When the block is collapsed - its header contains short summary info about the number of found homologs:  
+  ![NGB GUI](images/targets-89.png)
+
+When the block is expanded - it contains:
+
+- list of homologous genes for the target genes:
+    - in the _species of interest_
+    - in the _translational species_
+- alignment panel that allows to align genes in species of interest to genes in translational species
+
+![NGB GUI](images/targets-80.png)
+
+Table with homologous genes includes columns:
+
+- _Target_ - target gene name
+- _Species_ - species name of homologous gene (by default, it is selected from species of interest or translational species of the current identification)
+- _Homology type_ - type of homology (ortholog/paralog/homolog)
+- _Homologue_ - homologous gene name. It is a hyperlink to the corresponding gene page in NCBI
+- _Homology group_ - feature of gene homology
+- coding protein info:
+    - _Protein_ - protein name
+    - _Aa_ - protein sequence length
+    - _Domains_ - for an approximate image of the conserved protein domains. Each image contains:
+        - a line for a full protein length
+        - one or several color rectangles - each for the specific conserved domain. Different domains are drawn by different colors, the same domains are drawn in the same colors
+
+Table supports filtering by columns _Target_, _Species_ and _Homology Type_. To filter the displayed list - specify the desired value(s) to the filter field(s) under headers row.
+
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
+
+#### Alignment panel
+
+Under homologs table, there is the **Alignment panel** that allows to align protein sequences of genes in species of interest to homologous genes in translational species and vice versa.
+
+To perform an alignment:
+
+1. Select the target gene from the dropdown list - to which the alignment will be performed, e.g.:  
+  ![NGB GUI](images/targets-81.png)
+2. Select the specific protein of the target gene for the alignment, e.g.:  
+  ![NGB GUI](images/targets-82.png)
+3. In a similar way, select the query gene (which will be aligned) from the dropdown list - and its specific protein for the alignment.
+4. Click the **Align** button:  
+  ![NGB GUI](images/targets-83.png)
+5. Alignment of the selected protein sequences will appear below:  
+  ![NGB GUI](images/targets-84.png)  
+  Above the alignment, displayed:  
+    - the count of identities between sequences (by symbols) and its percent value
+    - the count of gaps (by symbols) and its percent value  
+  **_Note_**: how to "read" alignments you can see in the corresponding section of the BLAST search manual - [here](blast-search.md#alignments-info).
+
+Additionally, users can view the comparison of aligned protein sequences on the track in the **Browser** panel.
+
+> **_Note_**: it is possible only if the reference of the selected target gene is registered in the current deployment of NGB.  
+
+To view such comparison - click the button **View on track** after performed alignment:  
+  ![NGB GUI](images/targets-85.png)
+
+Opened comparison is shown at a separate track.  
+Please note that comparison visualization does not show exact location of the alignment, it highlights the whole gene feature instead.
 
 ### Structure block
 
@@ -396,6 +492,8 @@ Such table includes columns (set of columns may vary due to selected source):
 
 Table supports filtering by _ID_ and _Name_ columns. To filter by any of these columns - specify the filter text to the field under the header of the column, e.g.:  
   ![NGB GUI](images/targets-72.png)
+
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
 
 To open the structure model in a viewer - click its row in the table, e.g.:  
   ![NGB GUI](images/targets-73.png)  
@@ -437,6 +535,141 @@ You can (re)generate the summary in the described way as many times as you need.
 > Once the model is changed - the summary will be regenerated with that AI model, e.g.:  
 >   ![NGB GUI](images/targets-55.png)
 
+You can filter displayed bibliography by selecting only specific target gene(s) for which publications shall be shown. To filter the list, click the dropdown list at the right side and select desired gene(s):  
+  ![NGB GUI](images/targets-92.png)  
+In the bibliography list, only publications corresponding to selected genes will be shown.
+
+Additionally, you can search over the publications - using the search bar above the bibliography list. Specify the clarifying request to the search bar and press Enter key. In the bibliography list, only publications corresponding to your request will be shown:  
+  ![NGB GUI](images/targets-93.png)
+
+### Patents block
+
+This block section allows users:
+
+- to search and view patents on the protein sequences - of that are included in the current identification report (in the [Sequences](#sequences-block) section)
+- to search and view patents on the drugs/chemical structures - of that are included in the current identification report (in the [Known drugs](#known-drugs-block) section)
+
+![NGB GUI](images/targets-105.png)
+
+Block contains 2 sub-blocks:
+
+- for search and view patented [aminoacid sequences](#patented-aminoacid-sequences)
+- for search and view patented [chemicals](#patented-chemicals)
+
+Each sub-block can be selected by the special control (tab selector) inside the block, on the upper side.
+
+#### Patented aminoacid sequences
+
+This sub-block is being opened by default, when the **Patents** block is expanded:  
+  ![NGB GUI](images/targets-106.png)
+
+The sub-block contains:
+
+- dropdown list with all protein accessions assigned to the target (same as in the **Sequences** section of the current identification report)
+- checkboxes with search options:  
+    - _Search patents by protein name_ - when selected, search will be performed in [Protein DB](https://www.ncbi.nlm.nih.gov/protein/) of NCBI over patented proteins
+    - _Search patents by amino acid sequence_ - when selected, search will be performed via [blastp](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp) over patented protein sequences DB
+- button to start the search
+
+To start, select the protein sequence from the list, then select the search option and click the **Search** button.
+
+**Search by protein name**
+
+Example of results of the search by protein name:  
+  ![NGB GUI](images/targets-107.png)
+
+Results contain:
+
+- header for results with the name of the protein used for the search
+- table with columns for found patented sequences:  
+    - _Protein_ - protein sequence accession. Each protein is a hyperlink to the corresponding page on NCBI
+    - _Title_ - title inside the reference mentioned that patent
+    - _Journal_ - patent name and name of the reference mentioned that patent
+    - _Protein name_ - protein sequence name
+    - _Length (aa)_ - protein sequence length
+    - _Organism_ - species name (if available)
+
+**Search by amino acid sequence**
+
+When the option of the search by amino acid sequence is selected, an additional text field appears - **Query** field:  
+  ![NGB GUI](images/targets-108.png)
+
+By default, this field contains amino acid sequence of the selected protein. But you may specify custom sequence instead default value.  
+When the button **Search** is clicked - _blastp_ search will be performed by the sequence specified in the **Query** field.
+
+> **_Note_**: as _blastp_ search can take some meaning time - during the search performing the stub will be shown and the search form becomes disabled.  
+> You may collapse/expand the **Patents** section or switch between sub-blocks - these actions will not interrupt the search.
+
+Example of results of the search by custom amino acid sequence:  
+  ![NGB GUI](images/targets-109.png)
+
+Results contain:
+
+- header for results with the protein accession (if available) and length of the amino acid sequence used for the search
+- table with columns for found patented sequences:  
+    - _Protein_ - protein sequence accession. Each protein is a hyperlink to the corresponding page on NCBI
+    - _Length (aa)_ - protein sequence length
+    - _Organism_ - species name (if available)
+    - _Protein name_ - protein sequence name
+    - _Query cover_ - the percent of the query length (requested protein sequence in the **Query** field) that is included in the found patented sequence
+    - _Percent identity_ - the highest percent identity for a set of aligned segments of the found patented sequence to the query (requested protein sequence in the **Query** field)
+
+#### Patented chemicals
+
+![NGB GUI](images/targets-110.png)
+
+The sub-block contains:
+
+- dropdown list with all drugs associated with the target (same as in the **Known drugs** section of the current identification report)
+- checkboxes with options to search:  
+    - _Search patents by drug name_ - when selected, search of patented chemicals will be performed in [PubChem DB](https://www.ncbi.nlm.nih.gov/pccompound/) of NCBI
+    - _Search patents by structure identifier_ - when selected, search will be performed via advanced [PubChem search](https://pubchem.ncbi.nlm.nih.gov/search/search.cgi)
+- button to start the search
+
+To start, select the protein sequence from the list, then select the search option and click the **Search** button.
+
+**Search by drug name**
+
+Example of results of the search by drug name:  
+  ![NGB GUI](images/targets-111.png)
+
+Results contain:
+
+- header for results with the drug name used for the search
+- table with columns for found chemicals:  
+    - _CID_ - chemical identifier. Each CID is a hyperlink to the corresponding page on NCBI ([PubChem](https://www.ncbi.nlm.nih.gov/pccompound/))
+    - _Name_ - set of chemical names/synonyms
+    - _Molecular formula_ - chemical molecular formula
+    - _IUPAC name_ - [IUPAC](https://en.wikipedia.org/wiki/IUPAC_nomenclature_of_organic_chemistry) name of the chemical
+
+**Search by structure ID**
+
+When the option of the search by structure identifier is selected, an additional text field appears - **Identifier** field:  
+  ![NGB GUI](images/targets-112.png)
+
+By default, this field contains [SMILES](https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system) identifier of the selected drug.  
+But you may specify custom identifier instead the default value.  
+The following formats of the identifier query are supported:
+
+- ID (numerical [PubChem](https://www.ncbi.nlm.nih.gov/pccompound/) ID)
+- [SMILES](https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system) identifier
+- [InChI](https://en.wikipedia.org/wiki/International_Chemical_Identifier) identifier
+
+When the button **Search** is clicked - search will be performed by the identifier specified in the **Identifier** field.
+
+Example of results of the search by the structure identifier:  
+  ![NGB GUI](images/targets-113.png)
+
+Results contain:
+
+- header for results with the structure identifier name (if available)
+- table with columns for found chemicals:  
+    - _CID_ - chemical identifier. Each CID is a hyperlink to the corresponding page on NCBI ([PubChem](https://www.ncbi.nlm.nih.gov/pccompound/))
+    - _Name_ - set of chemical names/synonyms
+    - _Molecular formula_ - chemical molecular formula
+    - _IUPAC name_ - [IUPAC](https://en.wikipedia.org/wiki/IUPAC_nomenclature_of_organic_chemistry) name of the chemical
+    - _Patent_ - the patent existence state (found chemical is patented or not)
+
 ### Chat with AI
 
 Additional ability, available for users at the identification results' form - AI chat.  
@@ -477,3 +710,211 @@ Also, you can configure each AI model used here:
     - **Temperature** - defines the degree of randomness in model responses. A higher temperature makes the model's answers more varied and creative. A lower temperature makes the answers more focused and consistent.
     - **Max size** - defines the maximum size of tokens that can be used for model responses. Refers to the limit on the number of words, characters, or chunks of text that the language model can handle at once.
 4. Once options are configured - click the **OK** button to save them and apply new config.
+
+### Store and share report
+
+#### Saving
+
+There is the ability to save any target identification - for a quick access to it in the future.
+
+To save target identification, you shall:
+
+1. Click the **Save** button in the top of the **Identifications** sub-tab:  
+  ![NGB GUI](images/targets-97.png)
+2. In the appeared pop-up, specify the name for the saving identification:  
+  ![NGB GUI](images/targets-98.png)
+3. Click the **Save** button to confirm:  
+  ![NGB GUI](images/targets-99.png)
+4. Once the target identification is saved, the **Save** button becomes disabled:  
+  ![NGB GUI](images/targets-100.png)
+5. By the described way, any count of identifications can be saved for the target.
+
+If a target has at least one saved identification - for such target, specific button is shown near the **Launch** button in the **Targets** sub-tab:  
+  ![NGB GUI](images/targets-101.png)
+
+Click this button to browse saved identifications for the target - their list will be opened in the pop-up, e.g.:  
+  ![NGB GUI](images/targets-102.png)
+
+For each record in the list, there are details and controls:
+
+- _Name_ - name of the saved identification
+- _Genes of interest_ - list of genes that were selected as "Genes of interest" before the identification launch
+- _Translational genes_ - list of genes that were selected as "Translational genes" before the identification launch
+- **Launch** button ![NGB GUI](images/targets-103.png) - by click this button, saved identification will be opened in the **Identifications** sub-tab
+- **Delete** button ![NGB GUI](images/targets-104.png) - by click this button, an identification will be removed from the list
+
+#### Sharing
+
+Target identification feature is also included into common link sharing functionality - i.e. users can share the state of the performed target identification using the [URL link](../user-guide/embedding-url.md#url-format) of the NGB page.
+
+The following details are included into link:
+
+- state of the **Target Identification** panel (opened/closed)
+- selected disease in the [**Disease**](#diseases-search) sub-tab
+- launched identification for the selected target and genes ([**Identifications**](#identification-results) sub-tab)
+
+### Export
+
+User has various options to export identification results - as separate section(s) of the report and the whole report can be downloaded.
+
+#### Export section
+
+To export table content of the report's specific section:
+
+- expand the section
+- click the corresponding **Export** button above the table (in the right upper corner of the section)
+
+Export of the table in CSV format to the local workstation will be started automatically.
+
+For example, for the **Known Drugs** block:  
+  ![NGB GUI](images/targets-87.png)  
+
+Exported table:  
+  ![NGB GUI](images/targets-88.png)
+
+> **_Note_**: this option is available for table data from blocks **Known Drugs**, **Associated diseases**, **Sequences**, **Comparative genomics**, **Structure**.
+
+#### Export report
+
+To export the whole identification report:
+
+- click the **Download** button 
+- in the appeared dropdown list, select the format of the report to download:  
+    - _EXCEL_ - overall target identification report will be exported as a multi-sheet Excel file
+    - _HTML_ - overall target identification report will be exported as a static Html page  
+    ![NGB GUI](images/targets-94.png)
+- report in the selected format will be downloaded automatically
+
+Example of the Excel report:  
+  ![NGB GUI](images/targets-95.png)
+
+Example of the Html report:  
+  ![NGB GUI](images/targets-96.png)
+
+***
+
+## Diseases search
+
+**Diseases** sub-tab allows users:
+
+- to search for a disease
+- to view the following information for the found disease:
+    - name, synonyms, description
+    - known drugs associated with this disease
+    - targets associated with this disease
+
+By default, **Diseases** sub-tab is empty and contains only search input field:  
+  ![NGB GUI](images/targets-74.png)
+
+To start the search, user shall specify disease name or its part to the input field.  
+Search results will be suggested in the Google-like manner - with appearing of suitable values during the disease name input, e.g.:  
+  ![NGB GUI](images/targets-75.png)
+
+User can select one of the suggested values by click it or continue to specify the own value.  
+To perform the search, user shall press Enter key.
+
+> **_Note_**: additionally, users have the ability to search for disease's associated drugs and targets from the **Target Identification** results - namely from the [**Associated diseases**](#associated-diseases-block) section.  
+> To search for a disease from that section, user shall open the context menu (mouse right-click) for the desired disease in the **Associated diseases** table and select the corresponding item, e.g.:  
+>   ![NGB GUI](images/targets-79.png)
+
+Once the desired disease is found, the following form with results will appear, e.g.:  
+  ![NGB GUI](images/targets-76.png)
+
+Report form of the found disease contains:
+
+- search input field - to perform another disease search
+- current disease info block:
+    - name
+    - list of synonyms of the found disease
+    - description
+- set of expandable sections. There are:
+    - **Known drugs** - section with the information about drugs with investigational or approved indications for the current disease
+    - **Associated targets** - section with the information about targets associated with the current disease
+
+Below, there are details by each expandable section.
+
+### Associated drugs
+
+This section contains info about investigational or approved drugs indicated for the current disease.
+
+When the section is collapsed - its header contains short info about the count of unique drugs and total count of records:  
+  ![NGB GUI](images/targets-90.png)
+
+When the section is expanded - it contains:
+
+- table for investigational or approved drugs indicated for the current disease
+- button to export table content to the local workstation in CSV format
+
+![NGB GUI](images/targets-77.png)
+
+Information for this section is obtained from [**Open Targets**](https://platform.opentargets.org/) platform.  
+Table includes columns:
+
+- _Target_ - symbol of the associated target
+- drug details columns:
+    - _Drug_ - drug name. It is a hyperlink to the corresponding page in **Open Targets** platform
+    - _Type_ - drug type (antibody, cell, enzyme, molecule, protein, etc.)
+    - _Mechanism of action_ - drug action to the target (includes action type and target name)
+    - _Action type_ - drug action type
+- _Target name_ - name of the associated target
+- clinical trials info columns:
+    - _Phase_ - current stage of a clinical trial studying the drug
+    - _Status_ - state of the current clinical trial phase
+    - _Source_ - hyperlink to the corresponding page of the clinical trial
+
+By default, table is sorted by the _Target_ column.  
+Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+
+Table supports filtering. To filter displayed drugs - specify the desired value(s) to the filter field(s) under headers row.
+
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
+
+### Associated targets
+
+This section contains info about targets associated with the current disease.
+
+When the section is collapsed - its header contains short info about the total count of associated target records:  
+  ![NGB GUI](images/targets-91.png)
+
+When the section is expanded - it contains:
+
+- table for targets associated with the current disease
+- button to export the table content to the local workstation in CSV format
+
+![NGB GUI](images/targets-78.png)
+
+Information for this section is obtained from [**Open Targets**](https://platform.opentargets.org/) platform.  
+Table includes columns:
+
+- _Target_ - symbol of the associated target
+- _Target name_ - name of the associated target
+- _Homologues_ - list of homologues associated with the target
+- _Overall score_ - summary score of all disease-target association scores
+- other columns - specific disease-target association scores. For more details see [Associations info page](https://platform-docs.opentargets.org/associations).
+
+Table itself is colorized as a heatmap - according to the score value in each cell.
+
+By default, table is sorted by the _Overall score_ column.  
+Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+
+Table supports filtering by columns _Target_, _Target name_ and _Homologues_. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
+
+To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
+
+#### "Ad hoc" target identification
+
+For some cases, it is helpful to launch identification for a target without its registration.
+It can be performed from the **Associated targets** section of the **Diseases** panel:
+
+Find the desired target gene in the associated targets list and click its symbol, e.g.:  
+  ![NGB GUI](images/targets-114.png)  
+In the appeared menu, click the **Launch identification** item.
+
+The new identifying process will be performed and, once finished, the **Identifications** sub-tab will be automatically opened with the results (identification report) for the selected target gene:  
+  ![NGB GUI](images/targets-115.png)
+
+Such report is similar to the one described above - in the [Identification results](#identification-results) section.  
+The only differences are the following:
+
+- the identification is being performed only for the selected _gene of interest_, therefore there are no _translational genes_
+- as it is identification without gene registration - there is no ability to store the report, but you may export results if it is necessary
