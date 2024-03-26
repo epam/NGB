@@ -351,6 +351,27 @@ Removes a species version from the reference on NGB server. Reference file can b
 $ ngb remove_spec grch38
 ```
 
+### Add protein file to the reference
+
+```
+ngb add_protein|ap [<REFERENCE_NAME|REFERENCE_ID>] [<PROTEIN_FILE_PATH>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+
+*Description*
+
+Adds a protein file to the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from [**reg_ref**](#register-reference-sequence) command, at registration time or search command).
+
+*Example*
+
+```bash
+# Add a protein file /opt/sample.prot.fasta to the reference with name "grch38"
+$ ngb add_protein grch38 /opt/sample.prot.fasta
+```
+
 ***
 
 ## File commands
