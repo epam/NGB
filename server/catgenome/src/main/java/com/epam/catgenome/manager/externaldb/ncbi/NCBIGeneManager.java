@@ -135,7 +135,7 @@ public class NCBIGeneManager {
             final String count = xPath.compile("eSearchResult/Count").evaluate(document);
             return Integer.parseInt(count);
         } catch (ExternalDbUnavailableException | ParserConfigurationException | XPathExpressionException |
-                 SAXException | IOException e) {
+                 SAXException | IOException | NumberFormatException e) {
             log.error(e.getMessage(), e);
             return 0;
         }
