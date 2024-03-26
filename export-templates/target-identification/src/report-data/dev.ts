@@ -252,6 +252,24 @@ sequencesData.push({
   data: sequences3,
 });
 
+sequencesData.push({
+  gene: genes[2],
+  reference: {
+    id: "reference id",
+    value: "reference name",
+  },
+  data: sequences3,
+});
+
+sequencesData.push({
+  gene: genes[2],
+  reference: {
+    id: "reference id 2",
+    value: "reference name",
+  },
+  data: sequences3,
+});
+
 for (let i = 0; i < 600; i += 1) {
   structuresPDB.push({
     id: {

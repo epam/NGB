@@ -85,7 +85,7 @@ export function useSequencesGenes(): Gene[] {
   const {sequences = empty} =  useInjectedData();
   const genes = [...new Set(sequences
     .map(s => JSON.stringify(s.gene))
-  )].map(s =>JSON.parse(s));
+  )].map(s => JSON.parse(s));
   return genes.length ? genes : empty;
 }
 
@@ -102,15 +102,16 @@ export function useSequencesData(geneId: string): SequencesItem[] {
 
 export function useSequencesReference(geneId: string): SequencesReference[] {
   const {sequences = empty} =  useInjectedData();
-  const geneReference = sequences
-    .filter((o) => o.gene.id.toLowerCase() === geneId.toLowerCase())
-    .reduce((acc, s) => {
-      if (s.reference.value || s.reference.link) {
-        acc.reference = acc.reference ? [...acc.reference, s.reference] : [s.reference];
-      }
-      return acc;
-    }, {});
-  return geneReference ? geneReference.reference : empty;
+  const geneReferences = sequences
+    .filter((o) => (
+      (o.gene.id.toLowerCase() === geneId.toLowerCase()) &&
+      (o.reference.value || o.reference.link)
+    ))
+    .map(s => s.reference)
+    const references = [...new Set(geneReferences
+      .map(r => JSON.stringify(r))
+    )].map(r => JSON.parse(r));
+  return (references && references.length) ? references : empty;
 }
 
 export function useComparativeGenomics() {
