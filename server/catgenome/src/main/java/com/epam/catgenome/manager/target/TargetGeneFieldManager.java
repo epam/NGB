@@ -34,8 +34,6 @@ import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.store.Directory;
@@ -65,18 +63,6 @@ public class TargetGeneFieldManager extends AbstractIndexManager<TargetGeneField
 
     public List<TargetGeneField> load(final Long targetId) throws ParseException, IOException {
         return search(Collections.singletonList(targetId.toString()), IndexField.TARGET_ID.name());
-    }
-
-    public List<TargetGeneField> search(final List<String> fieldNames, final Long targetId)
-            throws ParseException, IOException {
-        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        final Query targetIdQuery = getByTermQuery(String.valueOf(targetId), IndexField.TARGET_ID.name());
-        mainBuilder.add(targetIdQuery, BooleanClause.Occur.MUST);
-        for (String fieldName: fieldNames) {
-            final Query fieldNameQuery = getByTermQuery(fieldName, IndexField.FIELD.name());
-            mainBuilder.add(fieldNameQuery, BooleanClause.Occur.MUST);
-        }
-        return search(mainBuilder.build(), null);
     }
 
     public void delete(final Long targetId) throws ParseException, IOException {
@@ -116,7 +102,7 @@ public class TargetGeneFieldManager extends AbstractIndexManager<TargetGeneField
         final Document doc = new Document();
         doc.add(new StringField(IndexField.TARGET_ID.name(), entry.getTargetId().toString(), Field.Store.YES));
 
-        doc.add(new TextField(IndexField.FIELD.name(), entry.getField(), Field.Store.YES));
+        doc.add(new StringField(IndexField.FIELD.name(), entry.getField(), Field.Store.YES));
         doc.add(new SortedDocValuesField(IndexField.FIELD.name(), new BytesRef(entry.getField())));
 
         doc.add(new StringField(IndexField.FILTER_TYPE.name(), entry.getFilterType().name(), Field.Store.YES));
