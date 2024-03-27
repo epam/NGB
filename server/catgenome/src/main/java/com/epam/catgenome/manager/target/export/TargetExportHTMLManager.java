@@ -255,7 +255,8 @@ public class TargetExportHTMLManager {
             }
             LinkEntity reference = new LinkEntity();
             if (geneRefSection.getReference() != null) {
-                reference.setValue(geneRefSection.getReference().getId());
+                reference.setId(geneRefSection.getReference().getId());
+                reference.setValue(geneRefSection.getReference().getName());
                 reference.setLink(geneRefSection.getReference().getUrl());
             }
             List<SequenceData> sequencesData = new ArrayList<>();
