@@ -35,7 +35,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class LinkEntity {
-    private String id;
     private String value;
     private String link;
 }
