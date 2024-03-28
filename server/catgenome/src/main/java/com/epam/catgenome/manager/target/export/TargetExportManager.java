@@ -344,7 +344,7 @@ public class TargetExportManager {
                     sequenceExport.setTarget(genesMap.get(geneRefSection.getGeneId().toLowerCase()));
                 }
                 if (geneRefSection.getReference() != null) {
-                    sequenceExport.setReference(geneRefSection.getReference().getId());
+                    sequenceExport.setReference(geneRefSection.getReference().getName());
                 }
                 if (sequence.getMRNA() != null) {
                     sequenceExport.setMRNA(sequence.getMRNA().getId());
