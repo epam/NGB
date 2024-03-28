@@ -4,11 +4,15 @@
     - [Target creation](#target-creation)
         - [Creation from "Targets" panel](#creation-from-targets-sub-panel)
         - [Creation from "Homologs" panel](#creation-from-homologs-panel)
+    - [Parasite targets](#parasite-targets)
+        - [Upload genes](#upload-genes)
+        - [Genes table view management](#genes-table-view-management)
     - [Edit/remove target](#editremove-target)
 - [Launch identification](#launch-identification)
 - [Identification results](#identification-results)
     - [Description block](#description-block)
     - [Known drugs block](#known-drugs-block)
+        - [Drugs TMAP](#drugs-tmap)
     - [Associated diseases block](#associated-diseases-block)
     - [Sequences block](#sequences-block)
     - [Comparative genomics block](#comparative-genomics-block)
@@ -94,7 +98,10 @@ To create a new target:
   This form contains:  
     - button to return to the targets table form
     - field to specify the name of the creating target
-    - button to add a gene/transcript to the target
+    - selector to specify the target type:
+        - _Default_ - for regular targets. See details below
+        - _Parasite_ - for parasite targets. See details in the separate [section](#parasite-targets)
+    - button to add a gene/transcript to the target - **Add gene**
     - button to add an associated disease to the target
     - button to add an associated product to the target
     - button to launch identification - **Identify**
@@ -103,7 +110,7 @@ To create a new target:
 4. Click the button "**Add gene**" to add a gene/transcript to the target.  
     A new row with empty fields will appear - for the specifying info for a gene - **Gene ID**, **Gene Name**, **Tax ID** (taxonomy ID of species), **Species Name** and **Priority** (priority of the adding gene in the current target's genes list):  
     ![NGB GUI](images/targets-12.png)
-5. Specify all fields for a gene/transcript (**Priority** field is non-required, others - mandatory).  
+5. Specify all fields for a gene/transcript (**Priority** and **Additional Genes** fields are non-required, others - mandatory).  
   There are abilities for specifying genes:  
     - fully manual way when you shall specify the value in each field as a plain text
     - "autofilling" with automatically suggested values of genes using appearing ones during the input **Gene ID**/**Gene Name** - these values are being suggested from the existing genes database, e.g.:  
@@ -113,9 +120,15 @@ To create a new target:
     - mix of the manual and "autofilling" ways
 6. **Priority** can be left empty or manually selected from the list:  
   ![NGB GUI](images/targets-15.png)
-7. By the described way (steps 4-6), add desired number of genes/transcripts. Near each gene/transcript, there is a button to remove gene from the list, e.g.:  
+7. You may add additional genes for a specific added gene - they all will present a group of genes being analysed together:  
+    - click **_add gene_** in the **Additional Genes** column
+    - manually specify gene ID and tax ID of the additional gene to appeared fields
+    - similarly, add any number of additional genes  
+    ![NGB GUI](images/targets-116.png)  
+    ![NGB GUI](images/targets-117.png)
+8. By the described way (steps 4-7), add desired number of genes/transcripts. Near each gene/transcript, there is a button to remove gene from the list, e.g.:  
   ![NGB GUI](images/targets-16.png)
-8. Add disease(s) associated with the target (_optionally_).  
+9. Add disease(s) associated with the target (_optionally_).  
   To add a disease, click the corresponding field and specify the disease manually. After the input, press _Enter_ key, e.g.:  
   ![NGB GUI](images/targets-17.png)  
   You may add any count of associated diseases by the described way. To remove a disease from the list - use the cross button near the disease name.
@@ -146,6 +159,109 @@ To create a new target from the "Homologs" panel:
 5. Specify another missing info, if necessary.
 6. Otherwise, the procedure is the same as in the section [above](#creation-from-targets-sub-panel).
 
+### Parasite targets
+
+Creation of parasite targets are slightly differ from corresponding procedures for "regular" targets described [above](#creation-from-targets-sub-panel).
+
+To create a new parasite target:
+
+1. Click the "**Create target**" button at the **Targets** sub-panel:  
+  ![NGB GUI](images/targets-10.png)
+2. Select the _Parasite_ type for a new target:  
+  ![NGB GUI](images/targets-129.png)  
+3. Specify the new target name.
+4. Click the button "**Add gene**" to add a gene/transcript to the target. A new row with empty fields will appear:  
+  ![NGB GUI](images/targets-130.png)
+5. Specify all fields for a gene/transcript (_Gene ID_, _Gene Name_, _Tax ID_ and _Species Name_ are mandatory, others - non-required), e.g.:  
+  ![NGB GUI](images/targets-131.png)
+6. You may add additional genes for a specific added gene - they all will present a group of genes being analysed together:  
+    - click **_add gene_** in the **Additional Genes** column
+    - manually specify gene ID and tax ID of the additional gene into appeared fields
+    - similarly, add any number of additional genes  
+    ![NGB GUI](images/targets-132.png)  
+    ![NGB GUI](images/targets-133.png)
+7. **Status** of the gene can be left empty or manually selected from the list:  
+  ![NGB GUI](images/targets-134.png)
+8. You may add associated target(s) from [Therapeutic Target Database](https://db.idrblab.net/ttd/):  
+    - click **_add target_** in the **TTD Targets** column
+    - manually specify TTD target of the additional gene into appeared field
+    - similarly, add any number of targets  
+    ![NGB GUI](images/targets-135.png)
+9. By the described way (steps 4-8), add desired number of genes/transcripts. Near each gene/transcript, there is a button to remove gene from the list, e.g.:  
+  ![NGB GUI](images/targets-136.png)
+10. Add disease(s) and product(s) associated with the target (_optionally_) - for details see the creation of a [default](#creation-from-targets-sub-panel) target.
+11. Once all desired values are added - click the **Create** button. Target will be saved:  
+  ![NGB GUI](images/targets-137.png)
+12. Click the button ![NGB GUI](images/targets-20.png) to return to the **Targets** table. Just created target will appear in the list:  
+  ![NGB GUI](images/targets-138.png)
+
+Please note, as parasite genes and species were specified manually, they are not shown in the corresponding columns _Genes_ and _Species_ of the **Targets** table.
+
+#### Upload genes
+
+As often it isn't possible to automatically find data for parasite genes by name or gene id, therefore have to specify target genes fields only in the fully manual way (without autofilling by gene ID/name).  
+If you want to add lots of genes or additional genes to your parasite target, it is more convenient to upload them from separate file.  
+In addition, by this way you may add custom data columns to parasite genes.
+
+Currently, the following file formats are supported for files with genes to upload: _XLSX_, _CSV_, _TSV_.
+
+There are following requirements to data formats and content in such genes file:
+
+| Data type | Column name format | Data format | Mandatory |
+| --- | --- | --- | --- |
+| _Gene ID_ | Any of: `id` / `gene` / `gene_id` / `gene id`, case insensitive | **String**<br/>Example: _UPAG\_ECOL6_ | **Yes** |
+| _Gene Name_ | Any of: `name` / `gene_name` / `gene name`, case insensitive | **String**<br/>Example: _upaG_ | **Yes** |
+| _Tax ID_ | Any of: `tax_id` / `organism_id` / `tax id`, case insensitive | **Integer**<br/>Example: _562_ | **Yes** |
+| _Species Name_ | Any of: `species` / `organism` / `species_name` / `species name`, case insensitive | **String**<br/>Example: _Escherichia coli_ | **Yes** |
+| _Priority_ | `priority`, case insensitive | `HIGH` / `LOW` or blank | No |
+| _Additional Genes_ | `AG <Tax ID> <Text>`, case insensitive<br/>Where: `<Tax ID>` - required integer tax ID of the additional gene. `<Text>` - any string, will be skipped.<br/>Example: _AG 9606 Homo\_Sapiens_ | **Comma separated strings**<br/>Example: _ENSG00000143314, ENSG00000086619_ | No |
+| _Optional_ | Any custom text name. Shall be unique within one file | Any | No |
+
+Example of the prepared genes file's content:  
+  ![NGB GUI](images/targets-139.png)
+
+To upload genes from a file to the parasite target:
+
+1. Start to create a new parasite target or open the existing one.
+2. Click the **Upload genes** button, e.g.:  
+  ![NGB GUI](images/targets-140.png)
+3. Select the prepared gene files from your local workstation. Once selected, the file name will appear in the bottom of the form, e.g.:  
+  ![NGB GUI](images/targets-141.png)
+4. Click the **Create** button for a new target or the **Save** button for an opened existing target.
+5. Genes from your file will be uploaded to the target and shown in the table, e.g.:  
+  ![NGB GUI](images/targets-142.png)
+
+If you have uploaded custom data columns, they can be shown/hidden via the _filter_ menu in the right upper corner of the **Targets** panel.  
+To show custom columns:
+
+1. Click the _filter_ menu button ![NGB GUI](images/targets-143.png) in the right upper corner of the panel.
+2. In the appeared list, select custom columns you wish to show:  
+  ![NGB GUI](images/targets-144.png)  
+  ![NGB GUI](images/targets-145.png)
+3. Selected columns will appear in the table:  
+  ![NGB GUI](images/targets-146.png)
+4. Please note, you may also specify values in custom columns for genes that were added manually (not uploaded from file), e.g.:
+  ![NGB GUI](images/targets-147.png)
+
+> **_Note_**: to hide custom columns, unselect them in the _filter_ menu.
+
+#### Genes table view management
+
+Genes table of the parasite target supports:
+
+- **_sorting_** by any column (except _Additional Genes_ and _TTD Targets_) - click the column header to sort by this column. To invert the sorting order, click the header again.
+- **_filtering_** - to filter displayed genes:  
+    - click the _filter_ menu button ![NGB GUI](images/targets-143.png) in the right upper corner of the panel
+    - select the **Show filters** item in the list:  
+    ![NGB GUI](images/targets-148.png)
+    - specify the desired value(s) or their parts to the filter field(s) under headers row:  
+    ![NGB GUI](images/targets-149.png)
+- **_column transfer_** - you may easily set the own order of table columns - just click any column header and holding the left mouse button drag and drop the column header to the desired place.
+
+> **_Note_**: to revert all table view changes, click the **Restore view** button in the _filter_ menu.
+
+***
+
 ### Edit/remove target
 
 To edit previously created target:
@@ -169,10 +285,17 @@ To launch a new identifying process:
   ![NGB GUI](images/targets-27.png)
 3. Here, the following items shall be specified:
     - _Genes of interest_ - list of species of interest. Corresponds to species for which gene (target) the identification will be performed. Species can be selected only from ones that were added to the current target. Multiselect is supported
-    - _Translational genes_ - list of species to which the gene comparison shall be performed during the identification. Species can be selected only from ones that were added to the current target. Multiselect is supported
+    - _Translational genes_ - list of species to which the gene comparison shall be performed during the identification. Species can be selected only from ones that were added to the current target. Multiselect is supported. For parasite targets identification, there is no need to necessarily indicate _Translational genes_, you may left this field empty.  
+> Please note, same gene can not be simultaneously in both lists.
 4. Once all fields are specified, click the **Identify** button to launch the identification, e.g.:  
   ![NGB GUI](images/targets-28.png)  
   ![NGB GUI](images/targets-29.png)
+
+> In addition, you can launch the identification process in the following way - open the target and click the **Identify** button for the specific gene from the list, e.g.:  
+>   ![NGB GUI](images/targets-118.png)  
+> In this case, selected gene will be automatically set as _Gene of interest_:  
+>   ![NGB GUI](images/targets-119.png)  
+> Then continue as described above.
 
 ## Identification results
 
@@ -255,13 +378,45 @@ For [**PharmGKB**](https://www.pharmgkb.org/) source, table includes columns:
 
 ![NGB GUI](images/targets-37.png)
 
-By default (no matter which source is selected), table is sorted by the _Drug_ column.  
-Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+***
 
-Table supports filtering. To filter displayed drugs - specify the desired value(s) to the filter field(s) under headers row.
+For [**Therapeutic Target Database**](https://db.idrblab.net/ttd/) source, table includes columns:
+
+- _Target_ - gene/transcript name. Allows to filter the table by the specific gene from the target
+- _Drug_ - drug name. Each drug is presented as a hyperlink to the corresponding page in **Therapeutic Target Database** platform
+- _TTD target_ - corresponding target gene name as it is specified in the **Therapeutic Target Database** platform
+- _Company_ - name of the drug company 
+- _Type_ - drug type (antibody, cell, enzyme, molecule, protein, etc.)
+- _Therapeutic class_ - drug's therapeutic class
+- _inChl_ - International Chemical Identifier
+- _inChlKey_ - International Chemical Identifier hash
+- _Canonical smiles_ - [SMILES](https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system) notation of the drug structure
+- _Status_ - state of the current clinical trial phase
+- _Compound class_ - drug's compound class
+
+![NGB GUI](images/targets-120.png)
+
+***
+
+No matter which database is selected as the source, the drug table supports:
+
+- **_sorting_** by any column - click the column header to sort by this column. To invert the sorting order, click the header again.
+- **_filtering_** - to filter displayed drugs, specify the desired value(s) to the filter field(s) under headers row.
+- **_column transfer_** - you may easily set the own order of table columns - just click any column header and holding the left mouse button drag and drop the column header to the desired place.
 
 To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.  
 > **_Note_**: only table content from the currently selected source (database) will be exported.
+
+#### Drugs TMAP
+
+In addition, you may view the tree MAP (TMAP) of all found drugs associated with the current target:
+
+- click the **SMILES tree** button in the upper side of the section:  
+  ![NGB GUI](images/targets-121.png)
+- drugs TMAP will be opened in a new tab:  
+  ![NGB GUI](images/targets-122.png)
+
+For more details, see [here](https://xinhaoli74.github.io/posts/2020/05/TMAP/).
 
 ### Associated diseases block
 
@@ -356,10 +511,26 @@ The table includes columns:
 
 ![NGB GUI](images/targets-48.png)
 
-By default, table is sorted descending by the _Target_ column.  
-Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+***
 
-Table supports filtering. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
+For [**Therapeutic Target Database**](https://db.idrblab.net/ttd/) source, only **Table view** is available.  
+In this view, diseases associated with the target are presented as a table.  
+The table includes columns:
+
+- _Target_ - gene/transcript name
+- _TTD target_ - corresponding target gene name as it is specified in the **Therapeutic Target Database** platform
+- _Disease_ - disease name associated with the target. Each disease is the hyperlink to the corresponding page in the **Therapeutic Target Database** platform
+- _Clinical status_ - state of the current clinical trial phase
+
+![NGB GUI](images/targets-123.png)
+
+***
+
+No matter which database is selected as the source, the diseases table supports:
+
+- **_sorting_** by any column - by default, table is sorted descending by the _Target_ column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+- **_filtering_** - to filter the displayed list, specify the desired value(s) to the filter field(s) under headers row.
+- **_column transfer_** - you may easily set the own order of table columns - just click any column header and holding the left mouse button drag and drop the column header to the desired place.
 
 To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
 
@@ -397,6 +568,8 @@ Such table includes columns:
 - _Length (aa)_ - protein length (number of amino acid items in the sequence)
 - _Protein name_ - name of the protein
 
+Sequences table supports **_column transfer_** - you may easily set the own order of table columns: just click any column header and holding the left mouse button drag and drop the column header to the desired place.
+
 To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
 
 ### Comparative genomics block
@@ -429,7 +602,10 @@ Table with homologous genes includes columns:
         - a line for a full protein length
         - one or several color rectangles - each for the specific conserved domain. Different domains are drawn by different colors, the same domains are drawn in the same colors
 
-Table supports filtering by columns _Target_, _Species_ and _Homology Type_. To filter the displayed list - specify the desired value(s) to the filter field(s) under headers row.
+Homologous genes table supports:
+
+- **_filtering_** by columns _Target_, _Species_ and _Homology Type_ - to filter the displayed list, specify the desired value(s) to the filter field(s) under headers row.
+- **_column transfer_** - you may easily set the own order of table columns - just click any column header and holding the left mouse button drag and drop the column header to the desired place.
 
 To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
 
@@ -490,7 +666,10 @@ Such table includes columns (set of columns may vary due to selected source):
 - _Chains_ - name of macromolecule's polymeric chain of the current gene/protein
 - _Owner_ - owner user name of the structure file (_only for local sources_)
 
-Table supports filtering by _ID_ and _Name_ columns. To filter by any of these columns - specify the filter text to the field under the header of the column, e.g.:  
+Table supports:
+
+- **_column transfer_** - you may easily set the own order of table columns - just click any column header and holding the left mouse button drag and drop the column header to the desired place.
+- **_filtering_** by _ID_ and _Name_ columns - to filter by any of these columns, specify the filter text to the field under the header of the column, e.g.:  
   ![NGB GUI](images/targets-72.png)
 
 To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
@@ -556,14 +735,17 @@ Block contains 2 sub-blocks:
 - for search and view patented [aminoacid sequences](#patented-aminoacid-sequences)
 - for search and view patented [chemicals](#patented-chemicals)
 
-Each sub-block can be selected by the special control (tab selector) inside the block, on the upper side.
+Each sub-block can be selected by the special control (tab selector) inside the block, on the upper side.  
+Information for this block can be obtained from different sources (different databases).  
+Therefore information from each database can vary - switching between sources is being performed by the corresponding dropdown list in the right upper corner of the block:  
+  ![NGB GUI](images/targets-124.png)
 
 #### Patented aminoacid sequences
 
 This sub-block is being opened by default, when the **Patents** block is expanded:  
   ![NGB GUI](images/targets-106.png)
 
-The sub-block contains:
+For [**NCBI**](https://www.ncbi.nlm.nih.gov/protein/?term=Patent%5BProperties%5D) source, this sub-block contains:
 
 - dropdown list with all protein accessions assigned to the target (same as in the **Sequences** section of the current identification report)
 - checkboxes with search options:  
@@ -613,6 +795,35 @@ Results contain:
     - _Protein name_ - protein sequence name
     - _Query cover_ - the percent of the query length (requested protein sequence in the **Query** field) that is included in the found patented sequence
     - _Percent identity_ - the highest percent identity for a set of aligned segments of the found patented sequence to the query (requested protein sequence in the **Query** field)
+
+***
+
+For [**Google Patents**](https://patents.google.com/) source, instead the **Sequences** there is the **General** sub-block in the **Patents** block:  
+  ![NGB GUI](images/targets-125.png)
+
+It contains:
+
+- field to specify a gene/protein name for the future search (by default, contains the name of the current _gene of interest_)
+- button to generate a summary over the found records  
+
+To start the patent search, specify the gene/protein name or accession and click the **Search** button.  
+Example of results of the search by the gene name:  
+  ![NGB GUI](images/targets-126.png)
+
+Results contain a table with columns for found patents records:
+
+- _Title_ - title of the patent mentioned specified gene/protein
+- _Patent number_ - patent identifier
+- _PDF_ - link to PDF version of the patent document
+- _Description_ - part of the document where the specified gene/protein is mentioned
+- _Assignee_ - company assignee name
+- _Filing date_ - patent filing date
+- _Inventor_ - patent inventor name
+- _Publication date_ and _Publication number_ - corresponding info about the patent publication document
+
+To generate a summary over the found patents list - click the corresponding button.  
+It takes some time to generate the summary. Once the summary is prepared - it will appear in the upper side of the block:  
+  ![NGB GUI](images/targets-127.png)
 
 #### Patented chemicals
 
@@ -669,6 +880,25 @@ Results contain:
     - _Molecular formula_ - chemical molecular formula
     - _IUPAC name_ - [IUPAC](https://en.wikipedia.org/wiki/IUPAC_nomenclature_of_organic_chemistry) name of the chemical
     - _Patent_ - the patent existence state (found chemical is patented or not)
+
+***
+
+For [**Google Patents**](https://patents.google.com/) source, search over patented chemicals is being performed by the similar way as described above for **NCBI** source.  
+The only difference - after the search over **Google Patents**, you may generate a summary over the found list using Generative AI.
+
+Example of results of the search by the drug name:  
+  ![NGB GUI](images/targets-128.png)
+
+In both cases (search by drug name and search by structure identifier), results contain a table with columns for found patents records:
+
+- _Title_ - title of the patent mentioned specified gene/protein
+- _Patent number_ - patent identifier
+- _PDF_ - link to PDF version of the patent document
+- _Description_ - part of the document where the specified gene/protein is mentioned
+- _Assignee_ - company assignee name
+- _Filing date_ - patent filing date
+- _Inventor_ - patent inventor name
+- _Publication date_ and _Publication number_ - corresponding info about the patent publication document
 
 ### Chat with AI
 
@@ -862,12 +1092,15 @@ Table includes columns:
     - _Status_ - state of the current clinical trial phase
     - _Source_ - hyperlink to the corresponding page of the clinical trial
 
-By default, table is sorted by the _Target_ column.  
-Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+The drug table supports:
 
-Table supports filtering. To filter displayed drugs - specify the desired value(s) to the filter field(s) under headers row.
+- **_sorting_** - by default, table is sorted by the _Target_ column. To sort by any other column, click the column header to sort by it. To invert the sorting order, click the header again.
+- **_filtering_** - to filter displayed drugs, specify the desired value(s) to the filter field(s) under headers row.
+- **_column transfer_** - you may easily set the own order of table columns - just click any column header and holding the left mouse button drag and drop the column header to the desired place.
 
 To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
+
+In addition, you may view the tree MAP (TMAP) of all associated drugs - click the [**SMILES tree**](#drugs-tmap) button in the upper side of the section.
 
 ### Associated targets
 
@@ -894,10 +1127,11 @@ Table includes columns:
 
 Table itself is colorized as a heatmap - according to the score value in each cell.
 
-By default, table is sorted by the _Overall score_ column.  
-Table supports sorting by any column. Click the column header to sort by this column. To invert the sorting order, click the header again.
+Targets table supports:
 
-Table supports filtering by columns _Target_, _Target name_ and _Homologues_. To filter displayed targets - specify the desired value(s) to the filter field(s) under headers row.
+- **_sorting_** - by default, table is sorted by the _Overall score_ column. To sort by any other column, click the column header to sort by it. To invert the sorting order, click the header again.
+- **_filtering_** - to filter displayed list, specify the desired value(s) to the filter field(s) under headers row.
+- **_column transfer_** - you may easily set the own order of table columns - just click any column header and holding the left mouse button drag and drop the column header to the desired place.
 
 To export table content in CSV format - click the corresponding [**Export**](#export-section) button above the table. Export to the local workstation will be started automatically.
 
