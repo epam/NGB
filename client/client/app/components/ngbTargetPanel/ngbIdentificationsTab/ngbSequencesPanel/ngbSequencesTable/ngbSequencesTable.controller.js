@@ -1,3 +1,6 @@
+import ngbConstants from '../../../../../../constants';
+import ngbPredictStructuresMock from '../../../../../shared/ngb-predict-structures-mock';
+
 const SEQUENCES_TABLE_COLUMNS = [{
     name: 'target',
     displayName: 'Target'
@@ -16,6 +19,9 @@ const SEQUENCES_TABLE_COLUMNS = [{
 }, {
     name: 'protein name',
     displayName: 'Protein name'
+}, {
+    name: 'predict',
+    displayName: 'Predict structure'
 }];
 
 export default class ngbSequencesTableController {
@@ -174,6 +180,18 @@ export default class ngbSequencesTableController {
                         cellTemplate: linkCell
                     };
                     break;
+                case 'predict':
+                    columnSettings = {
+                        ...columnSettings,
+                        cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
+                                        <a ng-click="grid.appScope.$ctrl.predict(row)" ng-if="!row.pending && !row.structures">Alfafold</a>
+                                        <md-progress-circular md-mode="indeterminate" flex md-diameter="12" ng-if="row.pending"></md-progress-circular>
+                                        <a ng-if="row.structures" ng-repeat="u in row.structures track by $index" href="{{u.url}}" target="_blank">
+                                            {{u.name}}
+                                        </a>
+                                    </div>`
+                    };
+                    break;
                 case 'protein name':
                     columnSettings = {
                         ...columnSettings,
@@ -235,5 +253,23 @@ export default class ngbSequencesTableController {
         this.resetSequenceResults();
         this.ngbSequencesPanelService.resetAllSequences();
         await this.initialize();
+    }
+
+    predict(row) {
+        row.pending = true;
+        let base = ngbConstants.urlPrefix || '';
+        if (base && base.length) {
+            if (!base.endsWith('/')) {
+                base = base.concat('/');
+            }
+        }
+        this.$timeout(() => {
+           this.$scope.$apply();
+           setTimeout(() => {
+               row.pending = false;
+               row.structures = ngbPredictStructuresMock();
+               this.$scope.$apply();
+           }, 3000);
+        });
     }
 }

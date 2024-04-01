@@ -3,6 +3,7 @@ import ngbVariantVisualizerService from './ngbVariantVisualizer.service';
 import {VariantRenderer} from '../../../../../modules/render';
 import Tether from 'tether';
 import $ from 'jquery';
+import ngbPredictStructuresMock from '../../../ngb-predict-structures-mock';
 
 export default class ngbVariantVisualizerController extends ngbVariantDetailsController {
     static get UID() {
@@ -28,6 +29,10 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
     _visualizationError = null;
 
     _highlightBreakpoints = true;
+
+    _structurePredicted = false;
+    _structurePredicting = false;
+    _structures = [];
 
     /* @ngInject */
     constructor($scope, $element, vcfDataService, constants, $timeout, ngbVariantVisualizerService) {
@@ -56,7 +61,22 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
         })();
     }
 
+    get structurePredicted() {
+        return this._structurePredicted;
+    }
+
+    get structurePredicting() {
+        return this._structurePredicting;
+    }
+
+    get predictedStructures() {
+        return this._structures;
+    }
+
     INIT() {
+        this._structurePredicted = false;
+        this._structurePredicting = false;
+        this._structures = [];
         if (this._service !== undefined && this._service !== null) {
             (async() => {
                 if (this.variantRequest !== null && this.variantRequest !== undefined) {
@@ -211,6 +231,16 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
                 this._tetherElement = null;
             }
         }
+    }
+
+    predictStructure() {
+        this._structurePredicting = true;
+        setTimeout(() => {
+            this._structurePredicting = false;
+            this._structurePredicted = true;
+            this._structures = ngbPredictStructuresMock();
+            this._scope.$apply();
+        }, 3000);
     }
 
 }
