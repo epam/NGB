@@ -76,10 +76,10 @@
         </div>
         <div flex="100" class="md-variant-property md-variant-property-display-mode-wide">
             <div layout="row" layout-align="start stretch" flex ng-if="!ctrl.structurePredicted && !ctrl.structurePredicting">
-                <div class="md-variant-property-title" flex="100"><a ng-click="ctrl.predictStructure()">Predict structure with Alfafold</a></div>
+                <div class="md-variant-property-title" flex="100"><a ng-click="ctrl.predictStructure()">Predict structure with Alphafold</a></div>
             </div>
             <div layout="row" layout-align="start stretch" flex ng-if="ctrl.structurePredicted || ctrl.structurePredicting">
-                <div class="md-variant-property-title" flex="50">Predict structure with Alfafold</div>
+                <div class="md-variant-property-title" flex="50">Predict structure with Alphafold</div>
                 <div class="md-variant-property-values" layout="column" flex="50">
                     <md-progress-circular md-mode="indeterminate" flex md-diameter="12" ng-if="ctrl.structurePredicting"></md-progress-circular>
                     <a ng-repeat="u in ctrl.predictedStructures track by $index" href="{{u.url}}" target="_blank">

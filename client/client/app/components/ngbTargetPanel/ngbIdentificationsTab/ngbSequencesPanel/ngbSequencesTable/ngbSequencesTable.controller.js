@@ -184,7 +184,7 @@ export default class ngbSequencesTableController {
                     columnSettings = {
                         ...columnSettings,
                         cellTemplate: `<div class="ui-grid-cell-contents ng-binding ng-scope">
-                                        <a ng-click="grid.appScope.$ctrl.predict(row)" ng-if="!row.pending && !row.structures">Alfafold</a>
+                                        <a ng-click="grid.appScope.$ctrl.predict(row)" ng-if="!row.pending && !row.structures">Alphafold</a>
                                         <md-progress-circular md-mode="indeterminate" flex md-diameter="12" ng-if="row.pending"></md-progress-circular>
                                         <div ng-if="row.structures" ng-repeat="u in row.structures track by $index">
                                             <a href="{{u.url}}" target="_blank">{{u.name}}</a>
