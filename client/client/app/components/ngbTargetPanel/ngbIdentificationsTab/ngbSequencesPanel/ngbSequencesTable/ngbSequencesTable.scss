@@ -1,13 +1,16 @@
 @import "../ngbSequencesPanel.variables.scss";
 
 ngb-sequences-table {
+
     .ui-grid {
         border: none;
         height: auto;
+        min-height: 150px;
         border-top: $sequences-table-border;
 
         .ui-grid-viewport {
             height: 100% !important;
+            min-height: 150px;
         }
 
         .ui-grid-cell-contents {
