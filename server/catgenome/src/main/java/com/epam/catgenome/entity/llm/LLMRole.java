@@ -24,10 +24,17 @@
 
 package com.epam.catgenome.entity.llm;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.util.Locale;
 
+@AllArgsConstructor
+@Getter
 public enum LLMRole {
-    USER, SYSTEM, ASSISTANT;
+    USER("user"), SYSTEM("AI"), ASSISTANT("ASSISTANT");
+
+    private String gcpAuthor;
 
     public String getRole() {
         return name().toLowerCase(Locale.ROOT);
