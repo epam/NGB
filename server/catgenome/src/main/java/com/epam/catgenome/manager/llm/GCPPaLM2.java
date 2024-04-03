@@ -38,6 +38,7 @@ import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -105,13 +106,7 @@ public class GCPPaLM2 implements LLMHandler {
     public String getChatResponse(final List<LLMMessage> messages, final double temperature) {
         Assert.notNull(this.client, "Google PALM client is not available");
         Assert.isTrue(StringUtils.isNotBlank(project), "Project is not configured for GCP request");
-        final List<Message> formatted = new ArrayList<>();
-        formatted.add(new Message(LLMRole.USER.getGcpAuthor(), "Hi"));
-        formatted.addAll(adjustFirstMessage(adjustLastMessage(messages, lastMessagePrefix),
-                firstMessagePrefix)
-                .stream()
-                .map(message -> new Message(message.getRole().getGcpAuthor(), message.getContent()))
-                .collect(Collectors.toList()));
+        final List<Message> formatted = getMessages(messages);
         final String instance = JsonMapper.convertDataToJsonStringForQuery(
                 new ChatPrompt(formatted));
         final List<com.google.protobuf.Value> instances = Collections.singletonList(buildValue(instance));
@@ -133,6 +128,29 @@ public class GCPPaLM2 implements LLMHandler {
                 .getFieldsMap()
                 .get("content")
                 .getStringValue();
+    }
+
+    @NotNull
+    private List<Message> getMessages(List<LLMMessage> messages) {
+        final List<Message> formatted = adjustFirstMessage(adjustLastMessage(messages, lastMessagePrefix),
+                firstMessagePrefix)
+                .stream()
+                .map(message -> new Message(message.getRole().getGcpAuthor(), message.getContent()))
+                .collect(Collectors.toList());
+        if (formatted.size() >= 2) {
+            final Message first = formatted.get(0);
+            final Message second = formatted.get(1);
+            if (first.getAuthor().equals(second.getAuthor())) {
+                final Message message = new Message(first.getAuthor(),
+                        first.getContent() + "\n" + second.getContent());
+                final List<Message> fixed = new ArrayList<>();
+                fixed.add(message);
+                if (formatted.size() > 2)
+                fixed.addAll(formatted.subList(2, formatted.size() + 1));
+                return fixed;
+            }
+        }
+        return formatted;
     }
 
     @Override

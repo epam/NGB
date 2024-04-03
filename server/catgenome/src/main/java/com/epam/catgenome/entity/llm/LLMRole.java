@@ -32,7 +32,7 @@ import java.util.Locale;
 @AllArgsConstructor
 @Getter
 public enum LLMRole {
-    USER("user"), SYSTEM("AI"), ASSISTANT("ASSISTANT");
+    USER("user"), SYSTEM("AI"), ASSISTANT("AI");
 
     private String gcpAuthor;
 
