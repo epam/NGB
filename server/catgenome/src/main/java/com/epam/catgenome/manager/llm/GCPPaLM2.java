@@ -146,7 +146,7 @@ public class GCPPaLM2 implements LLMHandler {
                 final List<Message> fixed = new ArrayList<>();
                 fixed.add(message);
                 if (formatted.size() > 2)
-                fixed.addAll(formatted.subList(2, formatted.size() + 1));
+                fixed.addAll(formatted.subList(2, formatted.size()));
                 return fixed;
             }
         }
