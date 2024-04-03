@@ -27,7 +27,6 @@ package com.epam.catgenome.manager.llm;
 import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMProvider;
-import com.epam.catgenome.entity.llm.LLMRole;
 import com.google.cloud.aiplatform.v1beta1.EndpointName;
 import com.google.cloud.aiplatform.v1beta1.PredictResponse;
 import com.google.cloud.aiplatform.v1beta1.PredictionServiceClient;
@@ -42,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.threeten.bp.Duration;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class GCPPaLM2 implements LLMHandler {
+    public static final int REQUEST_TIMEOUT = 300;
     private final String project;
     private final String location;
     private final String model;
@@ -145,8 +146,9 @@ public class GCPPaLM2 implements LLMHandler {
                         first.getContent() + "\n" + second.getContent());
                 final List<Message> fixed = new ArrayList<>();
                 fixed.add(message);
-                if (formatted.size() > 2)
-                fixed.addAll(formatted.subList(2, formatted.size()));
+                if (formatted.size() > 2) {
+                    fixed.addAll(formatted.subList(2, formatted.size()));
+                }
                 return fixed;
             }
         }
@@ -183,9 +185,19 @@ public class GCPPaLM2 implements LLMHandler {
     private PredictionServiceClient buildClient() {
         try {
             final String endpoint = String.format("%s-aiplatform.googleapis.com:443", location);
-            final PredictionServiceSettings predictionServiceSettings =
-                    PredictionServiceSettings.newBuilder().setEndpoint(endpoint).build();
-            return PredictionServiceClient.create(predictionServiceSettings);
+            final PredictionServiceSettings.Builder predictionServiceSettingsBuilder =
+                    PredictionServiceSettings.newBuilder();
+            predictionServiceSettingsBuilder
+                    .predictSettings()
+                    .setRetrySettings(
+                             predictionServiceSettingsBuilder
+                                 .predictSettings()
+                                 .getRetrySettings()
+                                 .toBuilder()
+                                 .setTotalTimeout(Duration.ofSeconds(REQUEST_TIMEOUT))
+                                 .build());
+            predictionServiceSettingsBuilder.setEndpoint(endpoint);
+            return PredictionServiceClient.create(predictionServiceSettingsBuilder.build());
         } catch (IOException e) {
             log.error("Failed to initialize Google PALM client", e);
             return null;
