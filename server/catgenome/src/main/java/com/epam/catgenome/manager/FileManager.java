@@ -117,6 +117,7 @@ import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
+import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1565,6 +1566,7 @@ public class FileManager {
      * Creates an index for a specified BedFile
      * @param bedFile BedFile to create index for
      */
+    @SneakyThrows
     public void makeBedIndex(final BedFile bedFile, final AsciiFeatureCodec<NggbBedFeature> nggbBedCodec) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), bedFile.getId());
@@ -1605,6 +1607,7 @@ public class FileManager {
      * Creates an index for a specified SegFile
      * @param segFile SegFile to create index for
      */
+    @SneakyThrows
     public void makeSegIndex(final SegFile segFile) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), segFile.getId());
