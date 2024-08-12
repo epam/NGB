@@ -1,0 +1,4 @@
+dash==2.17.1
+pandas==2.0.3
+dash_bootstrap_components==1.6.0
+pyarrow==14.0.1
