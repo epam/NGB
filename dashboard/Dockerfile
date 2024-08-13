@@ -12,9 +12,6 @@ ADD parser/ "$DASHBOARD_HOME/parser/"
 ADD requirements.txt "$DASHBOARD_HOME/"
 ADD start.sh "$DASHBOARD_HOME/"
 
-RUN apt-get -y update && \
-    apt-get -y install wget openjdk-8-jre nginx
-
 RUN mkdir -p "$ANACONDA_HOME" && \
     wget -q "https://repo.anaconda.com/miniconda/Miniconda${ANACONDA_VERSION}-Linux-x86_64.sh" -O /tmp/Anaconda_Install.sh --no-check-certificate && \
     bash /tmp/Anaconda_Install.sh -f -b -p "$ANACONDA_HOME" && \
