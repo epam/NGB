@@ -5,6 +5,8 @@ import datetime
 
 DATE_FORMAT = "%Y-%m-%d"
 LOG_PREFIX = 'requests.log.'
+ANONYMOUS = 'Anonymous User'
+DEFAULT_SESSION = 'default'
 
 
 def parse_message(data, timestamp):
@@ -16,6 +18,9 @@ def parse_message(data, timestamp):
             result['session'] = chunk.split('=')[1]
         if chunk.startswith('user'):
             result['user'] = chunk.split('=')[1]
+    if 'user' not in result:
+         result['user'] =  ANONYMOUS
+         result['session'] = DEFAULT_SESSION
     return result
 
 
@@ -89,11 +94,13 @@ def parse_logs(log_folder, output, last_sync, sync_token):
     else:
         result = data
 
-    result.to_parquet(output)
+    if result is not None:
+        print('Saving usage statistics to %s.' % output)
+        result.to_parquet(output)
 
-    if sync_token and last_sync_date:
-        with open(sync_token, 'w') as token:
-            token.write(last_sync_date.strftime(DATE_FORMAT) + "\n")
+        if sync_token and last_sync_date:
+            with open(sync_token, 'w') as token:
+                token.write(last_sync_date.strftime(DATE_FORMAT) + "\n")
 
 
 def read_last_sync(file_path):
@@ -120,5 +127,5 @@ if __name__ == '__main__':
     if not os.path.exists(folder):
         raise ValueError('Provided folder %s does not exist' % folder)
     if not os.path.exists(os.path.dirname(output)):
-        os.makedirs(output)
+        os.makedirs(os.path.dirname(output))
     parse_logs(folder, output, read_last_sync(last_sync), last_sync)

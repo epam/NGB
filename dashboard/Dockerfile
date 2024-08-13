@@ -24,8 +24,8 @@ RUN mkdir -p "$ANACONDA_HOME" && \
 
 # Set up parser
 ENV NGB_LOG_FOLDER=/opt/ngb/logs/
-ENV NGB_STATS_FILE="$DASHBOARD_HOME/stats/ngb-user-stats.parquet"
-ENV NGS_LOG_SYNC_TIMESTAMP="$DASHBOARD_HOME/stats/sync.txt"
+ENV NGB_STATS_FILE="/opt/ngb/data/stats/ngb-user-stats.parquet"
+ENV NGS_LOG_SYNC_TIMESTAMP="/opt/ngb/data/stats/sync.txt"
 ENV CRON_FILE="$DASHBOARD_HOME/parser.sh"
 
 RUN apt-get install -y cron && \
