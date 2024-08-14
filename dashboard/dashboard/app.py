@@ -23,7 +23,8 @@ df = df.reset_index(drop=True)
 
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = Dash(__name__, external_stylesheets=external_stylesheets,
-           url_base_pathname=os.getenv('NGB_DASHBOARD_URL_PATH', '/'))
+           url_base_pathname=os.getenv('NGB_DASHBOARD_URL_PATH', '/'),
+           title="NGB Usage Report")
 
 dropdown = dcc.Dropdown(
             id='timeframe_dropdown',
