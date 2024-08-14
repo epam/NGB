@@ -22,7 +22,8 @@ df['date'] = pd.to_datetime(df['date'])
 df = df.reset_index(drop=True)
 
 external_stylesheets = [dbc.themes.BOOTSTRAP]
-app = Dash(__name__, external_stylesheets=external_stylesheets)
+app = Dash(__name__, external_stylesheets=external_stylesheets,
+           url_base_pathname=os.getenv('NGB_DASHBOARD_URL_PATH', '/'))
 
 dropdown = dcc.Dropdown(
             id='timeframe_dropdown',
@@ -152,9 +153,16 @@ def update_output(start_date, end_date):
         ActiveTime=pd.NamedAgg(column="duration", aggfunc="sum")
     )
     graph_data['date'] = graph_data.index
-    fig = px.line(graph_data, x="date", y="NumerOfUsers", title='Logins per day',
-                  labels={"NumerOfUsers": "Logins count", "date": ""},
+    fig = px.line(graph_data, x="date", y="NumerOfUsers", title='Users per day',
+                  labels={"NumerOfUsers": "Users count", "date": ""},
                   template='plotly_white', markers=True)
+    fig.update_layout(
+        yaxis=dict(
+            tickmode='linear',
+            tick0=0,
+            dtick=1
+        )
+    )
     fig.update_traces(line_color='#000000')
 
     processed = data.groupby("user").agg(

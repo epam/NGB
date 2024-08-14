@@ -27,6 +27,7 @@ ENV NGB_LOG_FOLDER=/opt/ngb/logs/
 ENV NGB_STATS_FILE="/opt/ngb/data/stats/ngb-user-stats.parquet"
 ENV NGS_LOG_SYNC_TIMESTAMP="/opt/ngb/data/stats/sync.txt"
 ENV CRON_FILE="$DASHBOARD_HOME/parser.sh"
+ENV NGB_DASHBOARD_URL_PATH="/dashboard/"
 
 RUN apt-get install -y cron && \
     echo "0 1 * * * . $ANACONDA_HOME/etc/profile.d/conda.sh && conda activate dashboard && cd $DASHBOARD_HOME/parser && python3 log_parser.py >> $DASHBOARD_HOME/parser.log 2>&1\n" >> "$CRON_FILE" && \
