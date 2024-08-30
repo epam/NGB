@@ -164,6 +164,7 @@ def update_output(start_date, end_date):
             dtick=1
         )
     )
+    fig.update_xaxes(fixedrange=False)
     fig.update_traces(line_color='#000000')
 
     processed = data.groupby("user").agg(
@@ -192,4 +193,4 @@ def update_output(start_date, end_date):
 
 # Run the app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

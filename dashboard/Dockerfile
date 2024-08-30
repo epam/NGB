@@ -30,7 +30,7 @@ ENV CRON_FILE="$DASHBOARD_HOME/parser.sh"
 ENV NGB_DASHBOARD_URL_PATH="/dashboard/"
 
 RUN apt-get install -y cron && \
-    echo "0 1 * * * . $ANACONDA_HOME/etc/profile.d/conda.sh && conda activate dashboard && cd $DASHBOARD_HOME/parser && python3 log_parser.py >> $DASHBOARD_HOME/parser.log 2>&1\n" >> "$CRON_FILE" && \
+    echo "0 1 * * * export NGB_LOG_FOLDER="$NGB_LOG_FOLDER"; export NGB_STATS_FILE="$NGB_STATS_FILE"; export NGS_LOG_SYNC_TIMESTAMP="$NGS_LOG_SYNC_TIMESTAMP"; . $ANACONDA_HOME/etc/profile.d/conda.sh && conda activate dashboard && cd $DASHBOARD_HOME/parser && python3 log_parser.py >> $DASHBOARD_HOME/parser.log 2>&1\n" >> "$CRON_FILE" && \
     chmod 0644 "$CRON_FILE" && \
     crontab "$CRON_FILE"
 
