@@ -119,7 +119,7 @@ def read_last_sync(file_path):
 if __name__ == '__main__':
     folder = os.getenv('NGB_LOG_FOLDER')
     output = os.getenv('NGB_STATS_FILE')
-    skip_non_authorized = os.getenv('NGB_LOG_SKIP_NON_AUTH', 'false').capitalize() == 'TRUE'
+    skip_non_authorized = os.getenv('NGB_LOG_SKIP_NON_AUTH', 'false').upper() == 'TRUE'
     last_sync = os.getenv('NGS_LOG_SYNC_TIMESTAMP', None)
     if not folder:
         raise ValueError('Log folder not specified')
