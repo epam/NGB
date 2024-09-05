@@ -40,7 +40,7 @@ def process_dataset(df):
     )
     result['duration'] = df.groupby("user").apply(lambda x: calculate_stats(x))
     result['email'] = result.index
-    result['user'] = result.index
+    result['user'] = result['email'].apply(lambda s: s.split('@')[0])
     result['date'] = pd.to_datetime(result['date']).dt.date
     result['duration'] = result['duration'].apply(lambda x: x.total_seconds() / 60.0).round(2)
     return result
