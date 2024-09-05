@@ -9,7 +9,7 @@ ANONYMOUS = 'Anonymous User'
 DEFAULT_SESSION = 'default'
 
 
-def parse_message(data, timestamp):
+def parse_message(data, timestamp, skip_non_authorized):
     trimmed = data[len('After request ['):-1]
     chunks = trimmed.split(';')
     result = {'timestamp': datetime.datetime.strptime(timestamp, "%d/%m/%Y %H:%M:%S")}
@@ -18,7 +18,7 @@ def parse_message(data, timestamp):
             result['session'] = chunk.split('=')[1]
         if chunk.startswith('user'):
             result['user'] = chunk.split('=')[1]
-    if 'user' not in result:
+    if 'user' not in result and not skip_non_authorized:
          result['user'] =  ANONYMOUS
          result['session'] = DEFAULT_SESSION
     return result
@@ -46,7 +46,7 @@ def process_dataset(df):
     return result
 
 
-def parse_logs(log_folder, output, last_sync, sync_token):
+def parse_logs(log_folder, output, last_sync, sync_token, skip_non_authorized):
     data = None
     last_sync_date = None
     for file in os.listdir(log_folder):
@@ -67,7 +67,7 @@ def parse_logs(log_folder, output, last_sync, sync_token):
                         try:
                             parsed = json.loads(line)
                             timestamp = parsed['debug_timestamp']
-                            entry = parse_message(parsed['debug_message'], timestamp)
+                            entry = parse_message(parsed['debug_message'], timestamp, skip_non_authorized)
                             if 'user' not in entry:
                                 continue
                             items.append(entry)
@@ -119,6 +119,7 @@ def read_last_sync(file_path):
 if __name__ == '__main__':
     folder = os.getenv('NGB_LOG_FOLDER')
     output = os.getenv('NGB_STATS_FILE')
+    skip_non_authorized = os.getenv('NGB_LOG_SKIP_NON_AUTH', 'false').capitalize() == 'TRUE'
     last_sync = os.getenv('NGS_LOG_SYNC_TIMESTAMP', None)
     if not folder:
         raise ValueError('Log folder not specified')
@@ -128,4 +129,4 @@ if __name__ == '__main__':
         raise ValueError('Provided folder %s does not exist' % folder)
     if not os.path.exists(os.path.dirname(output)):
         os.makedirs(os.path.dirname(output))
-    parse_logs(folder, output, read_last_sync(last_sync), last_sync)
+    parse_logs(folder, output, read_last_sync(last_sync), last_sync, skip_non_authorized)
