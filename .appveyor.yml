@@ -3,7 +3,7 @@ version: 2.8.0.{build}
 branches:
   only:
     - develop
-    - develop-*
+    - develop-.*
     - /release\/.*/
 
 skip_tags: true
