@@ -62,6 +62,12 @@ class NgbLLMController {
         if (!modelType) {
             return undefined;
         }
+        if (this.modelsConfiguration) {
+            const modelConfig = this.modelsConfiguration.find((m) => m.provider === modelType);
+            if (modelConfig && modelConfig.name) {
+                return modelConfig.name;
+            }
+        }
         return LLMName[modelType] || modelType;
     }
 
@@ -93,8 +99,10 @@ class NgbLLMController {
         const llmSettings = await this.getLLMSettings();
         if (!llmSettings || !llmSettings.length) {
             this.models = [];
+            this.modelsConfiguration = [];
         } else {
             this.models = llmSettings.map(m => m.provider);
+            this.modelsConfiguration = llmSettings;
         }
     }
 
