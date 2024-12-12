@@ -6,8 +6,8 @@ const LLM = {
 };
 
 const LLMName = {
-  [LLM.openAIGPT35]: 'ChatGPT 3.5',
-  [LLM.openAIGPT40]: 'ChatGPT 4.0',
+  [LLM.openAIGPT35]: 'Gemini 1.5 Pro',
+  [LLM.openAIGPT40]: 'Gemini 1.5 Flex',
   [LLM.googlePalm2]: 'Google PaLM2',
   [LLM.custom]: 'CUSTOM',
 };
