@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Value;
 @Slf4j
 public class UrlValidatorService {
 
-    private List<String> allowedHosts;
+    private final List<String> allowedHosts;
 
     public UrlValidatorService(@Value("#{'${item.path.register.allowed.hosts}'.split(',')}")
                                final List<String> allowedHosts) {
