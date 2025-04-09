@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.bed.FileExtensionMapping;
+import com.epam.catgenome.manager.UrlValidatorService;
 import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
 import com.epam.catgenome.manager.bed.parser.NggbMultiFormatBedCodec;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
@@ -129,6 +130,9 @@ public class BedManager {
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
+    @Autowired
+    private UrlValidatorService urlValidatorService;
+
     @Value("${bed.multi.format.file.path}")
     private String bedMultiFormatFilePath;
 
@@ -165,6 +169,7 @@ public class BedManager {
         Assert.isTrue(StringUtils.isNotBlank(requestPath), getMessage(
                 MessagesConstants.ERROR_NULL_PARAM, "path"));
         Assert.notNull(request.getReferenceId(), getMessage(MessagesConstants.ERROR_NULL_PARAM, "referenceId"));
+        urlValidatorService.validate(request);
         double time1 = Utils.getSystemTimeMilliseconds();
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);

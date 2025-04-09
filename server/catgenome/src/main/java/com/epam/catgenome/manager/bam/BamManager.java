@@ -40,6 +40,7 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
+import com.epam.catgenome.manager.UrlValidatorService;
 import com.epam.catgenome.manager.bam.handlers.SAMRecordHandler;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
@@ -106,6 +107,9 @@ public class BamManager {
     @Autowired
     private TaskExecutorService taskExecutorService;
 
+    @Autowired
+    private UrlValidatorService urlValidatorService;
+
     @Value("#{catgenome['bam.max.coverage.range'] ?: 1000000}")
     private int maxCoverageRange;
 
@@ -120,6 +124,7 @@ public class BamManager {
         Assert.notNull(request.getPath(), getMessage(MessagesConstants.ERROR_NULL_PARAM));
         Assert.notNull(request.getReferenceId(), getMessage(NO_SUCH_REFERENCE));
         Assert.notNull(request.getIndexPath(), getMessage(MessagesConstants.WRONG_BAM_INDEX_FILE));
+        urlValidatorService.validate(request);
         double time1 = Utils.getSystemTimeMilliseconds();
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
