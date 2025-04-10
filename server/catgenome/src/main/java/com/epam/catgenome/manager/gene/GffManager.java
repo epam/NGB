@@ -58,6 +58,7 @@ import com.epam.catgenome.manager.DownloadFileManager;
 import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
+import com.epam.catgenome.manager.UrlValidatorService;
 import com.epam.catgenome.manager.activity.ActivityService;
 import com.epam.catgenome.manager.externaldb.PdbDataManager;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.Alignment;
@@ -172,6 +173,9 @@ public class GffManager {
     @Autowired
     private ActivityService activityService;
 
+    @Autowired
+    private UrlValidatorService urlValidatorService;
+
     @Value("#{'${feature.counts.extensions}'.split(',')}")
     private List<String> featureCountsExtensions;
 
@@ -198,6 +202,7 @@ public class GffManager {
         Assert.isTrue(StringUtils.isNotBlank(requestPath), getMessage(
                 MessagesConstants.ERROR_NULL_PARAM, "path"));
         Assert.notNull(request.getReferenceId(), getMessage(MessagesConstants.ERROR_NULL_PARAM, "referenceId"));
+        urlValidatorService.validate(request);
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }

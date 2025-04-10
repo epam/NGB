@@ -225,7 +225,7 @@ public final class MessagesConstants {
     public static final String ERROR_LARGE_FILE_FOR_DOWNLOAD = "error.large.file.for.download";
     public static final String ERROR_DOWNLOAD_TIMEOUT = "error.download.timeout";
     public static final String ERROR_UNKNOWN_HOST = "error.unknown.host";
-
+    public static final String ERROR_HOST_NOT_ALLOWED = "error.host.not.allowed";
 
     //EXTERNAL_DB
     public static final String ERROR_PARSING = "error.parsing.exception";

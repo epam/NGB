@@ -315,6 +315,9 @@ public class FileManager {
     @Value("${config.path:}")
     private String defaultTrackSettingsDirPath;
 
+    @Autowired
+    private UrlValidatorService urlValidatorService;
+
     /**
      * Returns the real path of a directory used as the content root to store uploaded content
      * files and any immediate post-processing file resources related to them.
@@ -357,6 +360,15 @@ public class FileManager {
         if (!isUrlsBrowsingAllowed()) {
             throw new AccessDeniedException(getMessage(URL_FILE_BROWSING_NOT_ALLOWED));
         }
+    }
+
+    public void checkIfUrlBrowsingAllowed(final String fileUrl,
+                                          final String indexUrl) throws AccessDeniedException {
+        if (!isUrlsBrowsingAllowed()) {
+            throw new AccessDeniedException(getMessage(URL_FILE_BROWSING_NOT_ALLOWED));
+        }
+        urlValidatorService.validateURL(fileUrl);
+        urlValidatorService.validateURL(indexUrl);
     }
 
     /**

@@ -60,6 +60,7 @@ import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.DownloadFileManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
+import com.epam.catgenome.manager.UrlValidatorService;
 import com.epam.catgenome.manager.seg.parser.SegFeature;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
@@ -97,6 +98,9 @@ public class SegManager {
     @Autowired
     private DownloadFileManager downloadFileManager;
 
+    @Autowired
+    private UrlValidatorService urlValidatorService;
+
     /**
      * Saves a {@code SegFile} in the system, writes it's metadata to the database and
      * creates feature index.
@@ -108,6 +112,7 @@ public class SegManager {
         Assert.isTrue(StringUtils.isNotBlank(requestPath), getMessage(
                 MessagesConstants.ERROR_NULL_PARAM, "path"));
         Assert.notNull(request.getReferenceId(), getMessage(MessagesConstants.ERROR_NULL_PARAM, "referenceId"));
+        urlValidatorService.validate(request);
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }

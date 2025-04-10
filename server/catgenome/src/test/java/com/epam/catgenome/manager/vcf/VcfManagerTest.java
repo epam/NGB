@@ -100,6 +100,7 @@ import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.manager.UrlValidatorService;
 
 /**
  * Source:      VcfManagerTest.java
@@ -180,6 +181,10 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Spy
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
+
+    @Spy
+    @Autowired
+    private UrlValidatorService urlValidatorService;
 
     private static final int TEST_END_INDEX = 187708306;
 
