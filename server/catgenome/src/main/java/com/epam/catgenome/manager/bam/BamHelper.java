@@ -261,7 +261,7 @@ public class BamHelper {
      */
     public BamFile makeUrlBamFile(String bamUrl, String bamIndexUrl, Chromosome chromosome)
             throws FeatureFileReadingException, AccessDeniedException {
-        fileManager.checkIfUrlBrowsingAllowed();
+        fileManager.checkIfUrlBrowsingAllowed(bamUrl, bamIndexUrl);
         try {
             return Utils.createNonRegisteredFile(BamFile.class, bamUrl, bamIndexUrl, chromosome);
         } catch (InvocationTargetException e) {

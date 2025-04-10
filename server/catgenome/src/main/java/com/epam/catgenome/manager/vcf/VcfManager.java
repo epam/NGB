@@ -65,6 +65,7 @@ import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.manager.FeatureIndexManager;
+import com.epam.catgenome.manager.UrlValidatorService;
 import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.util.IOHelper;
@@ -167,6 +168,9 @@ public class VcfManager {
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
+    @Autowired
+    private UrlValidatorService urlValidatorService;
+
     public static final double HTSJDK_WRONG_QUALITY = -10.0;
 
     @Value("#{catgenome['vcf.filter.whitelist']}")
@@ -197,6 +201,7 @@ public class VcfManager {
         Assert.isTrue(StringUtils.isNotBlank(requestPath), getMessage(
                 MessagesConstants.ERROR_NULL_PARAM, "path"));
         Assert.notNull(request.getReferenceId(), getMessage(MessagesConstants.ERROR_NULL_PARAM, "referenceId"));
+        urlValidatorService.validate(request);
         final double time1 = Utils.getSystemTimeMilliseconds();
         VcfFile vcfFile;
         final Reference reference = referenceGenomeManager.load(request.getReferenceId());
@@ -296,7 +301,7 @@ public class VcfManager {
     public Track<Variation> loadVariations(final Track<Variation> track, final String fileUrl, final String indexUrl,
                                            final Integer sampleIndex, final boolean loadInfo, final boolean collapse)
             throws VcfReadingException, AccessDeniedException {
-        fileManager.checkIfUrlBrowsingAllowed();
+        fileManager.checkIfUrlBrowsingAllowed(fileUrl, indexUrl);
 
         final double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
@@ -566,7 +571,7 @@ public class VcfManager {
     private VcfFile makeTemporaryVcfFileFromUrl(final String fileUrl, final String indexUrl,
                                                 final Chromosome chromosome)
             throws VcfReadingException, AccessDeniedException {
-        fileManager.checkIfUrlBrowsingAllowed();
+        fileManager.checkIfUrlBrowsingAllowed(fileUrl, indexUrl);
 
         try {
             return Utils.createNonRegisteredFile(VcfFile.class, fileUrl, indexUrl, chromosome);

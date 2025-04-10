@@ -51,6 +51,7 @@ import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
+import com.epam.catgenome.manager.UrlValidatorService;
 import com.epam.catgenome.manager.genbank.GenbankManager;
 import com.epam.catgenome.manager.reference.io.FastaSequenceFile;
 import com.epam.catgenome.manager.reference.io.FastaUtils;
@@ -130,6 +131,9 @@ public class ReferenceManager {
     @Autowired
     private AuthManager authManager;
 
+    @Autowired
+    private UrlValidatorService urlValidatorService;
+
     /**
      * @param track {@code Track} Track with information about query
      *              (the most important: chromosome name, Id, start index, end index and scaleFactor)
@@ -155,7 +159,7 @@ public class ReferenceManager {
      * @throws IOException
      */
     public Reference registerGenome(final ReferenceRegistrationRequest request) throws IOException {
-
+        urlValidatorService.validateReference(request);
         final String name;
         String path = request.getPath();
         if (request.getType() == null) {

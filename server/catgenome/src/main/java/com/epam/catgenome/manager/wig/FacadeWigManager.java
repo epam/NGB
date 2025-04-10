@@ -42,6 +42,7 @@ import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.DownloadFileManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
+import com.epam.catgenome.manager.UrlValidatorService;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
@@ -98,6 +99,9 @@ public class FacadeWigManager {
     @Autowired
     protected DownloadFileManager downloadFileManager;
 
+    @Autowired
+    private UrlValidatorService urlValidatorService;
+
     @Autowired(required = false)
     protected EhCacheBasedIndexCache indexCache;
 
@@ -131,6 +135,7 @@ public class FacadeWigManager {
         final String requestPath = request.getPath();
         Assert.notNull(requestPath, getMessage(MessagesConstants.WRONG_WIG_FILE));
         Assert.notNull(request.getReferenceId(), getMessage(MessageCode.NO_SUCH_REFERENCE));
+        urlValidatorService.validate(request);
         WigFile wigFile = null;
         try {
             fetchWigManager(requestPath).assertFile(requestPath);

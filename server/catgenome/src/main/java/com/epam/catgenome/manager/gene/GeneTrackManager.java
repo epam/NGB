@@ -144,7 +144,7 @@ public class GeneTrackManager {
      */
     public Track<Gene> loadGenes(final Track<Gene> track, boolean collapse, String fileUrl, String indexUrl)
             throws GeneReadingException, AccessDeniedException {
-        fileManager.checkIfUrlBrowsingAllowed();
+        fileManager.checkIfUrlBrowsingAllowed(fileUrl, indexUrl);
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
         GeneFile geneFile;
         try {
