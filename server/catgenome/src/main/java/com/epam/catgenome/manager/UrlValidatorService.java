@@ -48,7 +48,7 @@ public class UrlValidatorService {
 
     private final List<String> allowedHosts;
 
-    public UrlValidatorService(@Value("#{'${item.path.register.allowed.hosts}'.split(',')}")
+    public UrlValidatorService(@Value("#{'${url.browsing.allowed.hosts}'.split(',')}")
                                final List<String> allowedHosts) {
         this.allowedHosts = allowedHosts;
     }
@@ -62,6 +62,10 @@ public class UrlValidatorService {
 
     public void validateReference(final ReferenceRegistrationRequest request) {
         validatePath(request.getPath(), request.getType());
+    }
+
+    public void validateURL(final String url) {
+        validatePath(url, BiologicalDataItemResourceType.FILE);
     }
 
     private void validatePath(final String inputPath, final BiologicalDataItemResourceType type) {
@@ -88,7 +92,7 @@ public class UrlValidatorService {
                     .orElseThrow(() -> new IllegalStateException(
                             MessageHelper.getMessage(MessagesConstants.ERROR_HOST_NOT_ALLOWED)));
         } catch (URISyntaxException e) {
-            throw new RuntimeException("Failed to parse URL.", e);
+            throw new IllegalArgumentException("Failed to parse URL.", e);
         }
     }
 

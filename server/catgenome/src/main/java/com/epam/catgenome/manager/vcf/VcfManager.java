@@ -301,7 +301,7 @@ public class VcfManager {
     public Track<Variation> loadVariations(final Track<Variation> track, final String fileUrl, final String indexUrl,
                                            final Integer sampleIndex, final boolean loadInfo, final boolean collapse)
             throws VcfReadingException, AccessDeniedException {
-        fileManager.checkIfUrlBrowsingAllowed();
+        fileManager.checkIfUrlBrowsingAllowed(fileUrl, indexUrl);
 
         final double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
@@ -571,7 +571,7 @@ public class VcfManager {
     private VcfFile makeTemporaryVcfFileFromUrl(final String fileUrl, final String indexUrl,
                                                 final Chromosome chromosome)
             throws VcfReadingException, AccessDeniedException {
-        fileManager.checkIfUrlBrowsingAllowed();
+        fileManager.checkIfUrlBrowsingAllowed(fileUrl, indexUrl);
 
         try {
             return Utils.createNonRegisteredFile(VcfFile.class, fileUrl, indexUrl, chromosome);

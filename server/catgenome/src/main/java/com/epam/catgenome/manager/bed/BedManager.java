@@ -204,7 +204,7 @@ public class BedManager {
 
     public Track<BedRecord> loadFeatures(final Track<BedRecord> track, String fileUrl, String indexUrl)
             throws FeatureFileReadingException, AccessDeniedException {
-        fileManager.checkIfUrlBrowsingAllowed();
+        fileManager.checkIfUrlBrowsingAllowed(fileUrl, indexUrl);
         double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
 

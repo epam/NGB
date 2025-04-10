@@ -194,7 +194,7 @@ public class BamManager {
     public void sendBamTrackToEmitterFromUrl(final Track<Read> track, BamQueryOption option, String bamUrl,
                                                        String indexUrl, ResponseBodyEmitter emitter)
             throws IOException {
-        fileManager.checkIfUrlBrowsingAllowed();
+        fileManager.checkIfUrlBrowsingAllowed(bamUrl, indexUrl);
         double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, bamUrl, indexUrl);
         BamQueryOption currentOptions = option == null ? new BamQueryOption() : option;

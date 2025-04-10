@@ -122,9 +122,6 @@ public class BedManagerTest extends AbstractManagerTest {
     @Value("#{catgenome['files.base.directory.path']}")
     private String baseDirPath;
 
-    @Value("#{catgenome['item.path.register.allowed.hosts']}")
-    private List<String> allowedHosts;
-
     private static final int TEST_END_INDEX = 239107476;
     private static final Double FULL_QUERY_SCALE_FACTOR = 1D;
     private static final int TEST_CHROMOSOME_SIZE = 239107476;
