@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ehcache updateCheck="true"
-         monitoring="autodetect">
+<config xmlns="http://www.ehcache.org/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.10.xsd">
 
-    <diskStore path="java.io.tmpdir" />
-    <cache name="proteinTrack"
-           maxEntriesLocalHeap="1000"
-           eternal="false"
-           diskSpoolBufferSizeMB="40"
-           timeToIdleSeconds="5"
-           memoryStoreEvictionPolicy="FIFO"
-           transactionalMode="off">
-        <persistence strategy="none" />
+    <cache alias="proteinTrack">
+        <expiry>
+            <tti unit="seconds">5</tti>
+        </expiry>
+        <resources>
+            <heap unit="entries">1000</heap>
+        </resources>
     </cache>
-    <cache name="indexCache"
-           maxBytesLocalHeap="100M"
-           eternal="false"
-           timeToIdleSeconds="600"
-           memoryStoreEvictionPolicy="FIFO"
-           transactionalMode="off">
-        <persistence strategy="none" />
+
+    <cache alias="indexCache">
+        <expiry>
+            <tti unit="seconds">600</tti>
+        </expiry>
+        <heap unit="entries">1000</heap>
     </cache>
-</ehcache>
+
+</config>

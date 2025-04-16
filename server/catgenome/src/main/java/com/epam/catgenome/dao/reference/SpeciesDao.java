@@ -72,7 +72,7 @@ public class SpeciesDao extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public Species loadSpeciesByVersion(String version) {
-        Assert.isTrue(StringUtils.isNotBlank(version));
+        Assert.isTrue(StringUtils.isNotBlank(version), "");
         List<Species> list = getNamedParameterJdbcTemplate().query(loadSpeciesByVersionQuery,
             new MapSqlParameterSource(SpeciesParameters.SPECIES_VERSION.name(), version),
             SpeciesParameters.getRowMapper()

@@ -76,7 +76,7 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public Long createId(final String sequenceName) {
-        Assert.isTrue(StringUtils.isNotBlank(sequenceName));
+        Assert.isTrue(StringUtils.isNotBlank(sequenceName), "");
         return getNamedParameterJdbcTemplate().queryForObject(createIdQuery,
             new MapSqlParameterSource(HelperParameters.SEQUENCE_NAME.name(), sequenceName), Long.class);
     }
@@ -114,7 +114,7 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public List<Long> createIds(final String sequenceName, final int count) {
-        Assert.isTrue(StringUtils.isNotBlank(sequenceName));
+        Assert.isTrue(StringUtils.isNotBlank(sequenceName), "");
         if (count == 0) {
             return Collections.emptyList();
         }

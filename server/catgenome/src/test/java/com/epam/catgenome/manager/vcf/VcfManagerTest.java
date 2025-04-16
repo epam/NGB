@@ -54,11 +54,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
@@ -101,7 +101,6 @@ import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.util.Utils;
-import com.epam.catgenome.manager.UrlValidatorService;
 
 /**
  * Source:      VcfManagerTest.java
@@ -145,36 +144,28 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Mock
     private HttpDataManager httpDataManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private VcfFileManager vcfFileManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private TrackHelper trackHelper;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private FileManager fileManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private BiologicalDataItemManager biologicalDataItemManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private FeatureIndexManager featureIndexManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private ReferenceGenomeManager referenceGenomeManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private DownloadFileManager downloadFileManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private GeneTrackManager geneTrackManager;
 
     @Autowired
@@ -192,13 +183,8 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Autowired
     private ApplicationContext context;
 
-    @Spy
-    @Autowired(required = false)
+    @SpyBean
     private EhCacheBasedIndexCache indexCache;
-
-    @Spy
-    @Autowired
-    private UrlValidatorService urlValidatorService;
 
     @Value("${ga4gh.google.variantSetId}")
     private String varSet;
@@ -306,8 +292,8 @@ public class VcfManagerTest extends AbstractManagerTest {
         /// test not collapsed
         trackResult = testLoad(vcfFile, TEST_SMALL_SCALE_FACTOR, true, false);
         ambiguousVariations = trackResult.getBlocks().stream()
-            .filter((b) -> b.getVariationsCount() != null && b.getVariationsCount() > 1)
-            .collect(Collectors.toList());
+                .filter((b) -> b.getVariationsCount() != null && b.getVariationsCount() > 1)
+                .collect(Collectors.toList());
 
         Assert.assertTrue(ambiguousVariations.isEmpty());
     }
@@ -563,7 +549,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         String fetchRes3 = readFile("GA4GH_id10473_variant_2.json");
         String fetchRes4 = readFile("GA4GH_id10473_variant_3.json");
         Mockito.when(
-                httpDataManager.fetchData(Mockito.any(), Mockito.any(JSONObject.class)))
+                        httpDataManager.fetchData(Mockito.any(), Mockito.any(JSONObject.class)))
                 .thenReturn(fetchRes1)
                 .thenReturn(fetchRes2)
                 .thenReturn(fetchRes3)
@@ -571,7 +557,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
         String fetchRes5 = readFile("GA4GH_id10473_param.json");
         Mockito.when(
-                httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
+                        httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
                 .thenReturn(fetchRes5);
 
         getNextFeature(referenceId, BiologicalDataItemResourceType.FILE);
@@ -711,7 +697,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         Assert.assertEquals(NUMBER_OF_FILTERS, filterInfo.getAvailableFilters().size());
         Assert.assertEquals(NUMBER_OF_TRIVIAL_INFO, filterInfo.getInfoItems().size() - 1);
         Assert.assertEquals(NUMBER_OF_TRIVIAL_INFO, filterInfo.getInfoItemMap().size() - 1); // -1 refers to is_exon
-                                                                                    // item which is added externally
+        // item which is added externally
     }
 
     @Test

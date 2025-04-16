@@ -47,10 +47,10 @@ import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequ
 import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.seg.SegRecord;
 import com.epam.catgenome.entity.track.SampledTrack;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * <p>
@@ -61,7 +61,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
  * calls and manage all operations concerned with a SEG file.
  */
 @Controller
-@Api(value = "seg", description = "SEG Track Management")
+@Tag(name = "seg", description = "SEG Track Management")
 public class SegController extends AbstractRESTController {
 
     @Autowired
@@ -69,26 +69,28 @@ public class SegController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/seg/register", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Registers a SEG file in the system.",
-            notes = "Registers a file, stored in a file system (for now). Registration request has the following " +
+    @Operation(
+            summary = "Registers a SEG file in the system.",
+        description = "Registers a file, stored in a file system (for now). Registration request has the following " +
                     "properties: <br/>" +
                     "1) referenceId - a reference, for which file is being registered <br/>" +
                     "2) path - a path to file </br>" +
                     "3) indexPath - <i>optional</i> a path to an index file<br/>" +
-                    "4) name - <i>optional</i> a name for gene track",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    "4) name - <i>optional</i> a name for gene track")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<SegFile> registerSegFile(@RequestBody IndexedFileRegistrationRequest request) {
         return Result.success(segSecurityService.registerSegFile(request));
     }
 
     @ResponseBody
     @RequestMapping(value = "/secure/seg/register", method = RequestMethod.DELETE)
-    @ApiOperation(value = "Unregisters a SEG file from the system.",
-            notes = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Unregisters a SEG file from the system.",
+        description = "")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> unregisterSegFile(@RequestParam final long segFileId) throws IOException {
         SegFile deletedFile = segSecurityService.unregisterSegFile(segFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
@@ -96,9 +98,9 @@ public class SegController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/seg/track/get", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns data matched the given query to fill in a SEG track.",
-            notes = "It provides data for a SEG track with the given scale factor between the beginning " +
+    @Operation(
+            summary = "Returns data matched the given query to fill in a SEG track.",
+        description = "It provides data for a SEG track with the given scale factor between the beginning " +
                     "position with the first base having position 1 and ending position inclusive in a target " +
                     "chromosome. All parameters are mandatory and described below:<br/><br/>" +
                     "1) <b>id</b> specifies ID of a track;<br/>" +
@@ -107,11 +109,10 @@ public class SegController extends AbstractRESTController {
                     "chromosome always has got position  = 1;<br/>" +
                     "4) <b>endIndex</b> is the last base position for a requested window. <br/>" +
                     "5) <b>scaleFactor</b> specifies an inverse value to number of bases per one visible element on a" +
-                    " track (e.g., pixel) - IS IGNORED FOR NOW",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    " track (e.g., pixel) - IS IGNORED FOR NOW")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<SampledTrack<SegRecord>> loadTrack(@RequestBody final TrackQuery trackQuery)
             throws IOException {
         final SampledTrack<SegRecord> track = convertToSampledTrack(trackQuery);

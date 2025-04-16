@@ -171,7 +171,7 @@ public class Project extends BaseEntity implements Printable<Project> {
                 String.valueOf(calculateItemsCount()),
                 DATE_FORMAT.format(lastOpenedDate)));
         if (getNestedProjects() != null) {
-            getNestedProjects().forEach(p -> result.append("\n").append(p.formatItem(formatString)));
+            getNestedProjects().forEach(p -> result.append('\n').append(p.formatItem(formatString)));
         }
         return result.toString();
     }

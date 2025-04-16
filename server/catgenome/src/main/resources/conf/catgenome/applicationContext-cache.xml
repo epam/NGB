@@ -11,16 +11,16 @@
     <cache:annotation-driven />
 
      <!-- EhCache library setup -->
+    <bean id="cacheManagerUri" class="java.net.URI" factory-method="create">
+        <constructor-arg value="#{T(org.springframework.util.ResourceUtils).getURL('classpath:conf/catgenome/ehcache.xml').toURI().toString()}" />
+    </bean>
 
-    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager"
-          p:cacheManager-ref="ehcache"/>
+    <bean id="jcacheManager" class="org.springframework.cache.jcache.JCacheManagerFactoryBean">
+        <property name="cacheManagerUri" ref="cacheManagerUri"/>
+    </bean>
 
-    <bean id="ehcache" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
-        p:configLocation="classpath:conf/catgenome/ehcache.xml"
-        p:shared = "true"/>
-
-    <bean id="cache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
-        <property name="cacheManager" ref="ehcache"/>
+    <bean id="cacheManager" class="org.springframework.cache.jcache.JCacheCacheManager">
+        <constructor-arg ref="jcacheManager"/>
     </bean>
 
     <!-- Task executor for async cache population -->

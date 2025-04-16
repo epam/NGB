@@ -92,6 +92,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -163,6 +164,7 @@ public class VcfManager {
     private GeneTrackManager geneTrackManager;
 
     @Autowired
+    @Lazy
     private FeatureIndexManager featureIndexManager;
 
     @Autowired(required = false)

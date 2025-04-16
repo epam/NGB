@@ -31,6 +31,10 @@ import java.io.IOException;
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.manager.bam.BamSecurityService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -46,10 +50,6 @@ import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,7 +71,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
  *
  */
 @Controller
-@Api(value = "BAM", description = "BAM Track Management")
+@Tag(name = "BAM", description = "BAM Track Management")
 public class BamController extends AbstractRESTController {
 
     private static final String NOTES = "It provides data for a BAM track with the given scale factor between the " +
@@ -98,29 +98,28 @@ public class BamController extends AbstractRESTController {
 
     @ResponseBody
     @PostMapping(value = "/bam/register")
-    @ApiOperation(
-            value = "Registers a BAM file in the system.",
-            notes = "Registers a file, stored in a file system (for now). Registration request has the following " +
+    @Operation(
+            summary = "Registers a BAM file in the system.",
+            description = "Registers a file, stored in a file system (for now). Registration request has the following " +
                     "properties: <br/>" +
                     "1) referenceId - a reference, for which file is being registered <br/>" +
                     "2) path - a path to file </br>" +
                     "3) type - resource type of file: FILE / URL / S3<br/>" +
                     "4) indexPath - <i>optional</i> a path to an index file (.bai)<br/>" +
                     "5) name - <i>optional</i> a name for BAM track<br/>" +
-                    "6) s3BucketId - <i>optional</i> necessarily for cases when type is S3",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    "6) s3BucketId - <i>optional</i> necessarily for cases when type is S3")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<BamFile> registerBamFile(@RequestBody IndexedFileRegistrationRequest request) throws IOException {
         return Result.success(bamSecurityService.registerBam(request));
     }
 
     @PostMapping(value = "/bam/track/get")
-    @ApiOperation(
-            value = "Returns data (chunked) matching the given query to fill in a bam track. Returns all information " +
+    @Operation(
+            summary = "Returns data (chunked) matching the given query to fill in a bam track. Returns all information " +
                     "about reads.",
-            notes = NOTES +
+            description = NOTES +
                     "<br/>option:<br/>" +
                     "all the following params are <b>optional</b>, if any of the params is incorrect, " +
                     "it will be set to default value:<br/><br/>" +
@@ -135,11 +134,10 @@ public class BamController extends AbstractRESTController {
                     "6) <b>mode</b> controls BAM display mode: REGIONS - return only regions of possible read " +
                     "location; <br/>" +
                     "COVERAGE - return only BAM coverage;<br/>" +
-                    "FULL - return both reads and coverage",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    "FULL - return both reads and coverage")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public final ResponseEntity<ResponseBodyEmitter> loadTrackStream(
             @RequestBody final TrackQuery query,
             @RequestParam(required = false) final String fileUrl,
@@ -154,7 +152,7 @@ public class BamController extends AbstractRESTController {
                     indexUrl, emitter);
         }
         HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        responseHeaders.setContentType(MediaType.APPLICATION_JSON);
         return new ResponseEntity<>(emitter, responseHeaders, HttpStatus.OK);
     }
 
@@ -167,9 +165,9 @@ public class BamController extends AbstractRESTController {
 
     @ResponseBody
     @PostMapping(value = "/bam/consensus/get")
-    @ApiOperation(
-            value = "Returns consensus sequence for specified BAM file range.",
-            notes = "It provides data about consensus sequence for specified BAM file range " +
+    @Operation(
+            summary = "Returns consensus sequence for specified BAM file range.",
+            description = "It provides data about consensus sequence for specified BAM file range " +
                     "with the given scale factor between the " +
                     "beginning position with the first base having position 1 and ending position inclusive in a " +
                     "target chromosome. All parameters are mandatory and described below:<br/><br/>" +
@@ -180,24 +178,22 @@ public class BamController extends AbstractRESTController {
                     "4) <b>endIndex</b> is the last base position for a requested window. It is treated " +
                     "inclusively;<br/>" +
                     "5) <b>scaleFactor</b> specifies an inverse value to number of bases per one visible " +
-                    "element on a track (e.g., pixel).",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    "element on a track (e.g., pixel).")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Track<Sequence> loadConsensusSequence(@RequestBody final TrackQuery query) throws IOException {
         return bamSecurityService.calculateConsensusSequence(convertToTrack(query));
     }
 
     @ResponseBody
     @PostMapping(value = "/bam/read/load")
-    @ApiOperation(
-        value = "Returns extended data for a read",
-        notes = "Provides extended data about the particular read",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+    @Operation(
+        summary = "Returns extended data for a read",
+        description = "Provides extended data about the particular read")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Read> loadRead(@RequestBody final ReadQuery query,
                                  @RequestParam(required = false) final String fileUrl,
                                  @RequestParam(required = false) final String indexUrl) throws IOException {

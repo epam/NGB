@@ -35,7 +35,7 @@ public class CustomSAMLProcessingFilter extends SAMLProcessingFilter {
                                                 final HttpServletResponse response) throws AuthenticationException {
         try {
 
-            logger.debug("Attempting SAML2 authentication using profile {}", getProfileName());
+            logger.debug("Attempting SAML2 authentication using profile " + getProfileName());
             SAMLMessageContext context = contextProvider.getLocalEntity(request, response);
             processor.retrieveMessage(context);
 
@@ -70,13 +70,12 @@ public class CustomSAMLProcessingFilter extends SAMLProcessingFilter {
             if (binding.equals(messageBinding)) {
                 if (endpoint.getLocation() != null &&
                         uriComparator.compare(endpoint.getLocation(), requestURL)) {
-                    logger.debug("Found endpoint {} for request URL {} based on location attribute in metadata",
-                            endpoint, requestURL);
+                    logger.debug("Found endpoint " + endpoint + " for request URL " + requestURL + " based on location attribute in metadata");
                     return endpoint;
                 } else if (endpoint.getResponseLocation() != null &&
                         uriComparator.compare(endpoint.getResponseLocation(), requestURL)) {
-                    logger.debug("Found endpoint {} for request URL {} based on response " +
-                            "location attribute in metadata", endpoint, requestURL);
+                    logger.debug("Found endpoint " + endpoint + " for request URL " + requestURL + " based on response " +
+                            "location attribute in metadata");
                     return endpoint;
                 }
             }

@@ -45,6 +45,7 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.genbank.GenbankUtils;
+import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -143,11 +144,20 @@ public class GffManagerTest extends AbstractManagerTest {
     @Mock
     private HttpDataManager httpDataManager;
 
+    @Autowired
+    private TrackHelper trackHelper;
+
+    @Autowired
+    private TaskExecutorService taskExecutorService;
+
+    @Autowired
+    private FeatureIndexManager featureIndexManager;
+
     @Spy
     @InjectMocks
     private PdbDataManager pBDataManager;
 
-    @Spy
+
     @InjectMocks
     private EnsemblDataManager ensemblDataManager;
 
@@ -172,7 +182,7 @@ public class GffManagerTest extends AbstractManagerTest {
     @Autowired
     private FileManager fileManager;
 
-    @Autowired
+
     private GeneTrackManager geneTrackManager;
 
     @Value("#{catgenome['files.base.directory.path']}")
@@ -191,6 +201,9 @@ public class GffManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(pBDataManager);
         Assert.assertNotNull(uniprotDataManager);
         Assert.assertNotNull(ensemblDataManager);
+
+        geneTrackManager = new GeneTrackManager(trackHelper, geneFileManager, fileManager,
+                taskExecutorService, featureIndexManager, ensemblDataManager, uniprotDataManager, false);
 
         testChromosome = EntityHelper.createNewChromosome();
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);

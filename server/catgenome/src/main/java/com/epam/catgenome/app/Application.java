@@ -13,13 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.FallbackWebSecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.SecurityFilterAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.oauth2.OAuth2AutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
@@ -35,9 +33,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @EnableScheduling
 @SpringBootApplication(exclude = {
         SecurityAutoConfiguration.class,
-        SecurityFilterAutoConfiguration.class,
-        FallbackWebSecurityAutoConfiguration.class,
-        OAuth2AutoConfiguration.class})
+        SecurityFilterAutoConfiguration.class
+})
 @Slf4j
 public class Application extends SpringBootServletInitializer {
 

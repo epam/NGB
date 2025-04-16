@@ -24,20 +24,20 @@
 
 package com.epam.catgenome.app;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.web.embedded.tomcat.ConfigurableTomcatWebServerFactory;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -47,7 +47,6 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import com.epam.catgenome.config.SwaggerConfig;
 import com.epam.catgenome.controller.JsonMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -55,7 +54,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Class provides MVC Configuration for Spring Boot application
  */
 @Configuration
-@Import(SwaggerConfig.class)
 @ComponentScan(basePackages = {"com.epam.catgenome.config", "com.epam.catgenome.controller"})
 public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
 
@@ -93,11 +91,11 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
     }
 
     @Bean
-    @ConditionalOnClass({EmbeddedServletContainerFactory.class })
-    public EmbeddedServletContainerCustomizer tomcatContainerCustomizer() {
+    @ConditionalOnClass({WebServerFactoryCustomizer.class })
+    public WebServerFactoryCustomizer<ConfigurableTomcatWebServerFactory> tomcatContainerCustomizer() {
         return container -> {
-            TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container;
-            tomcat.setTldSkip("*.jar");
+            TomcatServletWebServerFactory tomcat = (TomcatServletWebServerFactory) container;
+            tomcat.setTldSkipPatterns(Collections.singletonList("*.jar"));
             if (useEmbeddedContainer() && staticResourcesCachePeriod > 0) {
                 TomcatConfigurer configurer = applicationContext.getBean(TomcatConfigurer.class);
                 configurer.configure(tomcat, CACHE_SIZE, staticResourcesCachePeriod * MILLISECONDS);
@@ -135,11 +133,6 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
     @Bean
     public ObjectMapper objectMapper() {
         return new JsonMapper();
-    }
-
-    @Bean
-    public SwaggerConfig swaggerConfig() {
-        return new SwaggerConfig();
     }
 
     /*@Bean //TODO: may be useful if we'll need to move swagger back to restapi

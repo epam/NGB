@@ -204,6 +204,7 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
     private BlastTask getBlastTask(final long id, final String title) {
         BlastTask blastTask = new BlastTask();
         blastTask.setId(id);
+        blastTask.setBlastTaskId(id);
         blastTask.setTitle(title);
         blastTask.setStatus(BlastTaskStatus.CREATED);
         blastTask.setOwner(authManager.getAuthorizedUser());

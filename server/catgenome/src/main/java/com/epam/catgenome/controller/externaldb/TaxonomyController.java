@@ -27,10 +27,10 @@ import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomySecurityService;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.MediaType;
@@ -44,45 +44,42 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@Api(value = "taxonomy", description = "Taxonomy Data Management")
+@Tag(name = "taxonomy", description = "Taxonomy Data Management")
 @RequiredArgsConstructor
 public class TaxonomyController extends AbstractRESTController {
 
     private final TaxonomySecurityService taxonomySecurityService;
 
     @GetMapping(value = "/taxonomies/{term}")
-    @ApiOperation(
-            value = "Returns list of Organisms by term",
-            notes = "Returns list of Organisms by term",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns list of Organisms by term",
+        description = "Returns list of Organisms by term")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<Taxonomy>> loadTaxonomies(@PathVariable final String term)
             throws IOException, ParseException {
         return Result.success(taxonomySecurityService.searchOrganisms(term));
     }
 
     @GetMapping(value = "/taxonomy/{taxId}")
-    @ApiOperation(
-            value = "Returns Organism by taxId",
-            notes = "Returns Organism by taxId",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns Organism by taxId",
+        description = "Returns Organism by taxId")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Taxonomy> loadTaxonomy(@PathVariable final long taxId) throws IOException, ParseException {
         return Result.success(taxonomySecurityService.searchOrganismById(taxId));
     }
 
     @PutMapping(value = "/taxonomy/upload")
-    @ApiOperation(
-            value = "Creates Taxonomy Lucene Index from Taxonomy file",
-            notes = "Creates Taxonomy Lucene Index from Taxonomy file",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Creates Taxonomy Lucene Index from Taxonomy file",
+        description = "Creates Taxonomy Lucene Index from Taxonomy file")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> uploadTaxonomyDatabase(@RequestParam final String taxonomyFilePath)
             throws IOException, ParseException {
         taxonomySecurityService.writeLuceneTaxonomyIndex(taxonomyFilePath);
