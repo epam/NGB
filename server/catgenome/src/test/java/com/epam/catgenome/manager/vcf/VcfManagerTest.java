@@ -39,6 +39,7 @@ import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.ga4gh.VariantGA4GH;
 import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
+import com.epam.catgenome.manager.*;
 import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
@@ -90,11 +91,6 @@ import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.manager.BiologicalDataItemManager;
-import com.epam.catgenome.manager.DownloadFileManager;
-import com.epam.catgenome.manager.FeatureIndexManager;
-import com.epam.catgenome.manager.FileManager;
-import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.gene.GffManager;
@@ -185,6 +181,9 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @SpyBean
     private EhCacheBasedIndexCache indexCache;
+
+    @SpyBean
+    private UrlValidatorService urlValidatorService;
 
     @Value("${ga4gh.google.variantSetId}")
     private String varSet;

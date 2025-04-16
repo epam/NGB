@@ -25,6 +25,7 @@
 package com.epam.catgenome.controller.util;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
@@ -66,7 +67,7 @@ public final class UrlTestingUtils {
                 MultipartFileSender fileSender = MultipartFileSender.fromFile(file);
                 try {
                     fileSender.with(request).with(response).serveResource();
-                } catch (Exception e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                     callback.failed(e);
                     return true;

@@ -445,7 +445,7 @@ public class BamManagerTest extends AbstractManagerTest {
                 MultipartFileSender fileSender = MultipartFileSender.fromFile(file);
                 try {
                     fileSender.with(request).with(response).serveResource();
-                } catch (Exception e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                     callback.failed(e);
                     return true;

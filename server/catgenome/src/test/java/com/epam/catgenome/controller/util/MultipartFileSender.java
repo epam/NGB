@@ -61,6 +61,7 @@ import org.springframework.util.Assert;
  * </p>
  * @author Mikhail Miroliubov
  */
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class MultipartFileSender {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());

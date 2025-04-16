@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 @TestPropertySource("classpath:test-catgenome.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
+@SuppressWarnings("PMD.UnusedLocalVariable")
 public class EhCacheTest {
 
     @Autowired

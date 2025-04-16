@@ -107,7 +107,6 @@ repositories {
 
 ext['jetty.version'] = '12.0.17'
 ext['log4j2.version'] = '2.24.3'
-//ext['tomcat.version'] = '11.0.2'
 
 // >>>>> external dependencies used to compile and/or run application
 dependencies {
@@ -317,9 +316,9 @@ def appName = 'ngb-server'
 def springBootlauncherClass = 'org.springframework.boot.loader.JarLauncher'
 def springBootJarName = 'catgenome.jar'
 def ngbJvmOptions = ["-Xms512m", "-Xmx2g"]
-def jreURL = "http://download.oracle.com/otn-pub/java/jdk/8-b132/"
-def windowsJre = "jdk-17.0.14_windows-x64_bin.zip"
-def linuxJre = "jdk-17.0.14_linux-x64_bin.tar.gz"
+def jreURL = "https://download.oracle.com/java/17/archive/"
+def windowsJre = "jdk-17.0.12_windows-x64_bin.zip"
+def linuxJre = "jdk-17.0.12_linux-x64_bin.tar.gz"
 
 startScripts {
     applicationName = appName
