@@ -95,9 +95,6 @@ repositories {
         url "https://www.biopax.org/m2repo/releases/"
     }
     maven {
-        url "/Users/alexeyoblomov/.m2/repository/"
-    }
-    maven {
         url "https://build.shibboleth.net/maven/releases/"
     }
     flatDir {

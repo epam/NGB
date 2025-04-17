@@ -66,7 +66,7 @@ public class MultipartFileSender {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private static final int DEFAULT_BUFFER_SIZE = 20480; // ..bytes = 20MB.
+    private static final int DEFAULT_BUFFER_SIZE = 20480; // ..bytes = 20KB.
     private static final long DEFAULT_EXPIRE_TIME = 604800000L; // ..ms = 1 week.
     private static final int CONSTANT_1000 = 1000;
     private static final String MULTIPART_BOUNDARY = "MULTIPART_BYTERANGES";
@@ -115,7 +115,7 @@ public class MultipartFileSender {
 
         if (!Files.exists(filepath)) {
             logger.error("File doesn't exist at URI : {}", filepath.toAbsolutePath());
-            Response.writeError(request, response, null, HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            Response.writeError(request, response, null, HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
@@ -368,8 +368,6 @@ public class MultipartFileSender {
                 // Write full range.
                 while ((read = input.read(buffer)) > 0) {
                     resultBuffer.put(buffer, 0, read);
-                    //output.write(buffer, 0, read);
-                    //output.flush();
                 }
             } else {
                 long skipped = input.skip(start);
@@ -381,12 +379,8 @@ public class MultipartFileSender {
                     toRead -= read;
                     if (toRead > 0) {
                         resultBuffer.put(buffer, 0, read);
-                        //output.write(buffer, 0, read);
-                        //output.flush();
                     } else {
                         resultBuffer.put(buffer, 0, (int) toRead + read);
-                        //output.write(buffer, 0, (int) toRead + read);
-                        //output.flush();
                         break;
                     }
                 }
