@@ -170,7 +170,6 @@ public class FileManager {
     public static final String BED_GRAPH_FEATURE_TEMPLATE = "%s\t%d\t%d\t%f%n";
 
     private static final String ROOT_DIR_NAME = "42";
-    private static final String FILE_SYSTEM_ROOT = "/";
 
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
@@ -1982,14 +1981,7 @@ public class FileManager {
      */
     public List<AbstractFsItem> loadDirectoryContents(String path) throws IOException {
 
-        if(!StringUtils.isEmpty(path) && !Paths.get(path).startsWith(ngsDataRootPath)) {
-            throw new AccessDeniedException(
-                    String.format("Parameter path doesn't fall into 'ngs.data.root.path': %s", ngsDataRootPath));
-        }
-
-        if (!filesBrowsingAllowed || ngsDataRootPath.equals(FILE_SYSTEM_ROOT)) {
-            throw new AccessDeniedException("Server file system browsing is not allowed");
-        }
+        urlValidatorService.validateLocalPath(path);
 
         List<File> parentDirs = new ArrayList<>();
         if (path == null) {
