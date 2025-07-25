@@ -1,5 +1,9 @@
 import Clipboard from 'clipboard';
 import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
+import {
+    aminoAcidsConst,
+    complementNucleotidesConst
+} from '../../../../modules/render/core';
 
 export default class ngbTrackEvents {
 
@@ -298,6 +302,180 @@ export default class ngbTrackEvents {
                 html.find('#hiddenMenuButton').triggerHandler('click');
             }
         })();
+    }
+
+    async referenceClick(trackInstance, data, track, event) {
+        const {payload} = data || {};
+        const self = this;
+        const loadReferencePromise = (async () => {
+            try {
+                const data = await self._genomeDataService.loadReferenceTrack(payload);
+                const {mode = ''} = data || {};
+                if (mode.toUpperCase() !== 'NUCLEOTIDES') {
+                    throw new Error('Sequence is not available at this scale (zoom in)');
+                }
+                const refBlocks = (data || {}).blocks || [];
+                if (refBlocks.length === 0) {
+                    return {
+                        error: 'Unable to load reference'
+                    };
+                }
+                const ref = refBlocks.reduce((acc, block) => acc.concat(block.text || ''), '')
+                return {
+                    data: ref
+                };
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                return {
+                    error: message
+                };
+            }
+        })();
+        const getReverseStrandSequence = (forwardStrandSequence) => {
+            if (!forwardStrandSequence) {
+                return '';
+            }
+            let reverseStrand = '';
+            for (const char of forwardStrandSequence) {
+                let value = char;
+                if (Object.hasOwnProperty.call(complementNucleotidesConst, char)) {
+                    value = complementNucleotidesConst[char];
+                } else if (Object.hasOwnProperty.call(complementNucleotidesConst, char.toUpperCase())) {
+                    value = complementNucleotidesConst[char.toUpperCase()].toLowerCase();
+                }
+                reverseStrand += value;
+            }
+            return reverseStrand;
+        };
+        const loadReverseStrandReferencePromise = (async () => {
+            try {
+                const {data, error} = await loadReferencePromise;
+                if (error) {
+                    return {error};
+                }
+                return {
+                    data: getReverseStrandSequence(data),
+                };
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                return {
+                    error: message
+                };
+            }
+        })();
+        const getAminoAcidSequence = (sequence, offset, reversed) => {
+            if (!sequence) {
+                return '';
+            }
+            let result = '';
+            for (let i = offset; i < sequence.length; i += 3) {
+                const s = i;
+                if (s + 2 < sequence.length) {
+                    const seq = (
+                        sequence[s + (reversed ? 2 : 0)] +
+                        sequence[s + 1] +
+                        sequence[s + (reversed ? 0 : 2)]
+                    ).toUpperCase();
+                    let aa = aminoAcidsConst[seq] || '.';
+                    if (aa.toLowerCase() === 'stop') {
+                        aa = `<${aa}>`
+                    }
+                    result += aa;
+                }
+            }
+            return result;
+        };
+        const getAminoAcidSequences = async (reverseStrand = false) => {
+            try {
+                const {data, error} = reverseStrand
+                    ? await loadReverseStrandReferencePromise
+                    : await loadReferencePromise;
+                if (error) {
+                    return {error};
+                }
+                return {
+                    data: [
+                        getAminoAcidSequence(data, 0, reverseStrand),
+                        getAminoAcidSequence(data, 1, reverseStrand),
+                        getAminoAcidSequence(data, 2, reverseStrand)
+                    ].join('\n')
+                };
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                return {
+                    error: message
+                };
+            }
+        };
+        const fsAAPromise = getAminoAcidSequences(false);
+        const rsAAPromise = getAminoAcidSequences(true);
+        const copyReferenceToClipboard = {
+            clipboard: 'Loading...',
+            title: 'Copy reference to clipboard (forward strand)',
+            isLoading: true,
+            fn: async function (menuItem) {
+                const {
+                    data,
+                    error
+                } = await loadReferencePromise;
+                menuItem.clipboard = error || data || '';
+                menuItem.warning = error;
+                menuItem.isLoading = false;
+                self.$scope.$apply();
+            }
+        };
+        const copyReverseStrandReferenceToClipboard = {
+            clipboard: 'Loading...',
+            title: 'Copy reference to clipboard (reverse strand)',
+            isLoading: true,
+            fn: async function (menuItem) {
+                const {data, error} = await loadReverseStrandReferencePromise;
+                menuItem.clipboard = error || data || '';
+                menuItem.warning = error;
+                menuItem.isLoading = false;
+                self.$scope.$apply();
+            }
+        };
+        const copyAASequenceToClipboard = {
+            clipboard: 'Loading...',
+            title: 'Copy AA sequence to clipboard (forward strand)',
+            isLoading: true,
+            fn: async function (menuItem) {
+                const {data, error} = await fsAAPromise;
+                menuItem.clipboard = error || data || '';
+                menuItem.warning = error;
+                menuItem.isLoading = false;
+                self.$scope.$apply();
+            }
+        };
+        const copyReverseAASequenceToClipboard = {
+            clipboard: 'Loading...',
+            title: 'Copy AA sequence to clipboard (reverse strand)',
+            isLoading: true,
+            fn: async function (menuItem) {
+                const {data, error} = await rsAAPromise;
+                menuItem.clipboard = error || data || '';
+                menuItem.warning = error;
+                menuItem.isLoading = false;
+                self.$scope.$apply();
+            }
+        };
+
+        const menuData = [];
+        menuData.push(copyReferenceToClipboard);
+        menuData.push(copyReverseStrandReferenceToClipboard);
+        menuData.push(copyAASequenceToClipboard);
+        menuData.push(copyReverseAASequenceToClipboard);
+
+        const childScope = this.$scope.$new(false);
+        childScope.menuData = menuData;
+        const html = this.$compile('<ngb-track-menu menu-data="menuData"></ngb-track-menu>')(childScope);
+        trackInstance.menuElement.show(
+            event.position, html
+        );
+        childScope.$apply();
+        ngbTrackEvents.configureCopyToClipboardElements();
+        html.find('#hiddenMenuButton').triggerHandler('click');
     }
 
     async readClick(trackInstance, data, track, event) {

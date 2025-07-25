@@ -377,6 +377,9 @@ export default class ngbTrackController {
             case 'feature-click':
                 this.ngbTrackEvents.featureClick(this.trackInstance, data, this.track, event);
                 break;
+            case 'reference-click-event':
+                (this.ngbTrackEvents.referenceClick)(this.trackInstance, data, this.track, event);
+                break;
         }
     }
 

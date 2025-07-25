@@ -1,4 +1,5 @@
 import nvd3ChartController from '../nvd3-chart-controller';
+import d3 from 'd3';
 
 const Math = window.Math;
 const MINIMUM_BARS_TO_SHOW = 20;
@@ -47,14 +48,29 @@ export default class ngbVariantDensityDiagramController extends nvd3ChartControl
                 xAxis: {
                     axisLabel: '',
                     tickFormat : (d) =>  {
-                        let v = null;
-                        if(d.indexOf('fake') !== -1) return;
-                        d.indexOf('chr') === -1 ? v = `chr${  d}` : v = d;
-                        return v;
+                        if (d.indexOf('fake') !== -1) return;
+                        let tickValue = d;
+                        if (!tickValue.toLowerCase().startsWith('chr') && tickValue.length < 10) {
+                            tickValue = `chr${tickValue}`;
+                        } else if (tickValue.length > 10) {
+                            tickValue = tickValue.slice(0, 3) + '...' + tickValue.slice(-3);
+                        }
+                        return tickValue;
                     }
                 },
                 y: (d) => d.value,
-                noData: 'No Data Available'
+                noData: 'No Data Available',
+                callback: function() {
+                    setTimeout(function () {
+                        d3.selectAll('.ngb-nvd3-density .nv-x .tick').each(function () {
+                            const tick = d3.select(this);
+                            const [v] = tick.data();
+                            tick
+                                .append('title')
+                                .text(String(v));
+                        });
+                    }, 2000);
+                }
             },
             title: {
                 enable: true,

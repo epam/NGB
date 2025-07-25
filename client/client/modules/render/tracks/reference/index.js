@@ -104,6 +104,18 @@ export class REFERENCETrack extends CachedTrack {
         return false;
     }
 
+    onClick({x, y}) {
+        const {dataItemClicked} = this;
+        if (dataItemClicked && typeof dataItemClicked === 'function') {
+            if (this.tooltip && this.tooltip.hide && typeof this.tooltip.hide === 'function') {
+                this.tooltip.hide();
+            }
+            this.dataItemClicked(this, {
+                payload: this.cacheUpdateParameters(this.viewport, false),
+            }, {name: 'reference-click-event', position: {x, y}});
+        }
+    }
+
     render(flags) {
         let somethingChanged = super.render(flags);
         this.updateHeight();

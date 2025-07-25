@@ -1,3 +1,29 @@
+function getUrlInfo(url) {
+    if (!url) {
+        return undefined;
+    }
+    let path = url;
+    if (/^https?:\/\//.test(url)) {
+        try {
+            const urlObj = new URL(url);
+            path = urlObj.pathname || url;
+        } catch {
+            // noop
+        }
+    }
+    const lastPart = path.split(/[\/\\]/).pop();
+    const parts = lastPart.split('.');
+    let extension = parts.pop();
+    if (extension && extension.toLowerCase() === 'gz') {
+        extension = parts.pop();
+    }
+    return {
+        name: lastPart,
+        url,
+        extension: (extension || '').toLowerCase(),
+    };
+}
+
 export default class ngbOpenFileFromUrlController {
     static get UID() {
         return 'ngbOpenFileFromUrlController';
@@ -61,20 +87,22 @@ export default class ngbOpenFileFromUrlController {
         if (!this.filePath || !this.filePath.length) {
             return null;
         }
-        const listForCheckingFileType = this.filePath.split('.');
-        if (listForCheckingFileType[listForCheckingFileType.length - 1].toLowerCase() === 'gz') {
-            listForCheckingFileType.splice(listForCheckingFileType.length - 1, 1);
+        const info = getUrlInfo(this.filePath);
+        if (info) {
+            return info.extension;
         }
-        return listForCheckingFileType[listForCheckingFileType.length - 1].toLowerCase();
+        return null;
     }
 
     fileName() {
         if (!this.filePath || !this.filePath.length) {
             return null;
         }
-        let list = this.filePath.split('/');
-        list = list[list.length - 1].split('\\');
-        return list[list.length - 1];
+        const info = getUrlInfo(this.filePath);
+        if (info) {
+            return info.name;
+        }
+        return null;
     }
 
     trackFormat() {

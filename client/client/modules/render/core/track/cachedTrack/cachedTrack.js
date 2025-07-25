@@ -43,7 +43,7 @@ export default class DataTrack extends ScrollableTrack {
         return await this.updateCache();
     }
 
-    cacheUpdateParameters(viewport) {
+    cacheUpdateParameters(viewport, extend = true) {
         if ((this.constructor.name === 'REFERENCETrack' || this.constructor.name === 'WIGTrack') && viewport.isShortenedIntronsMode) {
             const parametersArray = [];
             for (let i = 0; i < viewport.shortenedIntronsViewport._coveredRange.ranges.length; i++) {
@@ -58,9 +58,13 @@ export default class DataTrack extends ScrollableTrack {
             return parametersArray;
         }
         return Object.assign({
-            endIndex: Math.round(Math.min(viewport.chromosomeSize, viewport.brush.end + viewport.brushSize / 2)),
+            endIndex: extend
+                ? Math.round(Math.min(viewport.chromosomeSize, viewport.brush.end + viewport.brushSize / 2))
+                : viewport.brush.end,
             scaleFactor: viewport.factor,
-            startIndex: Math.round(Math.max(1, viewport.brush.start - viewport.brushSize / 2))
+            startIndex: extend
+                ? Math.round(Math.max(1, viewport.brush.start - viewport.brushSize / 2))
+                : viewport.brush.start,
         }, this.dataConfig);
     }
 

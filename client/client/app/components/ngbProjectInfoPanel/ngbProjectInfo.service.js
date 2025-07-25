@@ -366,35 +366,37 @@ export default class ngbProjectInfoService {
     }
 
     refreshPlainList() {
+        const getProjectIdWithoutParent = (project) => typeof project === 'object' ? `${project.id}` : `${project}`;
+        const getProjectId = (project) => project.project ? `${getProjectId(project.project)}-${getProjectIdWithoutParent(project)}` : `${getProjectIdWithoutParent(project)}`;
         this.plainItems = this.projects
             .map(project => [
                 {
-                    id: `${project.id}-project-divider`,
+                    id: `${getProjectId(project)}-project-divider`,
                     isProjectDivider: true
                 },
                 {
-                    id: `${project.id}-project-header`,
+                    id: `${getProjectId(project)}-project-header`,
                     isHeader: true,
                     project
                 },
                 ...(project.descriptions || []).map(description => ({
-                    id: `${project.id}-project-description-${description.id}`,
+                    id: `${getProjectId(project)}-project-description-${description.id}`,
                     isDescription: true,
                     project,
                     description
                 })),
                 {
-                    id: `${project.id}-project-description-divider`,
+                    id: `${getProjectId(project)}-project-description-divider`,
                     isDivider: true
                 },
                 ...(project.notes || []).map(note => ({
-                    id: `${project.id}-project-note-${note.id}`,
+                    id: `${getProjectId(project)}-project-note-${note.id}`,
                     isNote: true,
                     project,
                     note
                 })),
                 {
-                    id: `${project.id}-project-note-add`,
+                    id: `${getProjectId(project)}-project-note-add`,
                     isAddNote: true,
                     project
                 }
