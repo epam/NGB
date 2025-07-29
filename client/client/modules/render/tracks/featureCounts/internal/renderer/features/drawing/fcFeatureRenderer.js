@@ -59,6 +59,9 @@ export default class FCFeatureRenderer extends FeatureBaseRenderer {
 
     analyzeBoundaries(feature, viewport) {
         const boundaries = super.analyzeBoundaries(feature, viewport);
+        if (!boundaries) {
+            return null;
+        }
         let labelSize = {height: 0, width: 0};
         if (feature.name && feature.name !== '.') {
             labelSize = PixiTextSize.getTextSize(feature.name, this.config.gene.label);
