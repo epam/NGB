@@ -31,6 +31,9 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
 
     analyzeBoundaries(feature, viewport) {
         const boundaries = super.analyzeBoundaries(feature, viewport);
+        if (!boundaries) {
+            return null;
+        }
         const rectBoundaries = boundaries.rect;
 
         let transcriptLabelSize = {height: 0, width: 0};

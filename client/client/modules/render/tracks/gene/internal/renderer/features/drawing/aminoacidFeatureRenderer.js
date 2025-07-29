@@ -139,6 +139,9 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
             ? PixiTextSize.getTextSize('1', this.config.aminoacid.number).height
             : 0;
         const boundaries = super.analyzeBoundaries(feature, viewport);
+        if (!boundaries) {
+            return null;
+        }
         const rectBoundaries = boundaries.rect;
         if (this.aminoacidsFitsViewport(feature, viewport)) {
             rectBoundaries.y2 += this._aminoacidNumberHeight;

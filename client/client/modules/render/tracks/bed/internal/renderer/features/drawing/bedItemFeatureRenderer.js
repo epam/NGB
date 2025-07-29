@@ -13,6 +13,9 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
 
     analyzeBoundaries(feature, viewport) {
         const boundaries = super.analyzeBoundaries(feature, viewport);
+        if (!boundaries) {
+            return null;
+        }
         let descriptionLabelSize = {height: 0, width: 0};
         let labelSize = {height: 0, width: 0};
         if (feature.name && feature.name !== '.') {

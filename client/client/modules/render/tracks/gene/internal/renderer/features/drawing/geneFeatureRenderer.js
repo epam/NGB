@@ -41,6 +41,9 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
 
     analyzeBoundaries(feature, viewport) {
         const boundaries = super.analyzeBoundaries(feature, viewport);
+        if (!boundaries) {
+            return null;
+        }
         const rect = boundaries.rect;
         const width = Math.max(1, rect.x2 - rect.x1);
         const shouldDisplayDetails = width >= this.config.gene.displayDetailsThreshold;
