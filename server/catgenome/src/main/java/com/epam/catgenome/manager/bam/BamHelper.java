@@ -246,7 +246,7 @@ public class BamHelper {
                                                     final BamQueryOption options, BamTrackEmitter bamTrackEmitter)
             throws IOException {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
-        Assert.notNull(track.getChromosome().getReferenceId());
+        Assert.notNull(track.getChromosome().getReferenceId(), "");
         final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome());
 
         fillEmitterByReads(bamFile, bamTrack, options, bamTrackEmitter);
@@ -637,7 +637,7 @@ public class BamHelper {
         SAMRecordIterator iterator = reader.query(samSequenceRecord.getSequenceName(),
                 Constants.BAM_START_INDEX_TEST, Math.min(Constants.MAX_BAM_END_INDEX_TEST,
                         samSequenceRecord.getSequenceLength()), false);
-        Assert.notNull(iterator);
+        Assert.notNull(iterator, "");
     }
 
     static class BamIndex implements IndexCache {

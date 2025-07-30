@@ -29,7 +29,6 @@ import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.entity.SpeciesEntity;
 import com.epam.ngb.cli.manager.command.ServerParameters;
-import com.epam.ngb.cli.manager.command.handler.http.species.SpeciesListHandler;
 import org.junit.*;
 
 import java.util.Collections;

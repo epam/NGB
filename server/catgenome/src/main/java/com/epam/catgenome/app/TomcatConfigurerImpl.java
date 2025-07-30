@@ -1,7 +1,7 @@
 package com.epam.catgenome.app;
 
 import org.apache.catalina.webresources.StandardRoot;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 
 public class TomcatConfigurerImpl implements TomcatConfigurer {
 
@@ -10,8 +10,8 @@ public class TomcatConfigurerImpl implements TomcatConfigurer {
     }
 
     @Override
-    public void configure(TomcatEmbeddedServletContainerFactory tomcat, int cacheSize,
-            int tomcatCacheSize) {
+    public void configure(TomcatServletWebServerFactory tomcat, int cacheSize,
+                          int tomcatCacheSize) {
         tomcat.addContextCustomizers((context) -> {
             StandardRoot standardRoot = new StandardRoot(context);
             standardRoot.setCachingAllowed(true);

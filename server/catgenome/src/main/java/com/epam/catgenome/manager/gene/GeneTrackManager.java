@@ -47,6 +47,7 @@ import com.epam.catgenome.util.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -77,7 +78,7 @@ public class GeneTrackManager {
 
     public GeneTrackManager(final TrackHelper trackHelper, final GeneFileManager geneFileManager,
                             final FileManager fileManager, final TaskExecutorService taskExecutorService,
-                            final FeatureIndexManager featureIndexManager,
+                            final @Lazy FeatureIndexManager featureIndexManager,
                             final EnsemblDataManager ensemblDataManager, final UniprotDataManager uniprotDataManager,
                             @Value("${gene.track.index.load.enable:false}") final boolean loadFromIndex) {
         this.trackHelper = trackHelper;
@@ -282,7 +283,7 @@ public class GeneTrackManager {
 
     private List<Transcript> getTranscriptFromDB(final String geneID) throws ExternalDbUnavailableException {
         final EnsemblEntryVO vo = ensemblDataManager.fetchEnsemblEntry(geneID);
-        Assert.notNull(vo);
+        Assert.notNull(vo, "");
         final List<Transcript> transcriptList = ExtenalDBUtils.ensemblEntryVO2Transcript(vo);
         for (Transcript transcript : transcriptList) {
             if (transcript.getBioType().equals(PROTEIN_CODING)) {

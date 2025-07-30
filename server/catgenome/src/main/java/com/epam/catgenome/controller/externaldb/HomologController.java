@@ -30,10 +30,10 @@ import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.homolog.HomologSearchRequest;
 import com.epam.catgenome.manager.externaldb.homolog.HomologSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.MediaType;
@@ -44,46 +44,43 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@Api(value = "homolog", description = "Homolog Data Management")
+@Tag(name = "homolog", description = "Homolog Data Management")
 @RequiredArgsConstructor
 public class HomologController extends AbstractRESTController {
 
     private final HomologSecurityService homologSecurityService;
 
     @PostMapping(value = "/homolog/search")
-    @ApiOperation(
-            value = "Searches homologs by gene ID",
-            notes = "Searches homologs by gene ID",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Searches homologs by gene ID",
+        description = "Searches homologs by gene ID")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<SearchResult<HomologGroup>> search(@RequestBody final HomologSearchRequest searchRequest)
             throws IOException, ParseException, ExternalDbUnavailableException {
         return Result.success(homologSecurityService.searchHomolog(searchRequest));
     }
 
     @GetMapping(value = "/homolog/search")
-    @ApiOperation(
-            value = "Searches homologs by gene IDs",
-            notes = "Searches homologs by gene IDs",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Searches homologs by gene IDs",
+        description = "Searches homologs by gene IDs")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Map<String, List<HomologGroup>>> search(@RequestParam final List<String> geneIds)
             throws IOException, ParseException {
         return Result.success(homologSecurityService.searchHomolog(geneIds));
     }
 
     @PutMapping(value = "/homolog/import")
-    @ApiOperation(
-            value = "Imports Homolog data",
-            notes = "Imports Homolog data",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Imports Homolog data",
+        description = "Imports Homolog data")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> importHomologData(@RequestParam final String databaseName,
                                              @RequestParam final String databasePath)
             throws IOException, ParseException {

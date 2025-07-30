@@ -27,6 +27,7 @@ package com.epam.catgenome.entity.reference.motif;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import lombok.Builder;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Objects;
@@ -34,6 +35,7 @@ import java.util.List;
 
 @Value
 @Builder(toBuilder = true)
+@Jacksonized
 public class MotifFilter {
     List<Long> chromosomeIds;
     List<String> geneNames;

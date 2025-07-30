@@ -28,10 +28,10 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastDatabaseType;
 import com.epam.catgenome.manager.blast.BlastDatabaseSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,58 +45,54 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@Api(value = "blast-database", description = "BLAST Databases Management")
+@Tag(name = "blast-database", description = "BLAST Databases Management")
 @RequiredArgsConstructor
 public class BlastDatabaseController extends AbstractRESTController {
 
     private final BlastDatabaseSecurityService blastDatabaseSecurityService;
 
     @PostMapping(value = "/blast/database")
-    @ApiOperation(
-            value = "Creates new database record or updates existing one",
-            notes = "Creates new database record or updates existing one",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Creates new database record or updates existing one",
+            description = "Creates new database record or updates existing one")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> saveDatabase(@RequestBody final BlastDatabase database) {
         blastDatabaseSecurityService.save(database);
         return Result.success(null);
     }
 
     @GetMapping(value = "/blast/database/{id}")
-    @ApiOperation(
-            value = "Gets database by Id",
-            notes = "Gets database by Id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Gets database by Id",
+            description = "Gets database by Id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<BlastDatabase> loadDataBase(@PathVariable final long id) {
         return Result.success(blastDatabaseSecurityService.loadById(id));
     }
 
     @GetMapping(value = "/blast/databases")
-    @ApiOperation(
-            value = "Gets databases",
-            notes = "Gets databases",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Gets databases",
+            description = "Gets databases")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<BlastDatabase>> loadDatabases(@RequestParam(required = false) final BlastDatabaseType type,
                                                      @RequestParam(required = false) final String path) {
         return Result.success(blastDatabaseSecurityService.load(type, path));
     }
 
     @DeleteMapping(value = "/blast/database/{id}")
-    @ApiOperation(
-            value = "Deletes database by Id",
-            notes = "Deletes database by Id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Deletes database by Id",
+            description = "Deletes database by Id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<BlastDatabase> deleteDatabase(@PathVariable final long id) {
         blastDatabaseSecurityService.delete(id);
         return Result.success(null);

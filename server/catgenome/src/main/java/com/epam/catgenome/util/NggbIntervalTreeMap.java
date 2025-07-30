@@ -31,6 +31,7 @@ import java.util.Set;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalTree;
 import htsjdk.samtools.util.IntervalTreeMap;
+import htsjdk.samtools.util.Locatable;
 
 /**
  * Source:      MyIntervalTreeMap
@@ -142,22 +143,22 @@ public class NggbIntervalTreeMap<T> extends IntervalTreeMap<T> {
     }
 
     @Override
-    public boolean containsOverlapping(Interval key) {
+    public boolean containsOverlapping(Locatable key) {
         return treeMap.containsOverlapping(key);
     }
 
     @Override
-    public Collection<T> getOverlapping(Interval key) {
+    public Collection<T> getOverlapping(Locatable key) {
         return treeMap.getOverlapping(key);
     }
 
     @Override
-    public boolean containsContained(Interval key) {
+    public boolean containsContained(Locatable key) {
         return treeMap.containsContained(key);
     }
 
     @Override
-    public Collection<T> getContained(Interval key) {
+    public Collection<T> getContained(Locatable key) {
         return treeMap.getContained(key);
     }
 

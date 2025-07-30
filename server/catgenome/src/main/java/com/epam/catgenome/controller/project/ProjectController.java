@@ -54,10 +54,10 @@ import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureIndexException;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -80,7 +80,7 @@ import javax.servlet.http.HttpServletResponse;
  * </p>
  */
 @Controller
-@Api(value = "project", description = "Project Management")
+@Tag(name = "project", description = "Project Management")
 public class ProjectController extends AbstractRESTController {
     private static final String PROJECT_ID_PARAM = "projectId";
     private static final String BIOLOGICAL_ITEM_ID_PARAM = "biologicalItemId";
@@ -93,27 +93,25 @@ public class ProjectController extends AbstractRESTController {
 
     @GetMapping(value = "/project/loadMy")
     @ResponseBody
-    @ApiOperation(
-            value = "Returns all top-level projects",
-            notes = "Each summary provides only major metadata per a single project, no files information is provided" +
-                    " via this service",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns all top-level projects",
+        description = "Each summary provides only major metadata per a single project, no files information is provided" +
+                    " via this service")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<ProjectVO>> loadTopLevelProjects() {
         return Result.success(ProjectConverter.convertTo(projectSecurityService.loadTopLevelProjects()));
     }
 
     @GetMapping(value = "/project/tree")
     @ResponseBody
-    @ApiOperation(
-        value = "Returns all projects in a form of tree hierarchy",
-        notes = "Each project contains all it's nested projects and items",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+    @Operation(
+        summary = "Returns all projects in a form of tree hierarchy",
+        description = "Each project contains all it's nested projects and items")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Callable<Result<List<ProjectVO>>> loadProjectsTreeForCurrentUser(
             @RequestParam(required = false) Long parentId,
             @RequestParam(required = false) String referenceName) {
@@ -123,26 +121,24 @@ public class ProjectController extends AbstractRESTController {
 
     @GetMapping(value = "/project/{projectId}/load")
     @ResponseBody
-    @ApiOperation(
-            value = "Returns a project by given ID",
-            notes = "Provides extended data, including files in project",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns a project by given ID",
+        description = "Provides extended data, including files in project")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<ProjectVO> loadProject(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId) {
         return Result.success(ProjectConverter.convertTo(projectSecurityService.load(projectId)));
     }
 
     @GetMapping(value = "/project/load")
     @ResponseBody
-    @ApiOperation(
-        value = "Returns a project by given name",
-        notes = "Provides extended data, including files in project",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+    @Operation(
+        summary = "Returns a project by given name",
+        description = "Provides extended data, including files in project")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<ProjectVO> loadProject(@RequestParam final String projectName) {
         return Result.success(ProjectConverter.convertTo(
                 projectSecurityService.load(projectName))
@@ -151,17 +147,16 @@ public class ProjectController extends AbstractRESTController {
 
     @PostMapping(value = "/project/save")
     @ResponseBody
-    @ApiOperation(
-            value = "Creates new project or updates existing one",
-            notes = "New project should contain a name field. Updated project should contain id and name fields. <br/>"
+    @Operation(
+            summary = "Creates new project or updates existing one",
+        description = "New project should contain a name field. Updated project should contain id and name fields. <br/>"
                     + "Optional parameter parentId stands for creating a new project as a nested project for existing "
                     + "one, specified by parentId parameter. Works only for creation of a new project. <br/>"
                     + "To move an existing project to another parent project, use <b>/project/{projectId}/move</b> "
-                    + "service",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    + "service")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<ProjectVO> saveProject(@RequestBody ProjectVO project,
                                          @RequestParam(required = false) Long parentId) throws FeatureIndexException {
         return Result.success(ProjectConverter.convertTo(projectSecurityService.create(ProjectConverter.convertFrom(
@@ -170,13 +165,12 @@ public class ProjectController extends AbstractRESTController {
 
     @ResponseBody
     @PutMapping(value = "/project/{name}/rename")
-    @ApiOperation(
-            value = "Updates project name and/or pretty name.",
-            notes = "Updates project name and/or pretty name.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Updates project name and/or pretty name.",
+        description = "Updates project name and/or pretty name.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public final Result<Boolean> rename(
             @PathVariable(value = "name") final String name,
             @RequestParam(value = "newName", required = false) final String newName,
@@ -187,15 +181,14 @@ public class ProjectController extends AbstractRESTController {
 
     @PutMapping(value = "/project/{projectId}/move")
     @ResponseBody
-    @ApiOperation(
-        value = "Moves a project to a parent project",
-        notes = "Moves an existing project, specified by projectId path variable, to a parent project, specified by "
+    @Operation(
+        summary = "Moves a project to a parent project",
+        description = "Moves an existing project, specified by projectId path variable, to a parent project, specified by "
                 + "parentID parameter. To move a project to top level, pass no "
-                + "parameter",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+                + "parameter")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> moveProject(@PathVariable Long projectId, @RequestParam(required = false) Long parentId) {
         projectSecurityService.moveProjectToParent(projectId, parentId);
         return Result.success(true);
@@ -203,13 +196,12 @@ public class ProjectController extends AbstractRESTController {
 
     @PutMapping(value = "/project/{projectId}/add/{biologicalItemId}")
     @ResponseBody
-    @ApiOperation(
-            value = "Adds a file to project",
-            notes = "Adds a file, specified by its biologicalItemId, to a project, specified by its projectId",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Adds a file to project",
+        description = "Adds a file, specified by its biologicalItemId, to a project, specified by its projectId")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<ProjectVO> addProjectItem(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId,
                                         @PathVariable(value = BIOLOGICAL_ITEM_ID_PARAM) final Long biologicalItemId)
         throws FeatureIndexException {
@@ -219,13 +211,12 @@ public class ProjectController extends AbstractRESTController {
 
     @DeleteMapping(value = "/project/{projectId}/remove/{biologicalItemId}")
     @ResponseBody
-    @ApiOperation(
-            value = "Removes a file from a project",
-            notes = "Removes a file, specified by its biologicalItemId, from a project, specified by its projectId",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Removes a file from a project",
+        description = "Removes a file, specified by its biologicalItemId, from a project, specified by its projectId")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<ProjectVO> removeProjectItem(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId,
                                         @PathVariable(value = BIOLOGICAL_ITEM_ID_PARAM) final Long biologicalItemId)
         throws FeatureIndexException {
@@ -235,13 +226,12 @@ public class ProjectController extends AbstractRESTController {
 
     @PutMapping(value = "/project/{projectId}/hide/{biologicalItemId}")
     @ResponseBody
-    @ApiOperation(
-            value = "Hides a project file",
-            notes = "Hides a file, specified by its biologicalItemId, from a project, specified by its projectId",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Hides a project file",
+        description = "Hides a file, specified by its biologicalItemId, from a project, specified by its projectId")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<ProjectVO> hideProjectItem(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId,
                                           @PathVariable(value = BIOLOGICAL_ITEM_ID_PARAM) final Long biologicalItemId) {
         projectSecurityService.hideProjectItem(projectId, biologicalItemId);
@@ -250,13 +240,12 @@ public class ProjectController extends AbstractRESTController {
 
     @GetMapping(value = "/project/{projectId}/search")
     @ResponseBody
-    @ApiOperation(
-            value = "Searches for a given feature ID in a given project, case-insensitive",
-            notes = "Looks up project files indexes for a given feature ID and returns an index entry",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Searches for a given feature ID in a given project, case-insensitive",
+        description = "Looks up project files indexes for a given feature ID and returns an index entry")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<IndexSearchResult> searchFeatureInProject(
             @PathVariable(value = PROJECT_ID_PARAM) final Long projectId, @RequestParam String featureId)
             throws IOException {
@@ -265,9 +254,9 @@ public class ProjectController extends AbstractRESTController {
 
     @PostMapping(value = "/project/{projectId}/filter/vcf")
     @ResponseBody
-    @ApiOperation(
-            value = "Filters variations for a given VCF file in a given project",
-            notes = "Request should contain the following fields: <br/>" +
+    @Operation(
+            summary = "Filters variations for a given VCF file in a given project",
+        description = "Request should contain the following fields: <br/>" +
                     "<b>vcfFileIds</b>: an array of IDs of VCF files to filter<br/>" +
                     "other fields are optional: <br/>" +
                     "<b>chromosomeId</b>: an ID of a chromosome to load variations</br>" +
@@ -318,11 +307,10 @@ public class ProjectController extends AbstractRESTController {
                     "okay<br/>" +
                     "<b>impact</b>: an impact of a variation</br>" +
                     "<b>effect</b>: an effect of a variation</br>" +
-                    "<b>info</b>: an object, containing requested additional info fields, if they are present",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    "<b>info</b>: an object, containing requested additional info fields, if they are present")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<VcfIndexEntry>> filterVcf(@RequestBody final VcfFilterForm filterForm,
                                                  @PathVariable(value = PROJECT_ID_PARAM) long projectId)
             throws IOException {
@@ -331,9 +319,9 @@ public class ProjectController extends AbstractRESTController {
 
     @PostMapping(value = "/project/{projectId}/filter/vcf/new")
     @ResponseBody
-    @ApiOperation(
-        value = "Filters variations for a given VCF file in a given project",
-        notes = "Request should contain the following fields: <br/>" +
+    @Operation(
+        summary = "Filters variations for a given VCF file in a given project",
+        description = "Request should contain the following fields: <br/>" +
                 "<b>vcfFileIds</b>: an array of IDs of VCF files to filter<br/>" +
                 "other fields are optional: <br/>" +
                 "<b>chromosomeId</b>: an ID of a chromosome to load variations</br>" +
@@ -384,11 +372,10 @@ public class ProjectController extends AbstractRESTController {
                 "okay<br/>" +
                 "<b>impact</b>: an impact of a variation</br>" +
                 "<b>effect</b>: an effect of a variation</br>" +
-                "<b>info</b>: an object, containing requested additional info fields, if they are present",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+                "<b>info</b>: an object, containing requested additional info fields, if they are present")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<IndexSearchResult<VcfIndexEntry>> filterVcfNew(@RequestBody final VcfFilterForm filterForm,
                                                  @PathVariable(value = PROJECT_ID_PARAM) long projectId)
         throws IOException {
@@ -397,9 +384,9 @@ public class ProjectController extends AbstractRESTController {
 
     @PostMapping(value = "/project/{projectId}/group/vcf")
     @ResponseBody
-    @ApiOperation(
-        value = "Groups variations by given field for a given project, according to filter",
-        notes = "Request should contain the following fields: <br/>" +
+    @Operation(
+        summary = "Groups variations by given field for a given project, according to filter",
+        description = "Request should contain the following fields: <br/>" +
                 "<b>vcfFileIds</b>: an array of IDs of VCF files to filter<br/>" +
                 "other fields are optional: <br/>" +
                 "<b>chromosomeId</b>: an ID of a chromosome to load variations</br>" +
@@ -444,11 +431,10 @@ public class ProjectController extends AbstractRESTController {
                 "okay<br/>" +
                 "<b>impact</b>: an impact of a variation</br>" +
                 "<b>effect</b>: an effect of a variation</br>" +
-                "<b>info</b>: an object, containing requested additional info fields, if they are present",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+                "<b>info</b>: an object, containing requested additional info fields, if they are present")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<Group>> groupVariations(@RequestBody final VcfFilterForm filterForm,
                                                @PathVariable(value = PROJECT_ID_PARAM) long projectId,
                                                @RequestParam String groupBy) throws IOException {
@@ -458,14 +444,13 @@ public class ProjectController extends AbstractRESTController {
 
     @ResponseBody
     @PostMapping(value = "/project/{projectId}/filter/vcf/searchGenes")
-    @ApiOperation(
-            value = "Searches for IDs of genes, that are affected by variations",
-            notes = "Searches for IDs of genes, that are affected by variations located in VCF files, specified by " +
-                    "ids, in a given project, specified by project ID",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Searches for IDs of genes, that are affected by variations",
+        description = "Searches for IDs of genes, that are affected by variations located in VCF files, specified by " +
+                    "ids, in a given project, specified by project ID")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Set<String>> searchGenesInProject(@PathVariable(value = PROJECT_ID_PARAM) long projectId,
                                                     @RequestBody GeneSearchQuery geneQuery) throws IOException {
         return Result.success(
@@ -475,27 +460,25 @@ public class ProjectController extends AbstractRESTController {
 
     @ResponseBody
     @GetMapping(value = "/project/{projectId}/filter/vcf/info")
-    @ApiOperation(
-            value = "Returns information for VCF filter for given project ID",
-            notes = "Returns information for VCF filter for given project ID, all information taken from VCF file " +
-                    "headers.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns information for VCF filter for given project ID",
+        description = "Returns information for VCF filter for given project ID, all information taken from VCF file " +
+                    "headers.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<VcfFilterInfo> erg(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId) throws IOException {
         return Result.success(featureIndexSecurityService.loadVcfFilterInfoForProject(projectId));
     }
 
     @DeleteMapping(value = "/project/{projectId}")
     @ResponseBody
-    @ApiOperation(
-            value = "Deletes a project, specified by project ID",
-            notes = "Deletes a project with all it's items and bookmarks",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Deletes a project, specified by project ID",
+        description = "Deletes a project with all it's items and bookmarks")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> deleteProject(@PathVariable final long projectId,
                                          @RequestParam(name = "force", required = false, defaultValue = "false")
                                                  Boolean force) throws IOException {
@@ -506,13 +489,12 @@ public class ProjectController extends AbstractRESTController {
 
     @PostMapping("/project/{projectId}/description")
     @ResponseBody
-    @ApiOperation(
-            value = "Creates or updates project description",
-            notes = "Creates or updates project description",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Creates or updates project description",
+        description = "Creates or updates project description")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<ProjectDescription> upsertProjectDescription(@PathVariable final Long projectId,
             @RequestParam(value = "path", required = false) final String path,
             @RequestParam(value = "name", required = false) final String name,
@@ -522,13 +504,12 @@ public class ProjectController extends AbstractRESTController {
 
     @GetMapping("/project/description/{id}")
     @ResponseBody
-    @ApiOperation(
-            value = "Downloads project description file",
-            notes = "Downloads project description file",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Downloads project description file",
+        description = "Downloads project description file")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public void downloadProjectDescription(@PathVariable final Long id, final HttpServletResponse response)
             throws IOException {
         final InputStream projectDescriptionContent = projectSecurityService.loadProjectDescription(id);
@@ -541,39 +522,36 @@ public class ProjectController extends AbstractRESTController {
 
     @GetMapping("/project/{projectId}/description")
     @ResponseBody
-    @ApiOperation(
-            value = "Returns project descriptions info",
-            notes = "Returns project descriptions info",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns project descriptions info",
+        description = "Returns project descriptions info")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<ProjectDescription>> getProjectDescriptions(@PathVariable final Long projectId) {
         return Result.success(projectSecurityService.loadProjectDescriptions(projectId));
     }
 
     @DeleteMapping("/project/description/{id}")
     @ResponseBody
-    @ApiOperation(
-            value = "Deletes project description specified by ID",
-            notes = "Deletes project description specified by ID",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Deletes project description specified by ID",
+        description = "Deletes project description specified by ID")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<ProjectDescription> deleteProjectDescription(@PathVariable final Long id) {
         return Result.success(projectSecurityService.deleteProjectDescription(id));
     }
 
     @DeleteMapping("/project/{projectId}/description")
     @ResponseBody
-    @ApiOperation(
-            value = "Deletes project description by project ID",
-            notes = "If 'name' parameter was not specified all attached to project descriptions will be removed",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Deletes project description by project ID",
+        description = "If 'name' parameter was not specified all attached to project descriptions will be removed")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<ProjectDescription>> deleteProjectDescriptionByProject(@PathVariable final Long projectId,
             @RequestParam(value = "name", required = false) final String name) {
         return Result.success(projectSecurityService.deleteProjectDescriptions(projectId, name));

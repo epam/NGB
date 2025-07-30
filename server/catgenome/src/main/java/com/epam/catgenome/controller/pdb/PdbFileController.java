@@ -30,10 +30,10 @@ import com.epam.catgenome.entity.pdb.PdbFile;
 import com.epam.catgenome.entity.pdb.PdbFileQueryParams;
 import com.epam.catgenome.manager.pdb.PdbFileSecurityService;
 import com.epam.catgenome.util.db.Page;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -50,68 +50,63 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@Api(value = "pdb", description = "PDB Files Management")
+@Tag(name = "pdb", description = "PDB Files Management")
 @RequiredArgsConstructor
 public class PdbFileController extends AbstractRESTController {
 
     private final PdbFileSecurityService service;
 
     @GetMapping(value = "/pdb/{pdbFileId}")
-    @ApiOperation(
-            value = "Returns a pdb file by given id",
-            notes = "Returns a pdb file by given id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns a pdb file by given id",
+        description = "Returns a pdb file by given id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<PdbFile> load(@PathVariable final long pdbFileId) {
         return Result.success(service.load(pdbFileId));
     }
 
     @GetMapping(value = "/pdb")
-    @ApiOperation(
-            value = "Returns pdb files",
-            notes = "Returns pdb files",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns pdb files",
+        description = "Returns pdb files")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<PdbFile>> load() {
         return Result.success(service.load());
     }
 
     @PostMapping(value = "/pdb/filter")
-    @ApiOperation(
-            value = "Filters pdb files",
-            notes = "Filters pdb files. Result can be sorted by gene_id, name(default) and pretty_name fields.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Filters pdb files",
+        description = "Filters pdb files. Result can be sorted by gene_id, name(default) and pretty_name fields.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Page<PdbFile>> loadTarget(@RequestBody final PdbFileQueryParams params) {
         return Result.success(service.load(params));
     }
 
     @PostMapping(value = "/pdb")
-    @ApiOperation(
-            value = "Registers new pdb file",
-            notes = "Registers new pdb file",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Registers new pdb file",
+        description = "Registers new pdb file")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<PdbFile> create(@RequestBody final PdbFile pdbFile) throws IOException {
         return Result.success(service.create(pdbFile));
     }
 
     @PutMapping(value = "/pdb/{pdbFileId}")
-    @ApiOperation(
-            value = "Updates pdb file metadata",
-            notes = "Updates pdb file metadata",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Updates pdb file metadata",
+        description = "Updates pdb file metadata")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> updateMetadata(@PathVariable final long pdbFileId,
                                           @RequestBody final Map<String, String> metadata) {
         service.updateMetadata(pdbFileId, metadata);
@@ -119,26 +114,24 @@ public class PdbFileController extends AbstractRESTController {
     }
 
     @DeleteMapping(value = "/pdb/{pdbFileId}")
-    @ApiOperation(
-            value = "Deletes a pdb file, specified by id",
-            notes = "Deletes a pdb file, specified by id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Deletes a pdb file, specified by id",
+        description = "Deletes a pdb file, specified by id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> delete(@PathVariable final long pdbFileId) {
         service.delete(pdbFileId);
         return Result.success(null);
     }
 
     @GetMapping(value = "/pdb/content/{pdbFileId}")
-    @ApiOperation(
-            value = "Gets pdb file content",
-            notes = "Gets pdb file content",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Gets pdb file content",
+        description = "Gets pdb file content")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public void load(@PathVariable final long pdbFileId, final HttpServletResponse response) throws IOException {
         byte[] bytes = service.loadContent(pdbFileId);
         response.getOutputStream().write(bytes);

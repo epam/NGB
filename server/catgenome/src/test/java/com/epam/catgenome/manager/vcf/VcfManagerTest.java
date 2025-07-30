@@ -39,6 +39,7 @@ import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.ga4gh.VariantGA4GH;
 import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
+import com.epam.catgenome.manager.*;
 import com.epam.catgenome.manager.gene.GeneTrackManager;
 import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
@@ -54,11 +55,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
@@ -90,18 +91,12 @@ import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.manager.BiologicalDataItemManager;
-import com.epam.catgenome.manager.DownloadFileManager;
-import com.epam.catgenome.manager.FeatureIndexManager;
-import com.epam.catgenome.manager.FileManager;
-import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.util.Utils;
-import com.epam.catgenome.manager.UrlValidatorService;
 
 /**
  * Source:      VcfManagerTest.java
@@ -145,36 +140,28 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Mock
     private HttpDataManager httpDataManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private VcfFileManager vcfFileManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private TrackHelper trackHelper;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private FileManager fileManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private BiologicalDataItemManager biologicalDataItemManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private FeatureIndexManager featureIndexManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private ReferenceGenomeManager referenceGenomeManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private DownloadFileManager downloadFileManager;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private GeneTrackManager geneTrackManager;
 
     @Autowired
@@ -192,12 +179,10 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Autowired
     private ApplicationContext context;
 
-    @Spy
-    @Autowired(required = false)
+    @SpyBean
     private EhCacheBasedIndexCache indexCache;
 
-    @Spy
-    @Autowired
+    @SpyBean
     private UrlValidatorService urlValidatorService;
 
     @Value("${ga4gh.google.variantSetId}")
@@ -306,8 +291,8 @@ public class VcfManagerTest extends AbstractManagerTest {
         /// test not collapsed
         trackResult = testLoad(vcfFile, TEST_SMALL_SCALE_FACTOR, true, false);
         ambiguousVariations = trackResult.getBlocks().stream()
-            .filter((b) -> b.getVariationsCount() != null && b.getVariationsCount() > 1)
-            .collect(Collectors.toList());
+                .filter((b) -> b.getVariationsCount() != null && b.getVariationsCount() > 1)
+                .collect(Collectors.toList());
 
         Assert.assertTrue(ambiguousVariations.isEmpty());
     }
@@ -563,7 +548,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         String fetchRes3 = readFile("GA4GH_id10473_variant_2.json");
         String fetchRes4 = readFile("GA4GH_id10473_variant_3.json");
         Mockito.when(
-                httpDataManager.fetchData(Mockito.any(), Mockito.any(JSONObject.class)))
+                        httpDataManager.fetchData(Mockito.any(), Mockito.any(JSONObject.class)))
                 .thenReturn(fetchRes1)
                 .thenReturn(fetchRes2)
                 .thenReturn(fetchRes3)
@@ -571,7 +556,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
         String fetchRes5 = readFile("GA4GH_id10473_param.json");
         Mockito.when(
-                httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
+                        httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
                 .thenReturn(fetchRes5);
 
         getNextFeature(referenceId, BiologicalDataItemResourceType.FILE);
@@ -711,7 +696,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         Assert.assertEquals(NUMBER_OF_FILTERS, filterInfo.getAvailableFilters().size());
         Assert.assertEquals(NUMBER_OF_TRIVIAL_INFO, filterInfo.getInfoItems().size() - 1);
         Assert.assertEquals(NUMBER_OF_TRIVIAL_INFO, filterInfo.getInfoItemMap().size() - 1); // -1 refers to is_exon
-                                                                                    // item which is added externally
+        // item which is added externally
     }
 
     @Test

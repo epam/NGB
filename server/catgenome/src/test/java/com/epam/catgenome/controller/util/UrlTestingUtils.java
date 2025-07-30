@@ -27,13 +27,11 @@ package com.epam.catgenome.controller.util;
 import java.io.File;
 import java.io.IOException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -60,11 +58,10 @@ public final class UrlTestingUtils {
         Resource resource = context.getResource("classpath:templates");
 
         Server server = new Server(UrlTestingUtils.TEST_FILE_SERVER_PORT);
-        server.setHandler(new AbstractHandler() {
-                @Override
-                public void handle(String target, Request baseRequest, HttpServletRequest request,
-                                   HttpServletResponse response) throws IOException, ServletException {
-                String uri = baseRequest.getRequestURI();
+        server.setHandler(new Handler.Abstract() {
+            @Override
+            public boolean handle(Request request, Response response, Callback callback) throws Exception {
+                String uri = request.getHttpURI().getPath();
                 LOGGER.info(uri);
                 File file = new File(resource.getFile().getAbsolutePath() + uri);
                 MultipartFileSender fileSender = MultipartFileSender.fromFile(file);
@@ -72,7 +69,11 @@ public final class UrlTestingUtils {
                     fileSender.with(request).with(response).serveResource();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    callback.failed(e);
+                    return true;
                 }
+                callback.succeeded();
+                return true;
             }
         });
 

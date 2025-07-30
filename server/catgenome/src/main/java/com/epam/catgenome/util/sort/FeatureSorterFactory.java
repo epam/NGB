@@ -68,7 +68,7 @@ public final class FeatureSorterFactory {
         final File sortedBedFile = new File(sortedBedPath);
         Assert.isTrue(!sortedBedFile.exists(), getMessage(MessagesConstants.ERROR_FILES_STATUS_ALREADY_EXISTS,
                 sortedBedPath));
-        Assert.isTrue(sortedBedFile.createNewFile());
+        Assert.isTrue(sortedBedFile.createNewFile(), "");
 
         return sortedBedPath;
     }

@@ -10,7 +10,7 @@ Verify that your system meets or exceeds the following hardware/software require
     * CPU: 2 cores
     * RAM: 4Gb
     * HDD: 20 Gb free space
-    * **[Oracle JDK 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html)** or **[Open JDK 8](http://openjdk.java.net/install/)**
+    * **[Oracle JDK 17](https://docs.oracle.com/javase/17/docs/technotes/guides/install/install_overview.html)** or **[Open JDK 17](http://openjdk.java.net/install/)**
     * GIT
   
 ## Get Source Code

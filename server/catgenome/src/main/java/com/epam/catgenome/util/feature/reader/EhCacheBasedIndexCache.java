@@ -26,14 +26,13 @@ package com.epam.catgenome.util.feature.reader;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import com.epam.catgenome.constant.MessagesConstants;
-import net.sf.ehcache.CacheException;
-import net.sf.ehcache.Ehcache;
-import net.sf.ehcache.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
+import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+
+import javax.cache.Cache;
 
 @Service
 @ConditionalOnProperty(value = "server.index.cache.enabled", havingValue = "true")
@@ -41,7 +40,7 @@ public class EhCacheBasedIndexCache {
     private static final String INDEX_CACHE = "indexCache";
 
     @Autowired
-    private EhCacheCacheManager cacheManager;
+    private JCacheCacheManager cacheManager;
 
     public void evictFromCache(String indexUrl) {
         Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
@@ -55,31 +54,20 @@ public class EhCacheBasedIndexCache {
     public IndexCache getFromCache(String indexUrl) {
         Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
 
-        Element element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl);
-        if (element != null) {
-            return (IndexCache) element.getObjectValue();
-        } else {
-            return null;
-        }
+        return (IndexCache) cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl);
     }
 
     public void putInCache(IndexCache index, String indexUrl) {
         Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_NOT_SPECIFIED));
         Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
 
-        cacheManager.getCacheManager().getCache(INDEX_CACHE).put(new Element(indexUrl, index));
+        cacheManager.getCacheManager().getCache(INDEX_CACHE).put(indexUrl, index);
     }
 
     public boolean contains(String indexUrl) {
         Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
 
-        Element element;
-        try {
-            element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl);
-        } catch (CacheException ex) {
-            return false;
-        }
-        return element != null;
+        return cacheManager.getCacheManager().getCache(INDEX_CACHE).containsKey(indexUrl);
     }
 
     public void clearCache() {
@@ -88,11 +76,8 @@ public class EhCacheBasedIndexCache {
 
     @Override
     public String toString() {
-        Ehcache cache = cacheManager.getCacheManager().getCache(INDEX_CACHE);
+        Cache<Object, Object> cache = cacheManager.getCacheManager().getCache(INDEX_CACHE);
 
-        return "Cache Name: " + cache.getName() + ", cacheManager: " + cache.getCacheManager() +
-                " cacheSize: " + cache.getSize() + " maxBytesLocalHeap: " +
-                cache.getCacheConfiguration().getMaxBytesLocalHeap() + " timeToIdle: " +
-                cache.getCacheConfiguration().getTimeToIdleSeconds();
+        return "Cache Name: " + cache.getName() + ", cacheManager: " + cache.getCacheManager();
     }
 }

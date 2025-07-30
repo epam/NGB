@@ -29,10 +29,10 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.blast.BlastDatabaseType;
 import com.epam.catgenome.entity.blast.result.BlastFeatureLocatable;
 import com.epam.catgenome.manager.blast.BlastUtilSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,21 +40,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Api(value = "blast-utils", description = "BLAST Utility Controller")
+@Tag(name = "blast-utils", description = "BLAST Utility Controller")
 @RequiredArgsConstructor
 public class BlastUtilController extends AbstractRESTController {
 
     private final BlastUtilSecurityService blastUtilSecurityService;
 
     @GetMapping(value = "/blast/coordinate")
-    @ApiOperation(
-            value = "Gets coordinates for feature based on feature accession version",
-            notes = "Gets coordinates for feature based on feature accession version " +
-                    "by requesting information from NCBI DB",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Gets coordinates for feature based on feature accession version",
+            description = "Gets coordinates for feature based on feature accession version " +
+                    "by requesting information from NCBI DB")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<BlastFeatureLocatable> fetchCoordinates(@RequestParam final String sequenceId,
                                                           @RequestParam final BlastDatabaseType type,
                                                           @RequestParam final Long taxId) {

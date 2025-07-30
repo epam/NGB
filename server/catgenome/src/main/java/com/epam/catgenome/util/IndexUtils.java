@@ -510,9 +510,8 @@ public final class IndexUtils {
         try (BufferedInputStream bufferedInputStream = new BufferedInputStream(
                 indexFileInputStream(IOHelper.openStream(indexResource), Utils.getFileExtension(indexResource)),
                 Defaults.NON_ZERO_BUFFER_SIZE)){
-            final Class<Index> indexClass = IndexFactory.IndexType.getIndexType(bufferedInputStream).getIndexType();
-            final Constructor<Index> ctor = indexClass.getConstructor(InputStream.class);
-            return ctor.newInstance(bufferedInputStream);
+            IndexFactory.IndexType indexType = IndexFactory.IndexType.getIndexType(bufferedInputStream);
+            return indexType.createIndex(bufferedInputStream);
         } catch (final IOException ex) {
             throw new TribbleException.UnableToReadIndexFile("Unable to read index file", indexResource, ex);
         } catch (final Exception ex) {

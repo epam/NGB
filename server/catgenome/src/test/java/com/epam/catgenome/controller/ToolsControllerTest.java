@@ -31,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 import com.epam.catgenome.controller.tools.FeatureFileSortRequest;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
@@ -114,7 +116,15 @@ public class ToolsControllerTest extends AbstractControllerTest {
                         .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(jsonPath(JPATH_PAYLOAD).value(payloadMatcher))
+                .andExpect(jsonPath(JPATH_PAYLOAD).value(new BaseMatcher<>() {
+                    @Override
+                    public void describeTo(Description description) {}
+
+                    @Override
+                    public boolean matches(Object o) {
+                        return payloadMatcher.matches(o);
+                    }
+                }))
                 .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 

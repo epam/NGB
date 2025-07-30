@@ -89,7 +89,7 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
             final String featureResource, String indexResource,
             final FeatureCodec<FEATURE, SOURCE> codec, final boolean requireIndex,
             EhCacheBasedIndexCache indexCache) throws TribbleException {
-        ParsingUtils.registerHelperClass(EnhancedUrlHelper.class);
+        ParsingUtils.setURLHelperFactory(EnhancedUrlHelper::new);
         try {
             // Test for tabix index
             if (methods.isTabix(featureResource, indexResource)) {

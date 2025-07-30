@@ -26,17 +26,26 @@ package com.epam.catgenome.app;
 
 import static com.epam.catgenome.entity.user.DefaultRoles.*;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.cache.CacheManager;
 import javax.sql.DataSource;
 
 import com.epam.catgenome.security.acl.customexpression.NGBMethodSecurityExpressionHandler;
-import net.sf.ehcache.config.PinningConfiguration;
+import org.ehcache.config.CacheConfiguration;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.ehcache.config.units.EntryUnit;
+import org.ehcache.expiry.ExpiryPolicy;
+import org.ehcache.jsr107.Eh107Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.ehcache.EhCacheFactoryBean;
-import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
+import org.springframework.cache.Cache;
+import org.springframework.cache.jcache.JCacheCache;
+import org.springframework.cache.jcache.JCacheManagerFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.security.access.PermissionEvaluator;
@@ -146,30 +155,47 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
     @Bean
     public AclCache aclCache() {
-        return new EhCacheBasedAclCache(ehCacheFactoryBean().getObject(),
+        return new SpringCacheBasedAclCache(cache((ehCacheManagerFactoryBean())),
                 permissionGrantingStrategy(), aclAuthorizationStrategy());
     }
 
-    @Bean
-    public EhCacheFactoryBean ehCacheFactoryBean() {
+    public Cache cache(JCacheManagerFactoryBean ehCacheManagerFactoryBean) {
         int aclSecurityCachePeriodInSeconds = context.getEnvironment()
                 .getProperty("security.acl.cache.period", Integer.class, -1);
-        EhCacheFactoryBean factoryBean = new EhCacheFactoryBean();
-        factoryBean.setCacheManager(ehCacheManagerFactoryBean().getObject());
-        factoryBean.setCacheName("aclCache");
-        if (aclSecurityCachePeriodInSeconds > 0) {
-            factoryBean.maxEntriesLocalHeap(UNLIMITED_NUMBER_OF_ENTITIES);
-            factoryBean.setTimeToLive(aclSecurityCachePeriodInSeconds);
-            factoryBean.setTimeToIdle(aclSecurityCachePeriodInSeconds);
-            factoryBean.pinning(new PinningConfiguration().store(PinningConfiguration.Store.LOCALMEMORY));
-        }
-        return factoryBean;
+        CacheManager object = ehCacheManagerFactoryBean.getObject();
+
+        CacheConfigurationBuilder<Object, Object> objectObjectCacheConfigurationBuilder = CacheConfigurationBuilder.newCacheConfigurationBuilder(Object.class, Object.class,
+                ResourcePoolsBuilder.newResourcePoolsBuilder().heap(100, EntryUnit.ENTRIES).build());
+        CacheConfiguration<Object, Object> build = objectObjectCacheConfigurationBuilder
+                .build();
+
+
+        CacheConfigurationBuilder<Object, Object> configuration =
+                CacheConfigurationBuilder.newCacheConfigurationBuilder(Object.class, Object.class, ResourcePoolsBuilder
+                                .heap(100))
+                        .withExpiry(new ExpiryPolicy<Object, Object>() {
+                            @Override
+                            public Duration getExpiryForCreation(Object key, Object value) {
+                                return Duration.ofSeconds(aclSecurityCachePeriodInSeconds);
+                            }
+
+                            @Override
+                            public Duration getExpiryForAccess(Object key, Supplier<? extends Object> value) {
+                                return Duration.ofSeconds(aclSecurityCachePeriodInSeconds);
+                            }
+
+                            @Override
+                            public Duration getExpiryForUpdate(Object key, Supplier<? extends Object> oldValue, Object newValue) {
+                                return Duration.ofSeconds(aclSecurityCachePeriodInSeconds);  // Keeping the existing expiry
+                            }
+                        });
+
+        return new JCacheCache(object.createCache("aclCache", Eh107Configuration.fromEhcacheCacheConfiguration(configuration) ));
     }
 
     @Bean
-    public EhCacheManagerFactoryBean ehCacheManagerFactoryBean() {
-        EhCacheManagerFactoryBean factoryBean = new EhCacheManagerFactoryBean();
-        factoryBean.setCacheManagerName("aclCacheManager");
+    public JCacheManagerFactoryBean ehCacheManagerFactoryBean() {
+        JCacheManagerFactoryBean factoryBean = new JCacheManagerFactoryBean();
         return factoryBean;
     }
 }

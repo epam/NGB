@@ -28,6 +28,7 @@ import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.Optional;
 
 @Value
 @Builder(toBuilder = true)
+@Jacksonized
 public class MotifSearchRequest {
 
     MotifSearchType searchType;

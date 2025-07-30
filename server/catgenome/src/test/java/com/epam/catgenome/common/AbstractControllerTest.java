@@ -63,7 +63,7 @@ public abstract class AbstractControllerTest extends AbstractJUnitTest {
     protected static final String UPLOAD_FILE_PARAM = "saveFile";
     protected static final String REFERENCE_ID_PARAM = "referenceId";
 
-    protected static final String EXPECTED_CONTENT_TYPE = "application/json;charset=UTF-8";
+    protected static final String EXPECTED_CONTENT_TYPE = "application/json";
 
     private MockMvc mockMvc;
 

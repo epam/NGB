@@ -1625,7 +1625,7 @@ public class FileManager {
      * Creates an index for a specified BedFile
      * @param bedFile BedFile to create index for
      */
-    public void makeBedIndex(final BedFile bedFile, final AsciiFeatureCodec<NggbBedFeature> nggbBedCodec) {
+    public void makeBedIndex(final BedFile bedFile, final AsciiFeatureCodec<NggbBedFeature> nggbBedCodec) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), bedFile.getId());
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
@@ -1666,7 +1666,7 @@ public class FileManager {
      * Creates an index for a specified SegFile
      * @param segFile SegFile to create index for
      */
-    public void makeSegIndex(final SegFile segFile) {
+    public void makeSegIndex(final SegFile segFile) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), segFile.getId());
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
@@ -1739,7 +1739,7 @@ public class FileManager {
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(SEG_FILE, params)));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), "");
 
         LOGGER.debug("Writing SEG Sample file at {}", file.getAbsolutePath());
 
@@ -1866,7 +1866,7 @@ public class FileManager {
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(MAF_FILE, params)));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), "");
 
         LOGGER.debug("Writing MAF file at {}", file.getAbsolutePath());
 
@@ -1894,7 +1894,7 @@ public class FileManager {
         params.put(CHROMOSOME_NAME.name(), chromosomeName);
 
         File file = new File(toRealPath(substitute(WIG_FILE, params)));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), "");
 
         BigWigFile.write(wigSections, chromSizes, file.toPath(), 0, CompressionType.DEFLATE, ByteOrder.nativeOrder());
     }
@@ -1926,7 +1926,7 @@ public class FileManager {
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(BED_GRAPH_FILE, params)));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), "");
         try (Writer writer = new BufferedWriter(new FileWriter(file))) {
             for (BedGraphFeature bedGraphFeature : sectionList) {
                 writer.write(String.format(

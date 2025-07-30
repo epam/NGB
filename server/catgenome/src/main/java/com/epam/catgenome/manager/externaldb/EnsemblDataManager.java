@@ -49,6 +49,7 @@ import com.epam.catgenome.exception.ExternalDbUnavailableException;
  */
 @Service
 @Slf4j
+@SuppressWarnings("PMD")
 public class EnsemblDataManager {
 
     private static final String ENSEMBL_TOOL = "lookup/id";

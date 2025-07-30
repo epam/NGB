@@ -111,8 +111,8 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void deleteSidById(Long sidId) {
-        jdbcTemplate.update(deleteEntriesBySidQuery, sidId);
-        jdbcTemplate.update(deleteSidByIdQuery, sidId);
+        jdbcOperations.update(deleteEntriesBySidQuery, sidId);
+        jdbcOperations.update(deleteSidByIdQuery, sidId);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -171,7 +171,7 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     public Integer loadEntriesBySidsCount(final Collection<Long> sidIds) {
         String query = DaoHelper.replaceInClause(loadEntriesBySidsCountQuery, sidIds.size());
-        return jdbcTemplate.queryForObject(query, sidIds.toArray(), Integer.class);
+        return jdbcOperations.queryForObject(query, Integer.class, sidIds.toArray());
     }
 
     @Required

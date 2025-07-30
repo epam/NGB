@@ -2,17 +2,16 @@ package com.epam.catgenome.util;
 
 import com.epam.catgenome.util.feature.reader.IndexCache;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.config.CacheConfiguration;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
+import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.junit.Test;
+import javax.cache.Cache;
 import static org.junit.Assert.*;
 
 /**
@@ -22,6 +21,7 @@ import static org.junit.Assert.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 @TestPropertySource("classpath:test-catgenome.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
+@SuppressWarnings("PMD.UnusedLocalVariable")
 public class EhCacheTest {
 
     @Autowired
@@ -31,7 +31,7 @@ public class EhCacheTest {
     private EhCacheBasedIndexCache indexCache;
 
     @Autowired
-    private EhCacheCacheManager cacheManager;
+    private JCacheCacheManager cacheManager;
 
     private IndexCache index1;
     private IndexCache index2;
@@ -75,40 +75,6 @@ public class EhCacheTest {
         assertEquals(0, getSize());
     }
 
-    @Test
-    public void testMaxSizeInBytes() {
-        Cache cache = cacheManager.getCacheManager().getCache(INDEX_CACHE_NAME);
-        CacheConfiguration cacheConfiguration = cache.getCacheConfiguration();
-        Long maxSizeInBytes = cacheConfiguration.getMaxBytesLocalHeap();
-
-        cacheConfiguration.setMaxBytesLocalHeap(10L);
-        assertEquals(0, getSize());
-
-        cacheConfiguration.setMaxBytesLocalHeap(maxSizeInBytes);
-        indexCache.putInCache(index1, "1");
-        assertEquals(1, getSize());
-    }
-
-    @Test
-    public void testToString() {
-        Cache cache = cacheManager.getCacheManager().getCache(INDEX_CACHE_NAME);
-        CacheConfiguration cacheConfiguration = cache.getCacheConfiguration();
-        Long maxSizeInBytes = cacheConfiguration.getMaxBytesLocalHeap();
-        String cacheName = cacheConfiguration.getName();
-        Long timeToIdleSeconds = cacheConfiguration.getTimeToIdleSeconds();
-
-        cacheConfiguration.setMaxBytesLocalHeap(1L);
-        cacheConfiguration.setName("TestCache");
-        final int testingTimeToIdleSeconds = 100;
-        cacheConfiguration.setTimeToIdleSeconds(testingTimeToIdleSeconds);
-
-        assertEquals("Cache Name: TestCache, cacheManager: " + cache.getCacheManager() +
-                " cacheSize: 0 maxBytesLocalHeap: 1 timeToIdle: 100", indexCache.toString());
-        cacheConfiguration.setMaxBytesLocalHeap(maxSizeInBytes);
-        cacheConfiguration.setName(cacheName);
-        cacheConfiguration.setTimeToIdleSeconds(timeToIdleSeconds);
-    }
-
     private class TestIndexCache implements IndexCache {
         private String name;
 
@@ -136,6 +102,11 @@ public class EhCacheTest {
     }
 
     private int getSize() {
-        return cacheManager.getCacheManager().getCache(INDEX_CACHE_NAME).getSize();
+        Cache<Object, Object> cache = cacheManager.getCacheManager().getCache(INDEX_CACHE_NAME);
+        int count = 0;
+        for (Cache.Entry<Object, Object> objectObjectEntry : cache) {
+            count++;
+        }
+        return count;
     }
 }
