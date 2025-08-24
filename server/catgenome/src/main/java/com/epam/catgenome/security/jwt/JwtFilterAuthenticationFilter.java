@@ -89,7 +89,7 @@ public class JwtFilterAuthenticationFilter extends OncePerRequestFilter {
 
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("HttpAuthorization".equals(cookie.getName())) {
+                if ("HttpAuthorization".equals(cookie.getName()) || "bearer".equals(cookie.getName())) {
                     return cookie;
                 }
             }
