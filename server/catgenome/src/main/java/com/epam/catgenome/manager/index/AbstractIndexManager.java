@@ -41,6 +41,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,6 +72,11 @@ public abstract class AbstractIndexManager<T> {
 
     public SearchResult<T> search(final SearchRequest request, final Query query, final Sort sort)
             throws IOException, ParseException {
+        return search(Paths.get(indexDirectory), request, query, sort);
+    }
+
+    public SearchResult<T> search(final Path path, final SearchRequest request, final Query query, final Sort sort)
+            throws IOException, ParseException {
         final List<T> entries = new ArrayList<>();
         final SearchResult<T> searchResult = new SearchResult<>();
         final int page = (request.getPage() == null || request.getPage() <= 0) ? 1 : request.getPage();
@@ -78,7 +84,7 @@ public abstract class AbstractIndexManager<T> {
                 : request.getPageSize();
         final int hits = page * pageSize;
 
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+        try (Directory index = new SimpleFSDirectory(path);
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = sort != null ? searcher.search(query, hits, sort) : searcher.search(query, topHits);
@@ -100,10 +106,42 @@ public abstract class AbstractIndexManager<T> {
     }
 
     public List<T> search(final Query query, final Sort sort) throws IOException, ParseException {
+        return search(Paths.get(indexDirectory), query, sort);
+    }
+
+    public MultiReader openMultiReader(final SimpleFSDirectory[] indexes) throws IOException {
+        final IndexReader[] readers = new IndexReader[indexes.length];
+        for (int i = 0; i < indexes.length; i++) {
+            readers[i] = DirectoryReader.open(indexes[i]);
+        }
+        return new MultiReader(readers, true);
+    }
+
+    public List<T> search(final Path path, final Query query, final Sort sort) throws IOException, ParseException {
         final List<T> entries = new ArrayList<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+        try (Directory index = new SimpleFSDirectory(path);
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
+            TopDocs topDocs = sort == null ? searcher.search(query, topHits) :
+                    searcher.search(query, topHits, sort);
+            ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+            for (ScoreDoc scoreDoc : scoreDocs) {
+                Document doc = searcher.doc(scoreDoc.doc);
+                T entry = entryFromDoc(doc);
+                entries.add(entry);
+            }
+        } catch (IndexNotFoundException e) {
+            log.info(getMessage(MessagesConstants.INFO_INDEX_NOT_FOUND, indexDirectory));
+            return new ArrayList<>();
+        }
+        return entries;
+    }
+
+    public List<T> search(final SimpleFSDirectory[] indexes, final Query query, final Sort sort)
+            throws IOException, ParseException {
+        final List<T> entries = new ArrayList<>();
+        try (MultiReader reader = openMultiReader(indexes)) {
+            IndexSearcher searcher = new IndexSearcher(reader);
             TopDocs topDocs = sort == null ? searcher.search(query, topHits) :
                     searcher.search(query, topHits, sort);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
@@ -157,11 +195,24 @@ public abstract class AbstractIndexManager<T> {
     }
 
     public void delete(final Query query) throws IOException, ParseException {
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
+        delete(Paths.get(indexDirectory), query);
+    }
+
+    public void delete(final Path path, final Query query) throws IOException, ParseException {
+        try (Directory index = new SimpleFSDirectory(path);
              IndexWriter writer = new IndexWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteDocuments(query);
+        }
+    }
+
+    public void deleteIndex(final Path path) throws IOException, ParseException {
+        try (Directory index = new SimpleFSDirectory(path);
+             IndexWriter writer = new IndexWriter(
+                     index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
+                     .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
+            writer.deleteAll();
         }
     }
 
