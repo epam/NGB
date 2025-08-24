@@ -1,6 +1,6 @@
 <div layout="column">
     <md-tabs md-dynamic-height ng-if="$ctrl.shouldDisplayGeneInfo">
-        <md-tab id="gff">
+        <md-tab id="gff" md-on-select="$ctrl.selectMainTab()">
             <md-tab-label>{{$ctrl.panelTitle}}</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info-main properties="$ctrl.properties"
@@ -45,7 +45,7 @@
         </md-tab>
     </md-tabs>
     <md-tabs md-dynamic-height ng-if="!$ctrl.shouldDisplayGeneInfo">
-        <md-tab id="gff">
+        <md-tab id="gff" md-on-select="$ctrl.selectMainTab()">
             <md-tab-label>{{$ctrl.panelTitle}}</md-tab-label>
             <md-tab-body>
                 <ngb-feature-info-main properties="$ctrl.properties"

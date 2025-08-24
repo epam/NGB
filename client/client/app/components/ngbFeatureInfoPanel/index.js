@@ -12,8 +12,9 @@ import ngbFeatureInfoPanelService from './ngbFeatureInfoPanel.service';
 // Import app modules
 import dataServices from '../../../dataServices/angular-module';
 import ngbFeatureInfo from './ngbFeatureInfo';
+import ngbFeatureInfoMainActions from './ngbFeatureInfo/ngbFeatureInfoMainActions';
 
-export default angular.module('ngbFeatureInfoPanel', [ dataServices, ngbFeatureInfo ])
+export default angular.module('ngbFeatureInfoPanel', [ dataServices, ngbFeatureInfo, ngbFeatureInfoMainActions ])
     .service('ngbFeatureInfoPanelService', ngbFeatureInfoPanelService.instance)
     .component('ngbFeatureInfoPanel', component)
     .controller(controller.UID, controller)

@@ -91,6 +91,11 @@ export default function run($mdDialog, dispatcher, ngbFeatureInfoPanelService, g
                 } else {
                     $scope.error = 'Network error';
                 }
+                $scope.showFooter = () => (
+                    ngbFeatureInfoPanelService.isMainTabSelected &&
+                    ngbFeatureInfoPanelService.isGeneralInfoOpen &&
+                    formattedResult.uuid
+                );
                 $scope.close = () => {
                     if (ngbFeatureInfoPanelService.editMode &&
                         ngbFeatureInfoPanelService.unsavedChanges($scope.properties)
