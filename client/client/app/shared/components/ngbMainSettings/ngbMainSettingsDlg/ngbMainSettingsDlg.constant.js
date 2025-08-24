@@ -362,6 +362,20 @@ export default [
                             name: groupModes.groupByReadStrandMode,
                             model: {
                                 value: groupModes.defaultGroupingMode
+                            }
+                        }
+                    },
+                    {
+                        type: 'item',
+                        name: 'bam>group>readGroup',
+                        label: 'By read group',
+                        hotkey: '',
+                        byDefault: {
+                            type: 'radio',
+                            group: 'groupMode',
+                            name: groupModes.groupByReadGroupMode,
+                            model: {
+                                value: groupModes.defaultGroupingMode
                             },
                             conflicts: ['bam>readsView>pairs']
                         }

@@ -13,6 +13,8 @@ export default {
                 return 'By chromosome of mate';
             case groupModes.groupByReadStrandMode:
                 return 'By read strand';
+            case groupModes.groupByReadGroupMode:
+                return 'By read group';
         }
     },
     fields: [
@@ -54,6 +56,14 @@ export default {
             isEnabled: state => state.groupMode === groupModes.groupByReadStrandMode,
             label: 'By read strand',
             name: 'bam>group>readStrand',
+            type: 'checkbox'
+        },
+        {
+            disable: state => state.groupMode = groupModes.defaultGroupingMode,
+            enable: state => state.groupMode = groupModes.groupByReadGroupMode,
+            isEnabled: state => state.groupMode === groupModes.groupByReadGroupMode,
+            label: 'By read group',
+            name: 'bam>group>readGroup',
             type: 'checkbox'
         }
     ],
