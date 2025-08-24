@@ -14,7 +14,11 @@
   border-bottom: 1px solid #cccccc;
   font-weight: bold;
 }
-ngb-feature-info-main{
+ngb-feature-info-main {
+  [disabled] ng-md-icon {
+    fill: currentColor !important;
+  }
+
   collapsible-panel-title{
     font: 400 18px Arial;
     text-transform: none;
@@ -45,12 +49,8 @@ ngb-feature-info-main{
 }
 
 .general-information-buttons {
-  margin: 0px;
+  margin: 0;
   font-size: 14px;
-  color: #6699ff;
+  color: rgba(0, 0, 0, 0.87);
   float: right;
-}
-
-.cancel-button {
-  color: #494949;
 }

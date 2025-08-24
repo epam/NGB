@@ -4,19 +4,19 @@
             <collapsible-panel-title>
                 General information
                 <md-button
-                    class="general-information-buttons"
+                    class="md-primary general-information-buttons"
                     ng-if="$ctrl.uuid && !$ctrl.editMode && $ctrl.isGeneralInfoOpen"
                     ng-click="$ctrl.onClickEditBtn($event)">
                     Edit
                 </md-button>
                 <md-button
-                    class="general-information-buttons cancel-button"
+                    class="general-information-buttons"
                     ng-if="$ctrl.editMode"
                     ng-click="$ctrl.onClickCancelBtn($event)">
                     Cancel
                 </md-button>
                 <md-button
-                    class="general-information-buttons"
+                    class="md-primary general-information-buttons"
                     ng-if="$ctrl.editMode"
                     ng-click="$ctrl.onClickSaveBtn($event)"
                     ng-disabled="$ctrl.disableSave || $ctrl.saveInProgress">
