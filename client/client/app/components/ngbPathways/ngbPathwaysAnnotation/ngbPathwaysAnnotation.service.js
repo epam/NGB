@@ -30,10 +30,10 @@ function parseConfigStr(rawStr) {
     const strList = rawStr.split('\n');
     strList.forEach(str => {
         if (str) {
-            const [term, ...colors] = str.split(/\s+/);
+            const [term, ...colors] = str.match(/(?:[^\s"]+|"[^"]*")+/g);
             const colorList = colors.join().split(',');
             result.push({
-                term: term,
+                term: term.replace(/"/g, ''),
                 backgroundColor: colorList[0] ? colorList[0].trim() : undefined,
                 foregroundColor: colorList[1] ? colorList[1].trim() : undefined
             });
