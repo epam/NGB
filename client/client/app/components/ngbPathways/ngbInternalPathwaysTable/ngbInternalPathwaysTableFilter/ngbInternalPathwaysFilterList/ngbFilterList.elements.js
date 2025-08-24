@@ -1,3 +1,5 @@
+import {deepSearch} from '../../../../../shared/utils/deepSearch';
+
 const MAX_ITEMS_TO_DISPLAY = 100;
 const Math = window.Math;
 
@@ -89,11 +91,17 @@ export default class ListElements {
                     items = await this.listFn(searchString);
                 } else if (searchString && searchString.length > 0) {
                     if (this.fullList && this.fullList.model.length) {
-                        const filteredList = this.fullList.model.filter(i => i.toLowerCase().indexOf(searchString.toLowerCase()) === 0);
                         items = {
-                            model: filteredList,
-                            view: filteredList
+                            model: [],
+                            view: []
                         };
+                        this.fullList.model.forEach((model, index) => {
+                            if (model.toLowerCase().indexOf(searchString.toLowerCase()) === 0
+                                || deepSearch(this.fullList.view[index], searchString.toLowerCase(), [])) {
+                                items.model.push(model);
+                                items.view.push(this.fullList.view[index]);
+                            }
+                        });
                         shouldUpdateScope = false;
                     } else {
                         items = await this.listFn(searchString);
