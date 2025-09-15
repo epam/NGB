@@ -40,10 +40,10 @@ import com.epam.catgenome.manager.target.TargetGeneSecurityService;
 import com.epam.catgenome.manager.target.TargetSecurityService;
 import com.epam.catgenome.util.db.Page;
 import com.opencsv.exceptions.CsvValidationException;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import htsjdk.samtools.reference.ReferenceSequence;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -65,7 +65,7 @@ import java.util.List;
 import static com.epam.catgenome.util.Utils.DEFAULT_PAGE_SIZE;
 
 @RestController
-@Api(value = "target", description = "Target Management")
+@Tag(name = "target", description = "Target Management")
 @RequiredArgsConstructor
 public class TargetController extends AbstractRESTController {
 
@@ -74,25 +74,23 @@ public class TargetController extends AbstractRESTController {
     private final AlignmentSecurityService alignmentSecurityService;
 
     @GetMapping(value = "/target/{targetId}")
-    @ApiOperation(
-            value = "Returns a target by given id",
-            notes = "Returns a target by given id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns a target by given id",
+        description = "Returns a target by given id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Target> loadTargets(@PathVariable final long targetId) {
         return Result.success(targetSecurityService.loadTarget(targetId));
     }
 
     @GetMapping(value = "/target/alignment/{targetId}")
-    @ApiOperation(
-            value = "Returns target alignment by sequence ids",
-            notes = "Returns target alignment by sequence ids",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns target alignment by sequence ids",
+        description = "Returns target alignment by sequence ids")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<ReferenceSequence>> getAlignment(@PathVariable final Long targetId,
                                                         @RequestParam final String firstSequenceId,
                                                         @RequestParam final String secondSequenceId,
@@ -101,13 +99,12 @@ public class TargetController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/filter")
-    @ApiOperation(
-            value = "Filters targets",
-            notes = "Filters targets. Result can be sorted by target_name field.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Filters targets",
+        description = "Filters targets. Result can be sorted by target_name field.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Page<Target>> loadTargets(@RequestBody final TargetQueryParams queryParameters) {
         final List<Target> targets = targetSecurityService.loadTargets(queryParameters);
         final int pageNum = queryParameters.getPagingInfo() == null ? 1 :
@@ -122,13 +119,12 @@ public class TargetController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target")
-    @ApiOperation(
-            value = "Returns targets with given gene name and taxonomy id",
-            notes = "Returns targets with given gene name and taxonomy id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns targets with given gene name and taxonomy id",
+        description = "Returns targets with given gene name and taxonomy id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<Target>> loadTargets(@RequestParam final String geneName,
                                             @RequestParam(required = false) final Long taxId)
             throws ParseException, IOException {
@@ -136,74 +132,68 @@ public class TargetController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/all")
-    @ApiOperation(
-            value = "Returns all targets",
-            notes = "Returns all targets",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns all targets",
+        description = "Returns all targets")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<Target>> loadTargets() {
         return Result.success(targetSecurityService.loadTargets());
     }
 
     @PostMapping(value = "/target")
-    @ApiOperation(
-            value = "Registers new target",
-            notes = "Registers new target",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Registers new target",
+        description = "Registers new target")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Target> createTarget(@RequestBody final Target target) throws IOException {
         return Result.success(targetSecurityService.createTarget(target));
     }
 
     @PutMapping(value = "/target")
-    @ApiOperation(
-            value = "Updates target",
-            notes = "Updates target",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Updates target",
+        description = "Updates target")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Target> updateTarget(@RequestBody final Target target) throws TargetUpdateException, IOException {
         return Result.success(targetSecurityService.updateTarget(target));
     }
 
     @DeleteMapping(value = "/target/{targetId}")
-    @ApiOperation(
-            value = "Deletes a target, specified by id",
-            notes = "Deletes a target, specified by id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Deletes a target, specified by id",
+        description = "Deletes a target, specified by id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> deleteTarget(@PathVariable final long targetId) throws ParseException, IOException {
         targetSecurityService.deleteTarget(targetId);
         return Result.success(null);
     }
 
     @GetMapping(value = "/target/fieldValues")
-    @ApiOperation(
-            value = "Returns field values for target filter",
-            notes = "Returns field values for target filter",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns field values for target filter",
+        description = "Returns field values for target filter")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<String>> loadFieldValues(@RequestParam final TargetField field) {
         return Result.success(targetSecurityService.loadFieldValues(field));
     }
 
     @PostMapping(value = "/target/genes/import/{targetId}")
-    @ApiOperation(
-            value = "Imports genes from xlsx, csv and tsv files",
-            notes = "Imports genes from xlsx, csv and tsv files",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Imports genes from xlsx, csv and tsv files",
+        description = "Imports genes from xlsx, csv and tsv files")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> importGenes(@RequestParam(required = false) final String path,
                                        @RequestParam(value = "file", required = false) final MultipartFile multipart,
                                        @PathVariable final long targetId)
@@ -213,13 +203,12 @@ public class TargetController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/genes/{targetId}")
-    @ApiOperation(
-            value = "Adds genes to target",
-            notes = "Adds genes to target",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Adds genes to target",
+        description = "Adds genes to target")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> create(@PathVariable final long targetId,
                                   @RequestBody final List<TargetGene> targetGenes)
             throws IOException, ParseException, TargetGenesException {
@@ -228,13 +217,12 @@ public class TargetController extends AbstractRESTController {
     }
 
     @PutMapping(value = "/target/genes")
-    @ApiOperation(
-            value = "Updates target genes",
-            notes = "Updates target genes",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Updates target genes",
+        description = "Updates target genes")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> update(@RequestBody final List<TargetGene> targetGenes)
             throws IOException, ParseException, TargetGenesException {
         targetGeneSecurityService.update(targetGenes);
@@ -242,26 +230,24 @@ public class TargetController extends AbstractRESTController {
     }
 
     @DeleteMapping(value = "/target/genes/{targetId}")
-    @ApiOperation(
-            value = "Deletes all target genes",
-            notes = "Deletes all target genes",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Deletes all target genes",
+        description = "Deletes all target genes")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> delete(@PathVariable final long targetId) throws IOException, ParseException {
         targetGeneSecurityService.delete(targetId);
         return Result.success(null);
     }
 
     @DeleteMapping(value = "/target/genes")
-    @ApiOperation(
-            value = "Deletes target genes",
-            notes = "Deletes target genes",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Deletes target genes",
+        description = "Deletes target genes")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> delete(@RequestParam(required = false) List<Long> targetGeneIds)
             throws IOException, ParseException {
         targetGeneSecurityService.delete(targetGeneIds);
@@ -269,13 +255,12 @@ public class TargetController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/genes/filter/{targetId}")
-    @ApiOperation(
-            value = "Filters targets genes",
-            notes = "Filters targets genes. Available fields info is available by GET /target/genes/fields/{targetId}.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Filters targets genes",
+        description = "Filters targets genes. Available fields info is available by GET /target/genes/fields/{targetId}.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<SearchResult<TargetGene>> loadTargetGenes(@PathVariable final long targetId,
                                                             @RequestBody final SearchRequest request)
             throws ParseException, IOException {
@@ -283,52 +268,48 @@ public class TargetController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/genes/fields/{targetId}")
-    @ApiOperation(
-            value = "Returns fields for target genes",
-            notes = "Returns fields for target genes",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns fields for target genes",
+        description = "Returns fields for target genes")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<FieldInfo>> getFields(@PathVariable final long targetId)
             throws ParseException, IOException {
         return Result.success(targetGeneSecurityService.getFieldInfos(targetId));
     }
 
     @GetMapping(value = "/target/genes/fieldValues/{targetId}")
-    @ApiOperation(
-            value = "Returns values for OPTIONAL target genes table filed",
-            notes = "Returns values for OPTIONAL target genes table filed",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns values for OPTIONAL target genes table filed",
+        description = "Returns values for OPTIONAL target genes table filed")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<String>> getFieldValues(@PathVariable final long targetId,
                                                @RequestParam final String field) throws ParseException, IOException {
         return Result.success(targetGeneSecurityService.getFieldValues(targetId, field));
     }
 
     @GetMapping(value = "/target/genes")
-    @ApiOperation(
-            value = "Returns target genes by internal ids.",
-            notes = "Returns target genes by internal ids.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns target genes by internal ids.",
+        description = "Returns target genes by internal ids.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<TargetGene>> load(@RequestParam final List<Long> targetGeneIds)
             throws ParseException, IOException {
         return Result.success(targetGeneSecurityService.load(targetGeneIds));
     }
 
     @GetMapping(value = "/target/{targetId}/genes")
-    @ApiOperation(
-            value = "Returns target genes by string ids.",
-            notes = "Returns target genes by string ids.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns target genes by string ids.",
+        description = "Returns target genes by string ids.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<TargetGene>> load(@PathVariable final Long targetId,
                                          @RequestParam final List<String> geneIds)
             throws ParseException, IOException {

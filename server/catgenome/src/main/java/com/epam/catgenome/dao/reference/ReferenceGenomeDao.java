@@ -24,30 +24,29 @@
 
 package com.epam.catgenome.dao.reference;
 
-import com.epam.catgenome.entity.reference.Species;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-
 import com.epam.catgenome.dao.BiologicalDataItemDao;
+import com.epam.catgenome.dao.DaoHelper;
+import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.gene.GeneFile;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.reference.Species;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
-import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.BaseEntity;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.gene.GeneFile;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
 
 /**
  * {@code ReferenceGenomeDao} represents DAO which provides different calls to support
@@ -303,8 +302,8 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         return getNamedParameterJdbcTemplate().batchUpdate(createChromosomeQuery, batchArgs);
     }
 
-    @Required
     public void setLoadChromosomeByIdQuery(final String loadChromosomeByIdQuery) {
+        Assert.hasText(loadChromosomeByIdQuery, "loadChromosomeByIdQuery cannot be null or empty");
         this.loadChromosomeByIdQuery = loadChromosomeByIdQuery;
     }
 
@@ -397,123 +396,123 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         );
     }
 
-    @Required
     public void setReferenceGenomeSequenceName(final String referenceGenomeSequenceName) {
+        Assert.hasText(referenceGenomeSequenceName, "referenceGenomeSequenceName cannot be null or empty");
         this.referenceGenomeSequenceName = referenceGenomeSequenceName;
     }
 
-    @Required
     public void setChromosomeSequenceName(final String chromosomeSequenceName) {
+        Assert.hasText(chromosomeSequenceName, "chromosomeSequenceName cannot be null or empty");
         this.chromosomeSequenceName = chromosomeSequenceName;
     }
 
-    @Required
     public void setCreateChromosomeQuery(final String createChromosomeQuery) {
+        Assert.hasText(createChromosomeQuery, "createChromosomeQuery cannot be null or empty");
         this.createChromosomeQuery = createChromosomeQuery;
     }
 
-    @Required
     public void setLoadAllChromosomesByReferenceIdQuery(final String loadAllChromosomesByReferenceIdQuery) {
+        Assert.hasText(loadAllChromosomesByReferenceIdQuery, "loadAllChromosomesByReferenceIdQuery cannot be null or empty");
         this.loadAllChromosomesByReferenceIdQuery = loadAllChromosomesByReferenceIdQuery;
     }
 
-    @Required
     public void setCreateReferenceGenomeQuery(String createReferenceGenomeQuery) {
+        Assert.hasText(createReferenceGenomeQuery, "createReferenceGenomeQuery cannot be null or empty");
         this.createReferenceGenomeQuery = createReferenceGenomeQuery;
     }
 
-    @Required
     public void setLoadReferenceGenomeByIdQuery(String loadReferenceGenomeByIdQuery) {
+        Assert.hasText(loadReferenceGenomeByIdQuery, "loadReferenceGenomeByIdQuery cannot be null or empty");
         this.loadReferenceGenomeByIdQuery = loadReferenceGenomeByIdQuery;
     }
 
-    @Required
     public void setLoadReferenceGenomeByBioIdQuery(String loadReferenceGenomeByBioIdQuery) {
+        Assert.hasText(loadReferenceGenomeByBioIdQuery, "loadReferenceGenomeByBioIdQuery cannot be null or empty");
         this.loadReferenceGenomeByBioIdQuery = loadReferenceGenomeByBioIdQuery;
     }
 
-    @Required
     public void setLoadAllReferenceGenomesQuery(String loadAllReferenceGenomesQuery) {
+        Assert.hasText(loadAllReferenceGenomesQuery, "loadAllReferenceGenomesQuery cannot be null or empty");
         this.loadAllReferenceGenomesQuery = loadAllReferenceGenomesQuery;
     }
 
-    @Required
     public void setDeleteReferenceQuery(final String deleteReferenceQuery) {
+        Assert.hasText(deleteReferenceQuery, "deleteReferenceQuery cannot be null or empty");
         this.deleteReferenceQuery = deleteReferenceQuery;
     }
 
-    @Required
     public void setDeleteReferenceChromosomeQuery(final String deleteReferenceChromosomeQuery) {
+        Assert.hasText(deleteReferenceChromosomeQuery, "deleteReferenceChromosomeQuery cannot be null or empty");
         this.deleteReferenceChromosomeQuery = deleteReferenceChromosomeQuery;
     }
 
-    @Required
     public void setLoadBiologicalItemsQuery(String loadBiologicalItemsQuery) {
+        Assert.hasText(loadBiologicalItemsQuery, "loadBiologicalItemsQuery cannot be null or empty");
         this.loadBiologicalItemsQuery = loadBiologicalItemsQuery;
     }
 
-    @Required
     public String getLoadBiologicalItemsQuery() {
+        Assert.hasText(loadBiologicalItemsQuery, "loadBiologicalItemsQuery cannot be null or empty");
         return loadBiologicalItemsQuery;
     }
 
-    @Required
     public void setUpdateReferenceGeneFileIdQuery(String updateReferenceGeneFileIdQuery) {
+        Assert.hasText(updateReferenceGeneFileIdQuery, "updateReferenceGeneFileIdQuery cannot be null or empty");
         this.updateReferenceGeneFileIdQuery = updateReferenceGeneFileIdQuery;
     }
 
-    @Required
     public void setLoadAnnotationDataIdsByReferenceIdQuery(String loadAnnotationDataIdsByReferenceIdQuery) {
+        Assert.hasText(loadAnnotationDataIdsByReferenceIdQuery, "loadAnnotationDataIdsByReferenceIdQuery cannot be null or empty");
         this.loadAnnotationDataIdsByReferenceIdQuery = loadAnnotationDataIdsByReferenceIdQuery;
     }
 
-    @Required
     public void setLoadAllAnnotationDataIdsQuery(String loadAllAnnotationDataIdsQuery) {
+        Assert.hasText(loadAllAnnotationDataIdsQuery, "loadAllAnnotationDataIdsQuery cannot be null or empty");
         this.loadAllAnnotationDataIdsQuery = loadAllAnnotationDataIdsQuery;
     }
 
-    @Required
     public void setAddAnnotationDataItemByReferenceIdQuery(String addAnnotationDataItemByReferenceIdQuery) {
+        Assert.hasText(addAnnotationDataItemByReferenceIdQuery, "addAnnotationDataItemByReferenceIdQuery cannot be null or empty");
         this.addAnnotationDataItemByReferenceIdQuery = addAnnotationDataItemByReferenceIdQuery;
     }
 
-    @Required
     public String getDeleteAnnotationDataItemByReferenceIdQuery() {
+        Assert.hasText(deleteAnnotationDataItemByReferenceIdQuery, "deleteAnnotationDataItemByReferenceIdQuery cannot be null or empty");
         return deleteAnnotationDataItemByReferenceIdQuery;
     }
 
-    @Required
     public void setDeleteAnnotationDataItemByReferenceIdQuery(String deleteAnnotationDataItemByReferenceIdQuery) {
+        Assert.hasText(deleteAnnotationDataItemByReferenceIdQuery, "deleteAnnotationDataItemByReferenceIdQuery cannot be null or empty");
         this.deleteAnnotationDataItemByReferenceIdQuery = deleteAnnotationDataItemByReferenceIdQuery;
     }
 
-    @Required
     public String getLoadGenomeIdsByAnnotationDataItemIdQuery() {
+        Assert.hasText(loadGenomeIdsByAnnotationDataItemIdQuery, "loadGenomeIdsByAnnotationDataItemIdQuery cannot be null or empty");
         return loadGenomeIdsByAnnotationDataItemIdQuery;
     }
 
-    @Required
     public void setLoadGenomeIdsByAnnotationDataItemIdQuery(String loadGenomeIdsByAnnotationDataItemIdQuery) {
+        Assert.hasText(loadGenomeIdsByAnnotationDataItemIdQuery, "loadGenomeIdsByAnnotationDataItemIdQuery cannot be null or empty");
         this.loadGenomeIdsByAnnotationDataItemIdQuery = loadGenomeIdsByAnnotationDataItemIdQuery;
     }
 
-    @Required
     public void setLoadReferenceGenomeByNameQuery(String loadReferenceGenomeByNameQuery) {
+        Assert.hasText(loadReferenceGenomeByNameQuery, "loadReferenceGenomeByNameQuery cannot be null or empty");
         this.loadReferenceGenomeByNameQuery = loadReferenceGenomeByNameQuery;
     }
 
-    @Required
     public void setUpdateSpeciesQuery(String updateSpeciesQuery) {
+        Assert.hasText(updateSpeciesQuery, "updateSpeciesQuery cannot be null or empty");
         this.updateSpeciesQuery = updateSpeciesQuery;
     }
 
-    @Required
     public void setLoadReferenceGenomesByTaxIdQuery(String loadReferenceGenomesByTaxIdQuery) {
+        Assert.hasText(loadReferenceGenomesByTaxIdQuery, "loadReferenceGenomesByTaxIdQuery cannot be null or empty");
         this.loadReferenceGenomesByTaxIdQuery = loadReferenceGenomesByTaxIdQuery;
     }
 
-    @Required
     public void setUpdateProteinSequenceFileQuery(String updateProteinSequenceFileQuery) {
+        Assert.hasText(updateProteinSequenceFileQuery, "updateProteinSequenceFileQuery cannot be null or empty");
         this.updateProteinSequenceFileQuery = updateProteinSequenceFileQuery;
     }
 

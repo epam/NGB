@@ -38,7 +38,7 @@ export default  {
             const prefix = urlPrefix && urlPrefix.endsWith('/')
                 ? urlPrefix.slice(0, -1)
                 : (urlPrefix || '');
-            const logoutUrl = `${prefix}/saml/logout`;
+            const logoutUrl = `${prefix}/logout`;
             this.logout = () => {
                 $window.location.href = logoutUrl;
             };

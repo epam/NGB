@@ -24,18 +24,17 @@
 
 package com.epam.catgenome.dao.wig;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.wig.WigFile;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.List;
 
 /**
  * <p>
@@ -104,20 +103,18 @@ public class WigFileDao extends NamedParameterJdbcDaoSupport {
     enum BedGraphParameters {
         BED_GRAPH_ID
     }
-
-    @Required
     public void setWigFileSequenceName(String wigFileSequenceName) {
+        Assert.hasText(wigFileSequenceName, "wigFileSequenceName cannot be null or empty");
         this.wigFileSequenceName = wigFileSequenceName;
     }
 
-    @Required
     public void setCreateWigFileQuery(String createWigFileQuery) {
+        Assert.hasText(createWigFileQuery, "createWigFileQuery cannot be null or empty");
         this.createWigFileQuery = createWigFileQuery;
     }
 
-    @Required
     public void setLoadWigFileQuery(String loadWigFileQuery) {
+        Assert.hasText(loadWigFileQuery, "loadWigFileQuery cannot be null or empty");
         this.loadWigFileQuery = loadWigFileQuery;
     }
-
 }

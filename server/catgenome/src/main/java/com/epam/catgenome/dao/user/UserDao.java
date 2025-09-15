@@ -24,37 +24,31 @@
 
 package com.epam.catgenome.dao.user;
 
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.epam.catgenome.controller.JsonMapper;
+import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.security.NgbSecurityGroup;
+import com.epam.catgenome.entity.security.NgbUser;
+import com.epam.catgenome.entity.user.DefaultRoles;
+import com.epam.catgenome.entity.user.Role;
+import com.epam.catgenome.exception.NgbException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
-import com.epam.catgenome.controller.JsonMapper;
-import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.security.NgbUser;
-import com.epam.catgenome.exception.NgbException;
-import com.epam.catgenome.entity.user.DefaultRoles;
-import com.epam.catgenome.entity.user.Role;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class UserDao extends NamedParameterJdbcDaoSupport {
     private String findUsersByPrefixQuery;
@@ -452,123 +446,123 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    @Required
     public void setFindUsersByPrefixQuery(String findUsersByPrefixQuery) {
+        Assert.hasText(findUsersByPrefixQuery, "findUsersByPrefixQuery cannot be null or empty");
         this.findUsersByPrefixQuery = findUsersByPrefixQuery;
     }
 
-    @Required
     public void setLoadGroupsByUserIdsQuery(String loadGroupsByUserIdsQuery) {
+        Assert.hasText(loadGroupsByUserIdsQuery, "loadGroupsByUserIdsQuery cannot be null or empty");
         this.loadGroupsByUserIdsQuery = loadGroupsByUserIdsQuery;
     }
 
-    @Required
     public void setUserSequence(String userSequence) {
+        Assert.hasText(userSequence, "userSequence cannot be null or empty");
         this.userSequence = userSequence;
     }
 
-    @Required
     public void setGroupSequence(String groupSequence) {
+        Assert.hasText(groupSequence, "groupSequence cannot be null or empty");
         this.groupSequence = groupSequence;
     }
 
-    @Required
     public void setCreateUserQuery(String createUserQuery) {
+        Assert.hasText(createUserQuery, "createUserQuery cannot be null or empty");
         this.createUserQuery = createUserQuery;
     }
 
-    @Required
     public void setAddRoleToUserQuery(String addRoleToUserQuery) {
+        Assert.hasText(addRoleToUserQuery, "addRoleToUserQuery cannot be null or empty");
         this.addRoleToUserQuery = addRoleToUserQuery;
     }
 
-    @Required
     public void setInsertGroupQuery(String insertGroupQuery) {
+        Assert.hasText(insertGroupQuery, "insertGroupQuery cannot be null or empty");
         this.insertGroupQuery = insertGroupQuery;
     }
 
-    @Required
     public void setLoadExistingGroupsFromListQuery(String loadExistingGroupsFromListQuery) {
+        Assert.hasText(loadExistingGroupsFromListQuery, "loadExistingGroupsFromListQuery cannot be null or empty");
         this.loadExistingGroupsFromListQuery = loadExistingGroupsFromListQuery;
     }
 
-    @Required
     public void setInsertUserGroupQuery(String insertUserGroupQuery) {
+        Assert.hasText(insertUserGroupQuery, "insertUserGroupQuery cannot be null or empty");
         this.insertUserGroupQuery = insertUserGroupQuery;
     }
 
-    @Required
     public void setLoadUserByNameQuery(String loadUserByNameQuery) {
+        Assert.hasText(loadUserByNameQuery, "loadUserByNameQuery cannot be null or empty");
         this.loadUserByNameQuery = loadUserByNameQuery;
     }
 
-    @Required
     public void setLoadAllUsersQuery(String loadAllUsersQuery) {
+        Assert.hasText(loadAllUsersQuery, "loadAllUsersQuery cannot be null or empty");
         this.loadAllUsersQuery = loadAllUsersQuery;
     }
 
-    @Required
     public void setLoadUserByIdQuery(String loadUserByIdQuery) {
+        Assert.hasText(loadUserByIdQuery, "loadUserByIdQuery cannot be null or empty");
         this.loadUserByIdQuery = loadUserByIdQuery;
     }
 
-    @Required
     public void setUpdateUserQuery(String updateUserQuery) {
+        Assert.hasText(updateUserQuery, "updateUserQuery cannot be null or empty");
         this.updateUserQuery = updateUserQuery;
     }
 
-    @Required
     public void setDeleteUserRolesQuery(String deleteUserRolesQuery) {
+        Assert.hasText(deleteUserRolesQuery, "deleteUserRolesQuery cannot be null or empty");
         this.deleteUserRolesQuery = deleteUserRolesQuery;
     }
 
-    @Required
     public void setDeleteUserQuery(String deleteUserQuery) {
+        Assert.hasText(deleteUserQuery, "deleteUserQuery cannot be null or empty");
         this.deleteUserQuery = deleteUserQuery;
     }
 
-    @Required
     public void setLoadAllGroupsQuery(String loadAllGroupsQuery) {
+        Assert.hasText(loadAllGroupsQuery, "loadAllGroupsQuery cannot be null or empty");
         this.loadAllGroupsQuery = loadAllGroupsQuery;
     }
 
-    @Required
     public void setFindGroupsQuery(String findGroupsQuery) {
+        Assert.hasText(findGroupsQuery, "findGroupsQuery cannot be null or empty");
         this.findGroupsQuery = findGroupsQuery;
     }
 
-    @Required
     public void setLoadUsersByGroupQuery(String loadUsersByGroupQuery) {
+        Assert.hasText(loadUsersByGroupQuery, "loadUsersByGroupQuery cannot be null or empty");
         this.loadUsersByGroupQuery = loadUsersByGroupQuery;
     }
 
-    @Required
     public void setLoadUsersByNamesQuery(String loadUsersByNamesQuery) {
+        Assert.hasText(loadUsersByNamesQuery, "loadUsersByNamesQuery cannot be null or empty");
         this.loadUsersByNamesQuery = loadUsersByNamesQuery;
     }
 
-    @Required
     public void setLoadUserByNameAndGroupQuery(String loadUserByNameAndGroupQuery) {
+        Assert.hasText(loadUserByNameAndGroupQuery, "loadUserByNameAndGroupQuery cannot be null or empty");
         this.loadUserByNameAndGroupQuery = loadUserByNameAndGroupQuery;
     }
 
-    @Required
     public void setDeleteUserGroupsQuery(String deleteUserGroupsQuery) {
+        Assert.hasText(deleteUserGroupsQuery, "deleteUserGroupsQuery cannot be null or empty");
         this.deleteUserGroupsQuery = deleteUserGroupsQuery;
     }
 
-    @Required
     public void setDeleteUserGroupByUserIdAndGroupIdQuery(String deleteUserGroupByUserIdAndGroupIdQuery) {
+        Assert.hasText(deleteUserGroupByUserIdAndGroupIdQuery, "deleteUserGroupByUserIdAndGroupIdQuery cannot be null or empty");
         this.deleteUserGroupByUserIdAndGroupIdQuery = deleteUserGroupByUserIdAndGroupIdQuery;
     }
 
-    @Required
     public void setLoadUserListQuery(String loadUserListQuery) {
+        Assert.hasText(loadUserListQuery, "loadUserListQuery cannot be null or empty");
         this.loadUserListQuery = loadUserListQuery;
     }
 
-    @Required
     public void setDeleteRoleFromUserQuery(String deleteRoleFromUserQuery) {
+        Assert.hasText(deleteRoleFromUserQuery, "deleteRoleFromUserQuery cannot be null or empty");
         this.deleteRoleFromUserQuery = deleteRoleFromUserQuery;
     }
 }

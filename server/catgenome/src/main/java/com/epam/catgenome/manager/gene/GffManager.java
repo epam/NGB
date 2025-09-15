@@ -36,11 +36,7 @@ import com.epam.catgenome.entity.activity.Activity;
 import com.epam.catgenome.entity.externaldb.ChainMinMax;
 import com.epam.catgenome.entity.externaldb.DimEntity;
 import com.epam.catgenome.entity.externaldb.DimStructure;
-import com.epam.catgenome.entity.gene.Gene;
-import com.epam.catgenome.entity.gene.GeneFile;
-import com.epam.catgenome.entity.gene.GeneFileType;
-import com.epam.catgenome.entity.gene.GeneHighLevel;
-import com.epam.catgenome.entity.gene.GeneLowLevel;
+import com.epam.catgenome.entity.gene.*;
 import com.epam.catgenome.entity.protein.ProteinSequence;
 import com.epam.catgenome.entity.protein.ProteinSequenceEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
@@ -48,27 +44,18 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.GeneReadingException;
-import com.epam.catgenome.exception.HistogramReadingException;
-import com.epam.catgenome.exception.HistogramWritingException;
-import com.epam.catgenome.exception.RegistrationException;
-import com.epam.catgenome.manager.BiologicalDataItemManager;
-import com.epam.catgenome.manager.DownloadFileManager;
-import com.epam.catgenome.manager.FeatureIndexManager;
-import com.epam.catgenome.manager.FileManager;
-import com.epam.catgenome.manager.TrackHelper;
-import com.epam.catgenome.manager.UrlValidatorService;
+import com.epam.catgenome.exception.*;
+import com.epam.catgenome.manager.*;
 import com.epam.catgenome.manager.activity.ActivityService;
-import com.epam.catgenome.manager.externaldb.pdb.PdbDataManager;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.Alignment;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.PdbBlock;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.Segment;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.Record;
+import com.epam.catgenome.manager.externaldb.pdb.PdbDataManager;
 import com.epam.catgenome.manager.genbank.GenbankManager;
+import com.epam.catgenome.manager.gene.featurecounts.FeatureCountsToGffConvertor;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
-import com.epam.catgenome.manager.gene.featurecounts.FeatureCountsToGffConvertor;
 import com.epam.catgenome.manager.genepred.GenePredManager;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
@@ -79,7 +66,7 @@ import com.epam.catgenome.util.NggbIntervalTreeMap;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalTree;
@@ -101,14 +88,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -162,7 +142,7 @@ public class GffManager {
     private TaskExecutorService taskExecutorService;
 
     @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
+    private CaffeineBasedIndexCache indexCache;
 
     @Autowired
     private GenbankManager genbankManager;
@@ -920,7 +900,7 @@ public class GffManager {
      * @throws ExternalDbUnavailableException
      */
     public DimStructure getPBDItemsFromBD(final String pdbID) throws ExternalDbUnavailableException {
-        Assert.notNull(pdbID);
+        Assert.notNull(pdbID, "");
         final List<Record> recordList = pBDataManager.fetchRCSBEntry(pdbID).getRecord();
         final List<Alignment> alignmentList = pBDataManager.fetchPdbMapEntry(pdbID).getAlignment();
         return parseTo(recordList, alignmentList);

@@ -30,12 +30,12 @@ import com.epam.catgenome.entity.metadata.MetadataVO;
 import com.epam.catgenome.entity.security.AclClass;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.util.Collections;
 import java.util.List;
@@ -122,29 +122,28 @@ public class MetadataDao extends NamedParameterJdbcDaoSupport {
             return JsonMapper.parseData(data, new TypeReference<Map<String, String>>() {});
         }
     }
-
-    @Required
     public void setInsertMetadataQuery(final String insertMetadataQuery) {
+        Assert.hasText(insertMetadataQuery, "insertMetadataQuery cannot be null or empty");
         this.insertMetadataQuery = insertMetadataQuery;
     }
 
-    @Required
     public void setLoadMetadataQuery(final String loadMetadataQuery) {
+        Assert.hasText(loadMetadataQuery, "loadMetadataQuery cannot be null or empty");
         this.loadMetadataQuery = loadMetadataQuery;
     }
 
-    @Required
     public void setUpdateMetadataQuery(final String updateMetadataQuery) {
+        Assert.hasText(updateMetadataQuery, "updateMetadataQuery cannot be null or empty");
         this.updateMetadataQuery = updateMetadataQuery;
     }
 
-    @Required
     public void setDeleteMetadataQuery(final String deleteMetadataQuery) {
+        Assert.hasText(deleteMetadataQuery, "deleteMetadataQuery cannot be null or empty");
         this.deleteMetadataQuery = deleteMetadataQuery;
     }
 
-    @Required
     public void setLoadMetadataItemsQuery(final String loadMetadataItemsQuery) {
+        Assert.hasText(loadMetadataItemsQuery, "loadMetadataItemsQuery cannot be null or empty");
         this.loadMetadataItemsQuery = loadMetadataItemsQuery;
     }
 

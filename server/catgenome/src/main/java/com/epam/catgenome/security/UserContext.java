@@ -1,55 +1,32 @@
-/*
- * MIT License
- *
- * Copyright (c) 2017 EPAM Systems
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
 package com.epam.catgenome.security;
+
+import com.epam.catgenome.entity.security.JwtRawToken;
+import com.epam.catgenome.entity.security.JwtTokenClaims;
+import com.epam.catgenome.entity.security.NgbUser;
+import com.epam.catgenome.entity.user.Role;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.epam.catgenome.entity.user.Role;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import com.epam.catgenome.entity.security.JwtRawToken;
-import com.epam.catgenome.entity.security.JwtTokenClaims;
-import com.epam.catgenome.entity.security.NgbUser;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 /**
  * Class represents information about user
+ * Now implements Saml2AuthenticatedPrincipal for SAML 2.0 integration
  */
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserContext implements UserDetails {
+public class UserContext implements UserDetails, Saml2AuthenticatedPrincipal {
     private List<String> groups = new ArrayList<>();
     private List<Role> roles = new ArrayList<>();
     private Map<String, String> attributes;
@@ -57,6 +34,11 @@ public class UserContext implements UserDetails {
     private Long userId;
     private String userName;
     private String orgUnitId;
+
+    // SAML 2.0 specific fields
+    private Map<String, List<Object>> saml2Attributes;
+    private String registrationId;
+    private String idpEntityId;
 
     public UserContext(JwtRawToken jwtRawToken, JwtTokenClaims claims) {
         this.jwtRawToken = jwtRawToken;
@@ -78,14 +60,22 @@ public class UserContext implements UserDetails {
         this.groups = user.getGroups();
     }
 
+    // Constructor for SAML 2.0 authentication
+    public UserContext(Saml2AuthenticatedPrincipal principal, String registrationId, String idpEntityId) {
+        this.userName = principal.getName();
+        this.saml2Attributes = principal.getAttributes();
+        this.registrationId = registrationId;
+        this.idpEntityId = idpEntityId;
+    }
+
     public JwtTokenClaims toClaims() {
         return JwtTokenClaims.builder()
-            .userId(userId)
-            .userName(userName)
-            .orgUnitId(orgUnitId)
-            .roles(ListUtils.emptyIfNull(roles).stream().map(Role::getName).collect(Collectors.toList()))
-            .groups(groups)
-            .build();
+                .userId(userId)
+                .userName(userName)
+                .orgUnitId(orgUnitId)
+                .roles(ListUtils.emptyIfNull(roles).stream().map(Role::getName).collect(Collectors.toList()))
+                .groups(groups)
+                .build();
     }
 
     @Override
@@ -94,8 +84,8 @@ public class UserContext implements UserDetails {
 
         if (!CollectionUtils.isEmpty(roles)) {
             result = roles.stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
-                .collect(Collectors.toList());
+                    .map(role -> new SimpleGrantedAuthority(role.getName()))
+                    .collect(Collectors.toList());
         }
 
         if (!CollectionUtils.isEmpty(groups)) {
@@ -133,5 +123,44 @@ public class UserContext implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    // Saml2AuthenticatedPrincipal implementation
+    @Override
+    public String getName() {
+        return userName;
+    }
+
+    @Override
+    public Map<String, List<Object>> getAttributes() {
+        return saml2Attributes;
+    }
+
+    // Override the getAttribute method to match Saml2AuthenticatedPrincipal interface
+    @Override
+    public List<Object> getAttribute(String name) {
+        return saml2Attributes != null ? saml2Attributes.get(name) : null;
+    }
+
+    // Helper method to get a single attribute value as String
+    public String getFirstAttribute(String name) {
+        if (saml2Attributes != null && saml2Attributes.containsKey(name)) {
+            List<Object> values = saml2Attributes.get(name);
+            return values != null && !values.isEmpty() ? values.get(0).toString() : null;
+        }
+        return null;
+    }
+
+    // Helper method to get all values of an attribute
+    public List<Object> getAttributeValues(String name) {
+        return saml2Attributes != null ? saml2Attributes.get(name) : null;
+    }
+
+    public String getRegistrationId() {
+        return registrationId;
+    }
+
+    public String getIdpEntityId() {
+        return idpEntityId;
     }
 }

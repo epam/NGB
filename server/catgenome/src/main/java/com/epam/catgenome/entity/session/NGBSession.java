@@ -27,8 +27,10 @@ package com.epam.catgenome.entity.session;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import lombok.Data;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
+@Jacksonized
 public class NGBSession extends AbstractSecuredEntity {
     private String description;
     private Long referenceId;

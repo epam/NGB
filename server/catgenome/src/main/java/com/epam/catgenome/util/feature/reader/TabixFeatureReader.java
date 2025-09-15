@@ -32,8 +32,8 @@ import htsjdk.tribble.CloseableTribbleIterator;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.readers.LineReader;
-import htsjdk.tribble.readers.LineReaderUtil;
 import htsjdk.tribble.readers.PositionalBufferedStream;
+import htsjdk.tribble.readers.SynchronousLineReader;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,7 +75,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
      * @throws IOException
      */
     public TabixFeatureReader(final String featureFile, final String indexFile,
-                              final AsciiFeatureCodec codec, EhCacheBasedIndexCache indexCache) throws IOException {
+                              final AsciiFeatureCodec codec, CaffeineBasedIndexCache indexCache) throws IOException {
         super(featureFile, codec);
 
         this.indexCache = indexCache;
@@ -166,8 +166,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
     public CloseableTribbleIterator<T> iterator() throws IOException {
         final InputStream is = new BlockCompressedInputStream(IOHelper.openStream(path));
         final PositionalBufferedStream stream = new PositionalBufferedStream(is);
-        final LineReader reader = LineReaderUtil.fromBufferedStream(stream,
-                LineReaderUtil.LineReaderOption.SYNCHRONOUS);
+        final LineReader reader = new SynchronousLineReader(stream);
         return new FeatureIterator<T>(reader, 0, Integer.MAX_VALUE);
     }
 

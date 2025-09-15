@@ -26,11 +26,13 @@ package com.epam.catgenome.entity.reference.motif;
 
 import lombok.Builder;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
 
 @Value
 @Builder
+@Jacksonized
 public class MotifSearchResult {
     Long chromosomeId;
     List<Motif> result;

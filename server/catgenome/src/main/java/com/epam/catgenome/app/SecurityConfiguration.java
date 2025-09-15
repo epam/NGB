@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({JWTSecurityConfiguration.class, SAMLSecurityConfiguration.class, NoSecurityConfiguration.class,
+@Import({JWTSecurityConfiguration.class, Saml2SecurityConfiguration.class, NoSecurityConfiguration.class,
          AclSecurityConfiguration.class})
 public class SecurityConfiguration {
 }

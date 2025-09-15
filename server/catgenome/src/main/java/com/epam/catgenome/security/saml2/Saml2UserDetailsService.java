@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2018 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,50 +22,39 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.security.saml;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.epam.catgenome.entity.user.DefaultRoles;
-import com.epam.catgenome.security.acl.GrantPermissionManager;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.saml.SAMLCredential;
-import org.springframework.security.saml.userdetails.SAMLUserDetailsService;
-import org.springframework.stereotype.Service;
+package com.epam.catgenome.security.saml2;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.security.NgbUser;
+import com.epam.catgenome.entity.user.DefaultRoles;
+import com.epam.catgenome.entity.user.Role;
 import com.epam.catgenome.manager.user.RoleManager;
 import com.epam.catgenome.manager.user.UserManager;
-import com.epam.catgenome.entity.user.Role;
 import com.epam.catgenome.security.UserContext;
+import com.epam.catgenome.security.acl.GrantPermissionManager;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
+import org.springframework.stereotype.Service;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
+import java.util.*;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
-public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
+public class Saml2UserDetailsService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SAMLUserDetailsServiceImpl.class);
     private static final String ATTRIBUTES_DELIMITER = "=";
     public static final String LDAP_CN_FIELD = "CN";
 
@@ -73,17 +62,17 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
     private List<String> authorities;
 
     @Value(
-        "#{catgenome['saml.user.attributes'] != null ? catgenome['saml.user.attributes'].split(',') : new String[0]}")
+            "#{catgenome['saml.user.attributes'] != null ? catgenome['saml.user.attributes'].split(',') : new String[0]}")
     private Set<String> samlAttributes;
 
     @Value("${saml.user.auto.create: EXPLICIT}")
-    private SamlUserRegisterStrategy autoCreateUsers;
+    private Saml2UserRegisterStrategy autoCreateUsers;
 
     @Value("${security.default.admin:}")
     private String defaultAdmin;
 
     @Value("#{catgenome['saml.user.role.mapping'] != null ? catgenome['saml.user.role.mapping'].split(',') " +
-                    ": new String[0]}")
+            ": new String[0]}")
     private Set<String> samlRoleMappings;
 
     @Autowired
@@ -95,17 +84,18 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
     @Autowired
     private GrantPermissionManager permissionManager;
 
-    @Override
-    public Object loadUserBySAML(SAMLCredential credential) throws UsernameNotFoundException {
-        String userName = credential.getNameID().getValue().toUpperCase();
-        List<String> groups = readAuthorities(credential);
+    public UserContext loadUserBySaml2(Saml2AuthenticatedPrincipal principal) throws UsernameNotFoundException {
+        String userName = principal.getName().toUpperCase();
+        List<String> groups = readAuthorities(principal);
         Map<String, Long> requiredGroupByRole = readSamlRolesMapping();
         Set<Long> requiredRoles = getRequiredRoleIds(groups, requiredGroupByRole);
-        Map<String, String> attributes = readAttributes(credential);
+        Map<String, String> attributes = readAttributes(principal);
         NgbUser loadedUser = userManager.loadUserByName(userName);
 
+        log.debug("SAML user name: {}, groups: {}, attributes: {}", userName, groups, attributes);
+
         if (loadedUser == null) {
-            LOGGER.debug(MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, userName));
+            log.debug(MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, userName));
 
             List<Long> roles = roleManager.getDefaultRolesIds();
             if (!userName.equalsIgnoreCase(defaultAdmin)) {
@@ -117,7 +107,7 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
             addRequiredRoles(requiredRoles, roles);
 
             NgbUser createdUser = userManager.createUser(userName, roles, groups, attributes);
-            LOGGER.debug("Created user {} with groups {}", userName, groups);
+            log.debug("Created user {} with groups {}", userName, groups);
 
             UserContext userContext = new UserContext(userName);
             userContext.setUserId(createdUser.getId());
@@ -125,7 +115,7 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
             userContext.setRoles(createdUser.getRoles());
             return userContext;
         } else {
-            LOGGER.debug("Found user by name {}", userName);
+            log.debug("Found user by name {}", userName);
             loadedUser.setUserName(userName);
 
             List<Long> roles = buildUserRoles(groups, requiredGroupByRole, requiredRoles, loadedUser);
@@ -138,7 +128,7 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
                     roles.add(DefaultRoles.ROLE_ADMIN.getId());
                 }
                 loadedUser = userManager.updateUserSAMLInfo(loadedUser.getId(), userName, roles, groups, attributes);
-                LOGGER.debug("Updated user groups {} ", groups);
+                log.debug("Updated user groups {} ", groups);
             }
 
             return new UserContext(loadedUser);
@@ -161,7 +151,7 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
         }
     }
 
-    private List<String> readAuthorities(SAMLCredential credential) {
+    private List<String> readAuthorities(Saml2AuthenticatedPrincipal principal) {
         if (CollectionUtils.isEmpty(authorities)) {
             return Collections.emptyList();
         }
@@ -170,14 +160,15 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
             if (StringUtils.isEmpty(auth)) {
                 return;
             }
-            String[] attributeValues = credential.getAttributeAsStringArray(auth);
-            if (attributeValues != null && attributeValues.length > 0) {
-                attributeValues = getParsedLdapGroupName(attributeValues.clone());
+            List<String> attributeValues = principal.getAttribute(auth);
+            if (attributeValues != null && !attributeValues.isEmpty()) {
+                String[] valuesArray = attributeValues.toArray(new String[0]);
+                valuesArray = getParsedLdapGroupName(valuesArray.clone());
                 grantedAuthorities.addAll(
-                    Arrays.stream(attributeValues)
-                            .filter(StringUtils::isNotBlank)
-                            .map(String::toUpperCase)
-                            .collect(Collectors.toList()));
+                        Arrays.stream(valuesArray)
+                                .filter(StringUtils::isNotBlank)
+                                .map(String::toUpperCase)
+                                .collect(Collectors.toList()));
             }
         });
         return grantedAuthorities;
@@ -197,13 +188,13 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
                     }
                 }
             } catch (InvalidNameException e) {
-                LOGGER.info("SAML attribute is not LDAP name, will leave as original value.");
+                log.info("SAML attribute is not LDAP name, will leave as original value.");
             }
         }
         return attributeValues;
     }
 
-    private Map<String, String> readAttributes(SAMLCredential credential) {
+    private Map<String, String> readAttributes(Saml2AuthenticatedPrincipal principal) {
         if (CollectionUtils.isEmpty(samlAttributes)) {
             return Collections.emptyMap();
         }
@@ -214,10 +205,10 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
                 String key = splittedRecord[0];
                 String value = splittedRecord[1];
                 if (StringUtils.isEmpty(key) || StringUtils.isEmpty(value)) {
-                    LOGGER.error("Can not parse saml user attributes property.");
+                    log.error("Can not parse saml user attributes property.");
                     continue;
                 }
-                String attributeValues = credential.getAttributeAsString(value);
+                String attributeValues = principal.getFirstAttribute(value);
                 if (StringUtils.isNotEmpty(attributeValues)) {
                     parsedAttributes.put(key, attributeValues);
                 }
@@ -237,7 +228,7 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
             final String key = StringUtils.upperCase(splittedRecord[0]);
             final String value = StringUtils.upperCase(splittedRecord[1]);
             if (StringUtils.isEmpty(key) || StringUtils.isEmpty(value)) {
-                LOGGER.error("Can not parse saml roles mappings property.");
+                log.error("Can not parse saml roles mappings property.");
                 continue;
             }
 
@@ -246,7 +237,7 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
                 roles.putIfAbsent(key, role.get().getId());
                 continue;
             }
-            LOGGER.warn("Requested role '{}' doesn't exist.", value);
+            log.warn("Requested role '{}' doesn't exist.", value);
         }
         return roles;
     }

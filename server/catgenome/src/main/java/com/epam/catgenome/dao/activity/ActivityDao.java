@@ -29,12 +29,12 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.activity.Activity;
 import com.epam.catgenome.entity.activity.ActivityType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -117,23 +117,23 @@ public class ActivityDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    @Required
     public void setActivitySequenceName(String activitySequenceName) {
+        Assert.hasText(activitySequenceName, "activitySequenceName cannot be null or empty");
         this.activitySequenceName = activitySequenceName;
     }
 
-    @Required
     public void setInsertActivityQuery(String insertActivityQuery) {
+        Assert.hasText(insertActivityQuery, "insertActivityQuery cannot be null or empty");
         this.insertActivityQuery = insertActivityQuery;
     }
 
-    @Required
     public void setLoadActivityByItemIdAndUidQuery(String loadActivityByItemIdAndUidQuery) {
+        Assert.hasText(loadActivityByItemIdAndUidQuery, "loadActivityByItemIdAndUidQuery cannot be null or empty");
         this.loadActivityByItemIdAndUidQuery = loadActivityByItemIdAndUidQuery;
     }
 
-    @Required
     public void setDeleteActivityByItemIdQuery(String deleteActivityByItemIdQuery) {
+        Assert.hasText(deleteActivityByItemIdQuery, "deleteActivityByItemIdQuery cannot be null or empty");
         this.deleteActivityByItemIdQuery = deleteActivityByItemIdQuery;
     }
 }

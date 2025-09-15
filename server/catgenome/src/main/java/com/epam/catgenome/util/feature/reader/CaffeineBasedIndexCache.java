@@ -24,75 +24,81 @@
 
 package com.epam.catgenome.util.feature.reader;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
 import com.epam.catgenome.constant.MessagesConstants;
-import net.sf.ehcache.CacheException;
-import net.sf.ehcache.Ehcache;
-import net.sf.ehcache.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+
 @Service
 @ConditionalOnProperty(value = "server.index.cache.enabled", havingValue = "true")
-public class EhCacheBasedIndexCache {
+public class CaffeineBasedIndexCache {
     private static final String INDEX_CACHE = "indexCache";
 
     @Autowired
-    private EhCacheCacheManager cacheManager;
+    private CacheManager cacheManager;
 
-    public void evictFromCache(String indexUrl) {
-        Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
-
-        IndexCache index = getFromCache(indexUrl);
-        if (index != null) {
-            cacheManager.getCacheManager().getCache(INDEX_CACHE).remove(indexUrl);
-        }
-    }
-
+    /**
+     * Retrieves an index from the cache by URL.
+     */
     public IndexCache getFromCache(String indexUrl) {
         Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
-
-        Element element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl);
-        if (element != null) {
-            return (IndexCache) element.getObjectValue();
-        } else {
-            return null;
-        }
+        Cache cache = getCache();
+        org.springframework.cache.Cache.ValueWrapper wrapper = cache.get(indexUrl);
+        return wrapper != null ? (IndexCache) wrapper.get() : null;
     }
 
+    /**
+     * Puts an index into the cache.
+     */
     public void putInCache(IndexCache index, String indexUrl) {
-        Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_NOT_SPECIFIED));
+        Assert.notNull(index, getMessage(MessagesConstants.ERROR_INDEX_NOT_SPECIFIED));
         Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
-
-        cacheManager.getCacheManager().getCache(INDEX_CACHE).put(new Element(indexUrl, index));
+        getCache().put(indexUrl, index);
     }
 
+    /**
+     * Removes an index from the cache.
+     */
+    public void evictFromCache(String indexUrl) {
+        Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
+        getCache().evict(indexUrl);
+    }
+
+    /**
+     * Checks if the index URL is cached.
+     */
     public boolean contains(String indexUrl) {
         Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
-
-        Element element;
-        try {
-            element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl);
-        } catch (CacheException ex) {
-            return false;
-        }
-        return element != null;
+        return getCache().get(indexUrl) != null;
     }
 
+    /**
+     * Clears all entries in the index cache.
+     */
     public void clearCache() {
-        cacheManager.getCacheManager().getCache(INDEX_CACHE).removeAll();
+        getCache().clear();
     }
 
+    /**
+     * Returns a string representation of the cache.
+     */
     @Override
     public String toString() {
-        Ehcache cache = cacheManager.getCacheManager().getCache(INDEX_CACHE);
+        Cache cache = getCache();
+        return "Cache Name: " + cache.getName() + ", CacheManager: " + cacheManager;
+    }
 
-        return "Cache Name: " + cache.getName() + ", cacheManager: " + cache.getCacheManager() +
-                " cacheSize: " + cache.getSize() + " maxBytesLocalHeap: " +
-                cache.getCacheConfiguration().getMaxBytesLocalHeap() + " timeToIdle: " +
-                cache.getCacheConfiguration().getTimeToIdleSeconds();
+    // Helper to get the cache (fail-fast if not found)
+    private Cache getCache() {
+        Cache cache = cacheManager.getCache(INDEX_CACHE);
+        if (cache == null) {
+            throw new IllegalStateException("Cache '" + INDEX_CACHE + "' not found in CacheManager");
+        }
+        return cache;
     }
 }

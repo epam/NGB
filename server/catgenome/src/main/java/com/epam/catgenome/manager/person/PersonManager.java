@@ -24,20 +24,19 @@
 
 package com.epam.catgenome.manager.person;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
 import com.epam.catgenome.dao.person.PersonDao;
 import com.epam.catgenome.entity.person.Person;
 import com.epam.catgenome.entity.person.PersonRole;
 import com.epam.catgenome.security.BrowserUser;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 /**
  * Provides service for handling {@code Person}: supports creating, updating and loading users data
@@ -68,14 +67,14 @@ public class PersonManager { // TODO: remove
 
     private void checkUpdatePermission(Person person) {
         if (SecurityContextHolder.getContext() == null) {
-            throw new UnauthorizedClientException("Unauthorized");
+            throw new OAuth2AuthenticationException("Unauthorized");
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         BrowserUser user = (BrowserUser) auth.getPrincipal();
 
         if ((!person.getId().equals(user.getPerson().getId()) || person.getRole().equals(PersonRole.ROLE_ADMIN))
                 && !user.getAuthorities().contains(new SimpleGrantedAuthority(PersonRole.ROLE_ADMIN.name()))) {
-            throw new UnauthorizedClientException("Only admin can do this");
+            throw new OAuth2AuthenticationException("Only admin can do this");
         }
     }
 

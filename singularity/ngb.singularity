@@ -19,7 +19,7 @@ From: ubuntu:16.04
 
 %post
     apt-get -y -q update
-    apt-get -y -q install wget openjdk-8-jre
+    apt-get -y -q install wget openjdk-17-jre
     cd /opt
     tar -zxvf ngb-cli.tar.gz
     rm ngb-cli.tar.gz

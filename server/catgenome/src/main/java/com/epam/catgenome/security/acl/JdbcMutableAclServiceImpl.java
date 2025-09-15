@@ -24,15 +24,10 @@
 
 package com.epam.catgenome.security.acl;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.sql.DataSource;
-
+import com.epam.catgenome.component.MessageHelper;
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.DaoHelper;
-import org.springframework.beans.factory.annotation.Required;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
@@ -43,9 +38,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.epam.catgenome.component.MessageHelper;
-import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import javax.sql.DataSource;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
@@ -111,8 +109,8 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void deleteSidById(Long sidId) {
-        jdbcTemplate.update(deleteEntriesBySidQuery, sidId);
-        jdbcTemplate.update(deleteSidByIdQuery, sidId);
+        jdbcOperations.update(deleteEntriesBySidQuery, sidId);
+        jdbcOperations.update(deleteSidByIdQuery, sidId);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -171,21 +169,21 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     public Integer loadEntriesBySidsCount(final Collection<Long> sidIds) {
         String query = DaoHelper.replaceInClause(loadEntriesBySidsCountQuery, sidIds.size());
-        return jdbcTemplate.queryForObject(query, sidIds.toArray(), Integer.class);
+        return jdbcOperations.queryForObject(query, Integer.class, sidIds.toArray());
     }
 
-    @Required
     public void setDeleteSidByIdQuery(String deleteSidByIdQuery) {
+        Assert.hasText(deleteSidByIdQuery, "deleteSidByIdQuery cannot be null or empty");
         this.deleteSidByIdQuery = deleteSidByIdQuery;
     }
 
-    @Required
     public void setDeleteEntriesBySidQuery(String deleteEntriesBySidQuery) {
+        Assert.hasText(deleteEntriesBySidQuery, "deleteEntriesBySidQuery cannot be null or empty");
         this.deleteEntriesBySidQuery = deleteEntriesBySidQuery;
     }
 
-    @Required
     public void setLoadEntriesBySidsCountQuery(String loadEntriesBySidsCountQuery) {
+        Assert.hasText(loadEntriesBySidsCountQuery, "loadEntriesBySidsCountQuery cannot be null or empty");
         this.loadEntriesBySidsCountQuery = loadEntriesBySidsCountQuery;
     }
 }

@@ -15,8 +15,9 @@ Verify that your system meets or exceeds the following hardware/software require
   * Ubuntu >= 14.04
   * CentOS >= 6
   * RedHat >= 6
-  * **[Oracle JDK 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html)** or **[Open JDK 8](http://openjdk.java.net/install/)**
-  * **[Tomcat 8](https://tomcat.apache.org/tomcat-8.0-doc/setup.html)**
+  * **[Oracle JDK 21](https://docs.oracle.com/javase/21/docs/technotes/guides/install/install_overview.html)** or *
+    *[Open JDK 21](http://openjdk.java.net/install/)**
+  * **[Tomcat 9](https://tomcat.apache.org/tomcat-9.0-doc/setup.html)**
 * Client web-browser requirements
   * Chrome (>= 56)
   * Firefox (>= 51)

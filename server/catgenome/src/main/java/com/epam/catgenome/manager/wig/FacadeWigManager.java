@@ -38,14 +38,10 @@ import com.epam.catgenome.entity.track.TrackType;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.entity.wig.WigFile;
 import com.epam.catgenome.exception.RegistrationException;
-import com.epam.catgenome.manager.BiologicalDataItemManager;
-import com.epam.catgenome.manager.DownloadFileManager;
-import com.epam.catgenome.manager.FileManager;
-import com.epam.catgenome.manager.TrackHelper;
-import com.epam.catgenome.manager.UrlValidatorService;
+import com.epam.catgenome.manager.*;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.NgbFileUtils;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -59,12 +55,7 @@ import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
@@ -103,7 +94,7 @@ public class FacadeWigManager {
     private UrlValidatorService urlValidatorService;
 
     @Autowired(required = false)
-    protected EhCacheBasedIndexCache indexCache;
+    protected CaffeineBasedIndexCache indexCache;
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(FacadeWigManager.class);
 

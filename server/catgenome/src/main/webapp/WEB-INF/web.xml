@@ -13,12 +13,6 @@
         <param-value>CATGenome</param-value>
     </context-param>
 
-    <!-- Log4j config property-->
-    <context-param>
-        <param-name>log4jConfigLocation</param-name>
-        <param-value>classpath:log4j.xml</param-value>
-    </context-param>
-
     <!-- CATGenome Welcome files list  -->
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

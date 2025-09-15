@@ -24,19 +24,18 @@
 
 package com.epam.catgenome.dao.maf;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.maf.MafFile;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.List;
 
 /**
  * {@code MafFileDao} is a DAO component, that handles database interaction with MAF file metadata.
@@ -113,26 +112,25 @@ public class MafFileDao extends NamedParameterJdbcDaoSupport {
         getJdbcTemplate().update(deleteMafFileQuery, id);
     }
 
-    @Required
     public void setMafFileSequenceName(String mafFileSequenceName) {
+        Assert.hasText(mafFileSequenceName, "mafFileSequenceName cannot be null or empty");
         this.mafFileSequenceName = mafFileSequenceName;
     }
 
-    @Required
     public void setCreateMafFileQuery(String createMafFileQuery) {
+        Assert.hasText(createMafFileQuery, "createMafFileQuery cannot be null or empty");
         this.createMafFileQuery = createMafFileQuery;
     }
 
-    @Required
     public void setLoadMafFileQuery(String loadMafFileQuery) {
+        Assert.hasText(loadMafFileQuery, "loadMafFileQuery cannot be null or empty");
         this.loadMafFileQuery = loadMafFileQuery;
     }
 
-    @Required
     public void setDeleteMafFileQuery(String deleteMafFileQuery) {
+        Assert.hasText(deleteMafFileQuery, "deleteMafFileQuery cannot be null or empty");
         this.deleteMafFileQuery = deleteMafFileQuery;
     }
-
     private enum MafParameters {
         MAF_ID,
         REAL_PATH

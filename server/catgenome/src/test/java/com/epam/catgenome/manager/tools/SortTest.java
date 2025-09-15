@@ -30,7 +30,7 @@ import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
 import htsjdk.tribble.CloseableTribbleIterator;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
@@ -48,7 +48,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.epam.catgenome.util.IndexUtils.checkSorted;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -65,7 +65,7 @@ public class SortTest extends AbstractJUnitTest {
     private ToolsManager toolsManager;
 
     @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
+    private CaffeineBasedIndexCache indexCache;
 
     @Test
     public void testSortBed() throws Exception {

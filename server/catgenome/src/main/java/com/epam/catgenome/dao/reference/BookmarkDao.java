@@ -24,27 +24,20 @@
 
 package com.epam.catgenome.dao.reference;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.reference.Bookmark;
 import com.epam.catgenome.entity.reference.Chromosome;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.*;
 
 /**
  * <p>
@@ -263,69 +256,68 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
             return params;
         }
     }
-
-    @Required
     public void setBookmarkSequenceName(String bookmarkSequenceName) {
+        Assert.hasText(bookmarkSequenceName, "bookmarkSequenceName cannot be null or empty");
         this.bookmarkSequenceName = bookmarkSequenceName;
     }
 
-    @Required
     public void setBookmarkItemSequenceName(String bookmarkItemSequenceName) {
+        Assert.hasText(bookmarkItemSequenceName, "bookmarkItemSequenceName cannot be null or empty");
         this.bookmarkItemSequenceName = bookmarkItemSequenceName;
     }
 
-    @Required
     public void setInsertBookmarkQuery(String insertBookmarkQuery) {
+        Assert.hasText(insertBookmarkQuery, "insertBookmarkQuery cannot be null or empty");
         this.insertBookmarkQuery = insertBookmarkQuery;
     }
 
-    @Required
     public void setUpdateBookmarkQuery(String updateBookmarkQuery) {
+        Assert.hasText(updateBookmarkQuery, "updateBookmarkQuery cannot be null or empty");
         this.updateBookmarkQuery = updateBookmarkQuery;
     }
 
-    @Required
     public void setLoadAllBookmarksQuery(String loadAllBookmarksQuery) {
+        Assert.hasText(loadAllBookmarksQuery, "loadAllBookmarksQuery cannot be null or empty");
         this.loadAllBookmarksQuery = loadAllBookmarksQuery;
     }
 
-    @Required
     public void setInsertBookmarkItemsQuery(String insertBookmarkItemsQuery) {
+        Assert.hasText(insertBookmarkItemsQuery, "insertBookmarkItemsQuery cannot be null or empty");
         this.insertBookmarkItemsQuery = insertBookmarkItemsQuery;
     }
 
-    @Required
     public void setDeleteBookmarkItemsQuery(String deleteBookmarkItemsQuery) {
+        Assert.hasText(deleteBookmarkItemsQuery, "deleteBookmarkItemsQuery cannot be null or empty");
         this.deleteBookmarkItemsQuery = deleteBookmarkItemsQuery;
     }
 
-    @Required
     public void setLoadBookmarksItemsQuery(String loadBookmarksItemsQuery) {
+        Assert.hasText(loadBookmarksItemsQuery, "loadBookmarksItemsQuery cannot be null or empty");
         this.loadBookmarksItemsQuery = loadBookmarksItemsQuery;
     }
 
-    @Required
     public void setDeleteBookmarkQuery(String deleteBookmarkQuery) {
+        Assert.hasText(deleteBookmarkQuery, "deleteBookmarkQuery cannot be null or empty");
         this.deleteBookmarkQuery = deleteBookmarkQuery;
     }
 
-    @Required
     public void setLoadBookmarkByIdQuery(String loadBookmarkByIdQuery) {
+        Assert.hasText(loadBookmarkByIdQuery, "loadBookmarkByIdQuery cannot be null or empty");
         this.loadBookmarkByIdQuery = loadBookmarkByIdQuery;
     }
 
-    @Required
     public void setLoadBookmarksByIdsQuery(String loadBookmarksByIdsQuery) {
+        Assert.hasText(loadBookmarksByIdsQuery, "loadBookmarksByIdsQuery cannot be null or empty");
         this.loadBookmarksByIdsQuery = loadBookmarksByIdsQuery;
     }
 
-    @Required
     public void setSearchBookmarksQuery(String searchBookmarksQuery) {
+        Assert.hasText(searchBookmarksQuery, "searchBookmarksQuery cannot be null or empty");
         this.searchBookmarksQuery = searchBookmarksQuery;
     }
 
-    @Required
     public void setSearchBookmarkCountQuery(String searchBookmarkCountQuery) {
+        Assert.hasText(searchBookmarkCountQuery, "searchBookmarkCountQuery cannot be null or empty");
         this.searchBookmarkCountQuery = searchBookmarkCountQuery;
     }
 }

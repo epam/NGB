@@ -6,19 +6,19 @@ ENV CLI_HOME $INSTALL_DIR/ngb-cli/bin/
 ENV NGS_DATA_DIR /ngs/
 ENV PATH $PATH:$CLI_HOME
 
-#Install OpenJDK 8
+#Install OpenJDK 21
 RUN apt-get -y update && \
-    apt-get -y install wget openjdk-8-jre nginx
+    apt-get -y install wget openjdk-21-jre nginx
 
 #Install NGB server binaries
 RUN mkdir ${NGB_HOME}
 COPY catgenome.jar ${NGB_HOME}
 
 #Install NGB CLI
-COPY ngb-cli.tar.gz ${INSTALL_DIR}
+COPY ngb-cli.tgz ${INSTALL_DIR}
 RUN cd ${INSTALL_DIR} && \
-    tar -zxvf ngb-cli.tar.gz && \
-    rm ngb-cli.tar.gz
+    tar -zxvf ngb-cli.tgz && \
+    rm ngb-cli.tgz
 
 
 # Configure "Open from NGB server"

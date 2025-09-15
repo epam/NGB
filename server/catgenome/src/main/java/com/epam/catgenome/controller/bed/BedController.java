@@ -31,6 +31,10 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 
 import com.epam.catgenome.manager.bed.BedSecurityService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -53,10 +57,6 @@ import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
 
 /**
  * Source:      BedController
@@ -70,33 +70,34 @@ import com.wordnik.swagger.annotations.ApiResponses;
  * calls and manage all operations concerned with Bed data.
  */
 @Controller
-@Api(value = "bed", description = "BED Track Management")
+@Tag(name = "bed", description = "BED Track Management")
 public class BedController extends AbstractRESTController {
     @Autowired
     private BedSecurityService bedSecurityService;
 
     @ResponseBody
     @RequestMapping(value = "/bed/register", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Registers a BED file in the system.",
-            notes = "Registers a file, stored in a file system (for now). Registration request has the following " +
+    @Operation(
+            summary = "Registers a BED file in the system.",
+            description = "Registers a file, stored in a file system (for now). Registration request has the following " +
                     "properties: <br/>" +
                     "1) referenceId - a reference, for which file is being registered <br/>" +
                     "2) path - a path to file </br>" +
                     "3) indexPath - <i>optional</i> a path to an index file<br/>" +
-                    "4) name - <i>optional</i> a name for gene track",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    "4) name - <i>optional</i> a name for gene track")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<BedFile> registerBedFile(@RequestBody IndexedFileRegistrationRequest request) {
         return Result.success(bedSecurityService.registerBed(request));
     }
 
     @ResponseBody
     @RequestMapping(value = "/secure/bed/register", method = RequestMethod.DELETE)
-    @ApiOperation(value = "Removes a bed file from the system.", notes = "",
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Removes a bed file from the system.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> unregisterBedFile(@RequestParam final long bedFileId) throws IOException {
         BedFile deletedFile = bedSecurityService.unregisterBedFile(bedFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
@@ -104,9 +105,9 @@ public class BedController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/bed/track/get", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns data matched the given query to fill in a BED track.",
-            notes = "It provides data for a BED track with the given scale factor between the beginning " +
+    @Operation(
+            summary = "Returns data matched the given query to fill in a BED track.",
+            description = "It provides data for a BED track with the given scale factor between the beginning " +
                     "position with the first base having position 1 and ending position inclusive in a target " +
                     "chromosome. All parameters are mandatory and described below:<br/><br/>" +
                     "1) <b>id</b> specifies ID of a track;<br/>" +
@@ -115,11 +116,10 @@ public class BedController extends AbstractRESTController {
                     "chromosome always has got position  = 1;<br/>" +
                     "4) <b>endIndex</b> is the last base position for a requested window. <br/>" +
                     "5) <b>scaleFactor</b> specifies an inverse value to number of bases per one visible element on a" +
-                    " track (e.g., pixel) - IS IGNORED FOR NOW",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    " track (e.g., pixel) - IS IGNORED FOR NOW")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Track<BedRecord>> loadTrack(@RequestBody final TrackQuery trackQuery,
                                               @RequestParam(required = false) final String fileUrl,
                                               @RequestParam(required = false) final String indexUrl)
@@ -134,9 +134,9 @@ public class BedController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/bed/track/histogram", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns a histogram of BED records amount on regions of chromosome",
-            notes = "It provides histogram for a BEd track with the given scale factor between the " +
+    @Operation(
+            summary = "Returns a histogram of BED records amount on regions of chromosome",
+            description = "It provides histogram for a BEd track with the given scale factor between the " +
                     "beginning position with the first base having position 1 and ending position inclusive " +
                     "in a target chromosome. All parameters are mandatory and described below:<br/><br/>" +
                     "1) <b>id</b> specifies ID of a track;<br/>" +
@@ -146,11 +146,10 @@ public class BedController extends AbstractRESTController {
                     "4) <b>endIndex</b> is the last base position for a requested window. " +
                     "It is treated inclusively;<br/>" +
                     "5) <b>scaleFactor</b> specifies an inverse value to number of bases per one visible element" +
-                    " on a track (e.g., pixel) - IS IGNORED FOR NOW",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    " on a track (e.g., pixel) - IS IGNORED FOR NOW")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Track<Wig>> loadHistogram(@RequestBody final TrackQuery trackQuery)
             throws HistogramReadingException {
         final Track<Wig> histogramTrack = convertToTrack(trackQuery);
@@ -159,8 +158,11 @@ public class BedController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/bed/{bedFileId}/index", method = RequestMethod.GET)
-    @ApiOperation(value = "Rebuilds a BED feature index",
-            notes = "Rebuilds a BED feature index", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Rebuilds a BED feature index",
+            description = "Rebuilds a BED feature index")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> reindexBed(@PathVariable long bedFileId) throws FeatureIndexException {
         BedFile file = bedSecurityService.reindexBedFile(bedFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_FEATURE_INDEX_DONE, file.getId(),

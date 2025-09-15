@@ -24,52 +24,24 @@
 
 package com.epam.catgenome.util;
 
-import java.io.BufferedInputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Constructor;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
-
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.Interval;
 import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.Interval;
 import com.epam.catgenome.entity.vcf.VcfFile;
+import com.epam.catgenome.exception.IndexException;
 import com.epam.catgenome.manager.GeneInfo;
 import com.epam.catgenome.manager.bam.BamHelper;
 import com.epam.catgenome.manager.gene.GeneUtils;
-import htsjdk.samtools.Defaults;
-import htsjdk.samtools.util.AbstractIterator;
-import htsjdk.samtools.util.BlockCompressedInputStream;
-import htsjdk.samtools.util.BlockCompressedStreamConstants;
-import htsjdk.samtools.util.CloserUtil;
-import htsjdk.samtools.util.LocationAware;
-import htsjdk.samtools.util.RuntimeIOException;
-import htsjdk.samtools.util.Tuple;
-import htsjdk.tribble.index.interval.IntervalIndexCreator;
-import htsjdk.tribble.index.interval.IntervalTreeIndex;
-import htsjdk.tribble.util.TabixUtils;
-import htsjdk.variant.vcf.VCFCodec;
-import org.apache.commons.io.IOUtils;
-
-import com.epam.catgenome.exception.IndexException;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
-import htsjdk.tribble.CloseableTribbleIterator;
-import htsjdk.tribble.Feature;
-import htsjdk.tribble.FeatureCodec;
-import htsjdk.tribble.FeatureCodecHeader;
-import htsjdk.tribble.TribbleException;
+import htsjdk.samtools.Defaults;
+import htsjdk.samtools.util.*;
+import htsjdk.tribble.*;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexCreator;
 import htsjdk.tribble.index.IndexFactory;
+import htsjdk.tribble.index.interval.IntervalIndexCreator;
+import htsjdk.tribble.index.interval.IntervalTreeIndex;
 import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.index.tabix.TabixIndex;
 import htsjdk.tribble.index.tabix.TabixIndexCreator;
@@ -77,6 +49,9 @@ import htsjdk.tribble.readers.AsciiLineReader;
 import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.readers.LineReader;
 import htsjdk.tribble.readers.PositionalBufferedStream;
+import htsjdk.tribble.util.TabixUtils;
+import htsjdk.variant.vcf.VCFCodec;
+import org.apache.commons.io.IOUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.FloatPoint;
@@ -92,6 +67,14 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 
 import static com.epam.catgenome.util.NgbFileUtils.isGzCompressed;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -116,12 +99,13 @@ public final class IndexUtils {
     /**
      * Try to find index for given file path. This method checks if the directory with this
      * file also contains index for it
+     *
      * @param filePath file path for checking
      * @return index file path for the file otherwise null
-     * */
+     */
     public static String checkExistingIndex(String filePath) {
         List<String> possibleIndexPathes = new ArrayList<>();
-        if(BamUtil.isBam(filePath)) {
+        if (BamUtil.isBam(filePath)) {
             String fileExtension = NgbFileUtils.getFileExtension(filePath);
             String indexExtension = BamHelper.BAI_EXTENSIONS.get(fileExtension);
             possibleIndexPathes.add(filePath + indexExtension);
@@ -149,7 +133,7 @@ public final class IndexUtils {
      * used, which create the tabix index correctly.
      */
     public static <F extends Feature, S> TabixIndex createTabixIndex(final FeatureFile featureFile,
-            final FeatureCodec<F, S> codec, final TabixFormat tabixFormat) {
+                                                                     final FeatureCodec<F, S> codec, final TabixFormat tabixFormat) {
 
         try {
             final TabixIndexCreator indexCreator = new TabixIndexCreator(null, tabixFormat);
@@ -163,7 +147,7 @@ public final class IndexUtils {
     public static IntervalTreeIndex createIntervalIndex(VcfFile vcfFile, VCFCodec codec) {
         try {
             final IntervalIndexCreator indexCreator = new IntervalIndexCreator(new File(vcfFile.getPath()));
-            return (IntervalTreeIndex)createIndex(vcfFile.getPath(),
+            return (IntervalTreeIndex) createIndex(vcfFile.getPath(),
                     new FeatureIterator<>(vcfFile.getPath(), codec), indexCreator);
         } catch (IOException e) {
             throw new RuntimeIOException(e);
@@ -171,7 +155,7 @@ public final class IndexUtils {
     }
 
     private static Index createIndex(final String filePath, final FeatureIterator iterator,
-            final IndexCreator creator) {
+                                     final IndexCreator creator) {
         Feature lastFeature = null;
         Feature currentFeature;
         final Map<String, Feature> visitedChromos = new HashMap<>(40);
@@ -190,7 +174,7 @@ public final class IndexUtils {
     }
 
     public static void checkSorted(final String inputFile, final Feature lastFeature,
-            final Feature currentFeature, Map<String, Feature> visitedChromos) {
+                                   final Feature currentFeature, Map<String, Feature> visitedChromos) {
         // if the last currentFeature is after the current currentFeature, exception out
         if (lastFeature != null && currentFeature.getStart() < lastFeature.getStart() && lastFeature
                 .getContig().equals(currentFeature.getContig())) {
@@ -304,11 +288,13 @@ public final class IndexUtils {
             }
         }
 
-        @Override public boolean hasNext() {
+        @Override
+        public boolean hasNext() {
             return nextFeature != null;
         }
 
-        @Override public Feature next() {
+        @Override
+        public Feature next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
@@ -320,7 +306,8 @@ public final class IndexUtils {
         /**
          * @throws UnsupportedOperationException
          */
-        @Override public void remove() {
+        @Override
+        public void remove() {
             throw new UnsupportedOperationException("We cannot remove");
         }
 
@@ -332,11 +319,13 @@ public final class IndexUtils {
             return hasNext() ? cachedPosition : ((LocationAware) source).getPosition();
         }
 
-        @Override public Iterator<Feature> iterator() {
+        @Override
+        public Iterator<Feature> iterator() {
             return this;
         }
 
-        @Override public void close() {
+        @Override
+        public void close() {
             codec.close(source);
         }
 
@@ -378,7 +367,8 @@ public final class IndexUtils {
         /**
          * @return The position of the InputStream
          */
-        @Override public long getPosition() {
+        @Override
+        public long getPosition() {
             if (is == null) {
                 throw new TribbleException(
                         "getPosition() called but no default stream was provided to the class on creation");
@@ -390,7 +380,8 @@ public final class IndexUtils {
             }
         }
 
-        @Override public final String readLine() throws IOException {
+        @Override
+        public final String readLine() throws IOException {
             if (is == null) {
                 throw new TribbleException(
                         "readLine() called without an explicit stream argument but no default"
@@ -399,7 +390,8 @@ public final class IndexUtils {
             return is.readLine();
         }
 
-        @Override public void close() {
+        @Override
+        public void close() {
             if (is != null && !closed) {
                 try {
                     lastPosition = is.getFilePointer();
@@ -422,20 +414,24 @@ public final class IndexUtils {
             this.i = new TabixLineReaderIterator.TupleIterator();
         }
 
-        @Override public void close() throws IOException {
+        @Override
+        public void close() throws IOException {
             CloserUtil.close(lineReader);
         }
 
-        @Override public boolean hasNext() {
+        @Override
+        public boolean hasNext() {
             return i.hasNext();
         }
 
-        @Override public String next() {
+        @Override
+        public String next() {
             Tuple<String, Long> current = i.next();
             return current.a;
         }
 
-        @Override public void remove() {
+        @Override
+        public void remove() {
             i.remove();
         }
 
@@ -444,11 +440,13 @@ public final class IndexUtils {
          * he beginning of the next line) from {@link #next()} in
          * the underlying {@link AsciiLineReader}.
          */
-        @Override public long getPosition() {
+        @Override
+        public long getPosition() {
             return i.getPosition();
         }
 
-        @Override public String peek() {
+        @Override
+        public String peek() {
             return i.peek().a;
         }
 
@@ -464,7 +462,8 @@ public final class IndexUtils {
                 super.hasNext();
             }
 
-            @Override protected Tuple<String, Long> advance() {
+            @Override
+            protected Tuple<String, Long> advance() {
                 final String line;
                 final long position = lineReader.getPosition();
                 try {
@@ -478,7 +477,8 @@ public final class IndexUtils {
             /**
              * Returns the byte position at the beginning of the next line.
              */
-            @Override public long getPosition() {
+            @Override
+            public long getPosition() {
                 final Tuple<String, Long> peek = super.peek();
                 // Be careful: peek will be null at the end of the stream.
                 return peek != null ? peek.b : lineReader.getPosition();
@@ -509,10 +509,9 @@ public final class IndexUtils {
         // Must be buffered, because getIndexType uses mark and reset
         try (BufferedInputStream bufferedInputStream = new BufferedInputStream(
                 indexFileInputStream(IOHelper.openStream(indexResource), Utils.getFileExtension(indexResource)),
-                Defaults.NON_ZERO_BUFFER_SIZE)){
-            final Class<Index> indexClass = IndexFactory.IndexType.getIndexType(bufferedInputStream).getIndexType();
-            final Constructor<Index> ctor = indexClass.getConstructor(InputStream.class);
-            return ctor.newInstance(bufferedInputStream);
+                Defaults.NON_ZERO_BUFFER_SIZE)) {
+            IndexFactory.IndexType indexType = IndexFactory.IndexType.getIndexType(bufferedInputStream);
+            return indexType.createIndex(bufferedInputStream);
         } catch (final IOException ex) {
             throw new TribbleException.UnableToReadIndexFile("Unable to read index file", indexResource, ex);
         } catch (final Exception ex) {
@@ -535,8 +534,8 @@ public final class IndexUtils {
                                             final BooleanQuery.Builder builder) {
         if (interval.getFrom() != null || interval.getTo() != null) {
             builder.add(IntPoint.newRangeQuery(fieldName,
-                    interval.getFrom() == null ? Integer.MIN_VALUE : interval.getFrom(),
-                    interval.getTo() == null ? Integer.MAX_VALUE : interval.getTo()),
+                            interval.getFrom() == null ? Integer.MIN_VALUE : interval.getFrom(),
+                            interval.getTo() == null ? Integer.MAX_VALUE : interval.getTo()),
                     BooleanClause.Occur.MUST);
         }
     }
@@ -546,8 +545,8 @@ public final class IndexUtils {
                                               final BooleanQuery.Builder builder) {
         if (interval.getFrom() != null || interval.getTo() != null) {
             builder.add(FloatPoint.newRangeQuery(fieldName,
-                    interval.getFrom() == null ? Float.MIN_VALUE : interval.getFrom(),
-                    interval.getTo() == null ? Float.MAX_VALUE : interval.getTo()),
+                            interval.getFrom() == null ? Float.MIN_VALUE : interval.getFrom(),
+                            interval.getTo() == null ? Float.MAX_VALUE : interval.getTo()),
                     BooleanClause.Occur.MUST);
         }
     }
@@ -577,7 +576,7 @@ public final class IndexUtils {
                                            final int start,
                                            final int end) {
         final Collection<Gene> genes = intervalMap.getOverlapping(
-                new htsjdk.samtools.util.Interval(chromosome.getName(), start, end))
+                        new htsjdk.samtools.util.Interval(chromosome.getName(), start, end))
                 .stream()
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());

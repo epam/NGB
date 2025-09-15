@@ -1,13 +1,5 @@
 package com.epam.catgenome.security.acl;
 
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
-import javax.sql.DataSource;
-
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -16,6 +8,14 @@ import org.springframework.security.acls.jdbc.LookupStrategy;
 import org.springframework.security.acls.model.*;
 import org.springframework.security.util.FieldUtils;
 import org.springframework.util.Assert;
+
+import javax.sql.DataSource;
+import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 public class LookupStrategyImpl implements LookupStrategy {
 
@@ -520,15 +520,15 @@ public class LookupStrategyImpl implements LookupStrategy {
 
                 if (parentId != 0) {
                     // See if it's already in the "acls"
-                    if (acls.containsKey(new Long(parentId))) {
+                    if (acls.containsKey(Long.valueOf(parentId))) {
                         continue; // skip this while iteration
                     }
 
                     // Now try to find it in the cache
-                    MutableAcl cached = aclCache.getFromCache(new Long(parentId));
+                    MutableAcl cached = aclCache.getFromCache(Long.valueOf(parentId));
 
                     if ((cached == null) || !cached.isSidLoaded(sids)) {
-                        parentIdsToLookup.add(new Long(parentId));
+                        parentIdsToLookup.add(Long.valueOf(parentId));
                     } else {
                         // Pop into the acls map, so our convert method doesn't
                         // need to deal with an unsynchronized AclCache
@@ -552,7 +552,7 @@ public class LookupStrategyImpl implements LookupStrategy {
          */
         private void convertCurrentResultIntoObject(Map<Serializable, Acl> acls,
                                                     ResultSet rs) throws SQLException {
-            Long id = new Long(rs.getLong("acl_id"));
+            Long id = Long.valueOf(rs.getLong("acl_id"));
 
             // If we already have an ACL for this ID, just create the ACE
             Acl acl = acls.get(id);
@@ -584,7 +584,7 @@ public class LookupStrategyImpl implements LookupStrategy {
             // It is permissible to have no ACEs in an ACL (which is detected by a null
             // ACE_SID)
             if (rs.getString("ace_sid") != null) {
-                Long aceId = new Long(rs.getLong("ace_id"));
+                Long aceId = Long.valueOf(rs.getLong("ace_id"));
                 Sid recipient = createSid(rs.getBoolean("ace_principal"),
                         rs.getString("ace_sid"));
 

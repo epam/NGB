@@ -1,7 +1,8 @@
 # Requirements
 
 * **[Docker engine](https://docs.docker.com/engine/installation/)**
-* **[Oracle JDK 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html)** or **[Open JDK 8](http://openjdk.java.net/install/)**
+* **[Oracle JDK 21](https://docs.oracle.com/javase/21/docs/technotes/guides/install/install_overview.html)** or *
+  *[Open JDK 21](http://openjdk.java.net/install/)**
 
 # How to build NGB docker image
 

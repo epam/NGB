@@ -24,24 +24,22 @@
 
 package com.epam.catgenome.dao.bam;
 
-import static com.epam.catgenome.component.MessageCode.WRONG_NAME;
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.dao.bam.BamFileDao.BamParameters.BAM_ID;
-
-import java.util.List;
-
+import com.epam.catgenome.dao.BiologicalDataItemDao;
+import com.epam.catgenome.dao.DaoHelper;
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.bam.BamFile;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.epam.catgenome.dao.BiologicalDataItemDao;
-import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.bam.BamFile;
+import java.util.List;
+
+import static com.epam.catgenome.component.MessageCode.WRONG_NAME;
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.dao.bam.BamFileDao.BamParameters.BAM_ID;
 
 /**
  * <p>
@@ -117,24 +115,23 @@ public class BamFileDao extends NamedParameterJdbcDaoSupport {
         this.deleteBamFileQuery = deleteGeneFileQuery;
     }
 
-    @Required
     public void setBamFileSequenceName(String bamFileSequenceName) {
+        Assert.hasText(bamFileSequenceName, "bamFileSequenceName cannot be null or empty");
         this.bamFileSequenceName = bamFileSequenceName;
     }
 
-    @Required
     public void setLoadBamFileQuery(String loadBamFileQuery) {
+        Assert.hasText(loadBamFileQuery, "loadBamFileQuery cannot be null or empty");
         this.loadBamFileQuery = loadBamFileQuery;
     }
 
-    @Required
     public void setCreateBamFileQuery(String createBamFileQuery) {
+        Assert.hasText(createBamFileQuery, "createBamFileQuery cannot be null or empty");
         this.createBamFileQuery = createBamFileQuery;
     }
 
-
-    @Required
     public void setSearchByNameBamFileQuery(String searchByNameBamFileQuery) {
+        Assert.hasText(searchByNameBamFileQuery, "searchByNameBamFileQuery cannot be null or empty");
         this.searchByNameBamFileQuery = searchByNameBamFileQuery;
     }
 

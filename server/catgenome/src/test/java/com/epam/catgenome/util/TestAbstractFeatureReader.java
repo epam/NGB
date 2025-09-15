@@ -1,11 +1,11 @@
 package com.epam.catgenome.util;
 
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import com.epam.catgenome.util.feature.reader.*;
-import com.epam.catgenome.util.feature.reader.TabixFeatureReader;
-import com.epam.catgenome.util.feature.reader.TribbleIndexedFeatureReader;
 import htsjdk.samtools.seekablestream.SeekableFileStream;
-import htsjdk.tribble.*;
+import htsjdk.tribble.CloseableTribbleIterator;
+import htsjdk.tribble.Feature;
+import htsjdk.tribble.Tribble;
+import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.tribble.index.Index;
@@ -16,6 +16,7 @@ import htsjdk.tribble.util.TabixUtils;
 import htsjdk.variant.bcf2.BCF2Codec;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,8 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import org.junit.Before;
 
 import static org.junit.Assert.*;
 
@@ -49,7 +48,7 @@ public class TestAbstractFeatureReader  {
     private ApplicationContext context;
 
     @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
+    private CaffeineBasedIndexCache indexCache;
 
     private static final String LOCAL_MIRROR_HTTP_INDEXED_VCF_PATH = "classpath:templates/ex2.vcf";
     private static final String HTTP_INDEXED_VCF_PATH = "https://personal.broadinstitute.org/picard/testdata/ex2.vcf";

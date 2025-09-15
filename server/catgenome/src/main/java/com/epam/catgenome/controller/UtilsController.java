@@ -37,6 +37,9 @@ import com.epam.catgenome.entity.security.SessionExpirationBehavior;
 import com.epam.catgenome.manager.UrlShorterManager;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.entity.UrlWithAliasItem;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -51,9 +54,6 @@ import com.epam.catgenome.controller.vo.FilesVO;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.FileManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
@@ -90,49 +90,45 @@ public class UtilsController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/version", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Returns application's version",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns application's version")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<String> loadVersion() {
         return Result.success(version);
     }
 
     @ResponseBody
     @RequestMapping(value = "/isRoleModelEnabled", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Returns application's version",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns application's version")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> isRoleModelEnabled() {
         return Result.success(aclSecurityEnabled);
     }
 
     @ResponseBody
     @RequestMapping(value = "/sessionExpirationBehavior", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Returns application's version",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns application's version")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<SessionExpirationBehavior> sessionExpirationBehaviour() {
         return Result.success(expirationBehavior);
     }
 
     @ResponseBody
     @RequestMapping(value = "/files", method = RequestMethod.GET)
-    @ApiOperation(
-        value = "Returns directory contents",
-        notes = "Returns directory contents, specified by path",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+    @Operation(
+        summary = "Returns directory contents",
+        description = "Returns directory contents, specified by path")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<FilesVO> loadDirectoryContents(@RequestParam(required = false) String path)
         throws IOException {
         return Result.success(new FilesVO(fileManager.loadDirectoryContents(path), fileManager.getNgsDataRootPath()));
@@ -140,13 +136,12 @@ public class UtilsController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/files/allowed", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Checks is directory browsing is allowed",
-            notes = "Returns true if directory browsing is allowed and false if not",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Checks is directory browsing is allowed",
+        description = "Returns true if directory browsing is allowed and false if not")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> isFilesBrowsingAllowed()
             throws IOException {
         return Result.success(fileManager.isFilesBrowsingAllowed());
@@ -154,13 +149,12 @@ public class UtilsController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/url", method = RequestMethod.POST)
-    @ApiOperation(
-        value = "Generates URL postfix",
-        notes = "Generates URL that displays specified files, optionally on specified interval",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+    @Operation(
+        summary = "Generates URL postfix",
+        description = "Generates URL that displays specified files, optionally on specified interval")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<String> generateUrl(
                     @RequestBody UrlRequestVO request,
                     @RequestParam(required = false) String chromosomeName,
@@ -173,13 +167,12 @@ public class UtilsController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/urls/allowed", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Checks if url file browsing is allowed",
-            notes = "Returns true if url file browsing is allowed and false if not",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Checks if url file browsing is allowed",
+        description = "Returns true if url file browsing is allowed and false if not")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> isUrlsBrowsingAllowed()
             throws IOException {
         return Result.success(fileManager.isUrlsBrowsingAllowed());
@@ -187,12 +180,11 @@ public class UtilsController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/generateShortUrl", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Generates short URL postfix",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Generates short URL postfix")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<String> generateShortUrl(@RequestBody UrlWithAliasItem urlWithAlias) {
         String alias = urlWithAlias.getAlias();
         String url = urlWithAlias.getUrl();
@@ -210,12 +202,11 @@ public class UtilsController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/navigate", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "redirect on a original URL by short URL postfix, or on the 404 if short url doesn't exist",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "redirect on a original URL by short URL postfix, or on the 404 if short url doesn't exist")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public void redirectToOriginalUrlByAlias(@RequestParam String alias, HttpServletResponse resp) throws IOException {
         Optional<String> maybeOriginalUrl = urlShorterManager.getOriginalUrl(alias);
         if (maybeOriginalUrl.isPresent()) {
@@ -230,22 +221,22 @@ public class UtilsController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/defaultTrackSettings", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Return default track settings",
-            notes = "Return default track settings, which specified in catgenome.properties file",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Return default track settings",
+        description = "Return default track settings, which specified in catgenome.properties file")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Map<String, Map<String, Object>>> getDefaultTracksSettings() throws IOException {
         return Result.success(fileManager.getDefaultTrackSettings());
     }
 
     @ResponseBody
     @RequestMapping(value = "/getPathToExistingIndex", method = RequestMethod.GET)
-    @ApiOperation(value = "Return path of existing index for file, or null if it don't exist",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)})
+    @Operation(summary = "Return path of existing index for file, or null if it don't exist")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<String> getPathToExistingIndex(@RequestParam String filePath) throws IOException {
         return Result.success(IndexUtils.checkExistingIndex(filePath));
     }

@@ -9,25 +9,17 @@ import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.util.Utils;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
 import gnu.trove.list.TFloatList;
 import gnu.trove.list.array.TFloatArrayList;
 import kotlin.Pair;
 import org.jetbrains.bio.BetterSeekableBufferedStream;
 import org.jetbrains.bio.EndianSynchronizedBufferFactory;
-import org.jetbrains.bio.big.BigFile;
-import org.jetbrains.bio.big.BigSummary;
-import org.jetbrains.bio.big.BigWigFile;
-import org.jetbrains.bio.big.FixedStepSection;
-import org.jetbrains.bio.big.WigSection;
+import org.jetbrains.bio.big.*;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
@@ -42,7 +34,7 @@ public class WigProcessor extends AbstractWigProcessor {
 
     @Override
     protected Track<Wig> getWigFromFile(final WigFile wigFile, final Track<Wig> track, final Chromosome chromosome,
-                                        EhCacheBasedIndexCache indexCache)
+                                        CaffeineBasedIndexCache indexCache)
             throws IOException {
         Assert.notNull(wigFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
         TrackHelper.fillBlocks(track, indexes -> new Wig(indexes.getLeft(), indexes.getRight()));
@@ -67,7 +59,7 @@ public class WigProcessor extends AbstractWigProcessor {
     }
 
     void splitByChromosome(final WigFile wigFile, final Map<String, Chromosome> chromosomeMap,
-                           EhCacheBasedIndexCache indexCache)
+                           CaffeineBasedIndexCache indexCache)
             throws IOException {
         try (BigWigFile bigWigFile = readWig(wigFile.getPath())) {
             for (Object o : bigWigFile.getChromosomes().values()) {

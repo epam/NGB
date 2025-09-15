@@ -31,10 +31,6 @@ class Version {
     }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.3'
-}
-
 task ui(type: Copy) {
     dependsOn ':client:buildUI'
     doFirst {
@@ -79,9 +75,9 @@ task buildDoc(type: Tar) {
     dependsOn runMkdocs
     from("$rootDir/docs/site") {
     }
-    archiveName = "ngb-docs.tar.gz"
-    destinationDir file(distDir)
-    extension = 'tar.gz'
+    archiveBaseName = "ngb-docs"
+    getDestinationDirectory().set(file(distDir))
+    archiveExtension = 'tar.gz'
     compression = Compression.GZIP
 }
 
@@ -121,11 +117,11 @@ task buildWar(type: GradleBuild) {
 }
 
 task buildJar(type: GradleBuild) {
-    dependsOn ui, templates, buildDocs
+    dependsOn ui, templates
     if (runTests) {
         tasks = ['clean', 'build']
     } else {
-        tasks = ['clean', 'bootRepackage']
+        tasks = ['clean', 'bootJar']
     }
     startParameter.projectProperties = [profile    : 'jar',
                                         database   : database,
@@ -147,10 +143,10 @@ task buildCli(type: GradleBuild) {
         tasks = ['clean', 'assemble']
     }
     buildFile = "$rootDir/server/ngb-cli/build.gradle"
-    dir = "$rootDir/ngb-cli/catgenome"
+    dir = "$rootDir/ngb-cli"
     doLast {
         copy {
-            from "$cliBuilds/ngb-cli.tar.gz"
+            from "$cliBuilds/ngb-cli.tgz"
             into distDir
         }
     }
@@ -222,7 +218,7 @@ task buildDesktopJar(type: GradleBuild) {
     if (runTests) {
         tasks = ['clean', 'build']
     } else {
-        tasks = ['clean', 'bootRepackage']
+        tasks = ['clean', 'bootWar']
     }
     startParameter.projectProperties = [profile    : 'jar',
                                         database   : database,

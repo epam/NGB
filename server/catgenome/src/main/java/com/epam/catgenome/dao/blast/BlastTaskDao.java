@@ -24,28 +24,28 @@
 
 package com.epam.catgenome.dao.blast;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.blast.BlastTaskOrganism;
 import com.epam.catgenome.entity.blast.BlastTask;
-import com.epam.catgenome.entity.blast.TaskParameter;
+import com.epam.catgenome.entity.blast.BlastTaskOrganism;
 import com.epam.catgenome.entity.blast.BlastTaskStatus;
+import com.epam.catgenome.entity.blast.TaskParameter;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static com.epam.catgenome.dao.blast.BlastDatabaseDao.DatabaseParameters.parseDatabase;
 import static com.epam.catgenome.util.Utils.addFiltersToQuery;
@@ -441,118 +441,118 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                 params.toArray(new MapSqlParameterSource[parameters.size()]));
     }
 
-    @Required
     public void setOrganismSequenceName(final String organismSequenceName) {
+        Assert.hasText(organismSequenceName, "organismSequenceName cannot be null or empty");
         this.organismSequenceName = organismSequenceName;
     }
 
-    @Required
     public void setExclOrganismSequenceName(final String exclOrganismSequenceName) {
+        Assert.hasText(exclOrganismSequenceName, "exclOrganismSequenceName cannot be null or empty");
         this.exclOrganismSequenceName = exclOrganismSequenceName;
     }
 
-    @Required
     public void setTaskParameterSequenceName(final String taskParameterSequenceName) {
+        Assert.hasText(taskParameterSequenceName, "taskParameterSequenceName cannot be null or empty");
         this.taskParameterSequenceName = taskParameterSequenceName;
     }
 
-    @Required
     public void setInsertTaskQuery(final String insertTaskQuery) {
+        Assert.hasText(insertTaskQuery, "insertTaskQuery cannot be null or empty");
         this.insertTaskQuery = insertTaskQuery;
     }
 
-    @Required
     public void setLoadTaskByIdQuery(final String loadTaskByIdQuery) {
+        Assert.hasText(loadTaskByIdQuery, "loadTaskByIdQuery cannot be null or empty");
         this.loadTaskByIdQuery = loadTaskByIdQuery;
     }
 
-    @Required
     public void setLoadAllTasksQuery(final String loadAllTasksQuery) {
+        Assert.hasText(loadAllTasksQuery, "loadAllTasksQuery cannot be null or empty");
         this.loadAllTasksQuery = loadAllTasksQuery;
     }
 
-    @Required
     public void setUpdateTaskStatusQuery(final String updateTaskStatusQuery) {
+        Assert.hasText(updateTaskStatusQuery, "updateTaskStatusQuery cannot be null or empty");
         this.updateTaskStatusQuery = updateTaskStatusQuery;
     }
 
-    @Required
     public void setDeleteTaskQuery(final String deleteTaskQuery) {
+        Assert.hasText(deleteTaskQuery, "deleteTaskQuery cannot be null or empty");
         this.deleteTaskQuery = deleteTaskQuery;
     }
 
-    @Required
     public void setDeleteTasksQuery(final String deleteTasksQuery) {
+        Assert.hasText(deleteTasksQuery, "deleteTasksQuery cannot be null or empty");
         this.deleteTasksQuery = deleteTasksQuery;
     }
 
-    @Required
     public void setInsertTaskOrganismsQuery(final String insertTaskOrganismsQuery) {
+        Assert.hasText(insertTaskOrganismsQuery, "insertTaskOrganismsQuery cannot be null or empty");
         this.insertTaskOrganismsQuery = insertTaskOrganismsQuery;
     }
 
-    @Required
     public void setDeleteTaskOrganismsQuery(final String deleteTaskOrganismsQuery) {
+        Assert.hasText(deleteTaskOrganismsQuery, "deleteTaskOrganismsQuery cannot be null or empty");
         this.deleteTaskOrganismsQuery = deleteTaskOrganismsQuery;
     }
 
-    @Required
     public void setLoadTaskOrganismsQuery(final String loadTaskOrganismsQuery) {
+        Assert.hasText(loadTaskOrganismsQuery, "loadTaskOrganismsQuery cannot be null or empty");
         this.loadTaskOrganismsQuery = loadTaskOrganismsQuery;
     }
 
-    @Required
     public void setInsertTaskExclOrganismsQuery(final String insertTaskExclOrganismsQuery) {
+        Assert.hasText(insertTaskExclOrganismsQuery, "insertTaskExclOrganismsQuery cannot be null or empty");
         this.insertTaskExclOrganismsQuery = insertTaskExclOrganismsQuery;
     }
 
-    @Required
     public void setDeleteTaskExclOrganismsQuery(final String deleteTaskExclOrganismsQuery) {
+        Assert.hasText(deleteTaskExclOrganismsQuery, "deleteTaskExclOrganismsQuery cannot be null or empty");
         this.deleteTaskExclOrganismsQuery = deleteTaskExclOrganismsQuery;
     }
 
-    @Required
     public void setLoadTaskExclOrganismsQuery(final String loadTaskExclOrganismsQuery) {
+        Assert.hasText(loadTaskExclOrganismsQuery, "loadTaskExclOrganismsQuery cannot be null or empty");
         this.loadTaskExclOrganismsQuery = loadTaskExclOrganismsQuery;
     }
 
-    @Required
     public void setInsertTaskParametersQuery(final String insertTaskParametersQuery) {
+        Assert.hasText(insertTaskParametersQuery, "insertTaskParametersQuery cannot be null or empty");
         this.insertTaskParametersQuery = insertTaskParametersQuery;
     }
 
-    @Required
     public void setDeleteTaskParametersQuery(final String deleteTaskParametersQuery) {
+        Assert.hasText(deleteTaskParametersQuery, "deleteTaskParametersQuery cannot be null or empty");
         this.deleteTaskParametersQuery = deleteTaskParametersQuery;
     }
 
-    @Required
     public void setLoadTaskParametersQuery(final String loadTaskParametersQuery) {
+        Assert.hasText(loadTaskParametersQuery, "loadTaskParametersQuery cannot be null or empty");
         this.loadTaskParametersQuery = loadTaskParametersQuery;
     }
 
-    @Required
     public void setDeleteOrganismsQuery(String deleteOrganismsQuery) {
+        Assert.hasText(deleteOrganismsQuery, "deleteOrganismsQuery cannot be null or empty");
         this.deleteOrganismsQuery = deleteOrganismsQuery;
     }
 
-    @Required
     public void setDeleteExclOrganismsQuery(String deleteExclOrganismsQuery) {
+        Assert.hasText(deleteExclOrganismsQuery, "deleteExclOrganismsQuery cannot be null or empty");
         this.deleteExclOrganismsQuery = deleteExclOrganismsQuery;
     }
 
-    @Required
     public void setDeleteParametersQuery(String deleteParametersQuery) {
+        Assert.hasText(deleteParametersQuery, "deleteParametersQuery cannot be null or empty");
         this.deleteParametersQuery = deleteParametersQuery;
     }
 
-    @Required
     public void setGetTaskCountQuery(final String getTaskCountQuery) {
+        Assert.hasText(getTaskCountQuery, "getTaskCountQuery cannot be null or empty");
         this.getTaskCountQuery = getTaskCountQuery;
     }
 
-    @Required
     public void setTaskSequenceName(String taskSequenceName) {
+        Assert.hasText(taskSequenceName, "taskSequenceName cannot be null or empty");
         this.taskSequenceName = taskSequenceName;
     }
 }

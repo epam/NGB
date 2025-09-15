@@ -24,43 +24,19 @@
 
 package com.epam.catgenome.manager.vcf.reader;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.util.Assert;
-
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.entity.vcf.Filter;
-import com.epam.catgenome.entity.vcf.GenotypeData;
-import com.epam.catgenome.entity.vcf.OrganismType;
-import com.epam.catgenome.entity.vcf.Variation;
-import com.epam.catgenome.entity.vcf.VariationType;
-import com.epam.catgenome.entity.vcf.VcfFile;
+import com.epam.catgenome.entity.vcf.*;
 import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.variant.variantcontext.Allele;
@@ -70,6 +46,18 @@ import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.util.Assert;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Source:      VcfFileReader
@@ -113,7 +101,7 @@ public class VcfFileReader extends AbstractVcfReader {
     public Track<Variation> readVariations(final VcfFile vcfFile, final Track<Variation> track,
                                            final Chromosome chromosome, final Integer sampleIndex,
                                            final boolean loadInfo, final boolean collapse,
-                                           final EhCacheBasedIndexCache indexCache) throws VcfReadingException {
+                                           final CaffeineBasedIndexCache indexCache) throws VcfReadingException {
         try (FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(vcfFile.getPath(),
                 vcfFile.getIndex().getPath(), new VCFCodec(), true, indexCache)) {
             if (checkBounds(vcfFile, track, chromosome, loadInfo)) {
@@ -133,7 +121,7 @@ public class VcfFileReader extends AbstractVcfReader {
     @Override
     public Variation getNextOrPreviousVariation(final int fromPosition, final VcfFile vcfFile,
                                                 final Integer sampleIndex, final Chromosome chromosome, boolean forward,
-                                                final EhCacheBasedIndexCache indexCache) throws VcfReadingException {
+                                                final CaffeineBasedIndexCache indexCache) throws VcfReadingException {
         final int end = forward ? chromosome.getSize() : 0;
         if (isOutOfBounds(fromPosition, forward, end)) { // no next features
             return null;

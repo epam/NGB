@@ -24,30 +24,23 @@
 
 package com.epam.catgenome.dao.user;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.security.NgbUser;
 import com.epam.catgenome.entity.user.ExtendedRole;
+import com.epam.catgenome.entity.user.Role;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
-import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.user.Role;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
 
 public class RoleDao extends NamedParameterJdbcDaoSupport {
     private static final String LIST_PARAM = "LIST";
@@ -228,67 +221,68 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
 
 
     }
-    @Required
     public void setLoadRolesByUserIdsQuery(String loadRolesByUserIdsQuery) {
+        Assert.hasText(loadRolesByUserIdsQuery, "loadRolesByUserIdsQuery cannot be null or empty");
         this.loadRolesByUserIdsQuery = loadRolesByUserIdsQuery;
     }
-    @Required
+
     public void setRoleSequence(String roleSequence) {
+        Assert.hasText(roleSequence, "roleSequence cannot be null or empty");
         this.roleSequence = roleSequence;
     }
 
-    @Required
     public void setCreateRoleQuery(String createRoleQuery) {
+        Assert.hasText(createRoleQuery, "createRoleQuery cannot be null or empty");
         this.createRoleQuery = createRoleQuery;
     }
 
-    @Required
     public void setUpdateRoleQuery(String updateRoleQuery) {
+        Assert.hasText(updateRoleQuery, "updateRoleQuery cannot be null or empty");
         this.updateRoleQuery = updateRoleQuery;
     }
 
-    @Required
     public void setDeleteRoleQuery(String deleteRoleQuery) {
+        Assert.hasText(deleteRoleQuery, "deleteRoleQuery cannot be null or empty");
         this.deleteRoleQuery = deleteRoleQuery;
     }
 
-    @Required
     public void setLoadAllRolesQuery(String loadAllRolesQuery) {
+        Assert.hasText(loadAllRolesQuery, "loadAllRolesQuery cannot be null or empty");
         this.loadAllRolesQuery = loadAllRolesQuery;
     }
 
-    @Required
     public void setLoadRolesQuery(String loadRolesQuery) {
+        Assert.hasText(loadRolesQuery, "loadRolesQuery cannot be null or empty");
         this.loadRolesQuery = loadRolesQuery;
     }
 
-    @Required
     public void setLoadRoleQuery(String loadRoleQuery) {
+        Assert.hasText(loadRoleQuery, "loadRoleQuery cannot be null or empty");
         this.loadRoleQuery = loadRoleQuery;
     }
 
-    @Required
     public void setLoadRoleByNameQuery(String loadRoleByNameQuery) {
+        Assert.hasText(loadRoleByNameQuery, "loadRoleByNameQuery cannot be null or empty");
         this.loadRoleByNameQuery = loadRoleByNameQuery;
     }
 
-    @Required
     public void setDeleteRolesReferencesQuery(String deleteRolesReferencesQuery) {
+        Assert.hasText(deleteRolesReferencesQuery, "deleteRolesReferencesQuery cannot be null or empty");
         this.deleteRolesReferencesQuery = deleteRolesReferencesQuery;
     }
 
-    @Required
     public void setLoadDefaultRolesQuery(String loadDefaultRolesQuery) {
+        Assert.hasText(loadDefaultRolesQuery, "loadDefaultRolesQuery cannot be null or empty");
         this.loadDefaultRolesQuery = loadDefaultRolesQuery;
     }
 
-    @Required
     public void setLoadRoleWithUsersQuery(String loadRoleWithUsersQuery) {
+        Assert.hasText(loadRoleWithUsersQuery, "loadRoleWithUsersQuery cannot be null or empty");
         this.loadRoleWithUsersQuery = loadRoleWithUsersQuery;
     }
 
-    @Required
     public void setLoadRolesWithUsersQuery(String loadRolesWithUsersQuery) {
+        Assert.hasText(loadRolesWithUsersQuery, "loadRolesWithUsersQuery cannot be null or empty");
         this.loadRolesWithUsersQuery = loadRolesWithUsersQuery;
     }
 }

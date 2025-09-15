@@ -1,6 +1,6 @@
 package com.epam.catgenome.util;
 
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,19 +12,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.*;
 
 /**
- * Test features of EhCacheBasedIndexCache: if index cache is disabled in properties, it must be null.
+ * Test features of CaffeineBasedIndexCache: if index cache is disabled in properties, it must be null.
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @TestPropertySource("classpath:test-catgenome-cache-disable.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class EhCacheDisabledIndexCacheTest {
+public class CaffeineCacheDisabledIndexCacheTest {
 
     @Autowired
     private ApplicationContext context;
 
     @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
+    private CaffeineBasedIndexCache indexCache;
 
     @Test
     public void testCacheProperty() {

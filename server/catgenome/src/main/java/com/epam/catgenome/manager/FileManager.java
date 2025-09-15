@@ -24,56 +24,14 @@
 
 package com.epam.catgenome.manager;
 
-import static com.epam.catgenome.component.MessageCode.URL_FILE_BROWSING_NOT_ALLOWED;
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.manager.FileManager.FilePathFormat.*;
-import static com.epam.catgenome.manager.FileManager.FilePathPlaceholder.*;
-
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.ByteOrder;
-import java.nio.charset.Charset;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.DirectoryIteratorException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
-import javax.annotation.PostConstruct;
-
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.JsonMapper;
-import com.epam.catgenome.entity.BaseEntity;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.*;
 import com.epam.catgenome.entity.bed.BedFile;
+import com.epam.catgenome.entity.file.AbstractFsItem;
 import com.epam.catgenome.entity.file.FsDirectory;
 import com.epam.catgenome.entity.file.FsFile;
-import com.epam.catgenome.entity.file.AbstractFsItem;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFileType;
 import com.epam.catgenome.entity.maf.MafFile;
@@ -97,15 +55,10 @@ import com.epam.catgenome.manager.seg.parser.SegCodec;
 import com.epam.catgenome.manager.seg.parser.SegFeature;
 import com.epam.catgenome.manager.wig.reader.BedGraphCodec;
 import com.epam.catgenome.manager.wig.reader.BedGraphFeature;
-import com.epam.catgenome.util.BlockCompressedDataInputStream;
-import com.epam.catgenome.util.BlockCompressedDataOutputStream;
-import com.epam.catgenome.util.IndexUtils;
-import com.epam.catgenome.util.NgbFileUtils;
-import com.epam.catgenome.util.PositionalOutputStream;
-import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.*;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
@@ -143,6 +96,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PostConstruct;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.nio.file.*;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
+import static com.epam.catgenome.component.MessageCode.URL_FILE_BROWSING_NOT_ALLOWED;
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.manager.FileManager.FilePathFormat.*;
+import static com.epam.catgenome.manager.FileManager.FilePathPlaceholder.*;
+
 /**
  * Source:      FileManager.java
  * Created:     10/12/15, 7:53 PM
@@ -170,9 +140,10 @@ public class FileManager {
     public static final String BED_GRAPH_FEATURE_TEMPLATE = "%s\t%d\t%d\t%f%n";
 
     private static final String ROOT_DIR_NAME = "42";
+    private static final String FILE_SYSTEM_ROOT = "/";
 
     @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
+    private CaffeineBasedIndexCache indexCache;
     /**
      * Provides paths' patterns that have to be used to construct real relative paths
      * for file resources of any types.
@@ -1625,7 +1596,7 @@ public class FileManager {
      * Creates an index for a specified BedFile
      * @param bedFile BedFile to create index for
      */
-    public void makeBedIndex(final BedFile bedFile, final AsciiFeatureCodec<NggbBedFeature> nggbBedCodec) {
+    public void makeBedIndex(final BedFile bedFile, final AsciiFeatureCodec<NggbBedFeature> nggbBedCodec) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), bedFile.getId());
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
@@ -1666,7 +1637,7 @@ public class FileManager {
      * Creates an index for a specified SegFile
      * @param segFile SegFile to create index for
      */
-    public void makeSegIndex(final SegFile segFile) {
+    public void makeSegIndex(final SegFile segFile) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), segFile.getId());
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
@@ -1739,7 +1710,7 @@ public class FileManager {
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(SEG_FILE, params)));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), "");
 
         LOGGER.debug("Writing SEG Sample file at {}", file.getAbsolutePath());
 
@@ -1866,7 +1837,7 @@ public class FileManager {
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(MAF_FILE, params)));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), "");
 
         LOGGER.debug("Writing MAF file at {}", file.getAbsolutePath());
 
@@ -1894,7 +1865,7 @@ public class FileManager {
         params.put(CHROMOSOME_NAME.name(), chromosomeName);
 
         File file = new File(toRealPath(substitute(WIG_FILE, params)));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), "");
 
         BigWigFile.write(wigSections, chromSizes, file.toPath(), 0, CompressionType.DEFLATE, ByteOrder.nativeOrder());
     }
@@ -1926,7 +1897,7 @@ public class FileManager {
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(BED_GRAPH_FILE, params)));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), "");
         try (Writer writer = new BufferedWriter(new FileWriter(file))) {
             for (BedGraphFeature bedGraphFeature : sectionList) {
                 writer.write(String.format(
@@ -1981,7 +1952,14 @@ public class FileManager {
      */
     public List<AbstractFsItem> loadDirectoryContents(String path) throws IOException {
 
-        urlValidatorService.validateLocalPath(path);
+        if(!StringUtils.isEmpty(path) && !Paths.get(path).startsWith(ngsDataRootPath)) {
+            throw new AccessDeniedException(
+                    String.format("Parameter path doesn't fall into 'ngs.data.root.path': %s", ngsDataRootPath));
+        }
+
+        if (!filesBrowsingAllowed || ngsDataRootPath.equals(FILE_SYSTEM_ROOT)) {
+            throw new AccessDeniedException("Server file system browsing is not allowed");
+        }
 
         List<File> parentDirs = new ArrayList<>();
         if (path == null) {

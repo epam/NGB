@@ -24,10 +24,6 @@
 
 package com.epam.catgenome.util.feature.reader;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import com.epam.catgenome.util.IOHelper;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.Feature;
@@ -38,6 +34,10 @@ import htsjdk.tribble.util.ParsingUtils;
 import htsjdk.tribble.util.TabixUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Feature reader extended from HTSJDK library ro support signed S3 URLs
@@ -55,23 +55,23 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
     private static ComponentMethods methods = new ComponentMethods();
 
     /**
-     * Calls {@link #getFeatureReader(String, FeatureCodec, boolean, EhCacheBasedIndexCache)}
+     * Calls {@link #getFeatureReader(String, FeatureCodec, boolean, CaffeineBasedIndexCache)}
      * with {@code requireIndex} = true
      */
     public static <FEATURE extends Feature, SOURCE> AbstractFeatureReader<FEATURE, SOURCE> getFeatureReader(
             final String featureFile, final FeatureCodec<FEATURE, SOURCE> codec,
-            EhCacheBasedIndexCache indexCache) throws TribbleException {
+            CaffeineBasedIndexCache indexCache) throws TribbleException {
         return getFeatureReader(featureFile, codec, true, indexCache);
     }
 
     /**
-     * {@link #getFeatureReader(String, String, FeatureCodec, boolean, EhCacheBasedIndexCache)}
+     * {@link #getFeatureReader(String, String, FeatureCodec, boolean, CaffeineBasedIndexCache)}
      * with {@code null} for indexResource
      * @throws TribbleException
      */
     public static <FEATURE extends Feature, SOURCE> AbstractFeatureReader<FEATURE, SOURCE> getFeatureReader(
             final String featureResource, final FeatureCodec<FEATURE, SOURCE> codec,
-            final boolean requireIndex, EhCacheBasedIndexCache indexCache)
+            final boolean requireIndex, CaffeineBasedIndexCache indexCache)
             throws TribbleException {
         return getFeatureReader(featureResource, null, codec, requireIndex, indexCache);
     }
@@ -88,8 +88,8 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
     public static <FEATURE extends Feature, SOURCE> AbstractFeatureReader<FEATURE, SOURCE> getFeatureReader(
             final String featureResource, String indexResource,
             final FeatureCodec<FEATURE, SOURCE> codec, final boolean requireIndex,
-            EhCacheBasedIndexCache indexCache) throws TribbleException {
-        ParsingUtils.registerHelperClass(EnhancedUrlHelper.class);
+            CaffeineBasedIndexCache indexCache) throws TribbleException {
+        ParsingUtils.setURLHelperFactory(EnhancedUrlHelper::new);
         try {
             // Test for tabix index
             if (methods.isTabix(featureResource, indexResource)) {
@@ -124,7 +124,7 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
      */
     public static <FEATURE extends Feature, SOURCE> AbstractFeatureReader<FEATURE, SOURCE> getFeatureReader(
             final String featureResource, final FeatureCodec<FEATURE, SOURCE>  codec, final Index index,
-            EhCacheBasedIndexCache indexCache)
+            CaffeineBasedIndexCache indexCache)
             throws TribbleException {
         try {
             return new TribbleIndexedFeatureReader<>(featureResource, codec, index, indexCache);

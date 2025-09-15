@@ -24,18 +24,17 @@
 
 package com.epam.catgenome.dao.bed;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.bed.BedFile;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.List;
 
 /**
  * {@code BedFileDao} is a DAO component, that handles database interaction with Bed file metadata.
@@ -109,23 +108,23 @@ public class BedFileDao extends NamedParameterJdbcDaoSupport {
         BED_ID
     }
 
-    @Required
     public void setBedFileSequenceName(String bedFileSequenceName) {
+        Assert.hasText(bedFileSequenceName, "bedFileSequenceName cannot be null or empty");
         this.bedFileSequenceName = bedFileSequenceName;
     }
 
-    @Required
     public void setCreateBedFileQuery(String createBedFileQuery) {
+        Assert.hasText(createBedFileQuery, "createBedFileQuery cannot be null or empty");
         this.createBedFileQuery = createBedFileQuery;
     }
 
-    @Required
     public void setLoadBedFileQuery(String loadBedFileQuery) {
+        Assert.hasText(loadBedFileQuery, "loadBedFileQuery cannot be null or empty");
         this.loadBedFileQuery = loadBedFileQuery;
     }
 
-    @Required
     public void setDeleteBedFileQuery(String deleteBedFileQuery) {
+        Assert.hasText(deleteBedFileQuery, "deleteBedFileQuery cannot be null or empty");
         this.deleteBedFileQuery = deleteBedFileQuery;
     }
 }

@@ -30,10 +30,10 @@ import com.epam.catgenome.entity.target.TargetIdentification;
 import com.epam.catgenome.entity.target.IdentificationQueryParams;
 import com.epam.catgenome.manager.target.TargetIdentificationSecurityService;
 import com.epam.catgenome.util.db.Page;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -41,92 +41,85 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Api(value = "target-identification", description = "Target Identification Management")
+@Tag(name = "target-identification", description = "Target Identification Management")
 @RequiredArgsConstructor
 public class TargetIdentificationController extends AbstractRESTController {
 
     private final TargetIdentificationSecurityService identificationSecurityService;
 
     @GetMapping(value = "/identification/{id}")
-    @ApiOperation(
-            value = "Returns an identification by given id",
-            notes = "Returns an identification by given id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns an identification by given id",
+        description = "Returns an identification by given id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<TargetIdentification> load(@PathVariable final long id) {
         return Result.success(identificationSecurityService.load(id));
     }
 
     @PostMapping(value = "/identifications/filter")
-    @ApiOperation(
-            value = "Filters identifications",
-            notes = "Filters identifications. Result can be sorted by created_date, name, and owner fields.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Filters identifications",
+        description = "Filters identifications. Result can be sorted by created_date, name, and owner fields.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Page<TargetIdentification>> load(@RequestBody final IdentificationQueryParams params) {
         return Result.success(identificationSecurityService.loadTargets(params));
     }
 
     @GetMapping(value = "/identifications")
-    @ApiOperation(
-            value = "Returns all identifications",
-            notes = "Returns all identifications",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns all identifications",
+        description = "Returns all identifications")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<TargetIdentification>> load() {
         return Result.success(identificationSecurityService.load());
     }
 
     @GetMapping(value = "/identifications/{targetId}")
-    @ApiOperation(
-            value = "Returns identifications by target id",
-            notes = "Returns identifications by target id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns identifications by target id",
+        description = "Returns identifications by target id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<TargetIdentification>> loadTargetIdentifications(@PathVariable final long targetId) {
         return Result.success(identificationSecurityService.loadTargetIdentifications(targetId));
     }
 
     @PostMapping(value = "/identification")
-    @ApiOperation(
-            value = "Registers new identification",
-            notes = "Registers new identification",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Registers new identification",
+        description = "Registers new identification")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<TargetIdentification> createTarget(@RequestBody final TargetIdentification identification) {
         return Result.success(identificationSecurityService.create(identification));
     }
 
     @PutMapping(value = "/identification")
-    @ApiOperation(
-            value = "Updates identification",
-            notes = "Updates identification",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Updates identification",
+        description = "Updates identification")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<TargetIdentification> updateTarget(@RequestBody final TargetIdentification identification) {
         return Result.success(identificationSecurityService.update(identification));
     }
 
     @DeleteMapping(value = "/identification/{id}")
-    @ApiOperation(
-            value = "Deletes an identification, specified by id",
-            notes = "Deletes an identification, specified by id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Deletes an identification, specified by id",
+        description = "Deletes an identification, specified by id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> deleteTarget(@PathVariable final long id) {
         identificationSecurityService.delete(id);
         return Result.success(null);

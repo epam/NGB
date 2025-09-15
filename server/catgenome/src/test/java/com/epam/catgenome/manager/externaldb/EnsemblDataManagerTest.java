@@ -24,30 +24,25 @@
 
 package com.epam.catgenome.manager.externaldb;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-
+import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblEntryVO;
+import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblVariationEntryVO;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblEntryVO;
-import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblVariationEntryVO;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * Source:    EnsemblDataManagerTest
@@ -122,7 +117,7 @@ public class EnsemblDataManagerTest {
         // assert
         Assert.assertNotNull(ensemblVariationEntryVO);
         Assert.assertEquals("rs7412", ensemblVariationEntryVO.getName());
-        Assert.assertEquals(new Double("0.0750799"), ensemblVariationEntryVO.getMaf());
+        Assert.assertEquals(Double.valueOf("0.0750799"), ensemblVariationEntryVO.getMaf());
         Assert.assertEquals("Y", ensemblVariationEntryVO.getAmbiguity());
         Assert.assertEquals("SNP", ensemblVariationEntryVO.getVarClass());
         Assert.assertEquals("C", ensemblVariationEntryVO.getAncestralAllele());

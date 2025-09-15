@@ -25,18 +25,17 @@
 package com.epam.catgenome.dao.bucket;
 
 
-import java.util.List;
-
+import com.epam.catgenome.dao.DaoHelper;
+import com.epam.catgenome.entity.bucket.Bucket;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
-import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.bucket.Bucket;
+import java.util.List;
 
 /**
  * {@code BucketDao} is a DAO component, that handles database interaction with bucket metadata.
@@ -144,28 +143,28 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
 
     }
 
-    @Required
     public void setBucketName(String bucketName) {
+        Assert.hasText(bucketName, "bucketName cannot be null or empty");
         this.bucketName = bucketName;
     }
 
-    @Required
     public void setCreateBucketQuery(String createBucketQuery) {
+        Assert.hasText(createBucketQuery, "createBucketQuery cannot be null or empty");
         this.createBucketQuery = createBucketQuery;
     }
 
-    @Required
     public void setLoadBucketByIdQuery(String loadBucketByIdQuery) {
+        Assert.hasText(loadBucketByIdQuery, "loadBucketByIdQuery cannot be null or empty");
         this.loadBucketByIdQuery = loadBucketByIdQuery;
     }
 
-    @Required
     public void setLoadAllBucketQuery(String loadAllBucketQuery) {
+        Assert.hasText(loadAllBucketQuery, "loadAllBucketQuery cannot be null or empty");
         this.loadAllBucketQuery = loadAllBucketQuery;
     }
 
-    @Required
     public void setUpdateBucketOwnerQuery(String updateBucketOwnerQuery) {
+        Assert.hasText(updateBucketOwnerQuery, "updateBucketOwnerQuery cannot be null or empty");
         this.updateBucketOwnerQuery = updateBucketOwnerQuery;
     }
 }

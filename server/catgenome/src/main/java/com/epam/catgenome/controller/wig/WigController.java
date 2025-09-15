@@ -48,10 +48,10 @@ import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.entity.wig.WigFile;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * <p>
@@ -62,7 +62,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
  * calls and manage all operations concerned with a WIG file.
  */
 @Controller
-@Api(value = "bed-graph", description = "Wig Track Management")
+@Tag(name = "bed-graph", description = "Wig Track Management")
 public class WigController extends AbstractRESTController {
 
     @Autowired
@@ -70,17 +70,16 @@ public class WigController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/wig/register", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Registers a Wig file in the system.",
-            notes = "Registers a file, stored in a file system (for now). Registration request has the following " +
+    @Operation(
+            summary = "Registers a Wig file in the system.",
+        description = "Registers a file, stored in a file system (for now). Registration request has the following " +
                     "properties: <br/>" +
                     "1) referenceId - a reference, for which file is being registered <br/>" +
                     "2) path - a path to file </br>" +
-                    "3) name - <i>optional</i> a name for WIG track",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    "3) name - <i>optional</i> a name for WIG track")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<WigFile> registerWigFile(@RequestBody IndexedFileRegistrationRequest request) {
         return Result.success(wigSecurityService.registerWigFile(request));
     }
@@ -88,9 +87,9 @@ public class WigController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/wig/track/get", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns data matched the given query to fill in a wig track.",
-            notes = "It provides data for a WIG track with the given scale factor between the beginning " +
+    @Operation(
+            summary = "Returns data matched the given query to fill in a wig track.",
+        description = "It provides data for a WIG track with the given scale factor between the beginning " +
                     "position with the first base having position 1 and ending position inclusive in a target " +
                     "chromosome. All parameters are mandatory and described below:<br/><br/>" +
                     "1) <b>id</b> specifies ID of a track;<br/>" +
@@ -100,11 +99,10 @@ public class WigController extends AbstractRESTController {
                     "4) <b>endIndex</b> is the last base position for a requested window. " +
                     "It is treated inclusively;<br/>" +
                     "5) <b>scaleFactor</b> specifies an inverse value to number of bases per one visible element on a" +
-                    " track (e.g., pixel).",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    " track (e.g., pixel).")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public final Callable<Result<Track<Wig>>> loadTrack(@RequestBody final TrackQuery query) throws IOException {
         final Track<Wig> track = wigSecurityService.getWigTrack(convertToTrack(query));
         return () ->  Result.success(track);

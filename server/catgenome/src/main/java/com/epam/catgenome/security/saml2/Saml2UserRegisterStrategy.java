@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.security.saml;
+package com.epam.catgenome.security.saml2;
 
 /**
  * Represents the SAML user registration strategies set into saml.user.auto.create property.
@@ -31,6 +31,6 @@ package com.epam.catgenome.security.saml;
  * EXPLICIT_GROUP - requires specific groups pre-registration. If users SAML groups have no intersections with
  * registered NGB security groups the authentication will be failed.
  */
-public enum SamlUserRegisterStrategy {
+public enum Saml2UserRegisterStrategy {
     AUTO, EXPLICIT, EXPLICIT_GROUP
 }
