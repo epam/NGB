@@ -1,8 +1,13 @@
-<Configuration>
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <Property name="LOG_PATTERN">%style{%d{ISO8601}}{black} %highlight{%-5level }[%style{%t}{bright,blue}] %style{%C{1.}}{bright,yellow}: %msg%n%throwable</Property>
+        <Property name="APP_LOG_ROOT">/var/log</Property>
+    </Properties>
+
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout
-                    pattern="%style{%d{ISO8601}}{black} %highlight{%-5level }[%style{%t}{bright,blue}] %style{%C{1.}}{bright,yellow}: %msg%n%throwable" />
+            <PatternLayout pattern="${LOG_PATTERN}"/>
         </Console>
 
         <RollingFile name="RollingFile"
@@ -12,32 +17,38 @@
                 <pattern>%d %p %C{1.} [%t] %m%n</pattern>
             </PatternLayout>
             <Policies>
-                <!-- rollover on startup, daily and when the file reaches
-                    10 MegaBytes -->
                 <OnStartupTriggeringPolicy />
-                <SizeBasedTriggeringPolicy
-                        size="10 MB" />
+                <SizeBasedTriggeringPolicy size="10 MB" />
                 <TimeBasedTriggeringPolicy />
             </Policies>
+            <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+
     </Appenders>
 
     <Loggers>
+         <!-- Reduce OpenSAML logging -->
+        <Logger name="org.opensaml" level="WARN" additivity="false">
+            <AppenderRef ref="Console" />
+        </Logger>
+        <Logger name="net.shibboleth" level="WARN" additivity="false">
+            <AppenderRef ref="Console" />
+        </Logger>
 
-        <!-- Reduce logging for OpenSAML packages -->
-        <!-- These should catch all OpenSAML-related logging -->
-        <Logger name="org.opensaml" level="WARN" additivity="false"/>
-        <Logger name="net.shibboleth" level="WARN" additivity="false"/>
+        <!-- Quiet down noisy classes -->
+        <Logger name="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping" level="WARN"/>
+        <Logger name="org.springframework.boot.actuate.endpoint.web.servlet.WebMvcEndpointHandlerMapping" level="WARN"/>
 
-        <!-- Specifically target algorithm-related classes -->
-        <Logger name="org.opensaml.xmlsec.algorithm" level="ERROR" additivity="false"/>
-        <Logger name="org.opensaml.xmlsec.config" level="ERROR" additivity="false"/>
+        <!-- Application Loggers -->
+        <Logger name="com.epam.catgenome" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="RollingFile" />
+        </Logger>
 
-        <!-- LOG everything at INFO level -->
-        <Root level="info">
+        <!-- Root Logger -->
+        <Root level="INFO">
             <AppenderRef ref="Console" />
             <AppenderRef ref="RollingFile" />
         </Root>
     </Loggers>
-
 </Configuration>

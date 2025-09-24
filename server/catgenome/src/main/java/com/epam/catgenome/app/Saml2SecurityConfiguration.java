@@ -12,6 +12,7 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
 import org.springframework.security.saml2.provider.service.metadata.OpenSamlMetadataResolver;
@@ -132,15 +133,20 @@ public class Saml2SecurityConfiguration {
         http.securityMatcher(getSecuredRequestMatcher())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(getUnsecuredResources()).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/restapi/**")).permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(withDefaults());
 
+        // Add session management for the SAML filter chain
+        http.sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+
         // Updated configuration with correct failure handler method
         http.saml2Login(saml2 -> saml2
                 .authenticationManager(new ProviderManager(saml2AuthenticationProvider))
-                .failureHandler(authenticationFailureHandler()) // Use failureHandler instead of authenticationFailureHandler
+                .failureHandler(authenticationFailureHandler())
         );
 
         // Updated logout configuration
@@ -189,10 +195,21 @@ public class Saml2SecurityConfiguration {
     }
 
     public String[] getUnsecuredResources() {
-        return new String[]{"/saml2/web/**", "/swagger-ui/**", "/api-docs/**", "/error-401.html"};
+        return new String[]{
+                "/restapi/**", // Ensure JWT API paths are not secured by the SAML chain
+                "/saml2/web/**",
+                "/swagger-ui/**",
+                "/api-docs/**",
+                "/error-401.html"
+        };
     }
 
     public String[] getSecuredResourcesRoot() {
-        return new String[]{"/**"};
+        // This chain should only handle browser-based SAML flows and the main UI
+        return new String[]{
+                "/login/saml2/sso/**", // SAML Response consumer endpoint
+                "/saml2/**",           // SAML metadata and other endpoints
+                "/"                     // Your application's root/UI entry point
+        };
     }
 }

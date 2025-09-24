@@ -92,6 +92,7 @@ distZip {
 distTar {
     compression = Compression.GZIP
     archiveVersion.set("")
+    archiveExtension = 'tar.gz'
 }
 
 installDist {

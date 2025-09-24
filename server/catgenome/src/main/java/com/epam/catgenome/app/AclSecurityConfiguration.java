@@ -29,7 +29,6 @@ import com.epam.catgenome.security.acl.LookupStrategyImpl;
 import com.epam.catgenome.security.acl.PermissionGrantingStrategyImpl;
 import com.epam.catgenome.security.acl.PermissionHelper;
 import com.epam.catgenome.security.acl.customexpression.NGBMethodSecurityExpressionHandler;
-import com.github.benmanes.caffeine.cache.CacheLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
@@ -38,6 +37,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -49,8 +49,7 @@ import org.springframework.security.acls.jdbc.LookupStrategy;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.security.acls.model.PermissionGrantingStrategy;
 import org.springframework.security.acls.model.SidRetrievalStrategy;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.sql.DataSource;
@@ -62,12 +61,10 @@ import static com.epam.catgenome.entity.user.DefaultRoles.*;
 
 @Configuration
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
-@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
+@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @ComponentScan(basePackages = "com.epam.catgenome.security.acl")
 @ImportResource("classpath*:conf/catgenome/acl-dao.xml")
-public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration {
-
-    private static final int UNLIMITED_NUMBER_OF_ENTITIES = 0;
+public class AclSecurityConfiguration {
 
     @Autowired
     private ApplicationContext context;
@@ -79,18 +76,14 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
     private PermissionFactory permissionFactory;
 
     @Autowired
+    @Lazy
     private JdbcMutableAclService jdbcMutableAclService;
 
     @Autowired
     private CacheManager cacheManager;
 
-    // Optional: needed only if you want null-safety or async loading
-    private CacheLoader<Object, Object> cacheLoader() {
-        return key -> null; // lazy load, return null if no computation
-    }
-
-    @Override
-    protected MethodSecurityExpressionHandler createExpressionHandler() {
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
         NGBMethodSecurityExpressionHandler expressionHandler = new NGBMethodSecurityExpressionHandler();
         expressionHandler.setPermissionEvaluator(permissionEvaluator());
         expressionHandler.setRoleHierarchy(roleHierarchy());
@@ -154,12 +147,12 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
     @Bean
     public LookupStrategy lookupStrategy() {
-        return new LookupStrategyImpl(dataSource, aclCache(cacheManager), aclAuthorizationStrategy(),
+        return new LookupStrategyImpl(dataSource, aclCache(), aclAuthorizationStrategy(),
                 auditLogger(), permissionFactory, permissionGrantingStrategy());
     }
 
     @Bean
-    public AclCache aclCache(CacheManager cacheManager) {
+    public AclCache aclCache() {
         org.springframework.cache.Cache springCache = cacheManager.getCache("aclCache");
         if (springCache == null) {
             throw new IllegalStateException("Cache 'aclCache' not found in CacheManager");

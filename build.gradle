@@ -146,7 +146,7 @@ task buildCli(type: GradleBuild) {
     dir = "$rootDir/ngb-cli"
     doLast {
         copy {
-            from "$cliBuilds/ngb-cli.tgz"
+            from "$cliBuilds/ngb-cli.tar.gz"
             into distDir
         }
     }
@@ -218,7 +218,7 @@ task buildDesktopJar(type: GradleBuild) {
     if (runTests) {
         tasks = ['clean', 'build']
     } else {
-        tasks = ['clean', 'bootWar']
+        tasks = ['clean', 'bootJar']
     }
     startParameter.projectProperties = [profile    : 'jar',
                                         database   : database,

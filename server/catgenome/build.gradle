@@ -14,7 +14,7 @@ buildscript {
 plugins {
     id "net.saliman.properties" version "1.4.4"
     id "org.sonarqube" version "6.0.1.5171"
-    id 'org.springframework.boot' version '3.2.0'
+    id 'org.springframework.boot' version '3.2.1'
     id 'io.spring.dependency-management' version '1.1.4'
     id "de.undercouch.download" version "3.1.2"
     id "com.github.ManifestClasspath" version "0.1.0-RELEASE"
@@ -98,6 +98,12 @@ repositories {
     }
     flatDir {
         dirs 'lib'  // Added 'libs' directory for local JARs
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'software.amazon.awssdk:bom:2.33.13'
     }
 }
 
@@ -191,10 +197,11 @@ dependencies {
     implementation group: "org.flywaydb", name: "flyway-core", version: "11.12.0"
     implementation group: "org.flywaydb", name: "flyway-database-postgresql", version: "11.12.0"
     //Amazon s3
-    implementation group: "software.amazon.awssdk", name: "s3", version:"2.31.14"
-    implementation group: "software.amazon.awssdk", name: "sts", version:"2.31.14"
-    implementation group: "com.amazonaws", name: "aws-java-sdk-s3", version: "1.12.782"
-    implementation group: "com.amazonaws", name: "aws-java-sdk-sts", version: "1.12.782"
+    implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:sts'
+
+    // Optional: if you need HTTP client (sync)
+    implementation 'software.amazon.awssdk:url-connection-client:2.33.13'
 
     // Azure Storage Blob
     implementation group: "com.azure", name: "azure-storage-blob", version: "12.14.0"

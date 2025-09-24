@@ -65,7 +65,7 @@ import java.util.stream.Collectors;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@ConditionalOnProperty(prefix = "jwt.security.", name = "enable", havingValue = "true")
+@ConditionalOnProperty(value = "jwt.security.enable", havingValue = "true")
 @Order(1)
 @ComponentScan(basePackages = {"com.epam.catgenome.security.jwt"})
 public class JWTSecurityConfiguration {
@@ -78,9 +78,6 @@ public class JWTSecurityConfiguration {
 
     @Value("${security.frame-options.disable:false}")
     private boolean frameOptionsDisable;
-
-    @Autowired(required = false)
-    private OpenSaml4AuthenticationProvider samlAuthenticationProvider;
 
     private static final String CLAIM_DELIMITER = "=";
 
@@ -122,15 +119,14 @@ public class JWTSecurityConfiguration {
 
     @Bean
     public AuthenticationManager authenticationManager(
-            JwtAuthenticationProvider jwtAuthenticationProvider) {
+            JwtAuthenticationProvider jwtAuthenticationProvider,
+            @Autowired(required = false) OpenSaml4AuthenticationProvider openSamlAuthenticationProvider) {
+
         List<AuthenticationProvider> providers = new ArrayList<>();
-
-        if (samlAuthenticationProvider != null) {
-            providers.add(samlAuthenticationProvider);
+        if (openSamlAuthenticationProvider != null) {
+            providers.add(openSamlAuthenticationProvider);
         }
-
         providers.add(jwtAuthenticationProvider);
-
         return new ProviderManager(providers);
     }
 
