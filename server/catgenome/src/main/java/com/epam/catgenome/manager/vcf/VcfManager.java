@@ -128,7 +128,6 @@ public class VcfManager {
     private GeneTrackManager geneTrackManager;
 
     @Autowired
-    @Lazy
     private FeatureIndexManager featureIndexManager;
 
     @Autowired(required = false)

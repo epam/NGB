@@ -26,11 +26,11 @@
 
 package com.epam.catgenome.util.aws;
 
+import com.amazonaws.util.IOUtils;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableBufferedStream;
 import htsjdk.samtools.seekablestream.SeekableMemoryStream;
 import htsjdk.samtools.seekablestream.SeekableStream;
-import org.apache.commons.compress.utils.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;

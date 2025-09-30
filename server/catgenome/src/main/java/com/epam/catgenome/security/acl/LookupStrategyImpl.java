@@ -559,9 +559,9 @@ public class LookupStrategyImpl implements LookupStrategy {
 
             if (acl == null) {
                 // Make an AclImpl and pop it into the Map
+                Long objectId = rs.getLong("object_id_identity");
                 ObjectIdentity objectIdentity = new ObjectIdentityImpl(
-                        rs.getString("class"), Long.valueOf(rs
-                        .getLong("object_id_identity")));
+                        rs.getString("class"), objectId);
 
                 Acl parentAcl = null;
                 long parentAclId = rs.getLong("parent_object");

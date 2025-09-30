@@ -22,26 +22,26 @@
  * SOFTWARE.
  */
 
+
 package com.epam.catgenome.manager.aws;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.epam.catgenome.exception.S3ReadingException;
 import com.epam.catgenome.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.S3Uri;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.Duration;
+import java.net.URL;
 
+/**
+ * Class for working with AWS S3 buckets
+ */
 public class S3Manager {
 
     private static volatile S3Manager instance;
@@ -52,47 +52,26 @@ public class S3Manager {
     @Value("#{catgenome['path.style.access.enabled'] ?: false}")
     private boolean pathStyleAccessEnabled;
 
-    private final S3Presigner presigner;
-
     @Autowired
     public static void setInstance(S3Manager s3Manager) {
         S3Manager.instance = s3Manager;
     }
 
     public S3Manager() {
-        this.presigner = S3Presigner.builder()
-                .credentialsProvider(DefaultCredentialsProvider.create())
-                .region(Region.AWS_GLOBAL)
-                .serviceConfiguration(S3Configuration.builder()
-                        .pathStyleAccessEnabled(pathStyleAccessEnabled)
-                        .build())
-                .build();
         instance = this;
     }
 
     public static String generateSignedUrl(String inputUrl) {
         return instance.generateSingedUrl(inputUrl);
     }
-
     public String generateSingedUrl(String inputUrl) {
         try {
-            S3Uri s3Uri = parseS3Uri(inputUrl);
-            String bucket = s3Uri.bucket().orElseThrow(() ->
-                    new IllegalArgumentException("Invalid bucket in URI: " + inputUrl));
-            String key = s3Uri.key().orElseThrow(() ->
-                    new IllegalArgumentException("Invalid key in URI: " + inputUrl));
-
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(normalizePath(key))
-                    .build();
-
-            PresignedGetObjectRequest presignedRequest = presigner.presignGetObject(r -> r
-                    .getObjectRequest(getObjectRequest)
-                    .signatureDuration(Duration.ofMillis(Utils.getTimeForS3URL().getTime())));
-
-            return presignedRequest.url().toString();
-        } catch (Exception e) {
+            AmazonS3 s3Client = getClient();
+            URI parsedUrl = new URI(inputUrl);
+            URL url = s3Client.generatePresignedUrl(parsedUrl.getHost(),
+                    normalizePath(parsedUrl.getPath()), Utils.getTimeForS3URL());
+            return url.toExternalForm();
+        } catch (AmazonClientException | URISyntaxException e) {
             LOGGER.error(e.getMessage(), e);
             throw new S3ReadingException(inputUrl, e);
         }
@@ -106,8 +85,8 @@ public class S3Manager {
         }
     }
 
-    private S3Uri parseS3Uri(String uri) throws URISyntaxException {
-        return S3Uri.builder().uri(new URI(uri)).build();
+    AmazonS3 getClient() {
+        return AmazonS3ClientBuilder.standard().withPathStyleAccessEnabled(pathStyleAccessEnabled).build();
     }
 
     public static S3Manager singleton() {

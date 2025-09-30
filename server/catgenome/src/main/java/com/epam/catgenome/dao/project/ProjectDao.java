@@ -43,6 +43,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +82,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Slf4j
 public class ProjectDao extends NamedParameterJdbcDaoSupport {
     @Autowired
     private DaoHelper daoHelper;

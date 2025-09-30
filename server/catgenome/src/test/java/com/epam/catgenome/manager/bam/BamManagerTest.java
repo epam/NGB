@@ -24,12 +24,6 @@
 
 package com.epam.catgenome.manager.bam;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Consumer;
-
 import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.util.MultipartFileSender;
 import com.epam.catgenome.controller.util.ResultReference;
@@ -40,12 +34,7 @@ import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationReques
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.bam.BamFile;
-import com.epam.catgenome.entity.bam.BamQueryOption;
-import com.epam.catgenome.entity.bam.BamTrack;
-import com.epam.catgenome.entity.bam.BamTrackMode;
-import com.epam.catgenome.entity.bam.Read;
-import com.epam.catgenome.entity.bam.TrackDirectionType;
+import com.epam.catgenome.entity.bam.*;
 import com.epam.catgenome.entity.bucket.Bucket;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
@@ -54,12 +43,16 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.bucket.BucketManager;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceManager;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.util.Callback;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -77,11 +70,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
+
+import static org.junit.Assert.*;
 
 /**
  * Source:      BamManagerTest.java
@@ -223,17 +218,17 @@ public class BamManagerTest extends AbstractManagerTest {
         assertEquals(bamFile.getIndex().getPath(), loadBamFile.getIndex().getPath());
 
         assertTrackLoading(bamFile,
-            (option) -> {},
-            (track) -> {
-                testBamTrack(track);
-                Read testRead = track.getBlocks().get(0);
-                testRead(testRead);
-            });
+                (option) -> {},
+                (track) -> {
+                    testBamTrack(track);
+                    Read testRead = track.getBlocks().get(0);
+                    testRead(testRead);
+                });
 
         assertTrackLoading(bamFile, (option) -> option.setTrackDirection(TrackDirectionType.RIGHT), this::testBamTrack);
 
         assertTrackLoading(bamFile,
-            (option) -> option.setTrackDirection(TrackDirectionType.MIDDLE), this::testBamTrack);
+                (option) -> option.setTrackDirection(TrackDirectionType.MIDDLE), this::testBamTrack);
 
         assertTrackLoading(bamFile, (option) -> option.setTrackDirection(null), this::testBamTrack);
 
@@ -294,34 +289,34 @@ public class BamManagerTest extends AbstractManagerTest {
         }, (track) -> assertNull(track.getDownsampleCoverage()));
 
         assertTrackLoading(bamFile, (option) -> {
-            option.setTrackDirection(TrackDirectionType.MIDDLE);
-        }, (track) -> {
-                testBamTrack(track);
-                Read testRead = track.getBlocks().get(0);
-                testRead(testRead);
-            }
+                    option.setTrackDirection(TrackDirectionType.MIDDLE);
+                }, (track) -> {
+                    testBamTrack(track);
+                    Read testRead = track.getBlocks().get(0);
+                    testRead(testRead);
+                }
         );
 
         assertTrackLoading(bamFile, (option) -> {
-            option.setTrackDirection(TrackDirectionType.LEFT);
-            option.setShowClipping(false);
-            option.setShowSpliceJunction(true);
-        }, (track) -> {
-                assertFalse(track.getBlocks().isEmpty());
-                Read testRead = track.getBlocks().get(0);
-                testRead(testRead);
-            }
+                    option.setTrackDirection(TrackDirectionType.LEFT);
+                    option.setShowClipping(false);
+                    option.setShowSpliceJunction(true);
+                }, (track) -> {
+                    assertFalse(track.getBlocks().isEmpty());
+                    Read testRead = track.getBlocks().get(0);
+                    testRead(testRead);
+                }
         );
 
         assertTrackLoading(bamFile, (option) -> {
-            option.setTrackDirection(TrackDirectionType.RIGHT);
-            option.setShowClipping(true);
-            option.setShowSpliceJunction(false);
-        }, (track) -> {
-                assertFalse(track.getBlocks().isEmpty());
-                Read testRead = track.getBlocks().get(0);
-                testRead(testRead);
-            }
+                    option.setTrackDirection(TrackDirectionType.RIGHT);
+                    option.setShowClipping(true);
+                    option.setShowSpliceJunction(false);
+                }, (track) -> {
+                    assertFalse(track.getBlocks().isEmpty());
+                    Read testRead = track.getBlocks().get(0);
+                    testRead(testRead);
+                }
         );
     }
 
@@ -435,25 +430,38 @@ public class BamManagerTest extends AbstractManagerTest {
         String bamUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + path;
         String indexUrl = bamUrl + BAI_EXTENSION;
 
+        // Create and start a Jetty 12 server for testing
         Server server = new Server(UrlTestingUtils.TEST_FILE_SERVER_PORT);
-        server.setHandler(new Handler.Abstract() {
+
+        // Use ServletContextHandler for Jetty 12
+        ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        contextHandler.setContextPath("/");
+
+        server.setHandler(contextHandler);
+
+        // Create a servlet for file serving
+        HttpServlet fileServlet = new HttpServlet() {
             @Override
-            public boolean handle(Request request, Response response, Callback callback) throws Exception {
-                String uri = request.getHttpURI().getPath();
+            protected void doGet(HttpServletRequest request, HttpServletResponse response)
+                    throws ServletException, IOException {
+                String uri = request.getRequestURI();
                 logger.info(uri);
                 File file = new File(resource.getFile().getAbsolutePath() + uri);
+
                 MultipartFileSender fileSender = MultipartFileSender.fromFile(file);
                 try {
                     fileSender.with(request).with(response).serveResource();
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    callback.failed(e);
-                    return true;
+                    logger.error("Error serving file", e);
+                    throw e;
                 }
-                callback.succeeded();
-                return true;
             }
-        });
+        };
+
+        // Add the servlet to handle all requests
+        ServletHolder holder = new ServletHolder(fileServlet);
+        contextHandler.addServlet(holder, "/*");
+
         try {
             server.start();
 
@@ -495,6 +503,7 @@ public class BamManagerTest extends AbstractManagerTest {
             server.stop();
         }
     }
+
 
     @Test
     @Ignore

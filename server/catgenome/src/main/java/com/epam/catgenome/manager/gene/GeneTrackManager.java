@@ -78,7 +78,7 @@ public class GeneTrackManager {
 
     public GeneTrackManager(final TrackHelper trackHelper, final GeneFileManager geneFileManager,
                             final FileManager fileManager, final TaskExecutorService taskExecutorService,
-                            final @Lazy FeatureIndexManager featureIndexManager,
+                            final FeatureIndexManager featureIndexManager,
                             final EnsemblDataManager ensemblDataManager, final UniprotDataManager uniprotDataManager,
                             @Value("${gene.track.index.load.enable:false}") final boolean loadFromIndex) {
         this.trackHelper = trackHelper;

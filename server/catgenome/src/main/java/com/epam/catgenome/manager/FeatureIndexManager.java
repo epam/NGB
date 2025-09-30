@@ -128,7 +128,6 @@ public class FeatureIndexManager {
     private VcfFileManager vcfFileManager;
 
     @Autowired
-    @Lazy
     private VcfManager vcfManager;
 
     @Autowired

@@ -148,9 +148,10 @@ public class MetadataDao extends NamedParameterJdbcDaoSupport {
     }
 
     private String convertEntitiesToString(final String query, final List<EntityVO> entities) {
-        return ENTITIES_PATTERN.matcher(query)
-                .replaceAll(entities.stream()
-                        .map(entity -> String.format("(%d,'%s')", entity.getEntityId(), entity.getEntityClass().name()))
-                        .collect(Collectors.joining(",")));
+        // H2 does not support multi-column IN, so use OR conditions
+        String orConditions = entities.stream()
+            .map(entity -> String.format("(entity_id = %d AND entity_class = '%s')", entity.getEntityId(), entity.getEntityClass().name()))
+            .collect(Collectors.joining(" OR "));
+        return ENTITIES_PATTERN.matcher(query).replaceAll(orConditions);
     }
 }

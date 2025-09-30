@@ -154,7 +154,7 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         if (session == null) {
             return false;
         }
-        return permissionHelper.sessionIsReadable(session);
+        return permissionHelper.sessionIsReadable(session.getId(), session.getSessionValue());
     }
 
     public boolean hasPermissionOnGeneFile(Long projectId, String permission) {

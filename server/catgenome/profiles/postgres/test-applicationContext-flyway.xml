@@ -26,10 +26,11 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <!-- Registers & configures Flyway, used for embedded database update purposes -->
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="flywayConfig" class="org.flywaydb.core.api.configuration.ClassicConfiguration">
+    <!-- Flyway configured via FactoryBean (compatible with Flyway 9+) -->
+    <bean id="flyway" class="com.epam.catgenome.app.FlywayFactoryBean" depends-on="dataSource">
         <property name="schemas" value="catgenome"/>
         <property name="dataSource" ref="dataSource"/>
         <property name="sqlMigrationPrefix" value="v"/>
@@ -41,14 +42,8 @@
         </property>
         <property name="placeholders">
             <map>
-                <entry key="default.admin">
-                    <value>${security.default.admin}</value>
-                </entry>
+                <entry key="default.admin" value="${security.default.admin}"/>
             </map>
         </property>
-    </bean>
-
-    <bean id="flyway" class="org.flywaydb.core.Flyway" depends-on="dataSource" init-method="migrate">
-        <constructor-arg ref="flywayConfig"/>
     </bean>
 </beans>

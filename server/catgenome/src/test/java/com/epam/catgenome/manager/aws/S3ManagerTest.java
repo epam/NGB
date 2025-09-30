@@ -24,18 +24,15 @@
 
 package com.epam.catgenome.manager.aws;
 
-import org.junit.Test;
-import org.mockito.Mockito;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import static org.junit.Assert.*;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.Duration;
-import java.util.function.Consumer;
+import java.util.Date;
 
-import static org.junit.Assert.assertEquals;
+import com.amazonaws.services.s3.AmazonS3;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 public class S3ManagerTest {
 
@@ -46,25 +43,17 @@ public class S3ManagerTest {
     @Test
     public void testGenerateUrl() throws MalformedURLException {
         S3Manager s3Manager = Mockito.spy(S3Manager.class);
-        S3Presigner mockPresigner = Mockito.mock(S3Presigner.class);
-
-        // Use reflection to set the private presigner field
-        try {
-            java.lang.reflect.Field field = S3Manager.class.getDeclaredField("presigner");
-            field.setAccessible(true);
-            field.set(s3Manager, mockPresigner);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to set presigner field", e);
-        }
-
-        PresignedGetObjectRequest mockPresignedRequest = Mockito.mock(PresignedGetObjectRequest.class);
-        Mockito.when(mockPresignedRequest.url()).thenReturn(new URL(TEST_SIGNED_URL));
-
-        Mockito.doReturn(mockPresignedRequest)
-                .when(mockPresigner)
-                .presignGetObject(Mockito.any(Consumer.class));
-
+        AmazonS3 mockClient = Mockito.mock(AmazonS3.class);
+        Mockito.doReturn(new URL(TEST_SIGNED_URL))
+                .when(mockClient)
+                .generatePresignedUrl(
+                        Mockito.eq("bucket"),
+                        Mockito.eq("file.bam"),
+                        Mockito.any(Date.class));
+        Mockito.doReturn(mockClient).when(s3Manager).getClient();
         String result = s3Manager.generateSingedUrl(TEST_URL);
         assertEquals(TEST_SIGNED_URL, result);
     }
+
+
 }

@@ -34,6 +34,7 @@ import com.epam.catgenome.controller.vo.ga4gh.VariantGA4GH;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
+import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.gene.GeneFile;
@@ -72,6 +73,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
@@ -87,6 +89,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Source:      VcfManagerTest.java
@@ -142,8 +146,11 @@ public class VcfManagerTest extends AbstractManagerTest {
     @SpyBean
     private BiologicalDataItemManager biologicalDataItemManager;
 
-    @SpyBean
+    @InjectMocks
     private FeatureIndexManager featureIndexManager;
+
+    @Mock
+    private FeatureIndexDao featureIndexDao;
 
     @SpyBean
     private ReferenceGenomeManager referenceGenomeManager;
@@ -199,6 +206,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
+        Mockito.doNothing().when(featureIndexDao).writeLuceneIndexForFile(any(), any(), any());
 
         Assert.assertNotNull(featureIndexManager);
         Assert.assertNotNull(downloadFileManager);
@@ -293,13 +301,13 @@ public class VcfManagerTest extends AbstractManagerTest {
         String fetchRes1 = readFile("GA4GH_id10473.json");
         String fetchRes2 = readFile("GA4GH_id10473_variant.json");
         Mockito.when(
-                        httpDataManager.fetchData(Mockito.any(), Mockito.any(JSONObject.class)))
+                        httpDataManager.fetchData(any(), any(JSONObject.class)))
                 .thenReturn(fetchRes1)
                 .thenReturn(fetchRes2);
 
         String fetchRes3 = readFile("GA4GH_id10473_param.json");
         Mockito.when(
-                        httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
+                        httpDataManager.fetchData(any(), any(ParameterNameValue[].class)))
                 .thenReturn(fetchRes3);
 
 
@@ -394,7 +402,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         String fetchRes1 = readFile("GA4GH_id10473_variant_2.json");
 
         Mockito.when(
-                        httpDataManager.fetchData(Mockito.any(), Mockito.any(JSONObject.class)))
+                        httpDataManager.fetchData(any(), any(JSONObject.class)))
                 .thenReturn(fetchRes1);
 
 
@@ -538,7 +546,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         String fetchRes3 = readFile("GA4GH_id10473_variant_2.json");
         String fetchRes4 = readFile("GA4GH_id10473_variant_3.json");
         Mockito.when(
-                        httpDataManager.fetchData(Mockito.any(), Mockito.any(JSONObject.class)))
+                        httpDataManager.fetchData(any(), any(JSONObject.class)))
                 .thenReturn(fetchRes1)
                 .thenReturn(fetchRes2)
                 .thenReturn(fetchRes3)
@@ -546,7 +554,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
         String fetchRes5 = readFile("GA4GH_id10473_param.json");
         Mockito.when(
-                        httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class)))
+                        httpDataManager.fetchData(any(), any(ParameterNameValue[].class)))
                 .thenReturn(fetchRes5);
 
         getNextFeature(referenceId, BiologicalDataItemResourceType.FILE);

@@ -182,7 +182,7 @@
                       u.attributes as attributes
                     FROM catgenome.role r
                     LEFT JOIN catgenome.user_role m ON r.id = m.role_id
-                    LEFT JOIN catgenome.user u ON m.user_id = u.id
+                    LEFT JOIN catgenome."user" u ON m.user_id = u.id
                     WHERE r.id = ?
                 ]]>
             </value>
@@ -200,7 +200,7 @@
                       u.attributes as attributes
                     FROM catgenome.role r
                     LEFT JOIN catgenome.user_role m ON r.id = m.role_id
-                    LEFT JOIN catgenome.user u ON m.user_id = u.id
+                    LEFT JOIN catgenome."user" u ON m.user_id = u.id
                 ]]>
             </value>
         </property>

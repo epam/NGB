@@ -202,6 +202,9 @@ public enum BiologicalDataItemFormat {
             isZipped = true;
         }
         BiologicalDataItemFormat format = EXTENSIONS_MAP.get(extension);
+        if (format == null && additionalFormats == null) {
+            throw new IllegalArgumentException(getMessage(ERROR_UNSUPPORTED_FORMAT, extension));
+        }
         if (format == null) {
             format = additionalFormats.get(extension);
             if (format == null) {

@@ -351,13 +351,13 @@ public class PermissionHelper {
                 .anyMatch(node -> Objects.nonNull(node.getReferenceId()));
     }
 
-    public boolean sessionIsReadable(final NGBSession session) {
-        if (isOwner(AclClass.SESSION, session.getId())) {
+    public boolean sessionIsReadable(final Long id, String value) {
+        if (isOwner(AclClass.SESSION, id)) {
             return true;
         }
         try {
-            final NGBSessionValue value = MAPPER.readValue(session.getSessionValue(), NGBSessionValue.class);
-            return value.getTracks().stream().anyMatch(t -> {
+            final NGBSessionValue sessionValue = MAPPER.readValue(value, NGBSessionValue.class);
+            return sessionValue.getTracks().stream().anyMatch(t -> {
                 final Optional<Project> project = Optional.ofNullable(t.getProject()).map(projectManager::load);
                 final Optional<BiologicalDataItem> bioDataItem = Optional.ofNullable(t.getBiologicalDataItem())
                         .flatMap(i -> dataItemManager.findFilesByName(i, true).stream().findFirst());
@@ -370,7 +370,7 @@ public class PermissionHelper {
                 return false;
             });
         } catch (IOException e) {
-            LOGGER.warn("Can't parse session_value and check availability of the session id: " + session.getId(), e);
+            LOGGER.warn("Can't parse session_value and check availability of the session id: " + id, e);
         }
         return false;
     }

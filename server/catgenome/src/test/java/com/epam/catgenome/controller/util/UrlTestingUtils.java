@@ -27,15 +27,18 @@ package com.epam.catgenome.controller.util;
 import java.io.File;
 import java.io.IOException;
 
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Source:      UrlTestingUtils
@@ -58,24 +61,35 @@ public final class UrlTestingUtils {
         Resource resource = context.getResource("classpath:templates");
 
         Server server = new Server(UrlTestingUtils.TEST_FILE_SERVER_PORT);
-        server.setHandler(new Handler.Abstract() {
+
+        // Use ServletContextHandler for Jakarta Servlet API compatibility
+        ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        contextHandler.setContextPath("/");
+
+        server.setHandler(contextHandler);
+
+        // Create a servlet that uses MultipartFileSender
+        HttpServlet fileServlet = new HttpServlet() {
             @Override
-            public boolean handle(Request request, Response response, Callback callback) throws Exception {
-                String uri = request.getHttpURI().getPath();
+            protected void doGet(HttpServletRequest request, HttpServletResponse response)
+                    throws ServletException, IOException {
+                String uri = request.getRequestURI();
                 LOGGER.info(uri);
                 File file = new File(resource.getFile().getAbsolutePath() + uri);
-                MultipartFileSender fileSender = MultipartFileSender.fromFile(file);
+
                 try {
+                    MultipartFileSender fileSender = MultipartFileSender.fromFile(file);
                     fileSender.with(request).with(response).serveResource();
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    callback.failed(e);
-                    return true;
+                    LOGGER.error("Error sending file", e);
+                    throw e;
                 }
-                callback.succeeded();
-                return true;
             }
-        });
+        };
+
+        // Add the servlet to handle all requests
+        ServletHolder holder = new ServletHolder(fileServlet);
+        contextHandler.addServlet(holder, "/*");
 
         return server;
     }

@@ -51,6 +51,7 @@ import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.manager.metadata.MetadataManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import com.epam.catgenome.util.db.Filter;
@@ -94,6 +95,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 @AclSync
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProjectManager implements SecuredEntityManager {
     private final ProjectDao projectDao;
     private final VcfFileDao vcfFileDao;
@@ -217,6 +219,7 @@ public class ProjectManager implements SecuredEntityManager {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public Project load(final String projectName) {
+        log.info("TESTING DAO: Loading project {}", projectName);
         final Project project = projectDao.loadProject(projectName);
         Assert.notNull(project, getMessage(ERROR_PROJECT_NAME_NOT_FOUND, projectName));
         loadProjectStuff(project);
@@ -261,6 +264,7 @@ public class ProjectManager implements SecuredEntityManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public Project create(final Project project, final Long parentId) {
+        log.info("TESTING DAO: Creating project {}", project.getName());
         project.setOwner(authManager.getAuthorizedUser());
 
         Project helpProject = project;
@@ -303,11 +307,15 @@ public class ProjectManager implements SecuredEntityManager {
                         .collect(Collectors.toList()));
                 Reference reference;
                 if (loadedProject.getItems().isEmpty()) {
+                    log.info("TESTING PROJECTMANAGER 4-1: itemsAdded is empty");
                     reference = findReferenceFromBioItems(itemsAdded);
                 } else {
                     reference = findReference(loadedProject.getItems());
                 }
-
+                if(itemsToAdd.stream().noneMatch(item ->
+                        item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE)) {
+                    log.info("TESTING PROJECTMANAGER: Creating new reference for project {}", project.getName());
+                }
                 Assert.isTrue(itemsToAdd.stream().noneMatch(item ->
                                 item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE),
                         getMessage(ERROR_PROJECT_INVALID_REFERENCE));
@@ -333,10 +341,12 @@ public class ProjectManager implements SecuredEntityManager {
                 helpProject = this.load(helpProject.getId());
 
             } else {
-                List<BiologicalDataItem> dataItems = biologicalDataItemDao.loadBiologicalDataItemsByIds(
-                        newProjectItems.parallelStream()
-                                .map(projectItem -> projectItem.getBioDataItem().getId())
-                                .collect(Collectors.toList()));
+                log.info("TESTING PROJECTMANAGER 4-2: project name: {}", project.getName());
+                List<Long> lisst = newProjectItems.parallelStream()
+                        .map(projectItem -> projectItem.getBioDataItem().getId())
+                        .collect(Collectors.toList());
+                log.info("TESTING PROJECTMANAGER 4-2: items to add ids: {}", join(lisst, ", "));
+                List<BiologicalDataItem> dataItems = biologicalDataItemDao.loadBiologicalDataItemsByIds(lisst);
 
                 Reference reference = findReferenceFromBioItems(dataItems);
                 checkReference(reference, dataItems);
@@ -406,6 +416,10 @@ public class ProjectManager implements SecuredEntityManager {
         Reference reference = findReference(loadedProject.getItems());
         List<BiologicalDataItem> itemsToAdd = biologicalDataItemDao
                 .loadBiologicalDataItemsByIds(Collections.singletonList(biologicalItemId));
+        if(itemsToAdd.stream()
+                .noneMatch(item -> item.getFormat() == BiologicalDataItemFormat.REFERENCE)) {
+            log.info("TESTING PROJECTMANAGER 2: Creating new reference for project {}", loadedProject.getName());
+        }
         Assert.isTrue(itemsToAdd.stream()
                         .noneMatch(item -> item.getFormat() == BiologicalDataItemFormat.REFERENCE),
                 getMessage(ERROR_PROJECT_INVALID_REFERENCE));
@@ -687,16 +701,23 @@ public class ProjectManager implements SecuredEntityManager {
                 .filter(item -> item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE)
                 .map(item -> (Reference) item.getBioDataItem())
                 .collect(Collectors.toList());
+        if(!references.isEmpty()) {
+            log.info("TESTING PROJECTMANAGER 3: Found existing reference for project items");
+        }
         Assert.isTrue(!references.isEmpty(), getMessage(ERROR_PROJECT_INVALID_REFERENCE));
         Assert.isTrue(references.size() == 1, getMessage(ERROR_PROJECT_INVALID_REFERENCE));
         return references.get(0);
     }
 
     private Reference findReferenceFromBioItems(final List<BiologicalDataItem> projectItems) {
+        log.info("TESTING PROJECTMANAGER 4: Project items size: {}", projectItems.size());
         List<Reference> references = projectItems.stream()
                 .filter(item -> item.getFormat() == BiologicalDataItemFormat.REFERENCE)
                 .map(item -> (Reference) item)
                 .collect(Collectors.toList());
+        if(!references.isEmpty()) {
+            log.info("TESTING PROJECTMANAGER 4: Found existing reference for project items");
+        }
         Assert.isTrue(!references.isEmpty(), getMessage(ERROR_PROJECT_INVALID_REFERENCE));
         Assert.isTrue(references.size() == 1, getMessage(ERROR_PROJECT_INVALID_REFERENCE));
         return references.get(0);

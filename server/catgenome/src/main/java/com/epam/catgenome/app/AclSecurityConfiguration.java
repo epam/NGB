@@ -25,6 +25,7 @@
 package com.epam.catgenome.app;
 
 import com.epam.catgenome.entity.user.DefaultRoles;
+import com.epam.catgenome.security.acl.JdbcMutableAclServiceImpl;
 import com.epam.catgenome.security.acl.LookupStrategyImpl;
 import com.epam.catgenome.security.acl.PermissionGrantingStrategyImpl;
 import com.epam.catgenome.security.acl.PermissionHelper;
@@ -36,8 +37,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -49,6 +48,7 @@ import org.springframework.security.acls.jdbc.LookupStrategy;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.security.acls.model.PermissionGrantingStrategy;
 import org.springframework.security.acls.model.SidRetrievalStrategy;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -61,9 +61,8 @@ import static com.epam.catgenome.entity.user.DefaultRoles.*;
 
 @Configuration
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
-@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 @ComponentScan(basePackages = "com.epam.catgenome.security.acl")
-@ImportResource("classpath*:conf/catgenome/acl-dao.xml")
 public class AclSecurityConfiguration {
 
     @Autowired
@@ -76,11 +75,43 @@ public class AclSecurityConfiguration {
     private PermissionFactory permissionFactory;
 
     @Autowired
-    @Lazy
-    private JdbcMutableAclService jdbcMutableAclService;
-
-    @Autowired
     private CacheManager cacheManager;
+
+    @Bean
+    public JdbcMutableAclServiceImpl jdbcMutableAclService() {
+        JdbcMutableAclServiceImpl service = new JdbcMutableAclServiceImpl(dataSource, lookupStrategy(), aclCache());
+
+        service.setClassIdentityQuery("SELECT currval('catgenome.acl_class_id_seq')");
+        service.setSidIdentityQuery("SELECT currval('catgenome.acl_sid_id_seq')");
+        service.setSidPrimaryKeyQuery("select id from catgenome.acl_sid where principal=? and sid=?");
+        service.setInsertSidSql("insert into catgenome.acl_sid (principal, sid) values (?, ?)");
+        service.setClassPrimaryKeyQuery("select id from catgenome.acl_class where class=?");
+        service.setDeleteEntryByObjectIdentityForeignKeySql("delete from catgenome.acl_entry where acl_object_identity=?");
+        service.setDeleteObjectIdentityByPrimaryKeySql("delete from catgenome.acl_object_identity where id=?");
+        service.setFindChildrenQuery("select obj.object_id_identity as obj_id, class.class as class " +
+                "from catgenome.acl_object_identity obj, catgenome.acl_object_identity parent, catgenome.acl_class class " +
+                "where obj.parent_object = parent.id " +
+                "and obj.object_id_class = class.id " +
+                "and parent.object_id_identity = cast(? as bigint) " +
+                "and parent.object_id_class = ( " +
+                "    select id FROM catgenome.acl_class where acl_class.class = ? " +
+                ")");
+        service.setInsertClassSql("insert into catgenome.acl_class (class) values (?)");
+        service.setInsertEntrySql("insert into catgenome.acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure) values (?, ?, ?, ?, ?, ?, ?)");
+        service.setInsertObjectIdentitySql("insert into catgenome.acl_object_identity (object_id_class, object_id_identity, owner_sid, entries_inheriting) values (?, cast(? as bigint), ?, ?)");
+        service.setObjectIdentityPrimaryKeyQuery("select acl_object_identity.id " +
+                "from catgenome.acl_object_identity, catgenome.acl_class " +
+                "where acl_object_identity.object_id_class = acl_class.id and acl_class.class=? " +
+                "and acl_object_identity.object_id_identity = cast(? as bigint)");
+        service.setUpdateObjectIdentity("update catgenome.acl_object_identity set parent_object = ?, owner_sid = ?, entries_inheriting = ? where id = ?");
+
+        // Set custom queries for JdbcMutableAclServiceImpl
+        service.setDeleteEntriesBySidQuery("delete from catgenome.acl_entry where sid=?");
+        service.setDeleteSidByIdQuery("delete from catgenome.acl_sid where id=?");
+        service.setLoadEntriesBySidsCountQuery("SELECT count(*) FROM catgenome.acl_entry where sid IN (@in@)");
+
+        return service;
+    }
 
     @Bean
     public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
@@ -120,7 +151,7 @@ public class AclSecurityConfiguration {
 
     @Bean
     public PermissionEvaluator permissionEvaluator() {
-        AclPermissionEvaluator evaluator = new AclPermissionEvaluator(jdbcMutableAclService);
+        AclPermissionEvaluator evaluator = new AclPermissionEvaluator(jdbcMutableAclService());
         evaluator.setPermissionFactory(permissionFactory);
         return evaluator;
     }

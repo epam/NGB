@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -33,7 +34,8 @@ import java.io.PrintStream;
 @EnableScheduling
 @SpringBootApplication(exclude = {
         SecurityAutoConfiguration.class,
-        SecurityFilterAutoConfiguration.class
+        SecurityFilterAutoConfiguration.class,
+        FlywayAutoConfiguration.class
 })
 @Slf4j
 public class Application extends SpringBootServletInitializer {

@@ -57,11 +57,11 @@
             <value>
                 <![CDATA[
                     SELECT
-                            entity_id,
-                            entity_class,
-                            data
-                        FROM catgenome.metadata
-                        WHERE (entity_id, entity_class) IN (@ENTITIES@)
+                        entity_id,
+                        entity_class,
+                        data
+                    FROM catgenome.metadata
+                    WHERE @ENTITIES@
                 ]]>
             </value>
         </property>

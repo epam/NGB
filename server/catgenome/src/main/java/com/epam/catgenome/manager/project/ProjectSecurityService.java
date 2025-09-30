@@ -100,7 +100,7 @@ public class ProjectSecurityService {
 
     @AclTree
     @PreAuthorize(ROLE_ADMIN + OR + PROJECT_WRITE_AND_ITEM_READ)
-    public Project removeProjectItem(Long projectId, Long biologicalItemId) throws FeatureIndexException {
+    public Project removeProjectItem(Long projectId, Long biologicalItemId) {
         return projectManager.removeProjectItem(projectId, biologicalItemId);
     }
 

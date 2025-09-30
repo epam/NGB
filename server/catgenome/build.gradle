@@ -101,12 +101,6 @@ repositories {
     }
 }
 
-dependencyManagement {
-    imports {
-        mavenBom 'software.amazon.awssdk:bom:2.33.13'
-    }
-}
-
 // >>>>> external dependencies used to compile and/or run application
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -148,6 +142,7 @@ dependencies {
     implementation 'org.springframework.security:spring-security-saml2-service-provider'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
 
     implementation "org.springframework.boot:spring-boot-starter-log4j2"
     implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
@@ -190,18 +185,17 @@ dependencies {
 
     // H2 Database Engine & Connection pool
     implementation group: "com.mchange", name: "c3p0", version: "0.11.2"
-    implementation group: "com.h2database", name: "h2", version: "2.3.232"
+    implementation group: "com.h2database", name: "h2", version: "2.4.240"
     implementation group: "org.aspectj", name: "aspectjweaver", version: "1.9.24"
     implementation group: 'org.postgresql', name: 'postgresql', version: "42.7.7"
     // Flyway database migration to update embedded database when application starts
     implementation group: "org.flywaydb", name: "flyway-core", version: "11.12.0"
     implementation group: "org.flywaydb", name: "flyway-database-postgresql", version: "11.12.0"
     //Amazon s3
-    implementation 'software.amazon.awssdk:s3'
-    implementation 'software.amazon.awssdk:sts'
-
-    // Optional: if you need HTTP client (sync)
-    implementation 'software.amazon.awssdk:url-connection-client:2.33.13'
+    implementation group: "software.amazon.awssdk", name: "s3", version:"2.31.14"
+    implementation group: "software.amazon.awssdk", name: "sts", version:"2.31.14"
+    implementation group: "com.amazonaws", name: "aws-java-sdk-s3", version: "1.12.782"
+    implementation group: "com.amazonaws", name: "aws-java-sdk-sts", version: "1.12.782"
 
     // Azure Storage Blob
     implementation group: "com.azure", name: "azure-storage-blob", version: "12.14.0"
@@ -280,7 +274,8 @@ dependencies {
     testImplementation group: "javax.servlet", name: "javax.servlet-api", version: project.ext.versionJavaXServlet
     testImplementation group: "com.jayway.jsonpath", name: "json-path", version: project.ext.versionJayWayJsonPath
     testImplementation group: "com.jayway.jsonpath", name: "json-path-assert", version: project.ext.versionJayWayJsonPath
-    testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '12.0.17'
+    testImplementation group: "org.eclipse.jetty", name: "jetty-server"
+    testImplementation group: "org.eclipse.jetty.ee10", name: "jetty-ee10-servlet"
     testImplementation group: "org.springframework.security", name: "spring-security-test", version: versionSpringSecurity
 
     testCompileOnly 'org.projectlombok:lombok:1.18.36'
