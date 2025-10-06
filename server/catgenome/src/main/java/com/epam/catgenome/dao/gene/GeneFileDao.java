@@ -24,23 +24,22 @@
 
 package com.epam.catgenome.dao.gene;
 
+import com.epam.catgenome.dao.BiologicalDataItemDao;
+import com.epam.catgenome.dao.DaoHelper;
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.gene.GeneFile;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.epam.catgenome.dao.BiologicalDataItemDao;
-import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.gene.GeneFile;
 
 /**
  * Source:      GeneFileDao
@@ -144,36 +143,35 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
         return daoHelper.createId(geneFileSequenceName);
     }
 
-    @Required
     public void setGeneFileSequenceName(String geneFileSequenceName) {
+        Assert.hasText(geneFileSequenceName, "geneFileSequenceName cannot be null or empty");
         this.geneFileSequenceName = geneFileSequenceName;
     }
 
-    @Required
     public void setCreateGeneFileQuery(String createGeneFileQuery) {
+        Assert.hasText(createGeneFileQuery, "createGeneFileQuery cannot be null or empty");
         this.createGeneFileQuery = createGeneFileQuery;
     }
 
-    @Required
     public void setLoadGeneFileQuery(String loadGeneFileQuery) {
+        Assert.hasText(loadGeneFileQuery, "loadGeneFileQuery cannot be null or empty");
         this.loadGeneFileQuery = loadGeneFileQuery;
     }
 
-    @Required
     public void setLoadAllGeneFilesQuery(String loadAllGeneFilesQuery) {
+        Assert.hasText(loadAllGeneFilesQuery, "loadAllGeneFilesQuery cannot be null or empty");
         this.loadAllGeneFilesQuery = loadAllGeneFilesQuery;
     }
 
-    @Required
     public void setDeleteGeneFileQuery(String deleteGeneFileQuery) {
+        Assert.hasText(deleteGeneFileQuery, "deleteGeneFileQuery cannot be null or empty");
         this.deleteGeneFileQuery = deleteGeneFileQuery;
     }
 
-    @Required
     public void setLoadGeneFilesQuery(String loadGeneFilesQuery) {
+        Assert.hasText(loadGeneFilesQuery, "loadGeneFilesQuery cannot be null or empty");
         this.loadGeneFilesQuery = loadGeneFilesQuery;
     }
-
     enum GeneParameters {
         GENE_ITEM_ID,
         REFERENCE_GENOME_ID,

@@ -24,9 +24,9 @@
 
 package com.epam.catgenome.manager.externaldb;
 
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -216,7 +216,7 @@ public class NCBIShortVarManagerTest {
         Mockito.when(ncbiAuxiliaryManager.searchWithHistory(anyString(),
                 anyString(), anyInt())).thenReturn(historyQueryStr);
         Mockito.when(ncbiAuxiliaryManager.fetchWithHistory(anyString(),
-                anyString(), anyObject())).thenReturn(ncbiFetchResponseStr);
+                anyString(), any(NCBIDatabase.class))).thenReturn(ncbiFetchResponseStr);
 
         // act
         List<Variation> variationsList =

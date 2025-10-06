@@ -20,7 +20,7 @@
                         executable,
                         algorithm,
                         options,
-                        owner
+                        "owner"
                     ) VALUES (
                         :TASK_ID,
                         :BLAST_TASK_ID,
@@ -73,7 +73,7 @@
                         executable,
                         algorithm,
                         options,
-                        owner,
+                        "owner",
                         d.database_id,
                         d.name as database_name,
                         d.path as database_path,
@@ -102,7 +102,7 @@
                         executable,
                         algorithm,
                         options,
-                        owner,
+                        "owner",
                         d.database_id,
                         d.name as database_name,
                         d.path as database_path,
@@ -151,8 +151,8 @@
                     SELECT
                         parameter_id,
                         task_id,
-                        parameter,
-                        value
+                        "parameter",
+                        "value"
                     FROM catgenome.task_parameter
                     WHERE task_id = ?
                 ]]>
@@ -164,8 +164,8 @@
                     INSERT INTO catgenome.task_parameter (
                         parameter_id,
                         task_id,
-                        parameter,
-                        value
+                        "parameter",
+                        "value"
                     ) VALUES (
                         :PARAMETER_ID,
                         :TASK_ID,

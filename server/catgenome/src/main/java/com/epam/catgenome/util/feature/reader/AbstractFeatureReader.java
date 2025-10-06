@@ -18,26 +18,15 @@ package com.epam.catgenome.util.feature.reader;
  * FOREGOING.
  */
 
-import htsjdk.tribble.Feature;
-import htsjdk.tribble.FeatureCodec;
-import htsjdk.tribble.AsciiFeatureCodec;
-import htsjdk.tribble.CloseableTribbleIterator;
-import htsjdk.tribble.FeatureCodecHeader;
-import htsjdk.tribble.TribbleException;
-import htsjdk.tribble.FeatureReader;
+import htsjdk.tribble.*;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.util.ParsingUtils;
 import htsjdk.tribble.util.TabixUtils;
 
 import java.io.File;
 import java.io.IOException;
-
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Copied from HTSJDK library. Added: indexCache in getFeatureReader() method
@@ -57,7 +46,7 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
     // protected final QuerySource querySource;
     protected FeatureCodec<T, S> codec;
     protected FeatureCodecHeader header;
-    EhCacheBasedIndexCache indexCache;
+    CaffeineBasedIndexCache indexCache;
 
     private static AbstractFeatureReader.ComponentMethods methods = new AbstractFeatureReader.ComponentMethods();
 
@@ -65,23 +54,23 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
             new HashSet<String>(Arrays.asList(".gz", ".gzip", ".bgz", ".bgzf")));
 
     /**
-     * Calls {@link #getFeatureReader(String, FeatureCodec, boolean, EhCacheBasedIndexCache)}
+     * Calls {@link #getFeatureReader(String, FeatureCodec, boolean, CaffeineBasedIndexCache)}
      * with {@code requireIndex} = true
      */
     public static <F extends Feature, S> AbstractFeatureReader<F, S> getFeatureReader(
             final String featureFile, final FeatureCodec<F, S> codec,
-            EhCacheBasedIndexCache indexCache) throws TribbleException {
+            CaffeineBasedIndexCache indexCache) throws TribbleException {
         return getFeatureReader(featureFile, codec, true, indexCache);
     }
 
     /**
-     * {@link #getFeatureReader(String, String, FeatureCodec, boolean, EhCacheBasedIndexCache)}
+     * {@link #getFeatureReader(String, String, FeatureCodec, boolean, CaffeineBasedIndexCache)}
      * with {@code null} for indexResource
      * @throws TribbleException
      */
     public static <F extends Feature, S> AbstractFeatureReader<F, S> getFeatureReader(
             final String featureResource, final FeatureCodec<F, S> codec,
-            final boolean requireIndex, EhCacheBasedIndexCache indexCache) throws TribbleException {
+            final boolean requireIndex, CaffeineBasedIndexCache indexCache) throws TribbleException {
         return getFeatureReader(featureResource, null, codec, requireIndex, indexCache);
     }
 
@@ -96,7 +85,7 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
      */
     public static <F extends Feature, S> AbstractFeatureReader<F, S> getFeatureReader(
             final String featureResource, String indexResource, final FeatureCodec<F, S> codec,
-            final boolean requireIndex, EhCacheBasedIndexCache indexCache) throws TribbleException {
+            final boolean requireIndex, CaffeineBasedIndexCache indexCache) throws TribbleException {
 
         try {
             // Test for tabix index
@@ -133,7 +122,7 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
      */
     public static <F extends Feature, S> AbstractFeatureReader<F, S> getFeatureReader(
             final String featureResource, final FeatureCodec<F, S>  codec, final Index index,
-            EhCacheBasedIndexCache indexCache) throws TribbleException {
+            CaffeineBasedIndexCache indexCache) throws TribbleException {
         try {
             return new TribbleIndexedFeatureReader<F, S>(featureResource, codec, index, indexCache);
         } catch (IOException e) {

@@ -24,33 +24,38 @@
 
 package com.epam.catgenome.manager.bed;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
+import com.epam.catgenome.entity.BaseEntity;
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.bed.BedFile;
+import com.epam.catgenome.entity.bed.BedRecord;
 import com.epam.catgenome.entity.bed.FileExtensionMapping;
-import com.epam.catgenome.manager.UrlValidatorService;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.entity.wig.Wig;
+import com.epam.catgenome.exception.*;
+import com.epam.catgenome.manager.*;
 import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
+import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
 import com.epam.catgenome.manager.bed.parser.NggbMultiFormatBedCodec;
+import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.util.HistogramUtils;
+import com.epam.catgenome.util.IOHelper;
+import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.Tuple;
 import htsjdk.tribble.AsciiFeatureCodec;
+import htsjdk.tribble.Feature;
+import htsjdk.tribble.readers.LineIterator;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -63,39 +68,17 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.BaseEntity;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.bed.BedFile;
-import com.epam.catgenome.entity.bed.BedRecord;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.entity.wig.Wig;
-import com.epam.catgenome.exception.FeatureFileReadingException;
-import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.manager.FeatureIndexManager;
-import com.epam.catgenome.exception.HistogramReadingException;
-import com.epam.catgenome.exception.HistogramWritingException;
-import com.epam.catgenome.exception.RegistrationException;
-import com.epam.catgenome.manager.BiologicalDataItemManager;
-import com.epam.catgenome.manager.DownloadFileManager;
-import com.epam.catgenome.manager.FileManager;
-import com.epam.catgenome.manager.TrackHelper;
-import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
-import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.util.HistogramUtils;
-import com.epam.catgenome.util.IOHelper;
-import com.epam.catgenome.util.Utils;
-import htsjdk.samtools.util.CloseableIterator;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
-import htsjdk.tribble.Feature;
-import htsjdk.tribble.readers.LineIterator;
-
 import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 /**
  * Provides service for handling {@code BedFile}: CRUD operations and loading data from the files
@@ -128,7 +111,7 @@ public class BedManager {
     private FeatureIndexManager featureIndexManager;
 
     @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
+    private CaffeineBasedIndexCache indexCache;
 
     @Autowired
     private UrlValidatorService urlValidatorService;

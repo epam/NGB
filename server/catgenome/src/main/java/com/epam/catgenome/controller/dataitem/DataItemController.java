@@ -43,10 +43,10 @@ import org.springframework.stereotype.Controller;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -61,7 +61,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  */
 @Controller
-@Api(value = "DATAITEM", description = "Data Item Management")
+@Tag(name = "DATAITEM", description = "Data Item Management")
 public class DataItemController extends AbstractRESTController {
 
     @Autowired
@@ -72,17 +72,16 @@ public class DataItemController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/dataitem/search", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Finds all files registered on the server by a specified file name",
-            notes = "Finds all files registered on the server by a specified file name</br>" +
+    @Operation(
+            summary = "Finds all files registered on the server by a specified file name",
+        description = "Finds all files registered on the server by a specified file name</br>" +
                     "Input arguments:</br>" +
                     "<b>name</b> - search query for the file name,</br>" +
                     "<b>strict</b> - if true a strict, case sensitive search is performed, " +
-                    "otherwise a substring, case insensitive search is performed.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+                    "otherwise a substring, case insensitive search is performed.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public final Result<List<BiologicalDataItem>> findFilesByName(@RequestParam(value = "name") final String name,
             @RequestParam(value = "strict", required = false, defaultValue = "true") final boolean strict) {
         return Result.success(dataItemSecurityService.findFilesByName(name, strict));
@@ -90,25 +89,23 @@ public class DataItemController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/dataitem/formats", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Get all available bed formats.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Get all available bed formats.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Map<String, BiologicalDataItemFormat>> getBedFormats() {
         return Result.success(dataItemSecurityService.getFormats());
     }
 
     @ResponseBody
     @RequestMapping(value = "/dataitem/delete", method = RequestMethod.DELETE)
-    @ApiOperation(
-            value = "Deletes a file, specified by biological item id from the database",
-            notes = "Deletes a file, specified by biological item id from the database",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Deletes a file, specified by biological item id from the database",
+        description = "Deletes a file, specified by biological item id from the database")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public final Result<Boolean>  deleteFileBiBioItemId(@RequestParam(value = "id") final Long id)
             throws IOException {
         BiologicalDataItem deletedFile = dataItemSecurityService.deleteFileByBioItemId(id);
@@ -117,13 +114,12 @@ public class DataItemController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/dataitem/find", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Finds a file, specified by biological item id from the database",
-            notes = "Finds a file, specified by biological item id from the database",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Finds a file, specified by biological item id from the database",
+        description = "Finds a file, specified by biological item id from the database")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public final Result<BiologicalDataItem> findFileBiBioItemId(@RequestParam(value = "id") final Long id)
             throws IOException {
         return Result.success(dataItemSecurityService.findFileByBioItemId(id));
@@ -131,13 +127,12 @@ public class DataItemController extends AbstractRESTController {
 
     @ResponseBody
     @PutMapping(value = "/dataitem/rename")
-    @ApiOperation(
-            value = "Updates file name and/or pretty name.",
-            notes = "Updates file name and/or pretty name.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Updates file name and/or pretty name.",
+        description = "Updates file name and/or pretty name.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public final Result<Boolean> rename(
             @RequestParam(value = "name") final String name,
             @RequestParam(value = "newName", required = false) final String newName,
@@ -147,10 +142,9 @@ public class DataItemController extends AbstractRESTController {
     }
 
     @GetMapping("/dataitem/{id}/download")
-    @ApiOperation(
-            value = "Downloads a file specified by biological item id",
-            notes = "Downloads a file specified by biological item id",
-            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @Operation(
+            summary = "Downloads a file specified by biological item id",
+        description = "Downloads a file specified by biological item id")
     public void downloadFileByBiologicalItemId(
             @PathVariable(value = "id") final Long id,
             @RequestParam(value = "source", defaultValue = "true") final Boolean source,
@@ -163,13 +157,12 @@ public class DataItemController extends AbstractRESTController {
 
     @ResponseBody
     @GetMapping("/dataitem/{id}/downloadUrl")
-    @ApiOperation(
-            value = "Generates download url for file specified by biological item id",
-            notes = "Generates download url for file specified by biological item id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Generates download url for file specified by biological item id",
+        description = "Generates download url for file specified by biological item id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public final Result<BiologicalDataItemDownloadUrl> generateDownloadUrl(@PathVariable(value = "id") final Long id) {
         final BiologicalDataItem biologicalDataItem = dataItemManager.findFileByBioItemId(id);
         return Result.success(dataItemSecurityService.generateDownloadUrl(id, biologicalDataItem));

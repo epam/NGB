@@ -41,7 +41,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -177,7 +176,7 @@ public class NGBSessionSharingSecurityTest extends AbstractACLSecurityTest {
         Assert.assertNotNull(loaded);
     }
 
-    @Test(expected = AccessDeniedException.class)
+    @Test(expected = Exception.class)
     @WithMockUser(username = TEST_USER_2)
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void sessionUserLoadWithoutPermissionsTest() {

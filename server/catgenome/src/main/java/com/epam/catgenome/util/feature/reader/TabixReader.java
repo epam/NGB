@@ -40,11 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Copied from HTSJDK library. Added class TabixIndexCache for saving cache values.
@@ -52,7 +48,7 @@ import java.util.Set;
  * @author Heng Li <hengli@broadinstitute.org>
  */
 public class TabixReader {
-    private EhCacheBasedIndexCache indexCache;
+    private CaffeineBasedIndexCache indexCache;
     private String mFn;
     private String mIdxFn;
     private BlockCompressedInputStream mFp;
@@ -162,7 +158,7 @@ public class TabixReader {
      * @param fn File name of the data file
      * @param idxFn Full path to the index file. Auto-generated if null
      */
-    public TabixReader(final String fn, final String idxFn, EhCacheBasedIndexCache indexCache) throws IOException {
+    public TabixReader(final String fn, final String idxFn, CaffeineBasedIndexCache indexCache) throws IOException {
         this(fn, idxFn, SeekableStreamFactory.getInstance().getBufferedStream(
                 SeekableStreamFactory.getInstance().getStreamFor(fn)), indexCache);
     }
@@ -171,7 +167,7 @@ public class TabixReader {
      * @param fn File name of the data file  (used for error messages only)
      * @param stream Seekable stream from which the data is read
      */
-    public TabixReader(final String fn, SeekableStream stream, EhCacheBasedIndexCache indexCache) throws IOException {
+    public TabixReader(final String fn, SeekableStream stream, CaffeineBasedIndexCache indexCache) throws IOException {
         this(fn, null, stream, indexCache);
     }
 
@@ -181,7 +177,7 @@ public class TabixReader {
      * @param stream Seekable stream from which the data is read
      */
     public TabixReader(final String fn, final String idxFn, SeekableStream stream,
-                       EhCacheBasedIndexCache indexCache) throws IOException {
+                       CaffeineBasedIndexCache indexCache) throws IOException {
         mFn = fn;
         mFp = new BlockCompressedInputStream(stream);
         if (idxFn == null) {

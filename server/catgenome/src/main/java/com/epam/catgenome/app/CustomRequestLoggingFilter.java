@@ -24,8 +24,9 @@
 
 package com.epam.catgenome.app;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
-import javax.servlet.http.HttpServletRequest;
+
 
 public class CustomRequestLoggingFilter extends CommonsRequestLoggingFilter {
 

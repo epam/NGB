@@ -79,7 +79,7 @@ public class Query2TrackConverterTest {
     @Test
     public void convert2ReferenceTest() {
         Track<Sequence> track = Query2TrackConverter.convertToTrack(query);
-        Assert.notNull(track);
+        Assert.notNull(track, "");
         Assert.isTrue(track.getChromosome().getId().equals(chromosomeId), "name");
         Assert.isTrue(track.getId().equals(referenceId), "id");
         Assert.isTrue(track.getEndIndex().equals(endIndex), "endIndex");
@@ -90,7 +90,7 @@ public class Query2TrackConverterTest {
     @Test
     public void convertToSampledTrackTest() {
         final SampledTrack<SegRecord> track = convertToSampledTrack(query);
-        Assert.notNull(track);
+        Assert.notNull(track, "");
         Assert.isTrue(track.getChromosome().getId().equals(chromosomeId), "name");
         Assert.isTrue(track.getId().equals(referenceId), "id");
         Assert.isTrue(track.getEndIndex().equals(endIndex), "endIndex");
@@ -118,7 +118,7 @@ public class Query2TrackConverterTest {
         ProteinSequenceVariationQuery psQuery = new ProteinSequenceVariationQuery(variationTrack, trackQuery);
         Track<MrnaProteinSequenceVariants> track = Query2TrackConverter.convertToTrack(psQuery);
 
-        Assert.notNull(track);
+        Assert.notNull(track, "");
         Assert.isTrue(track.getChromosome().getId().equals(chromosomeId), "name");
         Assert.isTrue(track.getId().equals(referenceId), "id");
         Assert.isTrue(track.getEndIndex().equals(endIndex), "endIndex");

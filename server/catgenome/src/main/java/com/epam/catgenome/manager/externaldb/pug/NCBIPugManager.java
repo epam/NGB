@@ -253,6 +253,6 @@ public class NCBIPugManager extends HttpDataManager{
     }
 
     private static String replaceHttpSymbols(final String data) {
-        return URLEncoder.DEFAULT.encode(data, StandardCharsets.UTF_8.toString());
+        return URLEncoder.DEFAULT.encode(data, StandardCharsets.UTF_8);
     }
 }

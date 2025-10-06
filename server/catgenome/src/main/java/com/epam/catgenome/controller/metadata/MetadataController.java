@@ -28,10 +28,10 @@ import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.metadata.MetadataVO;
 import com.epam.catgenome.manager.metadata.MetadataSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,31 +42,29 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@Api(value = "metadata", description = "Metadata Management")
+@Tag(name = "metadata", description = "Metadata Management")
 public class MetadataController extends AbstractRESTController {
 
     private final MetadataSecurityService metadataSecurityService;
 
     @PostMapping(value = "/metadata")
-    @ApiOperation(
-            value = "Creates or updates metadata",
-            notes = "Creates or updates metadata",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Creates or updates metadata",
+        description = "Creates or updates metadata")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<MetadataVO> upsertMetadata(@RequestBody final MetadataVO metadataVO) {
         return Result.success(metadataSecurityService.upsert(metadataVO));
     }
 
     @GetMapping(value = "/metadata")
-    @ApiOperation(
-            value = "Loads metadata by entity ID and class",
-            notes = "Loads metadata by entity ID and class",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Loads metadata by entity ID and class",
+        description = "Loads metadata by entity ID and class")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<MetadataVO> getMetadata(@RequestParam final Long id, @RequestParam final String entityClass) {
         return Result.success(metadataSecurityService.get(id, entityClass));
     }

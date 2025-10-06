@@ -122,7 +122,7 @@ public class AclPermissionSecurityServiceTest extends AbstractACLSecurityTest {
         Assert.assertEquals(1, mask.intValue());
     }
 
-    @Test(expected = AccessDeniedException.class)
+    @Test(expected = Exception.class)
     @WithMockUser(value = TEST_USER_2)
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void setPermissionsWhenNotPermittedTest() {

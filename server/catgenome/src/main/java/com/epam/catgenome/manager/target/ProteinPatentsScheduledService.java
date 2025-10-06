@@ -33,7 +33,7 @@ public class ProteinPatentsScheduledService {
 
     private final ProteinPatentsManager manager;
 
-    @Scheduled(fixedRateString = "${targets.sequence.patents.search.rate:60000}")
+//    @Scheduled(fixedRateString = "${targets.sequence.patents.search.rate:60000}")
     public void searchPatents() {
         manager.searchPatents();
     }

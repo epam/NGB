@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <Property name="LOG_PATTERN">%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n</Property>
+        <Property name="DETAILED_PATTERN">%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m%n</Property>
+        <Property name="JSON_PATTERN">{"debug_level":"%p","debug_timestamp":"%d{dd/MM/yyyy HH:mm:ss}","debug_thread":"%t","debug_file":"%F","debug_line":"%L","debug_message":"%m"}%n</Property>
+        <Property name="LOG_DIR">./logs</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- Console Appender -->
+        <Console name="stdout" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}" charset="UTF-8"/>
+        </Console>
+
+        <!-- Debug File Appender -->
+        <RollingFile name="debug-appender"
+                     fileName="${LOG_DIR}/catgenome-debug.log"
+                     filePattern="${LOG_DIR}/catgenome-debug-%d{yyyy-MM-dd}.log.gz">
+            <PatternLayout pattern="${DETAILED_PATTERN}" charset="UTF-8"/>
+            <Filters>
+                <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+        </RollingFile>
+
+        <!-- Requests Debug Appender (JSON format) -->
+        <RollingFile name="requests-debug-appender"
+                     fileName="${LOG_DIR}/requests.log"
+                     filePattern="${LOG_DIR}/requests-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${JSON_PATTERN}" charset="UTF-8"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+
+        <!-- Error File Appender -->
+        <RollingFile name="error-appender"
+                     fileName="${LOG_DIR}/catgenome-error.log"
+                     filePattern="${LOG_DIR}/catgenome-error-%d{yyyy-MM-dd}.log.gz">
+            <PatternLayout pattern="${DETAILED_PATTERN}" charset="UTF-8"/>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- Custom Request Logger -->
+        <Logger name="com.epam.catgenome.app.CustomRequestLoggingFilter" level="DEBUG" additivity="false">
+            <AppenderRef ref="requests-debug-appender"/>
+        </Logger>
+
+        <!-- Framework and Third-party Loggers -->
+        <Logger name="org.springframework.aop.framework.CglibAopProxy" level="ERROR"/>
+        <Logger name="org.apache.http.wire" level="ERROR"/>
+        <Logger name="org.apache.http" level="ERROR"/>
+        <Logger name="com.amazonaws" level="ERROR"/>
+        <Logger name="com.epam.gene.catgenome" level="DEBUG"/>
+        <Logger name="org.apache.commons.beanutils" level="WARN"/>
+        <Logger name="com.mchange" level="ERROR"/>
+        <Logger name="org.springframework.jndi" level="ERROR"/>
+
+        <!-- Reduce logging for OpenSAML packages -->
+        <!-- These should catch all OpenSAML-related logging -->
+        <Logger name="org.opensaml" level="WARN" additivity="false"/>
+        <Logger name="net.shibboleth" level="WARN" additivity="false"/>
+
+        <!-- Specifically target algorithm-related classes -->
+        <Logger name="org.opensaml.xmlsec.algorithm" level="ERROR" additivity="false"/>
+        <Logger name="org.opensaml.xmlsec.config" level="ERROR" additivity="false"/>
+
+        <!-- Root Logger -->
+        <Root level="DEBUG">
+            <AppenderRef ref="stdout"/>
+            <AppenderRef ref="debug-appender"/>
+            <AppenderRef ref="error-appender"/>
+        </Root>
+    </Loggers>
+</Configuration>

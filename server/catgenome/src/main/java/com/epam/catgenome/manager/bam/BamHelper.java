@@ -24,53 +24,37 @@
 
 package com.epam.catgenome.manager.bam;
 
-import static com.epam.catgenome.component.MessageCode.RESOURCE_NOT_FOUND;
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static org.apache.commons.lang3.StringUtils.defaultString;
-import static org.apache.commons.lang3.StringUtils.join;
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.AccessDeniedException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import com.epam.catgenome.entity.bam.BamFile;
-import com.epam.catgenome.entity.bam.BamQueryOption;
-import com.epam.catgenome.entity.bam.BamTrack;
-import com.epam.catgenome.entity.bam.BamTrackMode;
-import com.epam.catgenome.entity.bam.Read;
+import com.epam.catgenome.constant.Constants;
+import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.bam.*;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Sequence;
+import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.manager.FileManager;
+import com.epam.catgenome.manager.bam.handlers.Handler;
+import com.epam.catgenome.manager.reference.ReferenceManager;
+import com.epam.catgenome.manager.reference.io.ChromosomeReferenceSequence;
+import com.epam.catgenome.util.BamUtil;
+import com.epam.catgenome.util.ConsensusSequenceUtils;
+import com.epam.catgenome.util.HdfsSeekableInputStream;
+import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
 import com.epam.catgenome.util.azure.AzureBlobClient;
 import com.epam.catgenome.util.azure.AzureBlobSeekableStream;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
 import com.epam.catgenome.util.feature.reader.IndexCache;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFlag;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.SamInputResource;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SamReaderFactory;
-import htsjdk.samtools.ValidationStringency;
+import htsjdk.samtools.*;
+import htsjdk.samtools.cram.ref.ReferenceSource;
+import htsjdk.samtools.filter.*;
 import htsjdk.samtools.seekablestream.SeekableMemoryStream;
+import htsjdk.samtools.util.CloseableIterator;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -85,31 +69,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.epam.catgenome.constant.Constants;
-import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Sequence;
-import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.manager.bam.handlers.Handler;
-import com.epam.catgenome.manager.reference.ReferenceManager;
-import com.epam.catgenome.manager.reference.io.ChromosomeReferenceSequence;
-import com.epam.catgenome.util.BamUtil;
-import com.epam.catgenome.util.ConsensusSequenceUtils;
-import com.epam.catgenome.util.HdfsSeekableInputStream;
-import com.epam.catgenome.util.Utils;
-import htsjdk.samtools.cram.ref.ReferenceSource;
-import htsjdk.samtools.filter.AggregateFilter;
-import htsjdk.samtools.filter.DuplicateReadFilter;
-import htsjdk.samtools.filter.FailsVendorReadQualityFilter;
-import htsjdk.samtools.filter.FilteringSamIterator;
-import htsjdk.samtools.filter.NotPrimaryAlignmentFilter;
-import htsjdk.samtools.filter.SamRecordFilter;
-import htsjdk.samtools.filter.SecondaryOrSupplementaryFilter;
-import htsjdk.samtools.util.CloseableIterator;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.AccessDeniedException;
+import java.util.*;
+
+import static com.epam.catgenome.component.MessageCode.RESOURCE_NOT_FOUND;
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static org.apache.commons.lang3.StringUtils.*;
 
 /**
  * Source:      BamHelper.java
@@ -152,7 +123,7 @@ public class BamHelper {
     private int regionsCount;
 
     @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
+    private CaffeineBasedIndexCache indexCache;
 
     @Autowired
     private AzureBlobClient azureBlobClient;
@@ -246,7 +217,7 @@ public class BamHelper {
                                                     final BamQueryOption options, BamTrackEmitter bamTrackEmitter)
             throws IOException {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
-        Assert.notNull(track.getChromosome().getReferenceId());
+        Assert.notNull(track.getChromosome().getReferenceId(), "");
         final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome());
 
         fillEmitterByReads(bamFile, bamTrack, options, bamTrackEmitter);
@@ -637,7 +608,7 @@ public class BamHelper {
         SAMRecordIterator iterator = reader.query(samSequenceRecord.getSequenceName(),
                 Constants.BAM_START_INDEX_TEST, Math.min(Constants.MAX_BAM_END_INDEX_TEST,
                         samSequenceRecord.getSequenceLength()), false);
-        Assert.notNull(iterator);
+        Assert.notNull(iterator, "");
     }
 
     static class BamIndex implements IndexCache {

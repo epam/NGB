@@ -30,7 +30,7 @@ import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.entity.wig.WigFile;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.FileManager;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,10 +64,10 @@ public abstract class AbstractWigProcessor {
     abstract void assertFile(String requestPath) throws IOException;
 
     abstract Track<Wig> getWigFromFile(WigFile wigFile, Track<Wig> track,
-                                       Chromosome chromosome, EhCacheBasedIndexCache indexCache) throws IOException;
+                                       Chromosome chromosome, CaffeineBasedIndexCache indexCache) throws IOException;
 
     abstract void splitByChromosome(WigFile wigFile, Map<String, Chromosome> chromosomeMap,
-                                    EhCacheBasedIndexCache indexCache) throws IOException;
+                                    CaffeineBasedIndexCache indexCache) throws IOException;
 
     void prepareWigFileToWork(final WigFile wigFile) throws IOException {
      //no-op

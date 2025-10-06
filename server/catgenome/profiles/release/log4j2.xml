@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30" shutdownHook="disable">
+    <Properties>
+        <Property name="LOG_PATTERN">%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n</Property>
+        <Property name="DETAILED_PATTERN">%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m%n</Property>
+        <Property name="JSON_PATTERN">{"level":"%p","timestamp":"%d{dd/MM/yyyy HH:mm:ss}","thread":"%t","logger":"%c","file":"%F","line":"%L","message":"%m"}%n</Property>
+        <Property name="LOG_DIR">./logs</Property>
+        <Property name="MAX_HISTORY">30</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- Console Appender for Errors Only -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}" charset="UTF-8"/>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </Console>
+
+        <!-- Debug File Appender -->
+        <RollingFile name="DebugFile"
+                     fileName="${LOG_DIR}/catgenome-debug.log"
+                     filePattern="${LOG_DIR}/catgenome-debug-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${DETAILED_PATTERN}" charset="UTF-8"/>
+            <Filters>
+                <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="${MAX_HISTORY}"/>
+        </RollingFile>
+
+        <!-- Error File Appender -->
+        <RollingFile name="ErrorFile"
+                     fileName="${LOG_DIR}/catgenome-error.log"
+                     filePattern="${LOG_DIR}/catgenome-error-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${DETAILED_PATTERN}" charset="UTF-8"/>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="${MAX_HISTORY}"/>
+        </RollingFile>
+
+        <!-- Async Appender for Better Performance -->
+        <Async name="AsyncDebug" bufferSize="1000">
+            <AppenderRef ref="DebugFile"/>
+        </Async>
+
+        <Async name="AsyncError" bufferSize="500">
+            <AppenderRef ref="ErrorFile"/>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+        <!-- Framework Loggers -->
+        <Logger name="org.springframework.aop.framework.CglibAopProxy" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncError"/>
+        </Logger>
+
+        <Logger name="org.springframework.jndi" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncError"/>
+        </Logger>
+
+        <!-- Application Loggers -->
+        <Logger name="com.epam.gene.catgenome" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncDebug"/>
+            <AppenderRef ref="AsyncError"/>
+        </Logger>
+
+        <!-- Third-party Loggers -->
+        <Logger name="org.apache.commons.beanutils" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncError"/>
+        </Logger>
+
+        <Logger name="com.mchange" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncError"/>
+        </Logger>
+
+        <!-- Reduce logging for OpenSAML packages -->
+        <!-- These should catch all OpenSAML-related logging -->
+        <Logger name="org.opensaml" level="WARN" additivity="false"/>
+        <Logger name="net.shibboleth" level="WARN" additivity="false"/>
+
+        <!-- Specifically target algorithm-related classes -->
+        <Logger name="org.opensaml.xmlsec.algorithm" level="ERROR" additivity="false"/>
+        <Logger name="org.opensaml.xmlsec.config" level="ERROR" additivity="false"/>
+
+        <!-- Root Logger -->
+        <Root level="DEBUG">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncDebug"/>
+            <AppenderRef ref="AsyncError"/>
+        </Root>
+    </Loggers>
+</Configuration>

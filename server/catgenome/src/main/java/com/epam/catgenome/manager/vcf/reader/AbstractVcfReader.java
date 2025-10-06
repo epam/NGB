@@ -24,12 +24,6 @@
 
 package com.epam.catgenome.manager.vcf.reader;
 
-import static com.epam.catgenome.entity.BiologicalDataItemResourceType.GA4GH;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.track.Track;
@@ -40,7 +34,13 @@ import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import static com.epam.catgenome.entity.BiologicalDataItemResourceType.GA4GH;
 
 /**
  *  {@code AbstractVcfReader} provides an abstract implementation of
@@ -101,7 +101,7 @@ public abstract class AbstractVcfReader implements VcfReader {
     @Override
     public abstract Track<Variation> readVariations(VcfFile vcfFile, Track<Variation> track, Chromosome chromosome,
                             Integer sampleIndex, boolean loadInfo, boolean collapse,
-                                                    EhCacheBasedIndexCache indexCache) throws VcfReadingException;
+                                                    CaffeineBasedIndexCache indexCache) throws VcfReadingException;
 
     /**
      * Allows navigating between the neighbouring variations
@@ -116,6 +116,6 @@ public abstract class AbstractVcfReader implements VcfReader {
     @Override
     public abstract Variation getNextOrPreviousVariation(int fromPosition, VcfFile vcfFile,
                                                 Integer sampleIndex, Chromosome chromosome,
-                                                boolean forward, EhCacheBasedIndexCache indexCache)
+                                                         boolean forward, CaffeineBasedIndexCache indexCache)
             throws VcfReadingException;
 }

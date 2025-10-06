@@ -44,10 +44,10 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.reference.cytoband.Cytoband;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.reference.CytobandManager;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * {@code CytobandController} represents implementation of MVC controller which handles
@@ -57,7 +57,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
  * calls and manage all operations concerned with cytobands.
  */
 @Controller
-@Api(value = "cytobands", description = "Cytobands Management")
+@Tag(name = "cytobands", description = "Cytobands Management")
 public class CytobandController extends AbstractRESTController {
 
     @Autowired
@@ -66,15 +66,14 @@ public class CytobandController extends AbstractRESTController {
     @ResponseBody
     @RequestMapping(value = "/cytobands/upload", method = RequestMethod.POST,
         consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ApiOperation(
-        value = "Handles cytobands upload pointing to a corresponded genome that has to be available in the system.",
-        notes = "The following cytobands file types are supported: *.txt and *.txt.gz.<br/>" +
+    @Operation(
+        summary = "Handles cytobands upload pointing to a corresponded genome that has to be available in the system.",
+        description = "The following cytobands file types are supported: *.txt and *.txt.gz.<br/>" +
             "It results in a payload that provides corresponded genome ID, also a message about succeeded upload " +
-            "is sent back.",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+            "is sent back.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public final Result<Long> saveCytobands(@RequestParam("referenceId") final Long referenceId,
                                             @RequestParam("saveFile") final MultipartFile multipart)
         throws IOException {
@@ -86,20 +85,13 @@ public class CytobandController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/cytobands/{chromosomeId}/get", method = RequestMethod.GET)
-    @ApiOperation(
-        value = "Returns data to fill in a cytogenetic ideogram for a particular chromosome.",
-        notes = "It provides summary of cytobands for a particular chromosome. In a case when no cytobands can be " +
-            "found in the system, this call results in a response with WARN status.",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = "It results in a response with HTTP status OK, but " +
-            "you should always check $.status, which can take several values:<br/>" +
-            "<b>OK</b> means call was done without any problems;<br/>" +
-            "<b>ERROR</b> means call was aborted due to errors;<br/>" +
-            "<b>WARN</b> means call was done without any problems, but there is no an ideogram that is available for " +
-            "a particular chromosome.<br/>" +
-            "In both cases - ERROR or WARN - see $.message for additional information.")
-        })
+    @Operation(
+        summary = "Returns data to fill in a cytogenetic ideogram for a particular chromosome.",
+        description = "It provides summary of cytobands for a particular chromosome. In a case when no cytobands can be " +
+            "found in the system, this call results in a response with WARN status.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public final Result<Track<Cytoband>> loadTrack(@PathVariable final Long chromosomeId) throws IOException {
         final Track<Cytoband> track = cytobandManager.loadCytobands(chromosomeId);
         if (track == null) {

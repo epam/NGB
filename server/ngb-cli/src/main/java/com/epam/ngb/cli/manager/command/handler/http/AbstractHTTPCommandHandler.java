@@ -393,7 +393,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         try {
             final ResponseResult<Map<String, BiologicalDataItemFormat>> responseResult = getMapper().readValue(result,
                     new TypeReference<ResponseResult<Map<String, BiologicalDataItemFormat>>>() {});
-            if (responseResult == null || responseResult.getPayload() == null) {
+            if (responseResult == null) {
                 throw new ApplicationException(getMessage(ERROR_DATAITEM_FORMATS_NOT_FOUND));
             }
             return responseResult.getPayload();

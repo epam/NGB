@@ -24,18 +24,20 @@
 
 package com.epam.catgenome.dao;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
-
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 /**
  * Source:      DaoHelper.java
@@ -60,8 +62,8 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
 
     private String createIdsQuery;
 
-    @Required
     public void setCreateIdQuery(final String createIdQuery) {
+        Assert.hasText(createIdQuery, "createIdQuery cannot be null or empty");
         this.createIdQuery = createIdQuery;
     }
 
@@ -76,7 +78,7 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public Long createId(final String sequenceName) {
-        Assert.isTrue(StringUtils.isNotBlank(sequenceName));
+        Assert.isTrue(StringUtils.isNotBlank(sequenceName), "");
         return getNamedParameterJdbcTemplate().queryForObject(createIdQuery,
             new MapSqlParameterSource(HelperParameters.SEQUENCE_NAME.name(), sequenceName), Long.class);
     }
@@ -99,8 +101,8 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
                         .map(Object::toString).collect(Collectors.joining(",")));
     }
 
-    @Required
     public void setCreateIdsQuery(final String createIdsQuery) {
+        Assert.hasText(createIdsQuery, "createIdsQuery cannot be null or empty");
         this.createIdsQuery = createIdsQuery;
     }
 
@@ -114,7 +116,7 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public List<Long> createIds(final String sequenceName, final int count) {
-        Assert.isTrue(StringUtils.isNotBlank(sequenceName));
+        Assert.isTrue(StringUtils.isNotBlank(sequenceName), "");
         if (count == 0) {
             return Collections.emptyList();
         }

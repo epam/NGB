@@ -25,16 +25,16 @@
 package com.epam.catgenome.dao.reference;
 
 import com.epam.catgenome.entity.reference.Species;
-import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+
+import java.util.List;
 
 /**
  * {@code SpeciesDao} is a DAO component, that handles database interaction with Species data.
@@ -72,7 +72,7 @@ public class SpeciesDao extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public Species loadSpeciesByVersion(String version) {
-        Assert.isTrue(StringUtils.isNotBlank(version));
+        Assert.isTrue(StringUtils.isNotBlank(version), "");
         List<Species> list = getNamedParameterJdbcTemplate().query(loadSpeciesByVersionQuery,
             new MapSqlParameterSource(SpeciesParameters.SPECIES_VERSION.name(), version),
             SpeciesParameters.getRowMapper()
@@ -98,29 +98,28 @@ public class SpeciesDao extends NamedParameterJdbcDaoSupport {
         getNamedParameterJdbcTemplate().update(deleteSpeciesQuery, SpeciesParameters.getParameters(species));
     }
 
-
-    @Required
     public void setLoadSpeciesByVersionQuery(String loadSpeciesByVersionQuery) {
+        Assert.hasText(loadSpeciesByVersionQuery, "loadSpeciesByVersionQuery cannot be null or empty");
         this.loadSpeciesByVersionQuery = loadSpeciesByVersionQuery;
     }
 
-    @Required
     public void setSaveSpeciesQuery(String saveSpeciesQuery) {
+        Assert.hasText(saveSpeciesQuery, "saveSpeciesQuery cannot be null or empty");
         this.saveSpeciesQuery = saveSpeciesQuery;
     }
 
-    @Required
     public void setLoadAllSpeciesQuery(String loadAllSpeciesQuery) {
+        Assert.hasText(loadAllSpeciesQuery, "loadAllSpeciesQuery cannot be null or empty");
         this.loadAllSpeciesQuery = loadAllSpeciesQuery;
     }
 
-    @Required
     public void setDeleteSpeciesQuery(String deleteSpeciesQuery) {
+        Assert.hasText(deleteSpeciesQuery, "deleteSpeciesQuery cannot be null or empty");
         this.deleteSpeciesQuery = deleteSpeciesQuery;
     }
 
-    @Required
     public void setUpdateSpeciesQuery(final String updateSpeciesQuery) {
+        Assert.hasText(updateSpeciesQuery, "updateSpeciesQuery cannot be null or empty");
         this.updateSpeciesQuery = updateSpeciesQuery;
     }
 

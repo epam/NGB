@@ -39,7 +39,7 @@ import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.Utils;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
 import htsjdk.samtools.util.PeekableIterator;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
@@ -67,7 +67,7 @@ public class BedGraphProcessor extends AbstractWigProcessor {
 
     @Override
     protected Track<Wig> getWigFromFile(final WigFile wigFile, final Track<Wig> track,
-                                        final Chromosome chromosome, EhCacheBasedIndexCache indexCache)
+                                        final Chromosome chromosome, CaffeineBasedIndexCache indexCache)
             throws IOException {
         Assert.notNull(wigFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
         TrackHelper.fillBlocks(track, indexes -> new Wig(indexes.getLeft(), indexes.getRight()));
@@ -102,7 +102,7 @@ public class BedGraphProcessor extends AbstractWigProcessor {
 
     @Override
     protected void splitByChromosome(WigFile wigFile, Map<String, Chromosome> chromosomeMap,
-                                     EhCacheBasedIndexCache indexCache) throws IOException {
+                                     CaffeineBasedIndexCache indexCache) throws IOException {
         List<BedGraphFeature> sectionList = new ArrayList<>();
         for (Chromosome chromosome : chromosomeMap.values()) {
             String realChrName = fetchRealChrName(wigFile.getIndex().getPath(), chromosome.getName());
@@ -136,7 +136,7 @@ public class BedGraphProcessor extends AbstractWigProcessor {
     }
 
     private void fillBlocksFromFile(String bedGraphPath, String bedGraphIndexPath, Track<Wig> track,
-                                    String chromosomeName, EhCacheBasedIndexCache indexCache) throws IOException {
+                                    String chromosomeName, CaffeineBasedIndexCache indexCache) throws IOException {
         String realChrName = fetchRealChrName(bedGraphIndexPath, chromosomeName);
         try (PeekableIterator<BedGraphFeature> bedGraphFeatureIterator = new PeekableIterator<>(
                 new BedGraphReader(bedGraphPath, bedGraphIndexPath, indexCache)

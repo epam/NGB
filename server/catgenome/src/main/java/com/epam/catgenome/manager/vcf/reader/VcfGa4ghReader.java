@@ -24,39 +24,12 @@
 
 package com.epam.catgenome.manager.vcf.reader;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.controller.JsonMapper;
-import com.epam.catgenome.controller.vo.ga4gh.CallSetSearch;
-import com.epam.catgenome.controller.vo.ga4gh.GenotypeGA4GH;
-import com.epam.catgenome.controller.vo.ga4gh.VariantGA4GH;
-import com.epam.catgenome.controller.vo.ga4gh.VariantSet;
-import com.epam.catgenome.controller.vo.ga4gh.VariantSetMetadata;
-import com.epam.catgenome.controller.vo.ga4gh.VariantsSearch;
+import com.epam.catgenome.controller.vo.ga4gh.*;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.entity.vcf.Filter;
-import com.epam.catgenome.entity.vcf.GenotypeData;
-import com.epam.catgenome.entity.vcf.OrganismType;
-import com.epam.catgenome.entity.vcf.Variation;
-import com.epam.catgenome.entity.vcf.VariationType;
-import com.epam.catgenome.entity.vcf.VcfFile;
+import com.epam.catgenome.entity.vcf.*;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
 import com.epam.catgenome.exception.VcfReadingException;
@@ -64,9 +37,19 @@ import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.epam.catgenome.manager.vcf.reader.VcfFileReader.isVariation;
 
@@ -91,7 +74,7 @@ public class VcfGa4ghReader extends AbstractVcfReader {
     @Override
     public Track<Variation> readVariations(VcfFile vcfFile, Track<Variation> track, Chromosome chromosome,
                            Integer sampleIndex, boolean loadInfo, final boolean collapse,
-                                           EhCacheBasedIndexCache indexCache) throws VcfReadingException {
+                                           CaffeineBasedIndexCache indexCache) throws VcfReadingException {
         final String start = track.getStartIndex().toString();
         final String end = track.getEndIndex().toString();
         final List<VariantGA4GH> ghList;
@@ -129,7 +112,7 @@ public class VcfGa4ghReader extends AbstractVcfReader {
     @Override
     public Variation getNextOrPreviousVariation(final int fromPosition, final VcfFile vcfFile,
                                                 final Integer sampleIndex, final Chromosome chromosome,
-                                                final boolean forward, EhCacheBasedIndexCache indexCache)
+                                                final boolean forward, CaffeineBasedIndexCache indexCache)
             throws VcfReadingException {
 
         int end = forward ? chromosome.getSize() : 0;

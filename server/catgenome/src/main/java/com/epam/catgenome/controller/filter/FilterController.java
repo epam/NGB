@@ -50,10 +50,10 @@ import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -61,7 +61,7 @@ import javax.servlet.http.HttpServletResponse;
  * A REST controller implementation, responsible for VCF filter services
  */
 @RestController
-@Api(value = "Filter", description = "Filtering operations")
+@Tag(name = "Filter", description = "Filtering operations")
 public class FilterController extends AbstractRESTController {
     @Autowired
     private FeatureIndexSecurityService featureIndexSecurityService;
@@ -70,35 +70,33 @@ public class FilterController extends AbstractRESTController {
     private VcfSecurityService vcfSecurityService;
 
     @RequestMapping(value = "/filter/searchGenes", method = RequestMethod.POST)
-    @ApiOperation(
-        value = "Searches for IDs of genes, that are affected by variations",
-        notes = "Searches for IDs of genes, that are affected by variations located in VCF files, specified by ids",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+    @Operation(
+        summary = "Searches for IDs of genes, that are affected by variations",
+        description = "Searches for IDs of genes, that are affected by variations located in VCF files, specified by ids")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Set<String>> searchGenesInProject(@RequestBody GeneSearchQuery geneQuery) throws IOException {
         return Result.success(featureIndexSecurityService.searchGenesInVcfFiles(geneQuery.getSearch(),
                 geneQuery.getVcfIdsByProject()));
     }
 
     @RequestMapping(value = "/filter/info", method = RequestMethod.POST)
-    @ApiOperation(
-        value = "Returns information about VCF filter by file IDs.",
-        notes = "Returns information about VCF filter by file IDs, all information taken from file header.",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+    @Operation(
+        summary = "Returns information about VCF filter by file IDs.",
+        description = "Returns information about VCF filter by file IDs, all information taken from file header.")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<VcfFilterInfo> getFieldInfo(
             @RequestBody ItemsByProject vcfFileIdsByProjectId) throws IOException {
         return Result.success(vcfSecurityService.getFiltersInfo(vcfFileIdsByProjectId.getValue()));
     }
 
     @RequestMapping(value = "/filter", method = RequestMethod.POST)
-    @ApiOperation(
-        value = "Filters variations for a given VCF file",
-        notes = "Request should contain the following fields: <br/>" +
+    @Operation(
+        summary = "Filters variations for a given VCF file",
+        description = "Request should contain the following fields: <br/>" +
                 "<b>vcfFileIds</b>: an array of IDs of VCF files to filter<br/>" +
                 "other fields are optional: <br/>" +
                 "<b>chromosomeId</b>: an ID of a chromosome to load variations</br>" +
@@ -149,20 +147,19 @@ public class FilterController extends AbstractRESTController {
                 "okay<br/>" +
                 "<b>impact</b>: an impact of a variation</br>" +
                 "<b>effect</b>: an effect of a variation</br>" +
-                "<b>info</b>: an object, containing requested additional info fields, if they are present",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+                "<b>info</b>: an object, containing requested additional info fields, if they are present")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Callable<Result<IndexSearchResult<VcfIndexEntry>>> filterVcf(@RequestBody final VcfFilterForm filterForm)
         throws IOException {
         return () -> Result.success(featureIndexSecurityService.filterVariations(filterForm));
     }
 
     @RequestMapping(value = "/filter/export", method = RequestMethod.POST)
-    @ApiOperation(
-        value = "Filters variations for a given VCF file and exports to CSV/TSV",
-        notes = "Request should contain the following fields: <br/>" +
+    @Operation(
+        summary = "Filters variations for a given VCF file and exports to CSV/TSV",
+        description = "Request should contain the following fields: <br/>" +
                 "<b>vcfFileIds</b>: an array of IDs of VCF files to filter<br/>" +
                 "other fields are optional: <br/>" +
                 "<b>chromosomeId</b>: an ID of a chromosome to load variations</br>" +
@@ -213,9 +210,10 @@ public class FilterController extends AbstractRESTController {
                 "okay<br/>" +
                 "<b>impact</b>: an impact of a variation</br>" +
                 "<b>effect</b>: an effect of a variation</br>" +
-                "<b>info</b>: an object, containing requested additional info fields, if they are present",
-        produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    @ApiResponses(value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)})
+                "<b>info</b>: an object, containing requested additional info fields, if they are present")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public void exportVcf(@RequestBody final VcfExportFilterForm filterForm,
                           @RequestParam final FileFormat format,
                           @RequestParam final boolean includeHeader,
@@ -226,9 +224,9 @@ public class FilterController extends AbstractRESTController {
     }
 
     @RequestMapping(value = "/filter/group", method = RequestMethod.POST)
-    @ApiOperation(
-        value = "Groups variations by given field for a given set of VCF files, according to filter",
-        notes = "Request should contain the following fields: <br/>" +
+    @Operation(
+        summary = "Groups variations by given field for a given set of VCF files, according to filter",
+        description = "Request should contain the following fields: <br/>" +
                 "<b>vcfFileIds</b>: an array of IDs of VCF files to filter<br/>" +
                 "other fields are optional: <br/>" +
                 "<b>chromosomeId</b>: an ID of a chromosome to load variations</br>" +
@@ -273,11 +271,10 @@ public class FilterController extends AbstractRESTController {
                 "okay<br/>" +
                 "<b>impact</b>: an impact of a variation</br>" +
                 "<b>effect</b>: an effect of a variation</br>" +
-                "<b>info</b>: an object, containing requested additional info fields, if they are present",
-        produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
+                "<b>info</b>: an object, containing requested additional info fields, if they are present")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Callable<Result<List<Group>>> groupVariations(
                                                 @RequestBody final VcfFilterForm filterForm,
                                                 @RequestParam String groupBy) {

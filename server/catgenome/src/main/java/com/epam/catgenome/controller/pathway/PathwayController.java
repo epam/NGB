@@ -33,10 +33,10 @@ import com.epam.catgenome.entity.pathway.PathwayQueryParams;
 import com.epam.catgenome.entity.pathway.SpeciesDescription;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.manager.pathway.PathwaySecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.MediaType;
@@ -53,45 +53,42 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@Api(value = "pathway", description = "Metabolic Pathways Management")
+@Tag(name = "pathway", description = "Metabolic Pathways Management")
 @RequiredArgsConstructor
 public class PathwayController extends AbstractRESTController {
 
     private final PathwaySecurityService pathwaySecurityService;
 
     @GetMapping(value = "/pathway/{pathwayId}")
-    @ApiOperation(
-            value = "Returns a pathway by id",
-            notes = "Returns a pathway by id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns a pathway by id",
+        description = "Returns a pathway by id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<NGBPathway> loadPathway(@PathVariable final Long pathwayId,
                                           @RequestParam(required = false) final Long projectId) {
         return Result.success(pathwaySecurityService.loadPathway(pathwayId, projectId));
     }
 
     @GetMapping(value = "/pathway/all")
-    @ApiOperation(
-            value = "Returns all registered pathways",
-            notes = "Returns all registered pathways",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns all registered pathways",
+        description = "Returns all registered pathways")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<NGBPathway>> loadPathways(@RequestParam(required = false) final Long projectId) {
         return Result.success(pathwaySecurityService.loadPathways(projectId));
     }
 
     @GetMapping(value = "/pathway/content/{pathwayId}")
-    @ApiOperation(
-            value = "Returns a pathway file content by pathway id",
-            notes = "Returns a pathway file content by pathway id",
-            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns a pathway file content by pathway id",
+        description = "Returns a pathway file content by pathway id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public void loadPathwayContent(@PathVariable final Long pathwayId,
                                    @RequestParam(required = false) final Long projectId,
                                    final HttpServletResponse response) throws IOException {
@@ -101,65 +98,60 @@ public class PathwayController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/pathways")
-    @ApiOperation(
-            value = "Returns pathways page",
-            notes = "Returns pathways page",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns pathways page",
+        description = "Returns pathways page")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Page<NGBPathway>> loadPathways(@RequestBody final PathwayQueryParams params)
             throws IOException, ParseException {
         return Result.success(pathwaySecurityService.loadPathways(params));
     }
 
     @PostMapping(value = "/pathway")
-    @ApiOperation(
-            value = "Registers new pathway",
-            notes = "Registers new pathway",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Registers new pathway",
+        description = "Registers new pathway")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<NGBPathway> registerPathway(@RequestBody final PathwayRegistrationRequest request)
             throws IOException {
         return Result.success(pathwaySecurityService.registerPathway(request));
     }
 
     @PostMapping(value = "/biopax")
-    @ApiOperation(
-            value = "Registers new BioPAX file",
-            notes = "Registers new BioPAX file",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Registers new BioPAX file",
+        description = "Registers new BioPAX file")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> registerBioPAX(@RequestBody final BioPAXRegistrationRequest request) throws IOException {
         pathwaySecurityService.registerBioPAX(request);
         return Result.success(null);
     }
 
     @DeleteMapping(value = "/pathway/{pathwayId}")
-    @ApiOperation(
-            value = "Deletes a pathway, specified by id",
-            notes = "Deletes a pathway, specified by id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Deletes a pathway, specified by id",
+        description = "Deletes a pathway, specified by id")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<Boolean> deletePathway(@PathVariable final long pathwayId) throws IOException {
         pathwaySecurityService.deletePathway(pathwayId);
         return Result.success(null);
     }
 
     @GetMapping(value = "/pathway/species")
-    @ApiOperation(
-            value = "Returns list of unique species associated with pathways",
-            notes = "Returns list of unique species associated with pathways",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
+    @Operation(
+            summary = "Returns list of unique species associated with pathways",
+        description = "Returns list of unique species associated with pathways")
+    @ApiResponse(responseCode = HTTP_STATUS_OK,
+            description = API_STATUS_DESCRIPTION,
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     public Result<List<SpeciesDescription>> loadSpecies() {
         return Result.success(pathwaySecurityService.loadSpecies());
     }

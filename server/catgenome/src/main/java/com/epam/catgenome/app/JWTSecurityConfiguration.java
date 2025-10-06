@@ -34,22 +34,27 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.saml.SAMLAuthenticationProvider;
-import org.springframework.security.saml.SAMLEntryPoint;
+import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,10 +63,12 @@ import java.util.stream.Collectors;
  * Class provides JWT Security Configuration for Spring Boot application according to property file
  */
 @Configuration
-@ConditionalOnProperty(prefix = "jwt.security.", name = "enable", havingValue = "true")
+@EnableWebSecurity
+@EnableMethodSecurity
+@ConditionalOnProperty(value = "jwt.security.enable", havingValue = "true")
 @Order(1)
 @ComponentScan(basePackages = {"com.epam.catgenome.security.jwt"})
-public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class JWTSecurityConfiguration {
 
     @Value("${jwt.key.public}")
     private String publicKey;
@@ -72,51 +79,55 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Value("${security.frame-options.disable:false}")
     private boolean frameOptionsDisable;
 
-    @Autowired
-    private SAMLAuthenticationProvider samlAuthenticationProvider;
-
-    @Autowired
-    private SAMLEntryPoint samlEntryPoint;
-
     private static final String CLAIM_DELIMITER = "=";
-
-    private static final String ROUTE_URL = "/restapi/navigate";
 
     protected String getPublicKey() {
         return publicKey;
     }
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(samlAuthenticationProvider);
-        auth.authenticationProvider(jwtAuthenticationProvider());
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .exceptionHandling()
-                .defaultAuthenticationEntryPointFor(
-                        samlEntryPoint, getRedirectRequestMatcher())
-                .defaultAuthenticationEntryPointFor(
-                        new RestAuthenticationEntryPoint(), new AntPathRequestMatcher(getSecuredResources()))
-                .and()
-                .requestMatcher(getFullRequestMatcher())
-                .authorizeRequests()
-                    .antMatchers(HttpMethod.OPTIONS).permitAll()
-                    .antMatchers(getUnsecuredResources()).permitAll()
-                    .antMatchers(getSecuredResources()).authenticated()
-                .and()
-                .headers().httpStrictTransportSecurity().disable()
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .and()
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .defaultAuthenticationEntryPointFor(
+                                new RestAuthenticationEntryPoint(),
+                                new AntPathRequestMatcher(getSecuredResources())
+                        )
+                )
+                .securityMatcher(getFullRequestMatcher())
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(HttpMethod.OPTIONS).permitAll()
+                        .requestMatchers(getUnsecuredResources()).permitAll()
+                        .requestMatchers(getSecuredResources()).authenticated()
+                )
+                .headers(headers -> headers
+                        .httpStrictTransportSecurity(HeadersConfigurer.HstsConfig::disable)
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                )
                 .addFilterBefore(getJwtAuthenticationFilter(),
                         UsernamePasswordAuthenticationFilter.class);
 
         if (frameOptionsDisable) {
-            http.headers().frameOptions().disable();
+            http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
         }
+
+        return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            JwtAuthenticationProvider jwtAuthenticationProvider,
+            @Autowired(required = false) OpenSaml4AuthenticationProvider openSamlAuthenticationProvider) {
+
+        List<AuthenticationProvider> providers = new ArrayList<>();
+        if (openSamlAuthenticationProvider != null) {
+            providers.add(openSamlAuthenticationProvider);
+        }
+        providers.add(jwtAuthenticationProvider);
+        return new ProviderManager(providers);
     }
 
     @Bean
@@ -143,8 +154,8 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     protected String[] getUnsecuredResources() {
         return new String[] {
-            "/swagger-ui/**", "/api-docs/**", "/", "/index.html", "/app.css", "/app.bundle.js", "/ngb-logo.png",
-            "/error-401.html"
+                "/swagger-ui/**", "/api-docs/**", "/", "/index.html", "/app.css", "/app.bundle.js", "/ngb-logo.png",
+                "/error-401.html", "/saml2/**"
         };
     }
 
@@ -158,15 +169,5 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
                     String[] splittedClaims = v.split(CLAIM_DELIMITER);
                     return new ImmutablePair<>(splittedClaims[0], splittedClaims[1]);
                 }).collect(Collectors.toList());
-    }
-
-    private String[] redirectedUrls() {
-        return new String[] { ROUTE_URL };
-    }
-
-    private RequestMatcher getRedirectRequestMatcher() {
-        return new OrRequestMatcher(Arrays.stream(redirectedUrls())
-                .map(AntPathRequestMatcher::new)
-                .collect(Collectors.toCollection(ArrayList::new)));
     }
 }

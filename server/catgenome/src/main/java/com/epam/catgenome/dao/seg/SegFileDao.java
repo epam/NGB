@@ -24,26 +24,20 @@
 
 package com.epam.catgenome.dao.seg;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.seg.SegSample;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.*;
 
 /**
  * <p>
@@ -239,53 +233,53 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    @Required
     public void setSegFileSequenceName(String segFileSequenceName) {
+        Assert.hasText(segFileSequenceName, "segFileSequenceName cannot be null or empty");
         this.segFileSequenceName = segFileSequenceName;
     }
 
-    @Required
     public void setCreateSegFileQuery(String createSegFileQuery) {
+        Assert.hasText(createSegFileQuery, "createSegFileQuery cannot be null or empty");
         this.createSegFileQuery = createSegFileQuery;
     }
 
-    @Required
     public void setLoadSegFileQuery(String loadSegFileQuery) {
+        Assert.hasText(loadSegFileQuery, "loadSegFileQuery cannot be null or empty");
         this.loadSegFileQuery = loadSegFileQuery;
     }
 
-    @Required
     public void setDeleteSegFileQuery(String deleteSegFileQuery) {
+        Assert.hasText(deleteSegFileQuery, "deleteSegFileQuery cannot be null or empty");
         this.deleteSegFileQuery = deleteSegFileQuery;
     }
 
-    @Required
     public void setCreateSamplesForFileQuery(String createSamplesForFileQuery) {
+        Assert.hasText(createSamplesForFileQuery, "createSamplesForFileQuery cannot be null or empty");
         this.createSamplesForFileQuery = createSamplesForFileQuery;
     }
 
-    @Required
     public void setLoadSamplesForFileQuery(String loadSamplesForFileQuery) {
+        Assert.hasText(loadSamplesForFileQuery, "loadSamplesForFileQuery cannot be null or empty");
         this.loadSamplesForFileQuery = loadSamplesForFileQuery;
     }
 
-    @Required
     public void setLoadSamplesByFileIdsQuery(String loadSamplesByFileIdsQuery) {
+        Assert.hasText(loadSamplesByFileIdsQuery, "loadSamplesByFileIdsQuery cannot be null or empty");
         this.loadSamplesByFileIdsQuery = loadSamplesByFileIdsQuery;
     }
 
-    @Required
     public void setLoadSamplesForFilesByReferenceIdQuery(String loadSamplesForFilesByReferenceIdQuery) {
+        Assert.hasText(loadSamplesForFilesByReferenceIdQuery, "loadSamplesForFilesByReferenceIdQuery cannot be null or empty");
         this.loadSamplesForFilesByReferenceIdQuery = loadSamplesForFilesByReferenceIdQuery;
     }
 
-    @Required
     public void setSegSampleSequenceName(String segSampleSequenceName) {
+        Assert.hasText(segSampleSequenceName, "segSampleSequenceName cannot be null or empty");
         this.segSampleSequenceName = segSampleSequenceName;
     }
 
-    @Required
     public void setDeleteSamplesQuery(String deleteSamplesQuery) {
+        Assert.hasText(deleteSamplesQuery, "deleteSamplesQuery cannot be null or empty");
         this.deleteSamplesQuery = deleteSamplesQuery;
     }
 }

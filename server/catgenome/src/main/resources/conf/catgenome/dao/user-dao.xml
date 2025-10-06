@@ -43,7 +43,7 @@
                         r.user_default as role_user_default,
                         NULL as group_id,
                         NULL as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
                         LEFT JOIN catgenome.role r ON ur.role_id = r.id
                     WHERE LOWER(u.name) LIKE LOWER(:USER_NAME)
@@ -58,7 +58,7 @@
                         NULL as role_user_default,
                         g.id as group_id,
                         g.name as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
                         LEFT JOIN catgenome.security_group g ON ug.group_id = g.id
                     WHERE LOWER(u.name) LIKE LOWER(:USER_NAME)
@@ -69,7 +69,7 @@
         <property name="createUserQuery">
             <value>
                 <![CDATA[
-                    INSERT INTO catgenome.user (
+                    INSERT INTO catgenome."user" (
                         id,
                         name,
                         attributes)
@@ -159,7 +159,7 @@
                         r.user_default as role_user_default,
                         NULL as group_id,
                         NULL as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
                         LEFT JOIN catgenome.role r ON ur.role_id = r.id
                     WHERE LOWER(u.name) = LOWER(?)
@@ -174,7 +174,7 @@
                         NULL as role_user_default,
                         g.id as group_id,
                         g.name as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
                         LEFT JOIN catgenome.security_group g ON ug.group_id = g.id
                     WHERE LOWER(u.name) = LOWER(?)
@@ -196,7 +196,7 @@
                         r.user_default as role_user_default,
                         NULL as group_id,
                         NULL as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
                         LEFT JOIN catgenome.role r ON ur.role_id = r.id
                     UNION
@@ -210,7 +210,7 @@
                         NULL as role_user_default,
                         g.id as group_id,
                         g.name as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
                         LEFT JOIN catgenome.security_group g ON ug.group_id = g.id
                 ]]>
@@ -230,7 +230,7 @@
                         r.user_default as role_user_default,
                         NULL as group_id,
                         NULL as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
                         LEFT JOIN catgenome.role r ON ur.role_id = r.id
                     WHERE
@@ -246,7 +246,7 @@
                         NULL as role_user_default,
                         g.id as group_id,
                         g.name as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
                         LEFT JOIN catgenome.security_group g ON ug.group_id = g.id
 
@@ -269,7 +269,7 @@
                         r.user_default as role_user_default,
                         NULL as group_id,
                         NULL as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
                         LEFT JOIN catgenome.role r ON ur.role_id = r.id
                         LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
@@ -286,7 +286,7 @@
                         NULL as role_user_default,
                         g.id as group_id,
                         g.name as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
                         LEFT JOIN catgenome.security_group g ON ug.group_id = g.id
 
@@ -299,14 +299,14 @@
         <property name="deleteUserQuery">
             <value>
                 <![CDATA[
-                    DELETE FROM catgenome.user WHERE id = ?
+                    DELETE FROM catgenome."user" WHERE id = ?
                 ]]>
             </value>
         </property>
         <property name="updateUserQuery">
             <value>
                 <![CDATA[
-                    UPDATE catgenome.user SET
+                    UPDATE catgenome."user" SET
                         name = :USER_NAME,
                         attributes = :ATTRIBUTES
                     WHERE
@@ -363,7 +363,7 @@
                         r.user_default as role_user_default,
                         NULL as group_id,
                         NULL as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
                         LEFT JOIN catgenome.role r ON ur.role_id = r.id
                     WHERE LOWER(u.name) IN @in@
@@ -378,7 +378,7 @@
                         NULL as role_user_default,
                         g.id as group_id,
                         g.name as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
                         LEFT JOIN catgenome.security_group g ON ug.group_id = g.id
                     WHERE
@@ -399,7 +399,7 @@
                         r.user_default as role_user_default,
                         NULL as group_id,
                         NULL as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
                         LEFT JOIN catgenome.role r ON ur.role_id = r.id
                         LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
@@ -416,7 +416,7 @@
                         NULL as role_user_default,
                         g.id as group_id,
                         g.name as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
                         LEFT JOIN catgenome.security_group g ON ug.group_id = g.id
 
@@ -439,7 +439,7 @@
                         r.user_default as role_user_default,
                         NULL as group_id,
                         NULL as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
                         LEFT JOIN catgenome.role r ON ur.role_id = r.id
                     WHERE u.id in (:IDS)
@@ -454,7 +454,7 @@
                         NULL as role_user_default,
                         g.id as group_id,
                         g.name as group_name
-                    FROM catgenome.user u
+                    FROM catgenome."user" u
                         LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
                         LEFT JOIN catgenome.security_group g ON ug.group_id = g.id
 

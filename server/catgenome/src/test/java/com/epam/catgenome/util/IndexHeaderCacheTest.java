@@ -1,11 +1,15 @@
 package com.epam.catgenome.util;
 
 import com.epam.catgenome.common.AbstractManagerTest;
-import com.epam.catgenome.util.feature.reader.*;
-import htsjdk.tribble.*;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
+import htsjdk.tribble.Feature;
+import htsjdk.tribble.FeatureReader;
+import htsjdk.tribble.Tribble;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
@@ -14,12 +18,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.junit.Test;
-
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test features of IndexCacheHeaderTest: check if get indexes and headers from cache.
@@ -35,7 +39,7 @@ public class IndexHeaderCacheTest<T extends Feature, S> extends AbstractManagerT
 
     @Spy
     @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
+    private CaffeineBasedIndexCache indexCache;
 
     private static final String FELIS_CATUS_VCF = "classpath:templates/Felis_catus.vcf";
     private static final String FELIS_CATUS_IDX = "classpath:templates/Felis_catus.idx";

@@ -1,7 +1,7 @@
-import com.moowork.gradle.node.npm.NpmInstallTask
+import com.github.gradle.node.npm.task.NpmInstallTask
 
 plugins {
-    id "com.moowork.node" version "1.1.1"
+  id "com.github.node-gradle.node" version "7.1.0"
 }
 
 def nodeVersion = "14.17.5"

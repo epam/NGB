@@ -1,16 +1,16 @@
-CREATE TABLE catgenome.user (
+CREATE TABLE IF NOT EXISTS catgenome."user" (
     id BIGINT NOT NULL primary key,
     name VARCHAR(1024) NOT NULL,
     attributes VARCHAR(1000000),
     CONSTRAINT unique_key_user_name UNIQUE (name)
 );
 
-CREATE TABLE catgenome.security_group (
+CREATE TABLE IF NOT EXISTS catgenome.security_group (
   id BIGINT NOT NULL PRIMARY KEY,
   name VARCHAR(1024) NOT NULL UNIQUE
 );
 
-CREATE TABLE catgenome.role (
+CREATE TABLE IF NOT EXISTS catgenome.role (
     id BIGINT NOT NULL primary key,
     name VARCHAR(1024) NOT NULL,
     predefined BOOLEAN DEFAULT FALSE NOT NULL,
@@ -18,14 +18,14 @@ CREATE TABLE catgenome.role (
     CONSTRAINT unique_key_role_name UNIQUE (name)
 );
 
-CREATE TABLE catgenome.user_security_group (
-    user_id BIGINT NOT NULL REFERENCES catgenome.user (id),
+CREATE TABLE IF NOT EXISTS catgenome.user_security_group (
+    user_id BIGINT NOT NULL REFERENCES catgenome."user" (id),
     group_id BIGINT NOT NULL REFERENCES catgenome.security_group (id),
     CONSTRAINT unique_key_user_groups UNIQUE (user_id,group_id)
 );
 
-CREATE TABLE catgenome.user_role (
-    user_id BIGINT NOT NULL REFERENCES catgenome.user (id),
+CREATE TABLE IF NOT EXISTS catgenome.user_role (
+    user_id BIGINT NOT NULL REFERENCES catgenome."user" (id),
     role_id BIGINT NOT NULL REFERENCES catgenome.role (id),
     CONSTRAINT unique_key_user_roles UNIQUE (user_id,role_id)
 );
@@ -44,19 +44,19 @@ CREATE SEQUENCE catgenome.S_USER START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE catgenome.S_SECURITY_GROUP START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE catgenome.S_ROLE START WITH 100 INCREMENT BY 1;
 
-CREATE SEQUENCE catgenome.acl_sid_id_seq START 1 INCREMENT 1;
-CREATE SEQUENCE catgenome.acl_class_id_seq START 1 INCREMENT 1;
-CREATE SEQUENCE catgenome.acl_entry_id_seq START 1 INCREMENT 1;
-CREATE SEQUENCE catgenome.acl_object_identity_id_seq START 1 INCREMENT 1;
+CREATE SEQUENCE catgenome.acl_sid_id_seq START WITH 1 INCREMENT 1;
+CREATE SEQUENCE catgenome.acl_class_id_seq START WITH 1 INCREMENT 1;
+CREATE SEQUENCE catgenome.acl_entry_id_seq START WITH 1 INCREMENT 1;
+CREATE SEQUENCE catgenome.acl_object_identity_id_seq START WITH 1 INCREMENT 1;
 
-CREATE TABLE catgenome.acl_sid (
+CREATE TABLE IF NOT EXISTS catgenome.acl_sid (
     id BIGINT not null default nextval('catgenome.acl_sid_id_seq') primary key,
     principal boolean not null,
     sid VARCHAR(1024) not null,
     constraint unique_uk_1 unique(sid,principal)
 );
 
-CREATE TABLE catgenome.acl_class(
+CREATE TABLE IF NOT EXISTS catgenome.acl_class(
     id bigint not null default nextval('catgenome.acl_class_id_seq') primary key,
     class varchar(100) not null,
     constraint unique_uk_2 unique(class)
@@ -74,7 +74,7 @@ INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.wig.W
 INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.reference.Bookmark');
 INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.bucket.Bucket');
 
-CREATE TABLE catgenome.acl_object_identity (
+CREATE TABLE IF NOT EXISTS catgenome.acl_object_identity (
     id BIGINT default nextval('catgenome.acl_object_identity_id_seq') primary key,
     object_id_class bigint not null,
     object_id_identity bigint not null,
@@ -87,7 +87,7 @@ CREATE TABLE catgenome.acl_object_identity (
     constraint foreign_fk_3 foreign key(owner_sid)references acl_sid(id)
 );
 
-CREATE TABLE catgenome.acl_entry (
+CREATE TABLE IF NOT EXISTS catgenome.acl_entry (
     id BIGINT default nextval('catgenome.acl_entry_id_seq') primary key,
     acl_object_identity bigint not null,
     ace_order int not null,

@@ -43,10 +43,7 @@ import java.time.ZoneId;
 import java.util.Base64;
 import java.util.List;
 
-import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_ORG_UNIT_ID;
-import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_USER_ID;
-import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_GROUPS;
-import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_ROLES;
+import static com.epam.catgenome.entity.security.JwtTokenClaims.*;
 
 /**
  * Class represents JWT token verification
@@ -95,7 +92,7 @@ public class JwtTokenVerifier {
 
     private Long fetchUserIdFromToken(final Claim decodedToken) {
         Integer userId = decodedToken.asInt();
-        return userId != null ? new Long(userId) : null;
+        return userId != null ? Long.valueOf(userId) : null;
     }
 
     private JwtTokenClaims validateClaims(JwtTokenClaims tokenClaims) {

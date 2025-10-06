@@ -24,19 +24,18 @@
 
 package com.epam.catgenome.dao.person;
 
-import java.util.List;
-
+import com.epam.catgenome.dao.DaoHelper;
+import com.epam.catgenome.entity.person.Person;
+import com.epam.catgenome.entity.person.PersonRole;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
-import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.person.Person;
-import com.epam.catgenome.entity.person.PersonRole;
+import java.util.List;
 
 /**
  * {@code PersonDao} is a DAO component, that handles database interaction with MAF file metadata.
@@ -169,33 +168,33 @@ public class PersonDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    @Required
     public void setPersonSequenceName(String personSequenceName) {
+        Assert.hasText(personSequenceName, "personSequenceName cannot be null or empty");
         this.personSequenceName = personSequenceName;
     }
 
-    @Required
     public void setInsertPersonQuery(String insertPersonQuery) {
+        Assert.hasText(insertPersonQuery, "insertPersonQuery cannot be null or empty");
         this.insertPersonQuery = insertPersonQuery;
     }
 
-    @Required
     public void setLoadPersonByIdQuery(String loadPersonByIdQuery) {
+        Assert.hasText(loadPersonByIdQuery, "loadPersonByIdQuery cannot be null or empty");
         this.loadPersonByIdQuery = loadPersonByIdQuery;
     }
 
-    @Required
     public void setLoadPersonByNameAndPasswordQuery(String loadPersonByNameAndPasswordQuery) {
+        Assert.hasText(loadPersonByNameAndPasswordQuery, "loadPersonByNameAndPasswordQuery cannot be null or empty");
         this.loadPersonByNameAndPasswordQuery = loadPersonByNameAndPasswordQuery;
     }
 
-    @Required
     public void setLoadPersonByNameQuery(String loadPersonByNameQuery) {
+        Assert.hasText(loadPersonByNameQuery, "loadPersonByNameQuery cannot be null or empty");
         this.loadPersonByNameQuery = loadPersonByNameQuery;
     }
 
-    @Required
     public void setUpdatePersonQuery(String updatePersonQuery) {
+        Assert.hasText(updatePersonQuery, "updatePersonQuery cannot be null or empty");
         this.updatePersonQuery = updatePersonQuery;
     }
 }

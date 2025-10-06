@@ -24,21 +24,19 @@
 
 package com.epam.catgenome.app;
 
-import static com.epam.catgenome.entity.user.DefaultRoles.*;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.sql.DataSource;
-
+import com.epam.catgenome.entity.user.DefaultRoles;
+import com.epam.catgenome.security.acl.JdbcMutableAclServiceImpl;
+import com.epam.catgenome.security.acl.LookupStrategyImpl;
+import com.epam.catgenome.security.acl.PermissionGrantingStrategyImpl;
+import com.epam.catgenome.security.acl.PermissionHelper;
 import com.epam.catgenome.security.acl.customexpression.NGBMethodSecurityExpressionHandler;
-import net.sf.ehcache.config.PinningConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.ehcache.EhCacheFactoryBean;
-import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -51,20 +49,21 @@ import org.springframework.security.acls.model.AclCache;
 import org.springframework.security.acls.model.PermissionGrantingStrategy;
 import org.springframework.security.acls.model.SidRetrievalStrategy;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
-
-import com.epam.catgenome.entity.user.DefaultRoles;
-import com.epam.catgenome.security.acl.*;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import javax.sql.DataSource;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.epam.catgenome.entity.user.DefaultRoles.*;
 
 @Configuration
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
-@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 @ComponentScan(basePackages = "com.epam.catgenome.security.acl")
-@ImportResource("classpath*:conf/catgenome/acl-dao.xml")
-public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration {
-
-    private static final int UNLIMITED_NUMBER_OF_ENTITIES = 0;
+public class AclSecurityConfiguration {
 
     @Autowired
     private ApplicationContext context;
@@ -76,12 +75,47 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
     private PermissionFactory permissionFactory;
 
     @Autowired
-    private JdbcMutableAclService jdbcMutableAclService;
+    private CacheManager cacheManager;
 
-    @Override
-    protected MethodSecurityExpressionHandler createExpressionHandler() {
-        NGBMethodSecurityExpressionHandler expressionHandler =
-            new NGBMethodSecurityExpressionHandler();
+    @Bean
+    public JdbcMutableAclServiceImpl jdbcMutableAclService() {
+        JdbcMutableAclServiceImpl service = new JdbcMutableAclServiceImpl(dataSource, lookupStrategy(), aclCache());
+
+        service.setClassIdentityQuery("SELECT currval('catgenome.acl_class_id_seq')");
+        service.setSidIdentityQuery("SELECT currval('catgenome.acl_sid_id_seq')");
+        service.setSidPrimaryKeyQuery("select id from catgenome.acl_sid where principal=? and sid=?");
+        service.setInsertSidSql("insert into catgenome.acl_sid (principal, sid) values (?, ?)");
+        service.setClassPrimaryKeyQuery("select id from catgenome.acl_class where class=?");
+        service.setDeleteEntryByObjectIdentityForeignKeySql("delete from catgenome.acl_entry where acl_object_identity=?");
+        service.setDeleteObjectIdentityByPrimaryKeySql("delete from catgenome.acl_object_identity where id=?");
+        service.setFindChildrenQuery("select obj.object_id_identity as obj_id, class.class as class " +
+                "from catgenome.acl_object_identity obj, catgenome.acl_object_identity parent, catgenome.acl_class class " +
+                "where obj.parent_object = parent.id " +
+                "and obj.object_id_class = class.id " +
+                "and parent.object_id_identity = cast(? as bigint) " +
+                "and parent.object_id_class = ( " +
+                "    select id FROM catgenome.acl_class where acl_class.class = ? " +
+                ")");
+        service.setInsertClassSql("insert into catgenome.acl_class (class) values (?)");
+        service.setInsertEntrySql("insert into catgenome.acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure) values (?, ?, ?, ?, ?, ?, ?)");
+        service.setInsertObjectIdentitySql("insert into catgenome.acl_object_identity (object_id_class, object_id_identity, owner_sid, entries_inheriting) values (?, cast(? as bigint), ?, ?)");
+        service.setObjectIdentityPrimaryKeyQuery("select acl_object_identity.id " +
+                "from catgenome.acl_object_identity, catgenome.acl_class " +
+                "where acl_object_identity.object_id_class = acl_class.id and acl_class.class=? " +
+                "and acl_object_identity.object_id_identity = cast(? as bigint)");
+        service.setUpdateObjectIdentity("update catgenome.acl_object_identity set parent_object = ?, owner_sid = ?, entries_inheriting = ? where id = ?");
+
+        // Set custom queries for JdbcMutableAclServiceImpl
+        service.setDeleteEntriesBySidQuery("delete from catgenome.acl_entry where sid=?");
+        service.setDeleteSidByIdQuery("delete from catgenome.acl_sid where id=?");
+        service.setLoadEntriesBySidsCountQuery("SELECT count(*) FROM catgenome.acl_entry where sid IN (@in@)");
+
+        return service;
+    }
+
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+        NGBMethodSecurityExpressionHandler expressionHandler = new NGBMethodSecurityExpressionHandler();
         expressionHandler.setPermissionEvaluator(permissionEvaluator());
         expressionHandler.setRoleHierarchy(roleHierarchy());
         expressionHandler.setApplicationContext(context);
@@ -90,43 +124,41 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
     }
 
     @Bean
-    public SidRetrievalStrategy sidRetrievalStrategy() {
-        return new SidRetrievalStrategyImpl(roleHierarchy());
-    }
-
-    @Bean
     public RoleHierarchy roleHierarchy() {
         RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-        roleHierarchy.setHierarchy(ROLE_ADMIN.getName() + " > " +
-                ROLE_USER.getName());
+        roleHierarchy.setHierarchy(ROLE_ADMIN.getName() + " > " + ROLE_USER.getName());
 
-        List<DefaultRoles> managerRoles = Arrays.asList(ROLE_REFERENCE_MANAGER, ROLE_BAM_MANAGER, ROLE_VCF_MANAGER,
-                ROLE_GENE_MANAGER, ROLE_BED_MANAGER, ROLE_WIG_MANAGER, ROLE_SEG_MANAGER);
+        List<DefaultRoles> managerRoles = Arrays.asList(
+                ROLE_REFERENCE_MANAGER, ROLE_BAM_MANAGER, ROLE_VCF_MANAGER,
+                ROLE_GENE_MANAGER, ROLE_BED_MANAGER, ROLE_WIG_MANAGER, ROLE_SEG_MANAGER
+        );
 
-        managerRoles.forEach(role -> roleHierarchy.setHierarchy(ROLE_ADMIN.getName() + " > " + role.getName()));
-        roleHierarchy.setHierarchy(managerRoles.stream().map(DefaultRoles::getName)
+        for (DefaultRoles role : managerRoles) {
+            roleHierarchy.setHierarchy(ROLE_ADMIN.getName() + " > " + role.getName());
+        }
+
+        // All manager roles are equivalent
+        roleHierarchy.setHierarchy(managerRoles.stream()
+                .map(DefaultRoles::getName)
                 .collect(Collectors.joining(" == ")));
-        managerRoles.forEach(role -> roleHierarchy.setHierarchy(role.getName() + " > " + ROLE_USER.getName()));
+
+        for (DefaultRoles role : managerRoles) {
+            roleHierarchy.setHierarchy(role.getName() + " > " + ROLE_USER.getName());
+        }
 
         return roleHierarchy;
     }
 
     @Bean
     public PermissionEvaluator permissionEvaluator() {
-        AclPermissionEvaluator evaluator = new AclPermissionEvaluator(jdbcMutableAclService);
+        AclPermissionEvaluator evaluator = new AclPermissionEvaluator(jdbcMutableAclService());
         evaluator.setPermissionFactory(permissionFactory);
         return evaluator;
     }
 
-    /*@Bean
-    public JdbcMutableAclService jdbcMutableAclService() {
-        return new JdbcMutableAclServiceImpl(dataSource, lookupStrategy(), aclCache());
-    }*/
-
     @Bean
-    public LookupStrategy lookupStrategy() {
-        return new LookupStrategyImpl(dataSource, aclCache(), aclAuthorizationStrategy(),
-                                      auditLogger(), permissionFactory, permissionGrantingStrategy());
+    public SidRetrievalStrategy sidRetrievalStrategy() {
+        return new SidRetrievalStrategyImpl(roleHierarchy());
     }
 
     @Bean
@@ -145,31 +177,17 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
     }
 
     @Bean
+    public LookupStrategy lookupStrategy() {
+        return new LookupStrategyImpl(dataSource, aclCache(), aclAuthorizationStrategy(),
+                auditLogger(), permissionFactory, permissionGrantingStrategy());
+    }
+
+    @Bean
     public AclCache aclCache() {
-        return new EhCacheBasedAclCache(ehCacheFactoryBean().getObject(),
-                permissionGrantingStrategy(), aclAuthorizationStrategy());
-    }
-
-    @Bean
-    public EhCacheFactoryBean ehCacheFactoryBean() {
-        int aclSecurityCachePeriodInSeconds = context.getEnvironment()
-                .getProperty("security.acl.cache.period", Integer.class, -1);
-        EhCacheFactoryBean factoryBean = new EhCacheFactoryBean();
-        factoryBean.setCacheManager(ehCacheManagerFactoryBean().getObject());
-        factoryBean.setCacheName("aclCache");
-        if (aclSecurityCachePeriodInSeconds > 0) {
-            factoryBean.maxEntriesLocalHeap(UNLIMITED_NUMBER_OF_ENTITIES);
-            factoryBean.setTimeToLive(aclSecurityCachePeriodInSeconds);
-            factoryBean.setTimeToIdle(aclSecurityCachePeriodInSeconds);
-            factoryBean.pinning(new PinningConfiguration().store(PinningConfiguration.Store.LOCALMEMORY));
+        org.springframework.cache.Cache springCache = cacheManager.getCache("aclCache");
+        if (springCache == null) {
+            throw new IllegalStateException("Cache 'aclCache' not found in CacheManager");
         }
-        return factoryBean;
-    }
-
-    @Bean
-    public EhCacheManagerFactoryBean ehCacheManagerFactoryBean() {
-        EhCacheManagerFactoryBean factoryBean = new EhCacheManagerFactoryBean();
-        factoryBean.setCacheManagerName("aclCacheManager");
-        return factoryBean;
+        return new SpringCacheBasedAclCache(springCache, permissionGrantingStrategy(), aclAuthorizationStrategy());
     }
 }

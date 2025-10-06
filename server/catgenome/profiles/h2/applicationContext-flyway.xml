@@ -28,11 +28,15 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <!-- Registers & configures Flyway, used for embedded database update purposes -->
-    <bean id="flyway" class="org.flywaydb.core.Flyway" depends-on="dataSource" init-method="migrate">
+    <bean id="flywayConfig" class="org.flywaydb.core.api.configuration.ClassicConfiguration">
         <property name="schemas" value="CATGENOME"/>
         <property name="dataSource" ref="dataSource"/>
         <property name="sqlMigrationPrefix" value="v"/>
-        <property name="locations" value="classpath:database/catgenome/h2"/>
+        <property name="locations">
+            <list>
+                <value>classpath:database/catgenome/h2</value>
+            </list>
+        </property>
         <property name="placeholders">
             <map>
                 <entry key="default.admin">
@@ -40,5 +44,9 @@
                 </entry>
             </map>
         </property>
+    </bean>
+
+    <bean id="flyway" class="org.flywaydb.core.Flyway" depends-on="dataSource" init-method="migrate">
+        <constructor-arg ref="flywayConfig"/>
     </bean>
 </beans>

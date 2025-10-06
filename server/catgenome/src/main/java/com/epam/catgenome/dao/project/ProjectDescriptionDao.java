@@ -29,7 +29,6 @@ import com.epam.catgenome.entity.project.ProjectDescription;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -37,6 +36,7 @@ import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.io.InputStream;
 import java.util.Collections;
@@ -155,53 +155,53 @@ public class ProjectDescriptionDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    @Required
     public void setProjectDescriptionSequenceName(final String projectDescriptionSequenceName) {
+        Assert.hasText(projectDescriptionSequenceName, "projectDescriptionSequenceName cannot be null or empty");
         this.projectDescriptionSequenceName = projectDescriptionSequenceName;
     }
 
-    @Required
     public void setSaveProjectDescriptionQuery(final String saveProjectDescriptionQuery) {
+        Assert.hasText(saveProjectDescriptionQuery, "saveProjectDescriptionQuery cannot be null or empty");
         this.saveProjectDescriptionQuery = saveProjectDescriptionQuery;
     }
 
-    @Required
     public void setUpdateProjectDescriptionQuery(final String updateProjectDescriptionQuery) {
+        Assert.hasText(updateProjectDescriptionQuery, "updateProjectDescriptionQuery cannot be null or empty");
         this.updateProjectDescriptionQuery = updateProjectDescriptionQuery;
     }
 
-    @Required
     public void setDeleteProjectDescriptionByProjectIdQuery(final String deleteProjectDescriptionByProjectIdQuery) {
+        Assert.hasText(deleteProjectDescriptionByProjectIdQuery, "deleteProjectDescriptionByProjectIdQuery cannot be null or empty");
         this.deleteProjectDescriptionByProjectIdQuery = deleteProjectDescriptionByProjectIdQuery;
     }
 
-    @Required
     public void setDeleteProjectDescriptionByIdQuery(final String deleteProjectDescriptionByIdQuery) {
+        Assert.hasText(deleteProjectDescriptionByIdQuery, "deleteProjectDescriptionByIdQuery cannot be null or empty");
         this.deleteProjectDescriptionByIdQuery = deleteProjectDescriptionByIdQuery;
     }
 
-    @Required
     public void setFindProjectDescriptionContentByIdQuery(final String findProjectDescriptionContentByIdQuery) {
+        Assert.hasText(findProjectDescriptionContentByIdQuery, "findProjectDescriptionContentByIdQuery cannot be null or empty");
         this.findProjectDescriptionContentByIdQuery = findProjectDescriptionContentByIdQuery;
     }
 
-    @Required
     public void setFindProjectDescriptionsByProjectIdQuery(final String findProjectDescriptionsByProjectIdQuery) {
+        Assert.hasText(findProjectDescriptionsByProjectIdQuery, "findProjectDescriptionsByProjectIdQuery cannot be null or empty");
         this.findProjectDescriptionsByProjectIdQuery = findProjectDescriptionsByProjectIdQuery;
     }
 
-    @Required
     public void setFindProjectDescriptionByIdQuery(final String findProjectDescriptionByIdQuery) {
+        Assert.hasText(findProjectDescriptionByIdQuery, "findProjectDescriptionByIdQuery cannot be null or empty");
         this.findProjectDescriptionByIdQuery = findProjectDescriptionByIdQuery;
     }
 
-    @Required
     public void setFindProjectDescriptionsByProjectIdsQuery(final String findProjectDescriptionsByProjectIdsQuery) {
+        Assert.hasText(findProjectDescriptionsByProjectIdsQuery, "findProjectDescriptionsByProjectIdsQuery cannot be null or empty");
         this.findProjectDescriptionsByProjectIdsQuery = findProjectDescriptionsByProjectIdsQuery;
     }
 
-    @Required
     public void setFindProjectDescriptionsQuery(final String findProjectDescriptionsQuery) {
+        Assert.hasText(findProjectDescriptionsQuery, "findProjectDescriptionsQuery cannot be null or empty");
         this.findProjectDescriptionsQuery = findProjectDescriptionsQuery;
     }
 }

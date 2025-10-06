@@ -90,7 +90,7 @@ public class CytobandControllerTest extends AbstractControllerTest {
         final Resource resource = getTemplateResource(FileTemplates.HP_CYTOBANDS.getPath());
         final MockMultipartFile multipartFile = new MockMultipartFile(UPLOAD_FILE_PARAM, resource.getFilename(),
                 null, resource.getInputStream());
-        builder = MockMvcRequestBuilders.fileUpload(SAVE_CYTOBANDS);
+        builder = MockMvcRequestBuilders.multipart(SAVE_CYTOBANDS);
         actions = mvc()
                 .perform(builder
                         .file(multipartFile)

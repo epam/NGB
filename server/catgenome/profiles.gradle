@@ -1,45 +1,43 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
-// copies properties file and filers resources based on environment
+// copies properties file and filters resources based on environment
 task copyConfiguration {
     doLast {
         println "Target profile: $profile"
         println "Target database: $database"
         println "Build number: $buildNumber"
-//    version.build = buildNumber
-        // specifies the content root directory? used to store
-        //filterTokens.putAt("rootDirPath", profile == "dev" ? escape(rootDir.absolutePath)  : "")
+
         filterTokens.putAt("rootDirPath", escape(rootDir.absolutePath))
         filterTokens.putAt("version", escape("$version"))
 
         copy {
             from "profiles/$profile"
-            into "$buildDir/resources/main"
+            into layout.buildDirectory.dir("resources/main").get().asFile
             include "*/"
             filter(ReplaceTokens, tokens: project.filterTokens)
         }
 
         copy {
             from "profiles/version.properties"
-            into "$buildDir/resources/main"
+            into layout.buildDirectory.dir("resources/main").get().asFile
             filter(ReplaceTokens, tokens: project.filterTokens)
         }
 
         copy {
             from "profiles/$database"
-            into "$buildDir/resources/main/conf/catgenome"
+            into layout.buildDirectory.dir("resources/main/conf/catgenome").get().asFile
             include "applicationContext*"
         }
 
         copy {
             from "profiles/$database/dao"
-            into "$buildDir/resources/main/conf/catgenome/dao"
+            into layout.buildDirectory.dir("resources/main/conf/catgenome/dao").get().asFile
             include "dao-helper.xml"
         }
 
         copy {
             from "profiles/$database"
-            into "$buildDir/resources/test"
+            into layout.buildDirectory.dir("resources/test").get().asFile
             include "test*"
             filter(ReplaceTokens, tokens: project.filterTokens)
         }

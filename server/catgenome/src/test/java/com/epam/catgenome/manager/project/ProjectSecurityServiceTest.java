@@ -186,7 +186,7 @@ public class ProjectSecurityServiceTest extends AbstractACLSecurityTest {
     @Test
     @WithMockUser(TEST_USER2)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void addItemProjectTest() throws FeatureIndexException {
+    public void addItemProjectTest() {
         projectSecurityService.removeProjectItem(project.getId(), bam2.getBioDataItemId());
         Project loaded = projectSecurityService.load(project.getId());
         Assert.assertNotNull(loaded);

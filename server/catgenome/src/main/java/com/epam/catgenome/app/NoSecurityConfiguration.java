@@ -26,29 +26,34 @@ package com.epam.catgenome.app;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
 
-/**
- * Class represents Configuration to disables security according to property file
- */
 @Configuration
 @ConditionalOnProperty(prefix = "jwt.security.", name = "enable", havingValue = "false")
 @Order(3)
-public class NoSecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class NoSecurityConfiguration {
 
     @Value("${security.frame-options.disable:false}")
     private boolean frameOptionsDisable;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers("/*").permitAll().and().csrf().disable();
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/*").permitAll()
+                )
+                .csrf(AbstractHttpConfigurer::disable);
 
         if (frameOptionsDisable) {
-            http.headers().frameOptions().disable();
+            http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
         }
-    }
 
+        return http.build();
+    }
 }

@@ -102,7 +102,7 @@ public class PdbDataManager {
     }
 
     private String replaceHttpSymbols(final String query, final String pdbIds) {
-        return URLEncoder.DEFAULT.encode(String.format(query, pdbIds), StandardCharsets.UTF_8.toString());
+        return URLEncoder.DEFAULT.encode(String.format(query, pdbIds), StandardCharsets.UTF_8);
     }
 
     private Dasalignment parseToDasalignment(final DasalignmentDTO das) {

@@ -40,6 +40,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -75,6 +76,7 @@ import com.epam.catgenome.manager.reference.ReferenceManager;
 @RunWith(SpringJUnit4ClassRunner.class)
 @WebAppConfiguration()
 @ContextConfiguration({"classpath:applicationContext-test.xml", "classpath:catgenome-servlet-test.xml"})
+@Profile("h2")
 public class BamControllerTest extends AbstractControllerTest {
     private static final String BAM_FILE_REGISTER = "/restapi/bam/register";
     private static final String BAM_FILE_UNREGISTER = "/restapi/secure/bam/register";

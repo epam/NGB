@@ -27,11 +27,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.jackson.Jacksonized;
 
 @Setter
 @Getter
 @Builder
 @AllArgsConstructor
+@Jacksonized
 public class PagingInfo {
     private int pageSize;
     private int pageNum;

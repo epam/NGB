@@ -24,17 +24,6 @@
 
 package com.epam.catgenome.dao;
 
-import static com.epam.catgenome.dao.BiologicalDataItemDao.BiologicalDataItemParameters.getRowMapper;
-import static com.epam.catgenome.entity.BiologicalDataItem.getBioDataItemId;
-import static com.epam.catgenome.util.Utils.addPagingInfoToQuery;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.BiologicalDataItem;
@@ -56,19 +45,28 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.wig.WigFile;
-
 import com.epam.catgenome.util.db.PagingInfo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import static com.epam.catgenome.dao.BiologicalDataItemDao.BiologicalDataItemParameters.getRowMapper;
+import static com.epam.catgenome.entity.BiologicalDataItem.getBioDataItemId;
+import static com.epam.catgenome.util.Utils.addPagingInfoToQuery;
 
 /**
  * Source:      BiologicalDataItemDao
@@ -654,65 +652,65 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         }
 
     }
-    @Required
     public void setInsertBiologicalDataItemQuery(String insertBiologicalDataItemQuery) {
+        Assert.hasText(insertBiologicalDataItemQuery, "Insert query cannot be null or empty");
         this.insertBiologicalDataItemQuery = insertBiologicalDataItemQuery;
     }
 
-    @Required
     public void setLoadBiologicalDataItemsByIdsQuery(String loadBiologicalDataItemsByIdsQuery) {
+        Assert.hasText(loadBiologicalDataItemsByIdsQuery, "Load query cannot be null or empty");
         this.loadBiologicalDataItemsByIdsQuery = loadBiologicalDataItemsByIdsQuery;
     }
 
-    @Required
     public void setLoadBiologicalDataItemsQuery(String loadBiologicalDataItemsQuery) {
+        Assert.hasText(loadBiologicalDataItemsQuery, "Load query cannot be null or empty");
         this.loadBiologicalDataItemsQuery = loadBiologicalDataItemsQuery;
     }
 
-    @Required
     public void setUpdateBiologicalDataItemQuery(String updateBiologicalDataItemQuery) {
+        Assert.hasText(updateBiologicalDataItemQuery, "Update query cannot be null or empty");
         this.updateBiologicalDataItemQuery = updateBiologicalDataItemQuery;
     }
 
-    @Required
     public void setBiologicalDataItemSequenceName(String biologicalDataItemSequenceName) {
+        Assert.hasText(biologicalDataItemSequenceName, "Sequence name cannot be null or empty");
         this.biologicalDataItemSequenceName = biologicalDataItemSequenceName;
     }
 
-    @Required
     public void setDeleteBiologicalDataItemQuery(String deleteBiologicalDataItemQuery) {
+        Assert.hasText(deleteBiologicalDataItemQuery, "Delete query cannot be null or empty");
         this.deleteBiologicalDataItemQuery = deleteBiologicalDataItemQuery;
     }
 
-    @Required
     public void setLoadBiologicalDataItemsByNameStrictQuery(
             String loadBiologicalDataItemsByNameStrictQuery) {
+        Assert.hasText(loadBiologicalDataItemsByNameStrictQuery, "Strict query cannot be null or empty");
         this.loadBiologicalDataItemsByNameStrictQuery = loadBiologicalDataItemsByNameStrictQuery;
     }
 
-    @Required
     public void setLoadBiologicalDataItemsByNameQuery(String loadBiologicalDataItemsByNameQuery) {
+        Assert.hasText(loadBiologicalDataItemsByNameQuery, "Name query cannot be null or empty");
         this.loadBiologicalDataItemsByNameQuery = loadBiologicalDataItemsByNameQuery;
     }
 
-    @Required
     public void setLoadBiologicalDataItemsByNamesStrictQuery(String loadBiologicalDataItemsByNamesStrictQuery) {
+        Assert.hasText(loadBiologicalDataItemsByNamesStrictQuery, "Names strict query cannot be null or empty");
         this.loadBiologicalDataItemsByNamesStrictQuery = loadBiologicalDataItemsByNamesStrictQuery;
     }
 
-    @Required
     public void setLoadBiologicalDataItemsByNameCaseInsensitiveQuery(
             String loadBiologicalDataItemsByNameCaseInsensitiveQuery) {
+        Assert.hasText(loadBiologicalDataItemsByNameCaseInsensitiveQuery, "Case insensitive query cannot be null or empty");
         this.loadBiologicalDataItemsByNameCaseInsensitiveQuery = loadBiologicalDataItemsByNameCaseInsensitiveQuery;
     }
 
-    @Required
     public void setUpdateOwnerQuery(String updateOwnerQuery) {
+        Assert.hasText(updateOwnerQuery, "Update owner query cannot be null or empty");
         this.updateOwnerQuery = updateOwnerQuery;
     }
 
-    @Required
     public void setCountBiologicalDataItemsQuery(String countBiologicalDataItemsQuery) {
+        Assert.hasText(countBiologicalDataItemsQuery, "Count query cannot be null or empty");
         this.countBiologicalDataItemsQuery = countBiologicalDataItemsQuery;
     }
 }

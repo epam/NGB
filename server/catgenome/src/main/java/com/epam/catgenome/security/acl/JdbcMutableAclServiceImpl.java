@@ -24,15 +24,11 @@
 
 package com.epam.catgenome.security.acl;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.sql.DataSource;
-
+import com.epam.catgenome.component.MessageHelper;
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.DaoHelper;
-import org.springframework.beans.factory.annotation.Required;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
@@ -43,19 +39,30 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.epam.catgenome.component.MessageHelper;
-import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import javax.sql.DataSource;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+@Slf4j
 public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     private String deleteSidByIdQuery;
     private String deleteEntriesBySidQuery;
     private String loadEntriesBySidsCountQuery;
+    private String selectObjectIdentityPrimaryKey;
 
     public JdbcMutableAclServiceImpl(DataSource dataSource, LookupStrategy lookupStrategy,
                                      AclCache aclCache) {
         super(dataSource, lookupStrategy, aclCache);
+    }
+
+    @Override
+    public void setObjectIdentityPrimaryKeyQuery(String selectObjectIdentityPrimaryKey) {
+        this.selectObjectIdentityPrimaryKey = selectObjectIdentityPrimaryKey;
+        super.setObjectIdentityPrimaryKeyQuery(selectObjectIdentityPrimaryKey);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -66,7 +73,7 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
         // Check this object identity hasn't already been persisted
         if (retrieveObjectIdentityPrimaryKey(objectIdentity) != null) {
             throw new AlreadyExistsException("Object identity '" + objectIdentity
-                                             + "' already exists");
+                    + "' already exists");
         }
 
         PrincipalSid sid = new PrincipalSid(securedEntity.getOwner().toUpperCase());
@@ -85,7 +92,11 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public MutableAcl getOrCreateObjectIdentity(AbstractSecuredEntity securedEntity) {
-        ObjectIdentity identity = new ObjectIdentityImpl(securedEntity);
+        ObjectIdentity identity = new ObjectIdentityImpl(
+                securedEntity.getClass().getName(),
+                securedEntity.getId()
+        );
+        log.info("Retrieving object identity '" + identity + "'" + " for secured entity id: " + securedEntity.getId() + " with type: " + identity.getType() + " and identifier: " + identity.getIdentifier().toString());
         if (retrieveObjectIdentityPrimaryKey(identity) != null) {
             Acl acl = readAclById(identity);
             Assert.isInstanceOf(MutableAcl.class, acl, MessageHelper.getMessage(
@@ -104,15 +115,15 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     public Map<ObjectIdentity, Acl> getObjectIdentities(Set<AbstractSecuredEntity> securedEntities) {
         List<ObjectIdentity> objectIdentities = securedEntities.stream()
-            .map(ObjectIdentityImpl::new)
-            .collect(Collectors.toList());
+                .map(ObjectIdentityImpl::new)
+                .collect(Collectors.toList());
         return readAclsById(objectIdentities);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void deleteSidById(Long sidId) {
-        jdbcTemplate.update(deleteEntriesBySidQuery, sidId);
-        jdbcTemplate.update(deleteSidByIdQuery, sidId);
+        jdbcOperations.update(deleteEntriesBySidQuery, sidId);
+        jdbcOperations.update(deleteSidByIdQuery, sidId);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -123,7 +134,7 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     public Sid getSid(String user, boolean isPrincipal) {
         Assert.notNull(createOrRetrieveSidPrimaryKey(user, isPrincipal, false),
-                       MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, user));
+                MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, user));
         return isPrincipal ? new PrincipalSid(user) : new GrantedAuthoritySid(user);
     }
 
@@ -155,7 +166,7 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
             acl.setParent(null);
             updateAcl(acl);
         } else if (acl.getParentAcl() == null
-                   || acl.getParentAcl().getObjectIdentity().getIdentifier() != parent.getId()) {
+                || acl.getParentAcl().getObjectIdentity().getIdentifier() != parent.getId()) {
             MutableAcl parentAcl = getOrCreateObjectIdentity(parent);
             acl.setParent(parentAcl);
             updateAcl(acl);
@@ -171,21 +182,45 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     public Integer loadEntriesBySidsCount(final Collection<Long> sidIds) {
         String query = DaoHelper.replaceInClause(loadEntriesBySidsCountQuery, sidIds.size());
-        return jdbcTemplate.queryForObject(query, sidIds.toArray(), Integer.class);
+        return jdbcOperations.queryForObject(query, Integer.class, sidIds.toArray());
     }
 
-    @Required
     public void setDeleteSidByIdQuery(String deleteSidByIdQuery) {
+        Assert.hasText(deleteSidByIdQuery, "deleteSidByIdQuery cannot be null or empty");
         this.deleteSidByIdQuery = deleteSidByIdQuery;
     }
 
-    @Required
     public void setDeleteEntriesBySidQuery(String deleteEntriesBySidQuery) {
+        Assert.hasText(deleteEntriesBySidQuery, "deleteEntriesBySidQuery cannot be null or empty");
         this.deleteEntriesBySidQuery = deleteEntriesBySidQuery;
     }
 
-    @Required
     public void setLoadEntriesBySidsCountQuery(String loadEntriesBySidsCountQuery) {
+        Assert.hasText(loadEntriesBySidsCountQuery, "loadEntriesBySidsCountQuery cannot be null or empty");
         this.loadEntriesBySidsCountQuery = loadEntriesBySidsCountQuery;
+    }
+
+    @Override
+    protected Long retrieveObjectIdentityPrimaryKey(ObjectIdentity oid) {
+        try {
+            log.debug("Retrieving primary key for ObjectIdentity: type={}, identifier={} ({})",
+                    oid.getType(), oid.getIdentifier(), oid.getIdentifier().getClass().getName());
+
+            // Convert identifier to Long for comparison
+            Long numericId;
+            if (oid.getIdentifier() instanceof String) {
+                numericId = Long.parseLong((String) oid.getIdentifier());
+            } else if (oid.getIdentifier() instanceof Number) {
+                numericId = ((Number) oid.getIdentifier()).longValue();
+            } else {
+                throw new IllegalArgumentException("Identifier must be numeric: " + oid.getIdentifier());
+            }
+
+            return jdbcOperations.queryForObject(selectObjectIdentityPrimaryKey,
+                    Long.class, oid.getType(), numericId);
+        } catch (Exception e) {
+            log.debug("Error retrieving primary key for ObjectIdentity {}: {}", oid, e.getMessage());
+            return null;
+        }
     }
 }

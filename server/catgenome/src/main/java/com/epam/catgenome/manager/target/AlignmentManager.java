@@ -78,6 +78,7 @@ import static com.epam.catgenome.manager.externaldb.ncbi.NCBISequencesManager.ge
 
 @Service
 @Slf4j
+@SuppressWarnings("PMD")
 public class AlignmentManager {
     public static final String MUSCLE_COMMAND = "%s -align %s -output %s";
     public static final String ALIGNMENT_FILE_NAME = "%s-%s.fa";

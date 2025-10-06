@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="stdout" target="SYSTEM_OUT">
+            <PatternLayout pattern="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n" charset="UTF-8"/>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </Console>
+
+        <RollingFile name="error-appender"
+                     fileName="./logs/catgenome-error.log"
+                     filePattern="./logs/catgenome-error-%d{yyyy-MM-dd}.log">
+            <PatternLayout pattern="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m%n" charset="UTF-8"/>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+        </RollingFile>
+
+        <RollingFile name="requests-debug-appender"
+                     fileName="./logs/requests.log"
+                     filePattern="./logs/requests-%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout pattern='{"debug_level":"%p","debug_timestamp":"%d{dd/MM/yyyy HH:mm:ss}","debug_thread":"%t","debug_file":"%F", "debug_line":"%L","debug_message":"%m"}%n' charset="UTF-8"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="com.epam.catgenome.app.CustomRequestLoggingFilter" level="debug" additivity="false">
+            <AppenderRef ref="requests-debug-appender"/>
+        </Logger>
+
+        <Logger name="org.springframework.aop.framework.CglibAopProxy" level="error"/>
+        <Logger name="com.epam.gene.catgenome" level="info"/>
+        <Logger name="org.apache.commons.beanutils" level="warn"/>
+        <Logger name="com.mchange" level="error"/>
+        <Logger name="org.springframework.jndi" level="error"/>
+        <Logger name="com.epam.catgenome.app" level="debug"/>
+        <!-- These should catch all OpenSAML-related logging -->
+        <Logger name="org.opensaml" level="WARN" additivity="false"/>
+        <Logger name="net.shibboleth" level="WARN" additivity="false"/>
+
+        <!-- Specifically target algorithm-related classes -->
+        <Logger name="org.opensaml.xmlsec.algorithm" level="ERROR" additivity="false"/>
+        <Logger name="org.opensaml.xmlsec.config" level="ERROR" additivity="false"/>
+
+        <Root level="info">
+            <AppenderRef ref="stdout"/>
+            <AppenderRef ref="error-appender"/>
+        </Root>
+    </Loggers>
+</Configuration>

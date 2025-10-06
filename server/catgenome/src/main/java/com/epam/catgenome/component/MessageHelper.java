@@ -137,7 +137,7 @@ public final class MessageHelper {
             synchronized (MessageHelper.class) {
                 helper = instance;
                 if (helper == null) {
-                    Assert.notNull(messageSource);
+                    Assert.notNull(messageSource, "");
                     instance = new MessageHelper(messageSource);
                     helper = instance;
                 }

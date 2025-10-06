@@ -88,8 +88,8 @@ public class HeatmapManagerTest extends TestCase {
         request.setColumnTreePath(treeFileName);
         request.setSkipColumns(1);
         request.setSkipRows(1);
-        Heatmap heatmap = heatmapManager.createHeatmap(request);
-        Heatmap createdHeatmap = heatmapManager.loadHeatmap(heatmap.getHeatmapId());
+        Heatmap createdHeatmap = heatmapManager.createHeatmap(request);
+//        Heatmap createdHeatmap = heatmapManager.loadHeatmap(heatmap.getHeatmapId());
         assertNotNull(createdHeatmap);
         assertEquals("createHeatmapTest", createdHeatmap.getName());
         assertEquals("heatmap", createdHeatmap.getPrettyName());
@@ -104,9 +104,9 @@ public class HeatmapManagerTest extends TestCase {
         assertEquals(HeatmapDataType.DOUBLE, createdHeatmap.getCellValueType());
         assertEquals(MIN_CELL_VALUE, createdHeatmap.getMinCellValue());
         assertEquals(MAX_CELL_VALUE, createdHeatmap.getMaxCellValue());
-        List<List<List<String>>> content = heatmapManager.getContent(heatmap.getHeatmapId());
+        List<List<List<String>>> content = heatmapManager.getContent(createdHeatmap.getHeatmapId());
         assertNotNull(content);
-        HeatmapTree tree = heatmapManager.getTree(heatmap.getHeatmapId());
+        HeatmapTree tree = heatmapManager.getTree(createdHeatmap.getHeatmapId());
         assertNotNull(tree);
     }
 

@@ -28,25 +28,25 @@ import javax.xml.bind.annotation.XmlRegistry;
 
 
 /**
- * This object contains factory methods for each 
- * Java content interface and Java element interface 
- * generated in the com.epam.catgenome.manager.externaldb.bindings.dbsnp package. 
- * <p>An ObjectFactory allows you to programatically 
- * construct new instances of the Java representation 
- * for XML content. The Java representation of XML 
- * content can consist of schema derived interfaces 
- * and classes representing the binding of schema 
- * type definitions, element declarations and model 
- * groups.  Factory methods for each of these are 
+ * This object contains factory methods for each
+ * Java content interface and Java element interface
+ * generated in the com.epam.catgenome.manager.externaldb.bindings.dbsnp package.
+ * <p>An ObjectFactory allows you to programatically
+ * construct new instances of the Java representation
+ * for XML content. The Java representation of XML
+ * content can consist of schema derived interfaces
+ * and classes representing the binding of schema
+ * type definitions, element declarations and model
+ * groups.  Factory methods for each of these are
  * provided in this class.
- * 
+ *
  */
 @XmlRegistry
 public class ObjectFactory {
 
     /**
      * Create an instance of {@link Ss }
-     * 
+     *
      */
     public Ss createSs() {
         return new Ss();
@@ -54,7 +54,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Assay }
-     * 
+     *
      */
     public Assay createAssay() {
         return new Assay();
@@ -62,7 +62,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ExchangeSet }
-     * 
+     *
      */
     public ExchangeSet createExchangeSet() {
         return new ExchangeSet();
@@ -70,7 +70,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Rs }
-     * 
+     *
      */
     public Rs createRs() {
         return new Rs();
@@ -78,7 +78,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Assembly }
-     * 
+     *
      */
     public Assembly createAssembly() {
         return new Assembly();
@@ -86,7 +86,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Ss.Sequence }
-     * 
+     *
      */
     public Ss.Sequence createSsSequence() {
         return new Ss.Sequence();
@@ -94,7 +94,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Assay.Method }
-     * 
+     *
      */
     public Assay.Method createAssayMethod() {
         return new Assay.Method();
@@ -102,7 +102,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Assay.Taxonomy }
-     * 
+     *
      */
     public Assay.Taxonomy createAssayTaxonomy() {
         return new Assay.Taxonomy();
@@ -110,7 +110,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ExchangeSet.SourceDatabase }
-     * 
+     *
      */
     public ExchangeSet.SourceDatabase createExchangeSetSourceDatabase() {
         return new ExchangeSet.SourceDatabase();
@@ -118,7 +118,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Rs.Het }
-     * 
+     *
      */
     public Rs.Het createRsHet() {
         return new Rs.Het();
@@ -126,7 +126,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Rs.Validation }
-     * 
+     *
      */
     public Rs.Validation createRsValidation() {
         return new Rs.Validation();
@@ -134,7 +134,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Rs.Create }
-     * 
+     *
      */
     public Rs.Create createRsCreate() {
         return new Rs.Create();
@@ -142,7 +142,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Rs.Update }
-     * 
+     *
      */
     public Rs.Update createRsUpdate() {
         return new Rs.Update();
@@ -150,7 +150,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Rs.Sequence }
-     * 
+     *
      */
     public Rs.Sequence createRsSequence() {
         return new Rs.Sequence();
@@ -158,7 +158,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Component }
-     * 
+     *
      */
     public Component createComponent() {
         return new Component();
@@ -166,7 +166,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link MapLoc }
-     * 
+     *
      */
     public MapLoc createMapLoc() {
         return new MapLoc();
@@ -174,7 +174,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link FxnSet }
-     * 
+     *
      */
     public FxnSet createFxnSet() {
         return new FxnSet();
@@ -182,7 +182,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Assembly.SnpStat }
-     * 
+     *
      */
     public Assembly.SnpStat createAssemblySnpStat() {
         return new Assembly.SnpStat();
@@ -190,7 +190,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link PrimarySequence }
-     * 
+     *
      */
     public PrimarySequence createPrimarySequence() {
         return new PrimarySequence();
@@ -198,7 +198,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link RsStruct }
-     * 
+     *
      */
     public RsStruct createRsStruct() {
         return new RsStruct();
@@ -206,7 +206,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link RsLinkout }
-     * 
+     *
      */
     public RsLinkout createRsLinkout() {
         return new RsLinkout();
@@ -214,7 +214,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Rs.MergeHistory }
-     * 
+     *
      */
     public Rs.MergeHistory createRsMergeHistory() {
         return new Rs.MergeHistory();
@@ -222,7 +222,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Rs.AlleleOrigin }
-     * 
+     *
      */
     public Rs.AlleleOrigin createRsAlleleOrigin() {
         return new Rs.AlleleOrigin();
@@ -230,7 +230,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Rs.Phenotype }
-     * 
+     *
      */
     public Rs.Phenotype createRsPhenotype() {
         return new Rs.Phenotype();
@@ -238,7 +238,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Rs.BioSource }
-     * 
+     *
      */
     public Rs.BioSource createRsBioSource() {
         return new Rs.BioSource();
@@ -246,7 +246,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Rs.Frequency }
-     * 
+     *
      */
     public Rs.Frequency createRsFrequency() {
         return new Rs.Frequency();
@@ -254,7 +254,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ExchangeSet.Query }
-     * 
+     *
      */
     public ExchangeSet.Query createExchangeSetQuery() {
         return new ExchangeSet.Query();
@@ -262,7 +262,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ExchangeSet.Summary }
-     * 
+     *
      */
     public ExchangeSet.Summary createExchangeSetSummary() {
         return new ExchangeSet.Summary();
@@ -270,7 +270,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link BaseURL }
-     * 
+     *
      */
     public BaseURL createBaseURL() {
         return new BaseURL();

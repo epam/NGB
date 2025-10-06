@@ -22,14 +22,15 @@ package com.epam.catgenome.util.feature.reader;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.tribble.*;
-import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.Block;
+import htsjdk.tribble.index.Index;
 import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.tribble.util.ParsingUtils;
 import org.testng.Assert;
@@ -87,7 +88,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      * @throws IOException
      */
     public TribbleIndexedFeatureReader(final String featurePath, final FeatureCodec<T, S> codec,
-                                       final boolean requireIndex, final EhCacheBasedIndexCache indexCache)
+                                       final boolean requireIndex, final CaffeineBasedIndexCache indexCache)
             throws IOException {
         super(featurePath, codec);
         this.indexCache = indexCache;
@@ -114,7 +115,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      */
     public TribbleIndexedFeatureReader(final String featureFile, final String indexFile,
                                        final FeatureCodec<T, S> codec,
-                                       final boolean requireIndex, final EhCacheBasedIndexCache indexCache)
+                                       final boolean requireIndex, final CaffeineBasedIndexCache indexCache)
             throws IOException {
         this(featureFile, codec, false, indexCache); // required to read the header
         if (indexFile != null && IOHelper.resourceExists(indexFile)) {
@@ -161,7 +162,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      * @throws IOException
      */
     public TribbleIndexedFeatureReader(final String featureFile, final FeatureCodec<T, S> codec,
-                                       final Index index, final EhCacheBasedIndexCache indexCache) throws IOException {
+                                       final Index index, final CaffeineBasedIndexCache indexCache) throws IOException {
         this(featureFile, codec, false, indexCache); // required to read the header
         this.index = index;
         this.needCheckForIndex = false;

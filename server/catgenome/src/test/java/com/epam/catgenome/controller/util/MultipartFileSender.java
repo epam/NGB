@@ -40,9 +40,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -366,7 +366,7 @@ public class MultipartFileSender {
                 }
             } else {
                 long skipped = input.skip(start);
-                Assert.isTrue(skipped == start);
+                Assert.isTrue(skipped == start, "");
 
                 long toRead = length;
 

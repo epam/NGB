@@ -17,8 +17,6 @@
          transaction management through AOP
      -->
     <import resource="classpath:conf/catgenome/applicationContext-database.xml"/>
-    <!-- Registers and configures caching -->
-    <import resource="classpath:conf/catgenome/applicationContext-cache.xml"/>
 
     <import resource="classpath:conf/catgenome/applicationContext-flyway.xml"/>
 
@@ -35,6 +33,6 @@
     </context:component-scan>
 
     <!-- Multipart resolver required to support file upload -->
-    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
+    <bean id="multipartResolver" class="org.springframework.web.multipart.support.StandardServletMultipartResolver"/>
 
 </beans>

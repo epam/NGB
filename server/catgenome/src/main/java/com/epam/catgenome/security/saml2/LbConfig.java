@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,29 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.security.saml;
+package com.epam.catgenome.security.saml2;
 
 import lombok.Data;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-
 @Data
-public class LBConfig {
-
+public class LbConfig {
     private String scheme;
     private String serverName;
     private boolean includeServerPortInRequestURL;
     private int serverPort;
     private String contextPath;
+    private boolean enabled;
 
     public void validate() {
+        if (!enabled) return;
+
         Assert.hasText(scheme, "Scheme must be set");
         Assert.hasText(serverName, "Server name must be set");
         Assert.notNull(contextPath, "Context path must be set");
         if (StringUtils.hasLength(contextPath)) {
-            Assert.isTrue(contextPath.startsWith("/"), "Context path must be set and start with a forward slash");
+            Assert.isTrue(contextPath.startsWith("/"), "Context path must start with a forward slash");
         }
-
     }
 }

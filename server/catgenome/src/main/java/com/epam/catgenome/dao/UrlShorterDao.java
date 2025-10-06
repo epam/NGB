@@ -24,11 +24,11 @@
 
 package com.epam.catgenome.dao;
 
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.sql.Date;
 import java.util.List;
@@ -43,7 +43,7 @@ public class UrlShorterDao extends NamedParameterJdbcDaoSupport {
     private String insertUrlQuery;
     private String deleteExpiredUrlsQuery;
     private String loadUrlByIdQuery;
-    
+
     public enum Parameters {
         ID, URL, CREATED_DATE, EXPIRED_DATE
     }
@@ -77,17 +77,18 @@ public class UrlShorterDao extends NamedParameterJdbcDaoSupport {
         getJdbcTemplate().update(deleteExpiredUrlsQuery, expiredDate);
     }
 
-    @Required
     public void setLoadUrlByIdQuery(String loadUrlByIdQuery) {
+        Assert.hasText(loadUrlByIdQuery, "loadUrlByIdQuery cannot be null or empty");
         this.loadUrlByIdQuery = loadUrlByIdQuery;
     }
 
-    @Required
     public void setInsertUrlQuery(String insertUrlQuery) {
+        Assert.hasText(insertUrlQuery, "insertUrlQuery cannot be null or empty");
         this.insertUrlQuery = insertUrlQuery;
     }
-    @Required
+
     public void setDeleteExpiredUrlsQuery(String deleteExpiredUrlsQuery) {
+        Assert.hasText(deleteExpiredUrlsQuery, "deleteExpiredUrlsQuery cannot be null or empty");
         this.deleteExpiredUrlsQuery = deleteExpiredUrlsQuery;
     }
 

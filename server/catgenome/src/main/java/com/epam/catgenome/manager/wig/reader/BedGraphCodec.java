@@ -76,7 +76,7 @@ public class BedGraphCodec extends AsciiFeatureCodec<BedGraphFeature> {
         }
 
         String[] tokens = SPLIT_PATTERN.split(line, -1);
-        Assert.isTrue(tokens.length == 4);
+        Assert.isTrue(tokens.length == 4, "");
         return new BedGraphFeature(
                 tokens[0], Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]), Float.parseFloat(tokens[3])
         );

@@ -24,28 +24,6 @@
 
 package com.epam.catgenome.manager.maf;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.constant.MessagesConstants.ERROR_EMPTY_FOLDER;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
@@ -65,9 +43,30 @@ import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.comparator.FeatureComparator;
-import htsjdk.samtools.util.CloseableIterator;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
+import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.readers.LineIterator;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.constant.MessagesConstants.ERROR_EMPTY_FOLDER;
 
 /**
  * Provides service for handling {@code MafFile}: CRUD operations and loading data from the files
@@ -93,7 +92,7 @@ public class MafManager {
     private DownloadFileManager downloadFileManager;
 
     @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
+    private CaffeineBasedIndexCache indexCache;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MafManager.class);
 

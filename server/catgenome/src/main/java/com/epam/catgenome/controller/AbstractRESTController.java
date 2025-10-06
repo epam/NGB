@@ -70,7 +70,7 @@ public abstract class AbstractRESTController {
      * is described, using Swagger-compliant annotations. It allows create nice
      * documentation automatically.
      */
-    protected static final int HTTP_STATUS_OK = 200;
+    protected static final String HTTP_STATUS_OK = "200";
 
     /**
      * {@code String} specifies API responses description that explains meaning of different values
@@ -93,7 +93,7 @@ public abstract class AbstractRESTController {
      * @throws IOException
      */
     protected File transferToTempFile(final MultipartFile multipart) throws IOException {
-        Assert.notNull(multipart);
+        Assert.notNull(multipart, "");
         final File tmp = File.createTempFile(UUID.randomUUID().toString(), multipart.getOriginalFilename(),
             fileManager.getTempDir());
         multipart.transferTo(tmp);

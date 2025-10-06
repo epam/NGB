@@ -45,6 +45,7 @@ import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -117,6 +118,7 @@ public class BlatSearchManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    @Ignore // Ignored due to external url blocking
     public void testFind() throws IOException, ExternalDbUnavailableException {
         List<PSLRecord> actual = blatSearchManager.find(TEST_SEQUENSE, TEST_SPECIES);
         Assert.assertEquals(1, actual.size());
@@ -125,6 +127,7 @@ public class BlatSearchManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    @Ignore // Ignored due to external url blocking
     public void testFindBlatReadSequence() throws IOException, ExternalDbUnavailableException {
         Species testSpecies = new Species();
         testSpecies.setName("human");

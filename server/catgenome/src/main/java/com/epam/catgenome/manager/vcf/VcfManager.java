@@ -24,65 +24,50 @@
 
 package com.epam.catgenome.manager.vcf;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.constant.MessagesConstants.ERROR_REGISTER_FILE;
-import static com.epam.catgenome.constant.MessagesConstants.ERROR_VCF_ID_INVALID;
-import static com.epam.catgenome.constant.MessagesConstants.ERROR_VCF_INDEX;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.AccessDeniedException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.ga4gh.CallSet;
 import com.epam.catgenome.controller.vo.ga4gh.CallSetSearch;
+import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
+import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexBuilder;
 import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexBuilder;
+import com.epam.catgenome.entity.BaseEntity;
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
-import com.epam.catgenome.entity.vcf.VcfFieldValues;
-import com.epam.catgenome.entity.vcf.VcfFilterForm;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.FeatureFileReadingException;
-import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.exception.RegistrationException;
-import com.epam.catgenome.exception.VcfReadingException;
-import com.epam.catgenome.manager.FeatureIndexManager;
-import com.epam.catgenome.manager.UrlValidatorService;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.entity.track.TrackType;
+import com.epam.catgenome.entity.vcf.*;
+import com.epam.catgenome.exception.*;
+import com.epam.catgenome.manager.*;
+import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.gene.GeneTrackManager;
+import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.manager.vcf.reader.AbstractVcfReader;
 import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
+import com.epam.catgenome.manager.vcf.reader.VcfReader;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.InfoFieldParser;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.CaffeineBasedIndexCache;
+import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.tribble.FeatureReader;
+import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.index.interval.IntervalTreeIndex;
 import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.index.tabix.TabixIndex;
-import htsjdk.variant.vcf.VCFCodec;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLineType;
-import htsjdk.variant.vcf.VCFInfoHeaderLine;
-import htsjdk.variant.vcf.VCFSimpleHeaderLine;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -92,42 +77,22 @@ import org.codehaus.jettison.json.JSONException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-
-import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
-import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.BaseEntity;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.gene.GeneFile;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.entity.track.TrackType;
-import com.epam.catgenome.entity.vcf.InfoItem;
-import com.epam.catgenome.entity.vcf.Variation;
-import com.epam.catgenome.entity.vcf.VariationQuery;
-import com.epam.catgenome.entity.vcf.VcfFile;
-import com.epam.catgenome.entity.vcf.VcfFilterInfo;
-import com.epam.catgenome.entity.vcf.VcfSample;
-import com.epam.catgenome.manager.BiologicalDataItemManager;
-import com.epam.catgenome.manager.DownloadFileManager;
-import com.epam.catgenome.manager.FileManager;
-import com.epam.catgenome.manager.TrackHelper;
-import com.epam.catgenome.manager.externaldb.HttpDataManager;
-import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.manager.vcf.reader.AbstractVcfReader;
-import com.epam.catgenome.manager.vcf.reader.VcfReader;
-import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.tribble.FeatureReader;
-import htsjdk.tribble.TribbleException;
-import htsjdk.variant.variantcontext.VariantContext;
 import org.springframework.util.CollectionUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.AccessDeniedException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.constant.MessagesConstants.*;
 
 /**
  * {@code VcfManager} represents a service class designed to encapsulate all business
@@ -166,7 +131,7 @@ public class VcfManager {
     private FeatureIndexManager featureIndexManager;
 
     @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
+    private CaffeineBasedIndexCache indexCache;
 
     @Autowired
     private UrlValidatorService urlValidatorService;

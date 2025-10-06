@@ -188,7 +188,7 @@ public class BlockCompressedDataInputStream extends BlockCompressedInputStream {
     public final long readLong() throws IOException {
         final byte[] readBuffer = new byte[LONG_SIZE];
         final int countByte = read(readBuffer);
-        Assert.isTrue(countByte == readBuffer.length);
+        Assert.isTrue(countByte == readBuffer.length, "");
         return (((long) readBuffer[OFFSET_0] << SHIFT56) +
                 ((long) (readBuffer[OFFSET_1] & BYTE_MASK) << SHIFT48) +
                 ((long) (readBuffer[OFFSET_2] & BYTE_MASK) << SHIFT40) +
