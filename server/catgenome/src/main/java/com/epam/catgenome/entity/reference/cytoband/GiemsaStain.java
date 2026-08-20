@@ -44,13 +44,13 @@ public enum GiemsaStain {
     GPOS75("gpos75"),
     GPOS100("gpos100");
 
-    private final String value;
+    private final String stainName;
 
-    GiemsaStain(final String value) {
-        this.value = value;
+    GiemsaStain(final String stainName) {
+        this.stainName = stainName;
     }
 
     public String value() {
-        return value;
+        return stainName;
     }
 }

@@ -82,21 +82,21 @@ public class GtfFeature extends GffFeature {
     @Override
     public String toString() {
         StringBuilder builder =  new StringBuilder().append(seqName)
-                .append("\t")
+                .append('\t')
                 .append(source)
-                .append("\t")
+                .append('\t')
                 .append(feature)
-                .append("\t")
+                .append('\t')
                 .append(start)
-                .append("\t")
+                .append('\t')
                 .append(end)
-                .append("\t")
+                .append('\t')
                 .append(Float.compare(score, -1F) != 0 ? score : ".")
-                .append("\t")
+                .append('\t')
                 .append(strand.getFileValue())
-                .append("\t")
+                .append('\t')
                 .append(frame != -1 ? frame : ".")
-                .append("\t");
+                .append('\t');
         for (Map.Entry<String, String> attribute: attributes.entrySet()) {
             builder.append(attribute.getKey())
                     .append(" \"")

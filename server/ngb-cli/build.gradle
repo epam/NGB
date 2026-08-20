@@ -90,13 +90,22 @@ startScripts {
 // The distribution archives are named without a version; the root build's `buildCli` and the
 // Docker image both look for a fixed `ngb-cli.tar.gz`. This used to be done by blanking
 // project.version in a doFirst and renaming the file in a doLast.
+//
+// Blank the version rather than setting archiveFileName outright. The Distribution plugin derives
+// the archive's *root directory* from these properties, and pinning archiveFileName made that root
+// the whole file name - the tarball unpacked into a directory called `ngb-cli.tar.gz`, while
+// docker/core/Dockerfile and docs/md/cli/installation.md both expect `ngb-cli/bin/ngb`.
+// baseName + empty version gives the file names below and `ngb-cli/` inside them.
 distZip {
-    archiveFileName = 'ngb-cli.zip'
+    archiveBaseName = 'ngb-cli'
+    archiveVersion = ''
 }
 
 distTar {
     compression = Compression.GZIP
-    archiveFileName = 'ngb-cli.tar.gz'
+    archiveBaseName = 'ngb-cli'
+    archiveVersion = ''
+    archiveExtension = 'tar.gz'
 }
 
 distributions {
@@ -112,11 +121,15 @@ distributions {
 }
 
 pmd {
+    // See the note in server/catgenome/build.gradle: PMD 7 needs Gradle 8.6+.
+    toolVersion = "6.55.0"
+    // See the note in server/catgenome/build.gradle: Gradle's default ruleSets is additive.
+    ruleSets = []
     ruleSetFiles = files("config/pmd/pmd-ruleset.xml")
 }
 
 checkstyle {
-    toolVersion = "7.2"
+    toolVersion = "11.1.0"
     // Gradle 4+ resolves the default config dir against the *root* project, which for this
     // multi-project build is the wrong place. Both modules keep their own copy.
     configDirectory = file("config/checkstyle")

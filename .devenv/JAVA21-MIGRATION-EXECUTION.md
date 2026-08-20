@@ -67,7 +67,7 @@ The default command timeout is 120 s and the ceiling is 600 s, but:
 | `make test` | ~3.5 min |
 | `make test-pg` | ~3.5 min, plus ~1 min if you `make reset-pg` first — and you should |
 | `make up` then `make smoke` | ~75 s of startup before the app answers |
-| `make cli-test` | long — downloads GBs of test data |
+| `make cli-test` | **does not run at all** — `ngb.opensource.epam.com`, where it fetches its fixtures, is NXDOMAIN. Found in Phase 2; see `TEST-BASELINE.md`. Verify the CLI by hand instead |
 
 **A session that leaves the timeout at its default will read a timeout as a build failure and
 start "fixing" it.** This is the most likely source of wasted effort in the whole migration.
@@ -246,6 +246,15 @@ the attribute mapping and JWT claims must keep doing.
 Scope the javax→jakarta rename to javax.servlet and javax.xml.bind
 only. javax.xml.xpath/parsers/datatype/stream/namespace, javax.net.ssl
 and javax.naming are still JDK packages and must not be renamed.
+
+Phase 2 left you four things to collect with the Gradle 8 wrapper, all
+recorded in the plan's Phase 2 findings: bump PMD 6.55.0 to 7.x (7 needs
+Gradle 8.6+, which is why it is not done yet), delete
+`spring.mvc.pathmatch.matching-strategy=ant-path-matcher` along with
+swagger-springmvc, delete
+`spring.main.allow-circular-references=true` along with the OpenSAML 2
+stack, and re-check whether the `--add-opens=java.prefs/...` in the root
+`gradle.properties` is still needed.
 ```
 
 ### Phase 4
@@ -349,6 +358,12 @@ removes the hardcoded port rewrite.
 
 The goal for TEST-BASELINE.md is zero unexplained failures. Anything
 left must be a deliberate, documented exclusion.
+
+`make cli-test` is one of those exclusions and this is the phase that
+owns it: its fixtures were hosted on ngb.opensource.epam.com, which no
+longer resolves, so the whole e2e CLI suite has been unrunnable since
+Phase 2. Either host the data somewhere live or generate it — the
+test code itself is fine.
 ```
 
 ---

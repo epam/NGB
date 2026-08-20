@@ -55,7 +55,7 @@ public class SegCodec extends AsciiFeatureCodec<SegFeature> {
      */
     @Override
     public SegFeature decode(String line) {
-        if (line.trim().isEmpty()) {
+        if (line.isBlank()) {
             return null;
         }
         if (line.startsWith("'") || line.startsWith("Sample")) {

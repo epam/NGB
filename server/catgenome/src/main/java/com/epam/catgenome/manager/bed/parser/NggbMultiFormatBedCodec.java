@@ -69,7 +69,7 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
      */
     @Override
     public NggbBedFeature decode(final String line) {
-        if (line.trim().isEmpty()) {
+        if (line.isBlank()) {
             return null;
         }
         if (line.startsWith("#") || line.startsWith("track") || line.startsWith("browser")) {

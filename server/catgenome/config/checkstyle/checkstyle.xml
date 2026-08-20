@@ -1,11 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN" "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN" "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <!--
     Checkstyle-Configuration: checkstyle for CatGenome
     Description: none
+
+    Migration Phase 2 moved this from Checkstyle 7.2 to 11.1.0. Three edits were needed:
+      - the public identifier: the Puppy Crawl one is what a pre-8 config used. Checkstyle resolves
+        both from the jar, so neither needs network access, but the old one is the deprecated spelling.
+      - LineLength is a Checker child since Checkstyle 8.24; left under TreeWalker it aborts the run
+        ("LineLength is not allowed as a child of TreeWalker"). Its tabWidth property went at the
+        same time - line length counts an expanded tab via the Checker-level tabWidth below.
+      - LeftCurly lost its maxLineLength property in Checkstyle 8.0 (LineLength covers it).
+    Everything else loads unchanged.
 -->
 <module name="Checker">
   <property name="severity" value="warning"/>
+  <property name="tabWidth" value="4"/>
+  <module name="LineLength">
+    <property name="max" value="120"/>
+  </module>
   <module name="TreeWalker">
     <property name="tabWidth" value="4"/>
     <module name="ConstantName">
@@ -26,10 +39,6 @@
     <module name="IllegalImport"/>
     <module name="RedundantImport"/>
     <module name="UnusedImports"/>
-    <module name="LineLength">
-      <property name="max" value="120"/>
-      <property name="tabWidth" value="4"/>
-    </module>
     <module name="MethodLength">
       <property name="max" value="150"/>
     </module>
@@ -61,9 +70,7 @@
         <property name="allowInSwitchCase" value="true"/>
     </module>
     <module name="EmptyBlock"/>
-    <module name="LeftCurly">
-      <property name="maxLineLength" value="120"/>
-    </module>
+    <module name="LeftCurly"/>
     <module name="NeedBraces"/>
     <module name="RightCurly"/>
     <module name="AvoidInlineConditionals">

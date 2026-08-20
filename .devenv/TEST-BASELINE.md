@@ -11,7 +11,8 @@ for this list is a pass. Anything else is your own breakage.
 |---|---|---|
 | H2 | `make test` | 528 tests, **3 failed**, 21 skipped (~2.5 min) |
 | PostgreSQL | `make test-pg` | 528 tests, **12 failed**, 21 skipped (~4 min) |
-| Static analysis | `make lint` | **green** — checkstyle and pmd both clean (~20 s) |
+| Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings / 0 errors (~20 s) |
+| CLI integration | `make cli-test` | **cannot run** — its fixture host no longer exists, see ["`make cli-test` is unrunnable"](#make-cli-test-is-unrunnable) |
 
 Of those, **1 (H2) / 9 (PostgreSQL)** are the pre-existing failures documented below. The rest
 are network tests that external services moved under: `PdbDataManagerTest.testParse` (live RCSB
@@ -118,12 +119,69 @@ The PostgreSQL suite now exercises the ACL/JWT/auth code, which it previously co
 
 ## Static analysis: green
 
-`make lint` runs `checkstyleMain pmdMain` and both pass. One non-fatal checkstyle **warning**
-remains (`CustomChatResponse.java:44`, member name `finish_reason` — it mirrors a JSON field).
-Reports: `server/catgenome/build/reports/{checkstyle,pmd}/main.html`.
+`make lint` runs `checkstyleMain pmdMain` on the server module and both pass. Phase 2 moved the
+tools to **Checkstyle 11.1.0** and **PMD 6.55.0** (not PMD 7 — Gradle 7.6 cannot run it; see the
+Phase 2 findings) and rewrote both rulesets for the `category/java/*.xml` layout.
 
-Keep it green. PMD and checkstyle both move in Phase 2, and a ruleset rewrite on top of an
-already-red baseline would hide real regressions.
+| Module | Command | Checkstyle | PMD |
+|---|---|---|---|
+| `server/catgenome` | `make lint` | 37 warnings in 15 files, **0 errors** | clean |
+| `server/ngb-cli` | `./gradlew -p server/ngb-cli checkstyleMain pmdMain` | 6 warnings, **0 errors** | clean |
+
+Reports: `server/<module>/build/reports/{checkstyle,pmd}/main.html`.
+
+**The warnings are not new and do not fail the build**, by long-standing choice: `checkstyle.xml`
+sets `severity=warning` at `Checker` level, and Gradle's `Checkstyle` task fails only on errors
+(`maxWarnings` defaults to `Integer.MAX_VALUE`). Checkstyle 7.2 reported one of them; 11.1.0 reports
+37 because eight years of new checks and refined defaults landed in between — mostly `[Indentation]`
+in generated-looking `externaldb/bindings/*` VOs, a few `[FinalClass]`, and the original
+`CustomChatResponse.java` member name `finish_reason` (it mirrors a JSON field). Nothing was
+suppressed to get here and no severity was lowered. Turning the warnings into errors is a
+worthwhile clean-up but it is a code-style change, not a migration step.
+
+PMD is clean with **zero** violations: the ruleset rewrite surfaced 59 real findings and all 59 were
+fixed at the source. Two rules were consciously narrowed rather than carried across
+(`SuspiciousConstantFieldName` dropped, `ClassNamingConventions` restored to its PMD 5 patterns) —
+both reasoned about in `JAVA21-MIGRATION-PLAN.md` and in the rulesets' own header comments. One
+deprecation warning is expected on every run and is deliberate:
+`Discontinue using Rule name category/java/performance.xml/BooleanInstantiation`. Its replacement
+(`UnnecessaryBoxing`) exists only in PMD 7, so the rule stays until Phase 3 bumps the tool.
+
+Keep it green. A red static-analysis baseline would hide the real regressions in Phases 3–9.
+
+## `make cli-test` is unrunnable
+
+Not a failure to inherit — the target cannot start. `e2e/integration_tests.sh` downloads its test
+data from `http://ngb.opensource.epam.com/distr/data/tests/`, and that host does not resolve:
+
+```
+Resolving ngb.opensource.epam.com ... failed: Name or service not known.
+wget: unable to resolve host address 'ngb.opensource.epam.com'   (exit 4)
+```
+
+NXDOMAIN from inside the container and from the host; `opensource.epam.com` itself resolves, so it
+is that one name that is gone. Nothing in the migration caused it and nothing in the migration can
+fix it — `cli-tests.gradle` and `e2e/cli/testcases.csv` are sound, and Groovy 3 parses them.
+**Phase 9 owns the fix** (host or generate the fixtures).
+
+Until then, verify the CLI by hand against a running server — this was done on JDK 17 at the end of
+Phase 2 and covers the same ground as `testcases.csv`:
+
+```bash
+NGB_JAVA_VERSION=17 make up          # server on JDK 17
+docker-compose --profile cli up -d cli
+docker-compose exec cli ngb reg_ref /ngs/A3.fa --name test_ref      # + repeat: must fail "already exists"
+docker-compose exec cli ngb list_ref
+docker-compose exec cli ngb reg_file test_ref /ngs/agnX1.09-28.trim.dm606.realign.bam --name test_bam
+docker-compose exec cli ngb search test_bam
+docker-compose exec cli ngb reg_dataset test_ref test_ds test_bam
+docker-compose exec cli ngb del_file test_bam    # must fail: used in projects
+docker-compose exec cli ngb del_dataset test_ds && docker-compose exec cli ngb del_file test_bam
+```
+
+Registration, listing, search, dataset composition, deletion and both error paths. Fixtures for it
+live in the repo under `server/catgenome/src/test/resources/templates/`; copy them into
+`.devenv/data/ngs/` (which is `/ngs` in both containers).
 
 ## What Phase 0 changed
 

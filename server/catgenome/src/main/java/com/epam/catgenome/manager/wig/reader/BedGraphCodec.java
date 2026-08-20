@@ -67,7 +67,7 @@ public class BedGraphCodec extends AsciiFeatureCodec<BedGraphFeature> {
     @Override
     public BedGraphFeature decode(String line) {
 
-        if (line.trim().isEmpty()) {
+        if (line.isBlank()) {
             return null;
         }
 

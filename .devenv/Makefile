@@ -120,8 +120,13 @@ lint: builder ## checkstyle + pmd on the server module
 	$(EXEC_BUILD) $(GRADLE_H2) $(SERVER) checkstyleMain pmdMain
 
 .PHONY: cli-test
-cli-test: builder ## CLI/server integration tests (downloads test data, ~GBs)
-	$(EXEC_BUILD) bash e2e/integration_tests.sh
+cli-test: builder ## CLI/server integration tests (BROKEN: test-data host is gone)
+	# e2e/integration_tests.sh wgets its fixtures from http://ngb.opensource.epam.com/, which no
+	# longer resolves (NXDOMAIN as of migration Phase 2 - the parent domain does resolve, the ngb
+	# host does not), so this target cannot pass until the data is hosted somewhere again. See
+	# TEST-BASELINE.md. with-java17 is still correct and needed: from Phase 2 both the server jar
+	# and the CLI are built by a JDK 17 toolchain, and the script runs `java -jar` directly.
+	$(EXEC_BUILD) with-java17 bash e2e/integration_tests.sh
 
 # --------------------------------------------------------------------- run --
 
@@ -169,7 +174,7 @@ ps: ## Show container status
 
 .PHONY: smoke
 smoke: ## Check that the H2 instance answers
-	# Spring Boot 1.5 exposes a single connector, so exactly one of these answers:
+	# The app exposes a single connector, so exactly one of these answers:
 	# HTTP:8080 in AUTH_MODE=none, HTTPS:9443 in AUTH_MODE=saml.
 	# curl still writes %{http_code} (000) when the connection fails, so discard its
 	# output on a non-zero exit instead of letting both appear.

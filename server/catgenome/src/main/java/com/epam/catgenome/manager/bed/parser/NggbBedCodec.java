@@ -84,7 +84,7 @@ public class NggbBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
      */
     @Override
     public NggbBedFeature decode(String line) {
-        if (line.trim().isEmpty()) {
+        if (line.isBlank()) {
             return null;
         }
         if (line.startsWith("#") || line.startsWith("track") || line.startsWith("browser")) {

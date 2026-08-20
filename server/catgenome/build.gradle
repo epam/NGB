@@ -262,12 +262,26 @@ dependencies {
 
 // >>>>> configuration for pmd plugin
 pmd {
-    //ruleSetConfig = resources.text.fromFile("config/pmd/pmd-ruleset.xml")
-    ruleSetFiles = files("config/pmd/pmd-ruleset.xml", "config/pmd/pmd-ruleset-feature-index-manager.xml")
+    // Not 7.x: Gradle 7.6's Pmd task drives the tool through net.sourceforge.pmd.ant.PMDTask, which
+    // PMD 7 dropped, so PMD 7 needs Gradle 8.6+. Bump this in Phase 3 with the wrapper.
+    toolVersion = "6.55.0"
+    // ruleSetFiles does not replace ruleSets, it adds to it, and Gradle's default for ruleSets is
+    // the entire category/java/errorprone.xml (it was the much narrower java-basic under Gradle 3).
+    // Left at the default it contributes ~1690 violations from rules this project never asked for.
+    ruleSets = []
+    // One ruleset only. There used to be a second, pmd-ruleset-feature-index-manager.xml, which
+    // re-declared the whole rule list with AvoidCatchingGenericException off and an include-pattern
+    // for FeatureIndexManager.java and util/TestUtils.java. It could not have been doing that:
+    // RuleSets.apply() runs the rule chain before it consults each ruleset's file patterns, and
+    // nearly every PMD rule is rule-chain based, so the patterns were ignored and every shared rule
+    // ran twice (116 reported violations for 58 actual ones). It is also no longer needed -
+    // FeatureIndexManager only catches IOException now, and util/TestUtils.java lives under
+    // src/test, which pmdMain never scans.
+    ruleSetFiles = files("config/pmd/pmd-ruleset.xml")
 }
 
 checkstyle {
-    toolVersion = "7.2"
+    toolVersion = "11.1.0"
     // Gradle 4+ resolves the default config dir against the *root* project, which for this
     // multi-project build is the wrong place. Both modules keep their own copy.
     configDirectory = file("config/checkstyle")

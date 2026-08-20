@@ -200,7 +200,7 @@ does not mistake them for its own breakage):
 | AWS SDK | v2 (`software.amazon.awssdk:s3`, `:sts`) | certain |
 | POI | 5.x | certain |
 | Test | JUnit 4.13.2 on the JUnit 5 platform via `junit-vintage-engine`; Mockito 5.x | certain |
-| Static analysis | Checkstyle 10.x/11.x, PMD 7.x (**ruleset needs a full rewrite**) | certain |
+| Static analysis | Checkstyle 10.x/11.x, PMD 7.x (**ruleset needs a full rewrite**) | certain — but PMD 7 needs Gradle 8.6+, so Phase 2 lands on 6.55.0 with the rewritten ruleset and **Phase 3 bumps it to 7.x**; see the Phase 2 findings |
 | Node | **14.17.5, unchanged** (D12) | certain |
 | CI | GitHub Actions, JDK 21 | certain |
 
@@ -1080,11 +1080,115 @@ Java 9+ modularity breaks. Phase 3 moves to 21.
   still catch a real DAO break — rather than being loosened to an approximate comparison. No
   production code compares a persisted `LocalDateTime` for equality; the stored value has always been
   truncated on PostgreSQL.
-- **`.devenv` needed two edits for the JDK, not one.** `GRADLE_H2` in the `Makefile` becomes
+- **`.devenv` needed three edits for the JDK, not one.** `GRADLE_H2` in the `Makefile` becomes
   `with-java17 ./gradlew --no-daemon`, but `make test-pg` does not go through it — the `test-pg`
   service in `docker-compose.yml` carries its own `command:` array, which also has to be
-  prefixed with `with-java17`. The toolbox image still defaults to JDK 8, which stays correct
-  until Phase 9 retires it.
+  prefixed with `with-java17`. The third is the `cli` service: the CLI jar is now built by the 17
+  toolchain, so the container needs `JAVA_VERSION: ${CLI_JAVA_VERSION:-17}` and
+  `cli/entrypoint.sh` needs to select a JDK from it. Deliberately a *new* variable rather than
+  reusing `NGB_JAVA_VERSION`, which `.env` pins to 8 and which selects the JDK the *server jar*
+  runs on — the two are independent, and reusing it made the CLI start on 8 and die with
+  `UnsupportedClassVersionError`. `entrypoint.sh` also had to replace its
+  `/usr/local/bin/ngb` symlink with a wrapper that exports `JAVA_HOME`, because
+  `docker-compose exec` starts from the *image* environment and never sees what the entrypoint
+  exported. The toolbox image still defaults to JDK 8, which stays correct until Phase 9
+  retires it.
+- **Gradle's Ant-based tooling needs one `--add-opens` on JDK 17, in a root
+  `gradle.properties`.** Every `checkstyleMain`/`pmdMain` died in
+  `DefaultIsolatedAntBuilder` → `PreferenceCleaningGroovySystemLoader`, which reflects into
+  `java.util.prefs.AbstractPreferences` to stop the Ant classloader leaking preference threads.
+  So `org.gradle.jvmargs` in a new repo-root `gradle.properties` carries
+  `--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED` (with the heap settings that were
+  previously implicit). Note this file is *not* the one Phase 1 deleted — that was
+  `net.saliman.properties`' input, keyed on `filterTokens`; this one configures the Gradle JVM
+  and has nothing to do with the plugin. Unlike the EhCache flags this is a build-only concern:
+  the shipped jar never touches `java.prefs`.
+- **DIVERGENCE from the decision table: PMD is 6.55.0, not 7.x, because Gradle 7.6 cannot run
+  PMD 7.** Gradle's `Pmd` task drives the tool through `net.sourceforge.pmd.ant.PMDTask`, which
+  PMD 7 removed; PMD 7 support landed in Gradle **8.6**. Confirmed against the tool, not the
+  release notes: with `toolVersion = "7.0.0"` the task fails at
+  `ClassNotFoundException: net.sourceforge.pmd.ant.PMDTask`. The decision ("Checkstyle 10.x/11.x,
+  PMD 7.x") is therefore met at Phase 3, not here, and this was agreed before the ruleset was
+  rewritten. Very little is lost by waiting: PMD 6 and 7 share the same
+  `category/java/*.xml` layout, so the rewrite below is the real work and Phase 3 is a
+  `toolVersion` bump plus a handful of rule renames (`UnnecessaryImport` and
+  `EmptyControlStatement` already exist in 6.55; the notable 7-only replacement is
+  `UnnecessaryBoxing` for the deprecated `BooleanInstantiation`).
+- **`ruleSetFiles` does not replace `ruleSets`, and Gradle's default for `ruleSets` is no longer
+  harmless.** First run of the rewritten ruleset reported **1690** violations from rules the
+  project never asked for. Cause: `PmdExtension.ruleSets` defaults to
+  `["category/java/errorprone.xml"]` — the whole category — where under Gradle 3 it defaulted to
+  the much narrower `java-basic`, and `ruleSetFiles` is *additive* to it rather than a
+  replacement. Both modules now set `ruleSets = []` explicitly. Worth remembering as a general
+  shape: a Gradle-version bump can change what a *default* means without any config being wrong.
+- **The second ruleset, `pmd-ruleset-feature-index-manager.xml`, never did what it claimed and is
+  deleted.** With `ruleSets = []` the count fell to 116 — which was every real violation reported
+  exactly twice, proven by identical `line`/`column` pairs in the XML report. The file re-declared
+  the entire rule list with `AvoidCatchingGenericException` off and an `include-pattern` for
+  `FeatureIndexManager.java` and `util/TestUtils.java`, so every rule shared with the main ruleset
+  ran twice. The patterns cannot have been working either, and this was verified by disassembling
+  `RuleSets.class` from `pmd-core-6.55.0.jar`: `apply()` runs `ruleChain.apply(...)` *before* it
+  consults each ruleset's `applies(File)`, and nearly every PMD rule is rule-chain based, so
+  per-ruleset `include-pattern`/`exclude-pattern` are silently ignored for them. The file was also
+  simply obsolete — `FeatureIndexManager` catches only `IOException` today, and
+  `util/TestUtils.java` lives under `src/test`, which `pmdMain` never scans. Same reasoning
+  removed the two `<exclude-pattern>` entries from the main ruleset. **If a future phase needs a
+  per-file exemption, use `@SuppressWarnings("PMD.RuleName")` or `//NOPMD`, not file patterns.**
+- **All 59 remaining violations (58 server + 1 CLI) were real findings from PMD 5 blind spots,
+  fixed at the source; nothing suppressed.** Five distinct detections, none of them stylistic noise:
+  `AppendCharacterWithChar` on `.append("\t")` — PMD 5's XPath only matched single-character
+  literals and an escape sequence is two characters in the source (50 sites across `GffFeature`,
+  `GtfFeature`, `NggbMafFeature`, and one `"\n"` in the CLI's `Project`);
+  `InefficientEmptyStringCheck` on `line.trim().isEmpty()` → `isBlank()` in five codecs; `AvoidFieldNameMatchingMethodName` on `GiemsaStain.value` vs `value()` (renamed the
+  private field to `stainName`, public API untouched); `UnnecessarySemicolon` on a stray `};` in
+  `AbstractAssociationManager`; and `UseLocaleWithCaseConversions` on
+  `!"true".equals(localLogout.toLowerCase().trim())` in `OptionalSAMLLogoutFilter` — a real
+  locale bug (Turkish `I`), fixed by `equalsIgnoreCase`, which removes the case conversion
+  altogether rather than passing a `Locale` to it.
+- **Two rules were consciously narrowed, and this is the whole of what was "disabled".**
+  (1) `SuspiciousConstantFieldName` (old `naming.xml`) has no PMD 6 equivalent that does only what
+  it did; its successor is `FieldNamingConventions`, which would enforce field naming generally and
+  therefore contradict this project's long-standing exclusion of `VariableNamingConventions`.
+  Dropped rather than smuggled in as a much broader rule. (2) `ClassNamingConventions` in PMD 6
+  gained `utilityClassPattern`/`abstractClassPattern` defaults (`[A-Z][a-zA-Z0-9]*(Utils?|Helper|Constants)`
+  and `Abstract[A-Z]\w*`) that PMD 5 did not have; both are set back to plain
+  `[A-Z][a-zA-Z0-9]*`, so the rule checks what it always checked. Everything else maps across:
+  the old `AbstractNaming` and `MisleadingVariableName` rules no longer exist at all, and
+  `UnnecessaryImport`, `ControlStatementBraces`, `EmptyControlStatement` and
+  `UnnecessarySemicolon` each subsume several deleted rules. Both rulesets carry this mapping as a
+  header comment so the next reader does not have to re-derive it.
+- **Checkstyle 7.2 → 11.1.0 needs exactly three config edits.** The DTD reference goes to
+  `configuration_1_3.dtd`; `LineLength` moves from `TreeWalker` to `Checker` (it became a
+  `Checker` child in 8.24) and loses its `tabWidth` property, so `tabWidth` is declared on both
+  `Checker` and `TreeWalker`; and `LeftCurly` loses `maxLineLength` (removed in 8.0). Both modules
+  keep byte-identical copies, so both were edited. The `severity=warning` at `Checker` level is
+  why this is a low-risk bump — Gradle's `Checkstyle` task defaults to `maxWarnings =
+  Integer.MAX_VALUE`, so the 37 server / 6 CLI warnings do not fail the build. That is a
+  pre-existing choice, recorded in `TEST-BASELINE.md`, not something this phase introduced.
+- **Sub-commit (a) introduced a packaging regression that only the CLI container caught, and it
+  would have broken the Docker image.** Replacing the old blank-the-version-and-rename hack with
+  `archiveFileName = 'ngb-cli.tar.gz'` produced the right file name and the wrong *contents*: the
+  Distribution plugin derives the archive's root directory from the archive naming properties, so
+  the tarball unpacked into a directory literally called `ngb-cli.tar.gz/`. `docker/core/Dockerfile`
+  (`ENV CLI_HOME $INSTALL_DIR/ngb-cli/bin/`) and `docs/md/cli/installation.md` both expect
+  `ngb-cli/bin/ngb`. Fixed with `archiveBaseName = 'ngb-cli'` + `archiveVersion = ''` (+
+  `archiveExtension`), which gives both the fixed file name and the `ngb-cli/` root. Lesson for
+  Phase 9: the jar building is not the same as the distribution being usable — unpack it.
+- **The `make cli-test` exit criterion cannot be met: its fixture host no longer exists.**
+  `e2e/integration_tests.sh` `wget`s its test data from
+  `http://ngb.opensource.epam.com/distr/data/tests/`, and that name is **NXDOMAIN** from both the
+  container and the host (`opensource.epam.com` itself resolves; the `ngb` host does not) —
+  `wget: unable to resolve host address`, exit 4. This is external decay, unrelated to the
+  migration, and it is *not* worked around: the target now documents it and it is recorded in
+  `TEST-BASELINE.md`. In its place the CLI↔server contract was exercised for real on JDK 17
+  through the `cli` container against `make up`, using fixtures from the repo:
+  `reg_ref` (including the duplicate-name negative case), `list_ref`, `reg_file`, `search`,
+  `reg_dataset`, `del_file` on a file used by a dataset (negative case), `del_dataset`,
+  `del_file`, and a `loadChromosomes` REST call returning `A1 / 56,400 bp`. That covers
+  registration, listing, search, deletion and the error paths — the same ground `testcases.csv`
+  covers — but through hand-driven commands rather than `integrationCliTest`. **Phase 9 owns the
+  real fix**: either host the fixtures somewhere live or generate them, since `cli-tests.gradle`
+  and `testcases.csv` are otherwise sound and Groovy 3 parses them fine.
 
 **Exit criteria**
 
@@ -1098,7 +1202,10 @@ Java 9+ modularity breaks. Phase 3 moves to 21.
 - `make up-saml` + `make smoke-saml` still complete an SSO login (the whole point of the
   waypoint).
 - `make lint` green with the rewritten rulesets.
-- `make cli-test` passes.
+- ~~`make cli-test` passes.~~ **Not achievable and not achieved** — the fixture host
+  `ngb.opensource.epam.com` no longer exists, so the target cannot start. Substituted with a
+  hand-driven CLI↔server round-trip on JDK 17; both are recorded in `TEST-BASELINE.md`, and
+  Phase 9 owns hosting the fixtures again.
 
 **Risks**
 

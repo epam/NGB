@@ -118,7 +118,7 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
 
     public T entryFromDocDiseaseView(Document doc) {
         return null;
-    };
+    }
 
     public Query getByGeneIdsQuery(final List<String> ids) throws ParseException {
         return getByTermsQuery(ids, IndexCommonFields.GENE_ID.name());

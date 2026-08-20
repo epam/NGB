@@ -5,34 +5,165 @@
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
     <description>CatGenome Java ruleset</description>
 
-    <rule ref="rulesets/java/basic.xml">
-        <!--<exclude name="UselessParentheses"/>-->
-    </rule>
+    <!--
+      Rewritten for PMD 6 in migration Phase 2. PMD 6 deleted the old aggregate rulesets
+      (rulesets/java/basic.xml, unusedcode.xml, imports.xml, strings.xml, braces.xml, empty.xml,
+      finalizers.xml, naming.xml, strictexception.xml) and redistributed their rules across eight
+      categories, so the same policy has to be spelled out rule by rule. Every rule the nine old
+      rulesets contained is listed below, in its new category, except where noted; the previous
+      exclusions are preserved by omission.
 
-    <rule ref="rulesets/java/unusedcode.xml"/>
-    <rule ref="rulesets/java/imports.xml"/>
-    <rule ref="rulesets/java/imports.xml/TooManyStaticImports">
+      Seven places where the rule set could not be reproduced one-for-one, because PMD merged or
+      dropped rules upstream:
+
+      1. UnnecessaryImport replaces DuplicateImports, DontImportJavaLang, UnusedImports and
+         ImportFromSamePackage, which PMD merged into it (all four are deprecated in 6.55 and gone
+         in 7).
+      2. ControlStatementBraces replaces IfStmtsMustUseBraces, IfElseStmtsMustUseBraces,
+         WhileLoopsMustUseBraces and ForLoopsMustUseBraces. Its defaults cover the same four
+         statements.
+      3. EmptyControlStatement replaces EmptyIfStmt, EmptyWhileStmt, EmptyTryBlock,
+         EmptyFinallyBlock, EmptySwitchStatements, EmptySynchronizedBlock, EmptyStatementBlock,
+         EmptyInitializer and EmptyStaticInitializer (the last has no separate rule any more), and
+         UnnecessarySemicolon replaces EmptyStatementNotInLoop. EmptyCatchBlock still exists.
+      4. UnnecessaryModifier is the rule formerly known as UnusedModifier.
+      5. MisleadingVariableName was removed in PMD 6 with no successor, so it is simply gone.
+      6. SuspiciousConstantFieldName is deprecated and its successor is FieldNamingConventions,
+         which enforces far more than "a non-final field is named in CONSTANT_CASE". Enabling that
+         would contradict the VariableNamingConventions exclusion this ruleset has always carried,
+         so the rule is dropped rather than replaced. Same reasoning applies to
+         VariableNamingConventions itself: its successors (Field/LocalVariable/
+         FormalParameterNamingConventions) are not enabled.
+      7. BooleanInstantiation is deprecated in 6.55; PMD 7 covers it with UnnecessaryBoxing, which
+         does not exist in 6.x. Kept as-is - swap it when Phase 3 moves to Gradle 8 and PMD 7.
+
+      The exclude-patterns this file used to carry, and the companion ruleset that took the two
+      excluded files with AvoidCatchingGenericException switched off, are gone; see the pmd block in
+      build.gradle for why they never worked and are no longer needed.
+
+      PMD 7 needs Gradle 8.6+ (Gradle 7.6's PMD plugin invokes net.sourceforge.pmd.ant.PMDTask,
+      which PMD 7 does not ship), which is why this is 6.55.0 and not 7.x. The category paths below
+      are unchanged in PMD 7, so Phase 3 is a toolVersion bump plus the two notes above.
+    -->
+
+    <!-- was rulesets/java/basic.xml -->
+    <rule ref="category/java/errorprone.xml/JumbledIncrementer"/>
+    <rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashcode"/>
+    <rule ref="category/java/errorprone.xml/ReturnFromFinallyBlock"/>
+    <rule ref="category/java/errorprone.xml/UnconditionalIfStatement"/>
+    <rule ref="category/java/errorprone.xml/ClassCastExceptionWithToArray"/>
+    <rule ref="category/java/errorprone.xml/AvoidDecimalLiteralsInBigDecimalConstructor"/>
+    <rule ref="category/java/errorprone.xml/MisplacedNullCheck"/>
+    <rule ref="category/java/errorprone.xml/BrokenNullCheck"/>
+    <rule ref="category/java/errorprone.xml/AvoidUsingOctalValues"/>
+    <rule ref="category/java/errorprone.xml/AvoidMultipleUnaryOperators"/>
+    <rule ref="category/java/errorprone.xml/CheckSkipResult"/>
+    <rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop"/>
+    <rule ref="category/java/errorprone.xml/DontUseFloatTypeForLoopIndices"/>
+    <rule ref="category/java/codestyle.xml/ForLoopShouldBeWhileLoop"/>
+    <rule ref="category/java/codestyle.xml/ExtendsObject"/>
+    <rule ref="category/java/multithreading.xml/DoubleCheckedLocking"/>
+    <rule ref="category/java/multithreading.xml/AvoidThreadGroup"/>
+    <rule ref="category/java/multithreading.xml/DontCallThreadRun"/>
+    <rule ref="category/java/design.xml/CollapsibleIfStatements"/>
+    <rule ref="category/java/design.xml/SimplifiedTernary"/>
+    <rule ref="category/java/performance.xml/BigIntegerInstantiation"/>
+    <rule ref="category/java/performance.xml/BooleanInstantiation"/>
+    <rule ref="category/java/bestpractices.xml/AvoidUsingHardCodedIP"/>
+    <rule ref="category/java/bestpractices.xml/CheckResultSet"/>
+
+    <!-- was rulesets/java/unusedcode.xml -->
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateField"/>
+    <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
+    <rule ref="category/java/bestpractices.xml/UnusedFormalParameter"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryModifier"/>
+
+    <!-- was rulesets/java/imports.xml -->
+    <rule ref="category/java/codestyle.xml/UnnecessaryImport"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryFullyQualifiedName"/>
+    <rule ref="category/java/codestyle.xml/TooManyStaticImports">
         <properties>
             <property name="maximumStaticImports" value="6"/>
         </properties>
     </rule>
-    <rule ref="rulesets/java/strings.xml"/>
-    <rule ref="rulesets/java/braces.xml"/>
-    <rule ref="rulesets/java/empty.xml">
+
+    <!-- was rulesets/java/strings.xml -->
+    <rule ref="category/java/errorprone.xml/AvoidDuplicateLiterals"/>
+    <rule ref="category/java/errorprone.xml/UnnecessaryCaseChange"/>
+    <rule ref="category/java/errorprone.xml/StringBufferInstantiationWithChar"/>
+    <rule ref="category/java/errorprone.xml/UseEqualsToCompareStrings"/>
+    <rule ref="category/java/performance.xml/StringInstantiation"/>
+    <rule ref="category/java/performance.xml/StringToString"/>
+    <rule ref="category/java/performance.xml/InefficientStringBuffering"/>
+    <rule ref="category/java/performance.xml/UseStringBufferLength"/>
+    <rule ref="category/java/performance.xml/AppendCharacterWithChar"/>
+    <rule ref="category/java/performance.xml/ConsecutiveAppendsShouldReuse"/>
+    <rule ref="category/java/performance.xml/ConsecutiveLiteralAppends"/>
+    <rule ref="category/java/performance.xml/UseIndexOfChar"/>
+    <rule ref="category/java/performance.xml/InefficientEmptyStringCheck"/>
+    <rule ref="category/java/performance.xml/InsufficientStringBufferDeclaration"/>
+    <rule ref="category/java/performance.xml/UselessStringValueOf"/>
+    <rule ref="category/java/bestpractices.xml/AvoidStringBufferField"/>
+
+    <!-- was rulesets/java/braces.xml -->
+    <rule ref="category/java/codestyle.xml/ControlStatementBraces"/>
+
+    <!-- was rulesets/java/empty.xml, which raised the whole set to priority 2 -->
+    <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
         <priority>2</priority>
     </rule>
-    <rule ref="rulesets/java/finalizers.xml"/>
-    <rule ref="rulesets/java/naming.xml">
-        <exclude name="VariableNamingConventions"/>
-        <exclude name="ShortClassName"/>
-        <exclude name="LongVariable"/>
-        <exclude name="ShortVariable"/>
-        <exclude name="AbstractNaming"/>
+    <rule ref="category/java/codestyle.xml/EmptyControlStatement">
+        <priority>2</priority>
     </rule>
-    <rule ref="rulesets/java/strictexception.xml">
-        <exclude name="SignatureDeclareThrowsException"/>
+    <rule ref="category/java/codestyle.xml/UnnecessarySemicolon">
+        <priority>2</priority>
     </rule>
 
-    <exclude-pattern>.*/com/epam/catgenome/manager/FeatureIndexManager.java</exclude-pattern>
-    <exclude-pattern>.*/com/epam/catgenome/util/TestUtils.java</exclude-pattern>
+    <!-- was rulesets/java/finalizers.xml -->
+    <rule ref="category/java/errorprone.xml/EmptyFinalizer"/>
+    <rule ref="category/java/errorprone.xml/FinalizeOnlyCallsSuperFinalize"/>
+    <rule ref="category/java/errorprone.xml/FinalizeOverloaded"/>
+    <rule ref="category/java/errorprone.xml/FinalizeDoesNotCallSuperFinalize"/>
+    <rule ref="category/java/errorprone.xml/FinalizeShouldBeProtected"/>
+    <rule ref="category/java/errorprone.xml/AvoidCallingFinalize"/>
+
+    <!-- was rulesets/java/naming.xml, minus VariableNamingConventions, ShortClassName,
+         LongVariable, ShortVariable and AbstractNaming (the last no longer exists) -->
+    <rule ref="category/java/codestyle.xml/ShortMethodName"/>
+    <rule ref="category/java/codestyle.xml/MethodNamingConventions"/>
+    <rule ref="category/java/codestyle.xml/AvoidDollarSigns"/>
+    <rule ref="category/java/codestyle.xml/NoPackage"/>
+    <rule ref="category/java/codestyle.xml/PackageCase"/>
+    <rule ref="category/java/codestyle.xml/BooleanGetMethodName"/>
+    <rule ref="category/java/codestyle.xml/GenericsNaming"/>
+    <rule ref="category/java/errorprone.xml/MethodWithSameNameAsEnclosingClass"/>
+    <rule ref="category/java/errorprone.xml/SuspiciousHashcodeMethodName"/>
+    <rule ref="category/java/errorprone.xml/SuspiciousEqualsMethodName"/>
+    <rule ref="category/java/errorprone.xml/AvoidFieldNameMatchingTypeName"/>
+    <rule ref="category/java/errorprone.xml/AvoidFieldNameMatchingMethodName"/>
+    <!-- PMD 5's ClassNamingConventions checked one thing: that a class name is PascalCase. PMD 6
+         added abstract/interface/enum/annotation/utility-class patterns to the same rule, and the
+         utility-class one demands a Util(s)/Helper/Constants suffix - a naming policy this codebase
+         never had and one that cannot be satisfied without renaming public classes. Restricted to
+         the checks the rule used to perform; the extra patterns are open to a separate decision. -->
+    <rule ref="category/java/codestyle.xml/ClassNamingConventions">
+        <properties>
+            <property name="utilityClassPattern" value="[A-Z][a-zA-Z0-9]*"/>
+            <property name="abstractClassPattern" value="[A-Z][a-zA-Z0-9]*"/>
+        </properties>
+    </rule>
+
+    <!-- was rulesets/java/strictexception.xml, minus SignatureDeclareThrowsException -->
+    <rule ref="category/java/errorprone.xml/AvoidCatchingThrowable"/>
+    <rule ref="category/java/errorprone.xml/AvoidCatchingNPE"/>
+    <rule ref="category/java/errorprone.xml/DoNotThrowExceptionInFinally"/>
+    <rule ref="category/java/errorprone.xml/AvoidLosingExceptionInformation"/>
+    <rule ref="category/java/design.xml/ExceptionAsFlowControl"/>
+    <rule ref="category/java/design.xml/AvoidThrowingRawExceptionTypes"/>
+    <rule ref="category/java/design.xml/AvoidThrowingNullPointerException"/>
+    <rule ref="category/java/design.xml/AvoidRethrowingException"/>
+    <rule ref="category/java/design.xml/DoNotExtendJavaLangError"/>
+    <rule ref="category/java/design.xml/AvoidThrowingNewInstanceOfSameException"/>
+    <rule ref="category/java/design.xml/AvoidCatchingGenericException"/>
 </ruleset>

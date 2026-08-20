@@ -80,7 +80,7 @@ public class MafCodec extends AsciiFeatureCodec<MafFeature> {
      */
     @Override
     public MafFeature decode(String line) {
-        if (line.trim().isEmpty()) {
+        if (line.isBlank()) {
             return null;
         }
         if (line.startsWith("#") || line.startsWith("Hugo_Symbol")) {

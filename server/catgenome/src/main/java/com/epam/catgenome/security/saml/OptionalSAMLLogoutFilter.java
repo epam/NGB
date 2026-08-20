@@ -193,7 +193,7 @@ public class OptionalSAMLLogoutFilter extends LogoutFilter {
      */
     protected boolean isGlobalLogout(HttpServletRequest request, Authentication auth) {
         String localLogout = request.getParameter(LOGOUT_PARAMETER);
-        return (localLogout == null || !"true".equals(localLogout.toLowerCase().trim())) &&
+        return (localLogout == null || !"true".equalsIgnoreCase(localLogout.trim())) &&
                (auth.getCredentials() instanceof SAMLCredential);
     }
 

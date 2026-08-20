@@ -5,30 +5,126 @@
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
     <description>CatGenome Java ruleset</description>
 
-    <rule ref="rulesets/java/basic.xml">
-        <!--<exclude name="UselessParentheses"/>-->
-    </rule>
+    <!--
+      See server/catgenome/config/pmd/pmd-ruleset.xml for why each PMD 5 ruleset expanded into the
+      rule list below. This module's ruleset used to differ from the server's in one respect - it did
+      not exclude AbstractNaming - and that rule no longer exists in PMD 6, so the two are now
+      identical apart from the server's file patterns.
+    -->
 
-    <rule ref="rulesets/java/unusedcode.xml"/>
-    <rule ref="rulesets/java/imports.xml"/>
-    <rule ref="rulesets/java/imports.xml/TooManyStaticImports">
+    <!-- was rulesets/java/basic.xml -->
+    <rule ref="category/java/errorprone.xml/JumbledIncrementer"/>
+    <rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashcode"/>
+    <rule ref="category/java/errorprone.xml/ReturnFromFinallyBlock"/>
+    <rule ref="category/java/errorprone.xml/UnconditionalIfStatement"/>
+    <rule ref="category/java/errorprone.xml/ClassCastExceptionWithToArray"/>
+    <rule ref="category/java/errorprone.xml/AvoidDecimalLiteralsInBigDecimalConstructor"/>
+    <rule ref="category/java/errorprone.xml/MisplacedNullCheck"/>
+    <rule ref="category/java/errorprone.xml/BrokenNullCheck"/>
+    <rule ref="category/java/errorprone.xml/AvoidUsingOctalValues"/>
+    <rule ref="category/java/errorprone.xml/AvoidMultipleUnaryOperators"/>
+    <rule ref="category/java/errorprone.xml/CheckSkipResult"/>
+    <rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop"/>
+    <rule ref="category/java/errorprone.xml/DontUseFloatTypeForLoopIndices"/>
+    <rule ref="category/java/codestyle.xml/ForLoopShouldBeWhileLoop"/>
+    <rule ref="category/java/codestyle.xml/ExtendsObject"/>
+    <rule ref="category/java/multithreading.xml/DoubleCheckedLocking"/>
+    <rule ref="category/java/multithreading.xml/AvoidThreadGroup"/>
+    <rule ref="category/java/multithreading.xml/DontCallThreadRun"/>
+    <rule ref="category/java/design.xml/CollapsibleIfStatements"/>
+    <rule ref="category/java/design.xml/SimplifiedTernary"/>
+    <rule ref="category/java/performance.xml/BigIntegerInstantiation"/>
+    <rule ref="category/java/performance.xml/BooleanInstantiation"/>
+    <rule ref="category/java/bestpractices.xml/AvoidUsingHardCodedIP"/>
+    <rule ref="category/java/bestpractices.xml/CheckResultSet"/>
+
+    <!-- was rulesets/java/unusedcode.xml -->
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateField"/>
+    <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
+    <rule ref="category/java/bestpractices.xml/UnusedFormalParameter"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryModifier"/>
+
+    <!-- was rulesets/java/imports.xml -->
+    <rule ref="category/java/codestyle.xml/UnnecessaryImport"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryFullyQualifiedName"/>
+    <rule ref="category/java/codestyle.xml/TooManyStaticImports">
         <properties>
             <property name="maximumStaticImports" value="6"/>
         </properties>
     </rule>
-    <rule ref="rulesets/java/strings.xml"/>
-    <rule ref="rulesets/java/braces.xml"/>
-    <rule ref="rulesets/java/empty.xml">
+
+    <!-- was rulesets/java/strings.xml -->
+    <rule ref="category/java/errorprone.xml/AvoidDuplicateLiterals"/>
+    <rule ref="category/java/errorprone.xml/UnnecessaryCaseChange"/>
+    <rule ref="category/java/errorprone.xml/StringBufferInstantiationWithChar"/>
+    <rule ref="category/java/errorprone.xml/UseEqualsToCompareStrings"/>
+    <rule ref="category/java/performance.xml/StringInstantiation"/>
+    <rule ref="category/java/performance.xml/StringToString"/>
+    <rule ref="category/java/performance.xml/InefficientStringBuffering"/>
+    <rule ref="category/java/performance.xml/UseStringBufferLength"/>
+    <rule ref="category/java/performance.xml/AppendCharacterWithChar"/>
+    <rule ref="category/java/performance.xml/ConsecutiveAppendsShouldReuse"/>
+    <rule ref="category/java/performance.xml/ConsecutiveLiteralAppends"/>
+    <rule ref="category/java/performance.xml/UseIndexOfChar"/>
+    <rule ref="category/java/performance.xml/InefficientEmptyStringCheck"/>
+    <rule ref="category/java/performance.xml/InsufficientStringBufferDeclaration"/>
+    <rule ref="category/java/performance.xml/UselessStringValueOf"/>
+    <rule ref="category/java/bestpractices.xml/AvoidStringBufferField"/>
+
+    <!-- was rulesets/java/braces.xml -->
+    <rule ref="category/java/codestyle.xml/ControlStatementBraces"/>
+
+    <!-- was rulesets/java/empty.xml, which raised the whole set to priority 2 -->
+    <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
         <priority>2</priority>
     </rule>
-    <rule ref="rulesets/java/finalizers.xml"/>
-    <rule ref="rulesets/java/naming.xml">
-        <exclude name="VariableNamingConventions"/>
-        <exclude name="ShortClassName"/>
-        <exclude name="LongVariable"/>
-        <exclude name="ShortVariable"/>
+    <rule ref="category/java/codestyle.xml/EmptyControlStatement">
+        <priority>2</priority>
     </rule>
-    <rule ref="rulesets/java/strictexception.xml">
-        <exclude name="SignatureDeclareThrowsException"/>
+    <rule ref="category/java/codestyle.xml/UnnecessarySemicolon">
+        <priority>2</priority>
     </rule>
+
+    <!-- was rulesets/java/finalizers.xml -->
+    <rule ref="category/java/errorprone.xml/EmptyFinalizer"/>
+    <rule ref="category/java/errorprone.xml/FinalizeOnlyCallsSuperFinalize"/>
+    <rule ref="category/java/errorprone.xml/FinalizeOverloaded"/>
+    <rule ref="category/java/errorprone.xml/FinalizeDoesNotCallSuperFinalize"/>
+    <rule ref="category/java/errorprone.xml/FinalizeShouldBeProtected"/>
+    <rule ref="category/java/errorprone.xml/AvoidCallingFinalize"/>
+
+    <!-- was rulesets/java/naming.xml, minus VariableNamingConventions, ShortClassName,
+         LongVariable and ShortVariable -->
+    <rule ref="category/java/codestyle.xml/ShortMethodName"/>
+    <rule ref="category/java/codestyle.xml/MethodNamingConventions"/>
+    <rule ref="category/java/codestyle.xml/AvoidDollarSigns"/>
+    <rule ref="category/java/codestyle.xml/NoPackage"/>
+    <rule ref="category/java/codestyle.xml/PackageCase"/>
+    <rule ref="category/java/codestyle.xml/BooleanGetMethodName"/>
+    <rule ref="category/java/codestyle.xml/GenericsNaming"/>
+    <rule ref="category/java/errorprone.xml/MethodWithSameNameAsEnclosingClass"/>
+    <rule ref="category/java/errorprone.xml/SuspiciousHashcodeMethodName"/>
+    <rule ref="category/java/errorprone.xml/SuspiciousEqualsMethodName"/>
+    <rule ref="category/java/errorprone.xml/AvoidFieldNameMatchingTypeName"/>
+    <rule ref="category/java/errorprone.xml/AvoidFieldNameMatchingMethodName"/>
+    <rule ref="category/java/codestyle.xml/ClassNamingConventions">
+        <properties>
+            <property name="utilityClassPattern" value="[A-Z][a-zA-Z0-9]*"/>
+            <property name="abstractClassPattern" value="[A-Z][a-zA-Z0-9]*"/>
+        </properties>
+    </rule>
+
+    <!-- was rulesets/java/strictexception.xml, minus SignatureDeclareThrowsException -->
+    <rule ref="category/java/errorprone.xml/AvoidCatchingThrowable"/>
+    <rule ref="category/java/errorprone.xml/AvoidCatchingNPE"/>
+    <rule ref="category/java/errorprone.xml/DoNotThrowExceptionInFinally"/>
+    <rule ref="category/java/errorprone.xml/AvoidLosingExceptionInformation"/>
+    <rule ref="category/java/design.xml/ExceptionAsFlowControl"/>
+    <rule ref="category/java/design.xml/AvoidThrowingRawExceptionTypes"/>
+    <rule ref="category/java/design.xml/AvoidThrowingNullPointerException"/>
+    <rule ref="category/java/design.xml/AvoidRethrowingException"/>
+    <rule ref="category/java/design.xml/DoNotExtendJavaLangError"/>
+    <rule ref="category/java/design.xml/AvoidThrowingNewInstanceOfSameException"/>
+    <rule ref="category/java/design.xml/AvoidCatchingGenericException"/>
 </ruleset>
