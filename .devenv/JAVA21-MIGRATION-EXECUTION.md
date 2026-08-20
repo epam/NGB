@@ -18,7 +18,7 @@ session to know where it is.
 
 | Phase | What | Commit | Done |
 |---|---|---|---|
-| 0 | Baseline stabilisation + JDK 17 in the toolbox | | ☐ |
+| 0 | Baseline stabilisation + JDK 17 in the toolbox | `064a766e`..`961dc682` | ☑ |
 | 1 | Remove dropped functionality (HDFS, GA4GH, desktop, WAR, `person`, OAuth2, PaLM 2, Singularity, Sonar) | | ☐ |
 | 2 | Gradle 7.6 + Spring Boot 2.7.18 + Lombok on JDK 17 | | ☐ |
 | 3 | Spring Boot 3.5 + jakarta + Gradle 8 on JDK 21, security reduced to anonymous | | ☐ |
@@ -63,9 +63,10 @@ The default command timeout is 120 s and the ceiling is 600 s, but:
 | Command | Roughly |
 |---|---|
 | `make jar` (UI + docs + server) | ~7 min |
-| `make jar-fast` | ~45 s |
-| `make test` | ~4 min |
-| `make test-pg` | ~7 min |
+| `make jar-fast` | ~50 s |
+| `make test` | ~3.5 min |
+| `make test-pg` | ~3.5 min, plus ~1 min if you `make reset-pg` first — and you should |
+| `make up` then `make smoke` | ~75 s of startup before the app answers |
 | `make cli-test` | long — downloads GBs of test data |
 
 **A session that leaves the timeout at its default will read a timeout as a build failure and
@@ -98,10 +99,23 @@ compaction rather than depending on the original prompt.
 
 ---
 
-## Session 1 — kickoff (Phase 0)
+## Session 1 — kickoff (Phase 0) — **done**
 
-The plan document may still be untracked; this prompt has the session commit it first, so
-the specification is on the branch before any code moves.
+Landed as `064a766e`..`961dc682` on 2026-08-20. Outcome: 2 H2 / 10 PostgreSQL failures,
+`make lint` green, three JDKs in the toolbox, `make smoke` and `make smoke-saml` both
+verified on JDK 8. Four of the plan's assumptions turned out to be wrong — they are corrected
+in the "Phase 0 outcome" block of `JAVA21-MIGRATION-PLAN.md`, and the failure list with
+causes is in `TEST-BASELINE.md`. Read both before starting Phase 1.
+
+Two operating facts worth carrying forward:
+
+- `make test-pg` is only meaningful after `make reset-pg`. The `ngb_test` database persists in
+  the `pg-data` volume and several tests do not clean up, which adds 9 phantom failures.
+- `make test` is only meaningful with an empty `/contents/` in the repo root. It is gitignored
+  scratch space holding the taxonomy and targets Lucene indexes, and leftovers there change
+  results in both directions.
+
+The prompt that was used, kept for reference:
 
 ```
 Execute Phase 0 of the Java 21 migration.

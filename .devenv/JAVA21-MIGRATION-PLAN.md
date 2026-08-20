@@ -152,6 +152,29 @@ Walls 1 and 2 are independent — fixing Gradle alone just exposes lombok.
   `StringUtils.replace(savedRequest.getRedirectUrl(), "8443", "8080")` — a hardcoded port
   rewrite in the post-SAML-login redirect. Delete it in Phase 4.
 
+Found while running Phase 0 (all confirmed against a clean `make test-pg`; **none of them
+are fixed** — they are outside Phase 0's task list and are recorded here so a later phase
+does not mistake them for its own breakage):
+
+- `TargetGeneDao.loadTargetGenes` interpolates an id set straight into `WHERE target_id IN
+  (...)` with no empty-set guard, so an empty set produces `IN ()`. H2 1.3 accepts it;
+  PostgreSQL rejects it. `TargetManager.load(TargetQueryParams)` calls it unconditionally,
+  so **any filter that matches no target 500s on PostgreSQL**
+  (`TargetManagerTest.filterTargetsByOwnerTest`). Real production bug, not a test bug.
+- `catgenome.task_organism.organism` / `task_excl_organism.organism` are `character varying`
+  in the PostgreSQL script set and numeric in the H2 one, while
+  `BlastTaskDao.deleteOrganisms` emits `where organism = 1`. Another schema divergence to
+  add to the role-id one above; it will have to be settled in Phase 5.
+- `catgenome.vcf.multi_sample` is `NOT NULL` in the PostgreSQL script set and nullable in the
+  H2 one, and `VcfFileDao` inserts `null` for it (4 failures in `BookmarkDaoTest` /
+  `VcfFileDaoTest`). Same class of divergence.
+- `UrlValidatorService.isRemotePath` does not list `GA4GH`, so a GA4GH variant-set id is run
+  through `validateLocalPath` and rejected against `ngs.data.root.path` — GA4GH registration
+  cannot succeed in *any* configuration (with `ngs.data.root.path=/`, as in
+  `profiles/jar`, it fails on "Server file system browsing is not allowed" instead). Moot
+  after Phase 1 removes GA4GH; noted because it is the cause of
+  `VcfManagerTest.testLoadSmallScaleVcfFileGa4GH`, not something environmental.
+
 ---
 
 ## 2. Target stack
@@ -254,6 +277,54 @@ existing kind.
   still complete an SSO login.
 
 **Risk:** low. Nothing about the application changes.
+
+#### Phase 0 outcome (executed 2026-08-20)
+
+**Done.** Result: **2 H2 / 10 PostgreSQL** failures (the plan predicted ~4 / ~11), `make lint`
+green, all three JDKs selectable in the toolbox and in the app entrypoint, `make up` +
+`make smoke` and `make up-saml` + `make smoke-saml` both verified on JDK 8. Every remaining
+failure is enumerated with a cause in `TEST-BASELINE.md`; the newly-found production bugs are
+in "Latent bugs found" above.
+
+Four things did not match the plan's assumptions. Read these before trusting the
+corresponding Phase 1/5/7 text:
+
+1. **Task 1 — "htsjdk rebuilds the index when it is absent" is only half true.** It holds for
+   the managed `FileManager` path, which is why 5 `VcfManagerTest` cases went green. It does
+   *not* hold for `new TribbleIndexedFeatureReader(path, codec, requireIndex = true, cache)`,
+   so deleting `Felis_catus.vcf.idx` broke
+   `TestAbstractFeatureReader.testTribbleConstructors` — a failure the plan did not predict.
+   Fixed by building the index in `@Before` over a copy in a private temp directory, rather
+   than in `src/test/resources/templates`, where a generated index would be auto-discovered
+   by other tests. `Felis_catus.idx` (no `.vcf`) was **kept**: `IndexHeaderCacheTest`,
+   `VcfControllerTest` and `VcfManagerTest` reference it by name as a URL-served fixture.
+2. **Task 3 needed no file moves.** `applicationContext-test.xml` already loads
+   `test-catgenome.properties` as the `catgenome` properties bean, and `profiles.gradle`
+   already copies that file from `profiles/<flavour>/`, so it is flavour-matched. The acl/auth
+   property files were merely *shadowing* it: `@TestPropertySource` contributes to the
+   Environment, which `PropertySourcesPlaceholderConfigurer` consults **before** its local
+   `properties-ref` map. Deleting their `database.*` block was sufficient, and avoids
+   duplicating the large JWT keypair into two flavour directories. Phase 4's note 6 still
+   applies.
+3. **`GffManagerTest.testLoadGenesTranscript` is not a fixture-vs-parser problem and Phase 7
+   will not move it.** `setBioType` is fed from exactly one place, `ExtenalDBUtils.java:148`,
+   i.e. from the **Ensembl REST response**; the GTF fixture contains zero
+   `protein_coding_CDS_not_defined` entries against 75,207 `protein_coding`. It is live
+   external data drifting (Ensembl release 110 added that biotype), in the same category as
+   `PdbDataManagerTest`. Left red deliberately — the new value means "no CDS defined", so it
+   is a semantic change, not a rename, and loosening the assertion would hide it. **Open
+   question for the owner: whether network-dependent assertions belong in the unit suite at
+   all.** Until that is answered, these two tests are permanent documented reds.
+4. **`TargetManagerTest.loadTargetsTest` was not leftover Lucene state.** Commit `cdb4b2bb`
+   moved paging out of `TargetManager.load` into `TargetController.loadTargets` on purpose, so
+   that a page is cut from the ACL-filtered list; the test kept asserting the old contract.
+   Fixed by asserting the current one. The real leftover-state coupling was elsewhere:
+   `HomologeneManagerTest.searchTest` only passed when `TaxonomyManagerTest` had already
+   built the shared taxonomy index, and on PostgreSQL 9 further failures appear on a dirty
+   `pg-data` volume. Both are now documented in `TEST-BASELINE.md`.
+
+Two conditions the recorded numbers depend on, and which any later phase must reproduce:
+`make test-pg` requires `make reset-pg` first, and `make test` requires an empty `/contents/`.
 
 ---
 

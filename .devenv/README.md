@@ -21,9 +21,10 @@ Three facts about the current codebase drive the whole design:
 
 1. **The Gradle wrapper is pinned to Gradle 3.3, which only runs on JDK 8.** You cannot
    compile anything with JDK 21 until the build itself is migrated. So the toolbox image
-   carries **both JDKs** (`with-java8` / `with-java21`, or `use-java 21` in a shell), and
-   the app container picks its JDK at runtime via `NGB_JAVA_VERSION`. That lets you run
-   the *same* jar on 8 and on 21 and compare, which is the core migration loop.
+   carries **three JDKs** (`with-java8` / `with-java17` / `with-java21`, or `use-java 17|21`
+   in a shell), and the app container picks its JDK at runtime via `NGB_JAVA_VERSION`. That
+   lets you run the *same* jar on 8 and on 21 and compare, which is the core migration loop.
+   17 is there for the Spring Boot 2.7 waypoint in migration Phase 2.
 2. **The database flavour is chosen at build time**, not at runtime
    (`-Pdatabase=h2|postgres` swaps `applicationContext-flyway.xml`), so there are two
    jars and two app services.
@@ -35,7 +36,7 @@ Three facts about the current codebase drive the whole design:
 
 | Service | Profile | Purpose | Endpoint |
 |---|---|---|---|
-| `builder` | default | Toolbox: JDK 8 + JDK 21, Node 14.17.5, mkdocs, muscle. All Gradle/npm work happens here | — |
+| `builder` | default | Toolbox: JDK 8 + 17 + 21, Node 14.17.5, mkdocs, muscle. All Gradle/npm work happens here | — |
 | `certs` | default | One-shot: JKS keystore (HTTPS + SAML signing) and the JWT RSA keypair | — |
 | `ngb-h2` | default | NGB on H2 | `:8080` http *or* `:9443` https |
 | `ngb-pg` | `pg` | NGB on PostgreSQL | `:8090` http *or* `:8493` https |
@@ -75,10 +76,11 @@ make lint                    # checkstyle + pmd
 make cli-test                # CLI<->server integration suite (downloads test data)
 ```
 
-**Read [`TEST-BASELINE.md`](TEST-BASELINE.md) before you trust a red run.** Neither suite
-is green on the current code (19 failures on H2, 65 on PostgreSQL) and `make lint` fails
-on 4 pre-existing PMD violations. That file records each failure and why, so during the
-migration you can tell new breakage from old.
+**Read [`TEST-BASELINE.md`](TEST-BASELINE.md) before you trust a red run.** `make lint` is
+green; neither test suite quite is (2 failures on H2, 10 on PostgreSQL after migration
+Phase 0). That file records each failure and why, so during the migration you can tell new
+breakage from old — and it lists the two preconditions the numbers depend on: `make test-pg`
+wants `make reset-pg` first, and `make test` wants an empty `../contents/`.
 
 **Run the same jar on JDK 21**
 
