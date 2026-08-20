@@ -101,7 +101,7 @@ compaction rather than depending on the original prompt.
 
 ## Session 1 — kickoff (Phase 0) — **done**
 
-Landed as `064a766e`..`961dc682` on 2026-08-20. Outcome: 2 H2 / 10 PostgreSQL failures,
+Landed as `064a766e`..`2e21c3d2` on 2026-08-20. Outcome: 2 H2 / 10 PostgreSQL failures,
 `make lint` green, three JDKs in the toolbox, `make smoke` and `make smoke-saml` both
 verified on JDK 8. Four of the plan's assumptions turned out to be wrong — they are corrected
 in the "Phase 0 outcome" block of `JAVA21-MIGRATION-PLAN.md`, and the failure list with
