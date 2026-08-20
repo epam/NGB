@@ -45,7 +45,6 @@
     <import resource="classpath:conf/catgenome/dao/blast-task-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/blast-database-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/bed-graph-file-dao.xml" />
-    <import resource="classpath:conf/catgenome/dao/person-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/bookmark-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/bucket-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/bed-file-dao.xml" />

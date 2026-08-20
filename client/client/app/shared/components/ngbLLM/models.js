@@ -1,14 +1,12 @@
 const LLM = {
   openAIGPT35: 'OPENAI_GPT_35',
   openAIGPT40: 'OPENAI_GPT_40',
-  googlePalm2: 'GOOGLE_PALM_2',
   custom: 'CUSTOM',
 };
 
 const LLMName = {
   [LLM.openAIGPT35]: 'ChatGPT 3.5',
   [LLM.openAIGPT40]: 'ChatGPT 4.0',
-  [LLM.googlePalm2]: 'Google PaLM2',
   [LLM.custom]: 'CUSTOM',
 };
 
@@ -35,10 +33,6 @@ const LLMProperties = {
         MAX_SIZE_PROPERTY
     ],
     [LLM.openAIGPT40]: [
-        TEMPERATURE_PROPERTY,
-        MAX_SIZE_PROPERTY
-    ],
-    [LLM.googlePalm2]: [
         TEMPERATURE_PROPERTY,
         MAX_SIZE_PROPERTY
     ],

@@ -11,11 +11,9 @@
     "build": "npm run build:prod",
     "build:dev": "webpack --mode=development",
     "build:prod": "webpack --mode=production",
-    "build:desktop": "webpack --mode=production --env desktop",
     "serve": "npm run serve:dev",
     "serve:dev": "webpack serve --mode=development",
     "serve:prod": "webpack serve --mode=production",
-    "serve:desktop": "webpack --mode=development --env desktop",
     "stylelint": "stylelint ./client/**",
     "eslint": "eslint ./client/**"
   },

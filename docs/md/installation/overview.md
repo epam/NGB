@@ -1,10 +1,9 @@
 # NGB installation
 
-There are three options to install NGB
+There are two options to install NGB
 
 * **[Build and run a standalone jar file](standalone.md)**
 * **[Use Docker image](docker.md)**
-* **[Install web-archive (war file) to tomcat](binaries.md)**
 
 These options are described in details in the subsequent sections.
 
@@ -12,7 +11,7 @@ These options are described in details in the subsequent sections.
 
 NGB distributions are avialable at the following locations:
 
-* Jar/War
+* Jar
     * [http://ngb.opensource.epam.com/distr](http://ngb.opensource.epam.com/distr)
     * [https://github.com/epam/NGB/releases](https://github.com/epam/NGB/releases)
 * Docker image

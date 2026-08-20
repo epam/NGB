@@ -158,11 +158,6 @@ public class BamManagerTest extends AbstractManagerTest {
     @Value("${s3.index.path}")
     private String s3IndexPath;
 
-    @Value("${hdfs.file.path}")
-    private String hdfsFilePath;
-    @Value("${hdfs.index.path}")
-    private String hdfsIndexPath;
-
     @Before
     public void setup() throws IOException {
         resource = context.getResource("classpath:templates");
@@ -522,31 +517,6 @@ public class BamManagerTest extends AbstractManagerTest {
         bamManager.unregisterBamFile(loadBamFile.getId());
         loadBamFile = bamFileManager.load(bamFile.getId());
         assertNull(loadBamFile);
-
-        List<BiologicalDataItem> items = biologicalDataItemDao.loadBiologicalDataItemsByIds(Arrays.asList(
-                bamFile.getBioDataItemId(), bamFile.getIndex().getId()));
-        assertTrue(items.isEmpty());
-    }
-
-    @Ignore
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void hdfsTest() throws IOException {
-
-        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
-        request.setPath(hdfsFilePath);
-        request.setIndexPath(hdfsIndexPath);
-        request.setName(TEST_NSAME);
-        request.setReferenceId(testReference.getId());
-        request.setType(BiologicalDataItemResourceType.HDFS);
-
-        BamFile bamFile = bamManager.registerBam(request);
-        assertNotNull(bamFile);
-        BamFile loadBamFile = bamFileManager.load(bamFile.getId());
-        assertNotNull(loadBamFile);
-        bamManager.unregisterBamFile(loadBamFile.getId());
-        loadBamFile = bamFileManager.load(bamFile.getId());
-        assertNotNull(loadBamFile);
 
         List<BiologicalDataItem> items = biologicalDataItemDao.loadBiologicalDataItemsByIds(Arrays.asList(
                 bamFile.getBioDataItemId(), bamFile.getIndex().getId()));

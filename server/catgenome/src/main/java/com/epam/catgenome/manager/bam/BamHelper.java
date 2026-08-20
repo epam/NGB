@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
@@ -73,11 +72,6 @@ import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.seekablestream.SeekableMemoryStream;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,7 +93,6 @@ import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.manager.reference.io.ChromosomeReferenceSequence;
 import com.epam.catgenome.util.BamUtil;
 import com.epam.catgenome.util.ConsensusSequenceUtils;
-import com.epam.catgenome.util.HdfsSeekableInputStream;
 import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.cram.ref.ReferenceSource;
 import htsjdk.samtools.filter.AggregateFilter;
@@ -496,9 +489,6 @@ public class BamHelper {
             case AZ:
                 resource = getAZSamInputResource(bamFile);
                 break;
-            case HDFS:
-                resource= getHDFSSamInputResource(bamFile);
-                break;
             default:
                 throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
         }
@@ -518,9 +508,6 @@ public class BamHelper {
             case S3:
                 resource = getS3Index(samInputResource, indexFile);
                 break;
-            case HDFS:
-                resource = getHDFSIndex(samInputResource, indexFile);
-                break;
             case AZ:
                 resource = getAzIndex(samInputResource, indexFile);
                 break;
@@ -528,15 +515,6 @@ public class BamHelper {
                 throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
         }
         return resource;
-    }
-
-    private SamInputResource getHDFSIndex(SamInputResource samInputResource,
-            BiologicalDataItem indexFile) throws IOException {
-        URI uriIndex = URI.create(indexFile.getPath());
-        Configuration conf = new Configuration();
-        FileSystem fileBam = FileSystem.get(uriIndex, conf);
-        FSDataInputStream indexStream = fileBam.open(new Path(uriIndex));
-        return samInputResource.index(new HdfsSeekableInputStream(indexStream));
     }
 
     private SamInputResource getAzIndex(SamInputResource samInputResource,
@@ -594,15 +572,6 @@ public class BamHelper {
             }
         }
         return indexBuffer;
-    }
-
-    @NotNull
-    private SamInputResource getHDFSSamInputResource(BamFile bamFile) throws IOException {
-        final URI uriBam = URI.create(bamFile.getPath());
-        final Configuration conf = new Configuration();
-        final FileSystem fileBam = FileSystem.get(uriBam, conf);
-        final FSDataInputStream inBam = fileBam.open(new Path(uriBam));
-        return SamInputResource.of(new HdfsSeekableInputStream(inBam));
     }
 
     private SamInputResource getS3SamInputResource(BamFile bamFile) throws IOException {

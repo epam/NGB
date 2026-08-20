@@ -18,8 +18,8 @@ session to know where it is.
 
 | Phase | What | Commit | Done |
 |---|---|---|---|
-| 0 | Baseline stabilisation + JDK 17 in the toolbox | `064a766e`..`961dc682` | ☑ |
-| 1 | Remove dropped functionality (HDFS, GA4GH, desktop, WAR, `person`, OAuth2, PaLM 2, Singularity, Sonar) | | ☐ |
+| 0 | Baseline stabilisation + JDK 17 in the toolbox | `064a766e`..`2e21c3d2` | ☑ |
+| 1 | Remove dropped functionality (HDFS, GA4GH, desktop, WAR, `person`, OAuth2, PaLM 2, Singularity, Sonar) | `PHASE1SHA` | ☑ |
 | 2 | Gradle 7.6 + Spring Boot 2.7.18 + Lombok on JDK 17 | | ☐ |
 | 3 | Spring Boot 3.5 + jakarta + Gradle 8 on JDK 21, security reduced to anonymous | | ☐ |
 | 4 | SAML2 + JWT on Spring Security 6 | | ☐ |
@@ -202,6 +202,14 @@ Two things in Phase 1 need care beyond the deletion lists:
   to manager/user's controller and not to controller/person. If any UI
   path resolves there, port it first and tell me.
 ```
+
+**How both resolved.** The gaps at 5 and 6 stayed open in both copies of the enum, and the
+server's `getById` now throws an `IllegalArgumentException` that names the removed type instead
+of returning `null`; the CLI copy still returns `null` because nothing there calls it. The
+`person` check found that `controller/person/` was **not** legacy — `UserController` and
+`RoleController` are live endpoints the client and the SAML login both use — so they were moved
+to `controller/user/` and only the genuinely dead `entity`/`dao`/`manager` halves were deleted.
+Full write-up in the plan's "Phase 1 execution findings".
 
 ### Phase 2
 

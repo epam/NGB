@@ -24,13 +24,10 @@
 
 package com.epam.catgenome.manager.vcf.reader;
 
-import static com.epam.catgenome.entity.BiologicalDataItemResourceType.GA4GH;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.vcf.Variation;
@@ -38,7 +35,6 @@ import com.epam.catgenome.entity.vcf.VariationType;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.manager.FileManager;
-import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 
@@ -73,18 +69,14 @@ public abstract class AbstractVcfReader implements VcfReader {
     }
 
     /**
-     * Factory method for creating a {@code VcfReader} instance according to the data resource type.
-     * File system and GA4GH services are supported for VCF files.
-     * @param resourceType determines the class of created {@code VcfReader}
-     * @param httpDataManager for access to VCF data in the GA4GH service
+     * Factory method for creating a {@code VcfReader} instance.
      * @param fileManager for access to VCF file in the file system
      * @param referenceGenomeManager for loading reference data
      * @return a {@code VcfReader} instance for reading VCF data
      */
-    public static VcfReader createVcfReader(final BiologicalDataItemResourceType resourceType, final HttpDataManager
-            httpDataManager, final FileManager fileManager, final ReferenceGenomeManager referenceGenomeManager) {
-        return resourceType == GA4GH ? new VcfGa4ghReader(httpDataManager, referenceGenomeManager) :
-                new VcfFileReader(fileManager, referenceGenomeManager);
+    public static VcfReader createVcfReader(final FileManager fileManager,
+                                            final ReferenceGenomeManager referenceGenomeManager) {
+        return new VcfFileReader(fileManager, referenceGenomeManager);
     }
 
     /**

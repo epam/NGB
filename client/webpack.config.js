@@ -7,7 +7,6 @@ require('dotenv').config();
 module.exports = function (env, argv) {
     const development = argv.mode === 'development';
     const production = !development;
-    const desktop = !!env.desktop;
     let publicUrl = process.env.PUBLIC_URL || '/';
     if (publicUrl && !publicUrl.endsWith('/')) {
         publicUrl = publicUrl.concat('/');
@@ -17,7 +16,7 @@ module.exports = function (env, argv) {
         apiUrl = apiUrl.concat('/');
     }
     console.log('Building NGB Client');
-    console.log('  mode:      ', production ? 'production' : 'development', desktop ? '(desktop)' : '');
+    console.log('  mode:      ', production ? 'production' : 'development');
     console.log('  public url:', `"${publicUrl}"`, publicUrl === process.env.PUBLIC_URL ? '' : `(environment variable PUBLIC_URL="${process.env.PUBLIC_URL || ''}" was corrected)`);
     console.log('  api url:   ', `"${apiUrl}" (${apiUrl}restapi/)`);
     console.log('');
@@ -133,8 +132,7 @@ module.exports = function (env, argv) {
             new webpack.DefinePlugin({
                 'process.env.__ENV__': JSON.stringify(production ? 'production' : 'development'),
                 'process.env.__API_URL__': JSON.stringify(apiUrl),
-                'process.env.__DEV__': JSON.stringify(development),
-                'process.env.__DESKTOP__': JSON.stringify(desktop)
+                'process.env.__DEV__': JSON.stringify(development)
             }),
         ]
     };

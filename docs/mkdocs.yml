@@ -14,8 +14,6 @@ nav:
         - Overview: installation/overview.md
         - Using standalone JAR: installation/standalone.md
         - Using Docker: installation/docker.md
-        - Using Tomcat WAR: installation/binaries.md
-        - Using desktop application: installation/desktop.md
     - Command Line Interface guide:
         - Overview: cli/introduction.md
         - CLI Installation: cli/installation.md

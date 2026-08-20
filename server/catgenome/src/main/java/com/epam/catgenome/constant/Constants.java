@@ -127,38 +127,6 @@ public final class Constants {
      */
     public static final String CHROMOSOME_PREFIX = "chr";
 
-    // for GA4GH
-    public static final int GA4GH_MAX_BASE_SIZE = 1000000;
-    public static final int GA4GH_MAX_SIZE = 100000;
-    public static final String URL_GOOGLE_GENOMIC_API = "https://genomics.googleapis.com/v1/";
-    public static final String VARIANTS_PAGE_SIZE = "10000";
-    public static final String URL_REFERENCE_START = "&start=";
-    public static final String URL_REFERENCE_END = "&end=";
-    public static final String URL_REFERENCE_BASES = "/bases/";
-
-    /**
-     * Google API key for GA4GH, should be replaced with user's
-     */
-    public static final String GOOGLE_API_KEY = "";
-
-    /**
-     * Reference Sets service URL part
-     */
-    public static final String URL_REFERENCE_SET = "referencesets/";
-    public static final String URL_REFERENCE = "references/";
-    public static final String URL_VARIANTS = "variants/";
-    public static final String URL_VARIANT_SETS = "variantsets/";
-    public static final String URL_CALL_SETS = "callsets/";
-    public static final String URL_SEARCH = "search";
-    //fields GA4GH for POST request
-    public static final String CALL_SET_ID = "callSetIds";
-    public static final String VARIANT_SET_ID = "variantSetIds";
-    public static final String END_POSITION = "end";
-    public static final String START_POSITION = "start";
-    public static final String PAGE_SIZE = "pageSize";
-    public static final String REFERENCE_NAME = "referenceName";
-    public static final String PAGE_TOKEN = "pageToken";
-
     // for query
     /**
      * Indicates maximum interval in bps, displayed on track. Used only for tracks, which are limited in interval size,

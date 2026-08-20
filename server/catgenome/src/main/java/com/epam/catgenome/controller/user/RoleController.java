@@ -24,7 +24,7 @@
  *
  */
 
-package com.epam.catgenome.controller.person;
+package com.epam.catgenome.controller.user;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;

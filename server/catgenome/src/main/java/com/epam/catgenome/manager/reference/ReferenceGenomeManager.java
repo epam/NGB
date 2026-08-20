@@ -156,17 +156,15 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         Assert.notNull(reference, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.notNull(reference.getId(), MessagesConstants.ERROR_INVALID_PARAM);
 
-        if (reference.getType() != BiologicalDataItemResourceType.GA4GH) {
-            List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(
-                    reference.getBioDataItemId());
-            Assert.isTrue(projectsWhereFileInUse.isEmpty(), getMessage(MessagesConstants.ERROR_FILE_IN_USE,
-                    reference.getName(), reference.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
-                            .collect(Collectors.joining(", "))));
-            List<BaseEntity> fileList = loadAllFile(reference.getId());
-            Assert.isTrue(fileList.isEmpty(), getMessage(MessagesConstants.ERROR_FILE_IN_LINK,
-                    reference.getName(), reference.getId(), fileList.stream().map(BaseEntity::getName)
-                            .collect(Collectors.joining(", "))));
-        }
+        List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(
+                reference.getBioDataItemId());
+        Assert.isTrue(projectsWhereFileInUse.isEmpty(), getMessage(MessagesConstants.ERROR_FILE_IN_USE,
+                reference.getName(), reference.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
+                        .collect(Collectors.joining(", "))));
+        List<BaseEntity> fileList = loadAllFile(reference.getId());
+        Assert.isTrue(fileList.isEmpty(), getMessage(MessagesConstants.ERROR_FILE_IN_LINK,
+                reference.getName(), reference.getId(), fileList.stream().map(BaseEntity::getName)
+                        .collect(Collectors.joining(", "))));
         referenceGenomeDao.unregisterReferenceGenome(reference.getId());
         biologicalDataItemDao.deleteBiologicalDataItem(reference.getBioDataItemId());
         metadataManager.delete(reference);

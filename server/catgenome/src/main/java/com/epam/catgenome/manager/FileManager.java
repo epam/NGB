@@ -386,10 +386,8 @@ public class FileManager {
         params.put(DIR_ID.name(), dirId);
         // makes the content root directory to manage resources related to the reference with the given ID
         reference.setId(dirId);
-        if (reference.getType() != BiologicalDataItemResourceType.GA4GH) {
-            // makes a directory to manage chromosomes
-            makeDir(substitute(REF_CHROMOSOMES_DIR, params));
-        }
+        // makes a directory to manage chromosomes
+        makeDir(substitute(REF_CHROMOSOMES_DIR, params));
     }
 
     public String getReferenceDir(final Reference reference) {
@@ -410,12 +408,10 @@ public class FileManager {
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
         Assert.notNull(reference.getId(), getMessage(MessageCode.UNKNOWN_REFERENCE_ID));
 
-        if (reference.getType() != BiologicalDataItemResourceType.GA4GH) {
-            final Map<String, Object> params = new HashMap<>();
-            final Long dirId = reference.getId();
-            params.put(DIR_ID.name(), dirId);
-            deleteDir(substitute(REFERENCE_DIR, params));
-        }
+        final Map<String, Object> params = new HashMap<>();
+        final Long dirId = reference.getId();
+        params.put(DIR_ID.name(), dirId);
+        deleteDir(substitute(REFERENCE_DIR, params));
     }
 
     /**

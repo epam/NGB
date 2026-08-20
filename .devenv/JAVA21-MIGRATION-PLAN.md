@@ -464,6 +464,113 @@ Fully superseded by `manager/user` (`NGBUser` / `Role`), and it stores a plainte
 - Also remove the unused `org.akhikhl.gretty` buildscript classpath entry from
   `server/catgenome/build.gradle` — it is declared and never applied.
 
+**Phase 1 execution findings** *(written as the phase was carried out)*
+
+- **`hadoop-client` was the only supplier of Jettison.** `org.codehaus.jettison:jettison:1.1`
+  arrived transitively through Hadoop, and four *surviving* classes import
+  `org.codehaus.jettison.json.JSONObject` — `manager/externaldb/HttpDataManager`,
+  `manager/externaldb/ncbi/NCBIDataManager`, `manager/externaldb/pdb/PdbEntriesManager`,
+  `manager/externaldb/OpenTargetsManager`. Removing Hadoop broke `compileJava` with
+  7 errors. Fixed by declaring jettison explicitly in `server/catgenome/build.gradle`,
+  pinned to **1.1** — the version Hadoop 2.2.0 resolved — so Phase 1 stays behaviour-neutral.
+  **1.1 is from 2009 and is affected by CVE-2022-40149/40150 (fixed in 1.5.2); replace it
+  when the dependency set is refreshed** (Phase 2/3), or migrate those four classes to
+  Jackson and drop it.
+- **Enum gap reporting.** `BiologicalDataItemResourceType.getById()` previously returned
+  `null` for an unknown id. It now throws `IllegalArgumentException` with a message that
+  *names* the removed type when the id is 5 or 6 ("resource type 6 (GA4GH) is no longer
+  supported. Files registered with it have to be unregistered and, if still needed,
+  re-registered from a supported resource type."). The mapping lives in a
+  `REMOVED_TYPE_NAMES` map exposed by `getRemovedTypeNames()`. This satisfies the
+  "detect and report, do not NPE" risk item without a Flyway scan: the failure surfaces at
+  the point the unmappable row is read, naming the file and the fix.
+  `null` in → `null` out is preserved, because callers pass an unset type legitimately.
+- **The CLI copy of the enum has a pre-existing bug, left alone.** `ngb-cli`'s
+  `BiologicalDataItemResourceType.idMap` never registers `AZ(8)`, so `getById(8L)` returns
+  `null` there. Its `getById` is dead code in the CLI (grep: only `getTypeFromPath` and the
+  constants are used), so this is noted, not fixed — fixing it is out of Phase 1's scope.
+- **`ReferenceManager.registerGenome` lost a catch clause.** `catch (InterruptedException |
+  ExternalDbUnavailableException e)` became unreachable once `registerGA4GH` was deleted
+  (nothing left in the `try` declares either), so javac rejected it. Removed; the
+  `try`/`finally` rollback block is untouched. Behaviour-neutral for the surviving paths —
+  `IOException` already propagated.
+- **`ga4gh.google.*` test properties** removed from all four properties files
+  (`profiles/{h2,postgres}/test-catgenome.properties`,
+  `src/test/resources/test-catgenome-{acl,auth}.properties`).
+- **Fixtures deleted with the tests:** `src/test/resources/externaldb/data/GA4GH_id10473*.json`
+  (5 files) and `src/test/resources/templates/1000-genomes.chrMT.vcf` — a repo-wide grep
+  confirmed the latter was referenced only by the now-deleted
+  `VcfManagerTest.CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_GOOGLE` constant.
+- **`UrlValidatorService` left alone** as instructed: the `isRemotePath` GA4GH omission is
+  moot now that the resource type is gone.
+- **`HttpDataManager` stays.** Only the GA4GH-only `@Autowired` fields in `ReferenceManager`,
+  `NibDataReader` and `VcfManager` were removed; BLAT, Ensembl, Uniprot, NCBI PUG, PDB and
+  OpenTargets all still use the bean.
+- **`spring-security-oauth2` was the only supplier of Jackson 1.x.**
+  `org.codehaus.jackson:jackson-mapper-asl:1.9.13` came in transitively through it, and
+  `util/Utils.java` and `dao/pdb/PdbFileDao.java` imported `org.codehaus.jackson.map.{ObjectMapper,
+  type.TypeFactory}`. Rather than pin a 2013 library that Phase 2 would only have to remove
+  again, the five import lines were switched to
+  `com.fasterxml.jackson.databind.{ObjectMapper, type.TypeFactory}` — already a direct
+  dependency at 2.12.5. The call sites are `writeValueAsString(Map|List)`,
+  `readValue(String, HashMap.class)` and
+  `readValue(String, TypeFactory.defaultInstance().constructMapType(...))`, all identical API
+  and identical output between Jackson 1.9 and 2.12 for these types. This is the one place
+  Phase 1 changed code that was not on a deletion list; flagged because it widens the phase
+  slightly.
+- **`controller/person/{UserController,RoleController}` were NOT deleted — they were moved.**
+  The plan says "delete `controller/person/`", but both classes are modern: they delegate to
+  `manager/user`'s `UserSecurityService` / `RoleSecurityService` and never touch
+  `entity/person/Person`. They are live: `client/client/dataServices/user/user-data-service.js`
+  and `role-data-service.js` call `/user`, `/users`, `/user/current`, `/role/loadAll` etc., and
+  the SAML smoke test's step [4] hits `GET /restapi/user/current`. They were misfiled, not
+  legacy, so they moved to `controller/user/` (package rename only — nothing imports them by
+  package, Spring finds them by component scan and the URL mappings are unchanged).
+- **Nothing has a foreign key *into* `CATGENOME.PERSON`.** Its only FK points outward, at
+  `PERSON_ROLE`. So the drop migration
+  `v2026.08.20_12.00__drop_legacy_person_tables.sql` (added for both flavours) drops `PERSON`,
+  then `PERSON_ROLE`, then the `S_PERSON` sequence, and needs no other change.
+- **`gradle.properties` was deleted, not emptied** — it held nothing but the two
+  `systemProp.sonar.*` lines pointing at the unreachable `10.66.128.3:9000`.
+- **`GOOGLE_MED_PALM2` was left in `LLMProvider`.** It is dead already — no `LLMHandler`
+  implements it, the client never offers it, and `LLMService.getHandler` answers
+  "GOOGLE_MED_PALM2 is not supported." Removing it is not on any deletion list, so it stays;
+  it is a free deletion whenever someone wants it.
+- **Dropping `google-cloud-aiplatform` shifts three resolved versions downward**, because it
+  was the highest bidder for them. `guava` 32.1.3-jre → 31.1-jre (now from
+  `google-api-services-customsearch`), `commons-codec` 1.16.1 → 1.15, `checker-qual` 3.42.0 →
+  3.12.0 (annotations only). The plan's VERIFY question — whether
+  `google-api-services-customsearch` / `google-http-client-jackson2` depended on aiplatform's
+  transitive `google-auth-library` / `gax` — **resolves to no**: `google-api-client:2.2.0`,
+  `google-http-client:1.44.1` and `google-oauth-client:1.34.1` are unchanged, and
+  `GooglePatentManager` authenticates with an API key, never with ADC. The whole
+  gRPC/protobuf/gax/auth-library tree (~35 modules) leaves the classpath. No pinning needed.
+
+**Phase 1 exit-criteria results** *(all run, all in the containers)*
+
+- `make jar` (`buildJar -PnoTest`, profile `jar`) **BUILD SUCCESSFUL** — this is the profile
+  that used to take the now-deleted `warExploded` branch. `make cli-build` and `buildDocs` were
+  run separately, because `buildJar` covers neither and Phase 1 edited both `ngb-cli/build.gradle`
+  and `mkdocs.yml`: both succeed, and mkdocs reports no broken links after the two installation
+  pages were removed from the nav.
+- `make lint` green (only the pre-existing `CustomChatResponse.java:44` MemberName **WARN**).
+- `rm -rf ../contents && make test` → 528 tests, 2 failed, 21 skipped. `make reset-pg &&
+  make test-pg` → 528 tests, 10 failed, 21 skipped. Failure *identity* is what matters: the
+  documented set minus `VcfManagerTest.testLoadSmallScaleVcfFileGa4GH`, i.e. 1 on H2 and 9 on
+  PostgreSQL, **plus** `PdbDataManagerTest.testParse`, which is live-RCSB drift and was already
+  red on unmodified Phase 0 code when Phase 0's criteria were re-verified at the start of this
+  session. Nothing was re-baselined. 537 → 528 is the 9 tests deleted with the features they
+  covered; `TEST-BASELINE.md` lists them.
+- `make up` + `make smoke` → HTTP 200, `{"payload":"2.8.0","status":"OK"}`.
+  `make up-saml` + `make smoke-saml` → `SAML SSO OK`, with step [4] `GET /restapi/user/current`
+  returning `ROLE_ADMIN`/`NGB_ADMINS` — which is also the live proof that moving
+  `UserController` to `controller/user/` kept the endpoint working.
+- **SMOKE_A3 end-to-end** (the `BiologicalDataItemResourceType` check): `ngb reg_ref /ngs/A3.fa
+  --name SMOKE_A3` registers with `"type":"FILE"`, and `/restapi/reference/3/loadChromosomes`
+  answers `A1` at 56,400 bp. `FILE` handling is intact after the enum edit. (One transient
+  first-request failure right after `docker-compose up -d cli` — "Failed to execute a request",
+  no server-side log line, no id consumed from the sequence — the retry was clean.)
+
 **Exit criteria**
 
 - `./gradlew buildJar -PnoTest` (i.e. `make jar`) succeeds on JDK 8 / Gradle 3.3.

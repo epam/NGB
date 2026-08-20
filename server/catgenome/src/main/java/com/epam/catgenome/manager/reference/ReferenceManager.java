@@ -45,8 +45,6 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.reference.Species;
 import com.epam.catgenome.entity.track.ReferenceTrackMode;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
 import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.AuthManager;
@@ -76,9 +74,6 @@ import org.springframework.util.Assert;
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.JsonMapper;
-import com.epam.catgenome.controller.vo.ga4gh.ReferenceGA4GH;
-import com.epam.catgenome.controller.vo.ga4gh.ReferenceSet;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.gene.GeneFile;
@@ -86,8 +81,6 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.track.TrackType;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
-import com.epam.catgenome.manager.externaldb.HttpDataManager;
-import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.gene.GeneFileManager;
 import com.epam.catgenome.manager.gene.GffManager;
 
@@ -105,10 +98,6 @@ import com.epam.catgenome.manager.gene.GffManager;
 public class ReferenceManager {
 
     private static final String GENES_SUFFIX = "-genes";
-
-    private JsonMapper objectMapper = new JsonMapper();
-
-    @Autowired private HttpDataManager httpDataManager;
 
     @Autowired private TrackHelper trackHelper;
 
@@ -144,7 +133,7 @@ public class ReferenceManager {
         track.setType(TrackType.REF);
         try {
             return getNucleotidesTrackFromNib(track);
-        } catch (Ga4ghResourceUnavailableException | IOException e) {
+        } catch (IOException e) {
             log.error(e.getMessage(), e);
             throw new ReferenceReadingException(String.valueOf(track.getId()), e);
         }
@@ -165,11 +154,7 @@ public class ReferenceManager {
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
-        if (request.getType() == BiologicalDataItemResourceType.GA4GH) {
-            name = request.getName();
-        } else {
-            name = parse(path, request.getName());
-        }
+        name = parse(path, request.getName());
         // prepares to start processing of a reference genome: generates ID, creates a directory
         // to store data for a genome
         final Long referenceId = referenceGenomeManager.createReferenceId();
@@ -216,14 +201,7 @@ public class ReferenceManager {
             reference.setBioDataItemId(reference.getId());
             reference.setId(referenceId);
 
-            long lengthOfGenome;
-            if (request.getType() == BiologicalDataItemResourceType.GA4GH) {
-//              doesn't work for Genbank format
-                lengthOfGenome = registerGA4GH(request, referenceId, reference);
-            } else {
-                lengthOfGenome =
-                        registerReference(referenceId, reference, !request.isNoGCContent());
-            }
+            final long lengthOfGenome = registerReference(referenceId, reference, !request.isNoGCContent());
             // saves meta-information about the processed genome, including its chromosomes
             reference.setSize(lengthOfGenome);
 
@@ -245,8 +223,6 @@ public class ReferenceManager {
             // sets this flag to 'true' that means all activities are performed successfully and no
             // rollback for applied changes are required
             succeeded = true;
-        } catch (InterruptedException | ExternalDbUnavailableException e) {
-            log.info(String.format("Failed to register reference %s.", request.getName()), e);
         } finally {
             // reverts all changes that have been made in the file system, if something was going wrong
             // and we cannot create a genome in the system)
@@ -311,47 +287,6 @@ public class ReferenceManager {
             }
             return sequencesList;
         }
-    }
-
-    /**
-     * Get reference set from the Global Alliance (Google).
-     *
-     * @param referenceSetId id of reference set
-     * @return reference set from genomic google
-     * @throws InterruptedException if the thread is interrupted, either before or during the activity
-     * @throws IOException          if an error occurred during deleting directory
-     */
-    private ReferenceSet getReferenceSet(final String referenceSetId)
-            throws IOException, InterruptedException, ExternalDbUnavailableException {
-
-        ParameterNameValue[] params = new ParameterNameValue[] {};
-
-        String locationReference =
-                Constants.URL_GOOGLE_GENOMIC_API + Constants.URL_REFERENCE_SET + referenceSetId
-                        + Constants.GOOGLE_API_KEY;
-        String geneData = httpDataManager.fetchData(locationReference, params);
-        return objectMapper.readValue(geneData, ReferenceSet.class);
-    }
-
-    /**
-     * Get reference from the Global Alliance (Google).
-     *
-     * @param referenceId id of reference
-     * @return reference from genomic google
-     * @throws InterruptedException if the thread is interrupted, either before or during the activity
-     * @throws IOException          if an error occurred during deleting directory
-     */
-    private ReferenceGA4GH getReference(final String referenceId)
-            throws InterruptedException, IOException, ExternalDbUnavailableException {
-
-        ParameterNameValue[] params = new ParameterNameValue[] {};
-
-        String locationReference =
-                Constants.URL_GOOGLE_GENOMIC_API + Constants.URL_REFERENCE + referenceId
-                        + Constants.GOOGLE_API_KEY;
-
-        String geneData = httpDataManager.fetchData(locationReference, params);
-        return objectMapper.readValue(geneData, ReferenceGA4GH.class);
     }
 
     /**
@@ -434,7 +369,7 @@ public class ReferenceManager {
     }
 
     protected Track<Sequence> getNucleotidesTrackFromNib(Track<Sequence> track)
-            throws IOException, Ga4ghResourceUnavailableException {
+            throws IOException {
         Assert.notNull(track.getType(), getMessage(MessagesConstants.ERROR_NULL_PARAM));
         final Chromosome chr = trackHelper.validateTrackWithBlockCount(track);
         final long trackID = track.getId();
@@ -445,9 +380,7 @@ public class ReferenceManager {
         final double scaleFactor = track.getScaleFactor();
         List<Sequence> sequencesList;
         if (scaleFactor > Constants.GC_FORMAT_FACTOR) {
-            sequencesList =
-                    getReferenceSequenceWithoutGC(chr, trackID, cName, reference, startIndex,
-                            endIndex);
+            sequencesList = getReferenceSequenceWithoutGC(trackID, cName, startIndex, endIndex);
             track.setMode(ReferenceTrackMode.NUCLEOTIDES);
         } else {
             sequencesList =
@@ -468,15 +401,8 @@ public class ReferenceManager {
             throws IOException {
         final int chromosomeSize = chr.getSize();
         final String chromosomeName = chr.getName();
-        if (reference.getType() == BiologicalDataItemResourceType.GA4GH) {
-            if ((endIndex - startIndex) > Constants.GA4GH_MAX_BASE_SIZE) {
-                return Collections.emptyList();
-            }
-            return getGCForGA4GH(startIndex, endIndex, scaleFactor, chr.getPath());
-        } else {
-            return getGCData(trackID, startIndex, endIndex, scaleFactor, chromosomeSize,
-                    chromosomeName, reference);
-        }
+        return getGCData(trackID, startIndex, endIndex, scaleFactor, chromosomeSize,
+                chromosomeName, reference);
     }
 
     private List<Sequence> getGCData(long trackID, int startIndex, int endIndex, double scaleFactor,
@@ -515,15 +441,10 @@ public class ReferenceManager {
         }
     }
 
-    private List<Sequence> getReferenceSequenceWithoutGC(Chromosome chr, long trackID, String cName,
-            Reference reference, int startIndex, int endIndex)
-            throws Ga4ghResourceUnavailableException, IOException {
+    private List<Sequence> getReferenceSequenceWithoutGC(long trackID, String cName,
+            int startIndex, int endIndex) throws IOException {
         log.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
-        if (reference.getType() == BiologicalDataItemResourceType.GA4GH) {
-            return nibDataReader.getNucleotidesFromNibGA4GH(startIndex, endIndex, chr.getPath());
-        } else {
-            return getNucleotidesFromNibFile(startIndex, endIndex, trackID, cName);
-        }
+        return getNucleotidesFromNibFile(startIndex, endIndex, trackID, cName);
     }
 
     /**
@@ -570,13 +491,6 @@ public class ReferenceManager {
 
         return nibDataReader.fillSequenceOfGCFromGCFile(startPosition, endPosition, scaleFactor,
                 gcContentStream, indexStream);
-    }
-
-    private List<Sequence> getGCForGA4GH(final Integer startPosition, final Integer endPosition,
-            final Double scaleFactor, final String referenceId) throws IOException {
-
-        return nibDataReader
-                .fillSequenceOfGCForGA4GH(startPosition, endPosition, scaleFactor, referenceId);
     }
 
     private List<Sequence> getGCFromNibFile(int startPosition, final int endPosition,
@@ -633,33 +547,6 @@ public class ReferenceManager {
         indexItem.setName("");
         indexItem.setOwner(authManager.getAuthorizedUser());
         reference.setIndex(indexItem);
-    }
-
-    private long registerGA4GH(ReferenceRegistrationRequest request, Long referenceId,
-            Reference reference)
-            throws IOException, InterruptedException, ExternalDbUnavailableException {
-        final List<String> listReferenceId = getReferenceSet(request.getPath()).getReferenceIds();
-        long lengthOfGenome = 0;
-        for (String id : listReferenceId) {
-            ReferenceGA4GH referenceGA4GH = getReference(id);
-            lengthOfGenome += Integer.parseInt(referenceGA4GH.getLength());
-            // prepares meta-information about the current chromosome
-            final Chromosome chromosome = new Chromosome();
-            chromosome.setName(referenceGA4GH.getName());
-            chromosome.setSize(Integer.parseInt(referenceGA4GH.getLength()));
-            chromosome.setReferenceId(referenceId);
-            chromosome.setPath(referenceGA4GH.getId());
-            reference.getChromosomes().add(chromosome);
-        }
-        BiologicalDataItem indexItem = new BiologicalDataItem();
-        indexItem.setCreatedDate(new Date());
-        indexItem.setPath(request.getPath());
-        indexItem.setSource(request.getPath());
-        indexItem.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
-        indexItem.setType(BiologicalDataItemResourceType.GA4GH);
-        indexItem.setName("");
-        reference.setIndex(indexItem);
-        return lengthOfGenome;
     }
 
     private boolean isNibReference(String path) {

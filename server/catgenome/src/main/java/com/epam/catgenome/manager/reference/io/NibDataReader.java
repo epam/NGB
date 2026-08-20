@@ -25,7 +25,6 @@
 package com.epam.catgenome.manager.reference.io;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.constant.MessagesConstants.ERROR_REFERENCE_READING;
 import static com.epam.catgenome.entity.nucleotid.NibByteFormat.LOW_TO_HIGH_NIB_CODE_SHIFT;
 
 import java.io.DataInputStream;
@@ -35,40 +34,23 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.JsonMapper;
-import com.epam.catgenome.controller.vo.ga4gh.ReferenceBasesGA4GH;
 import com.epam.catgenome.entity.nucleotid.FormatCoder;
 import com.epam.catgenome.entity.nucleotid.NibByteFormat;
 import com.epam.catgenome.entity.nucleotid.Signature;
 import com.epam.catgenome.entity.reference.Sequence;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
-import com.epam.catgenome.exception.ReferenceReadingException;
-import com.epam.catgenome.manager.externaldb.HttpDataManager;
-import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.util.BlockCompressedDataInputStream;
 
 /**
  * {@code NibDataReader} provides service for loading reference data from the registered in the
- * system files and GA4GH services in the Nib file format
+ * system files in the Nib file format
  */
 @Service
 public class NibDataReader {
-
-    private JsonMapper objectMapper = new JsonMapper();
-
-    @Autowired
-    private HttpDataManager httpDataManager;
-
-    private static final Logger LOG = LoggerFactory.getLogger(NibDataWriter.class);
 
     public NibDataReader() {
         // no=op
@@ -162,36 +144,6 @@ public class NibDataReader {
         buffer = readFromNib(nibStream, indexStream, newStartPosition, sequenceLength, seekPosition, buffer);
         return NibByteFormat
                 .nibByteArrayToNucleotidesList(newStartPosition, positionFactor, sequenceLength, buffer);
-    }
-
-    /**
-     * Loads  a {@code List} of reference sequences from the GA4GH service
-     * @param startPosition {@code int} start position at chromosome
-     * @param endPosition   {@code int} end position at chromosome
-     * @param referenceId   to load
-     * @return {@code List} return List of nucleotides sequences, started at startPosition
-     * and length sequenceLength
-     * @throws Ga4ghResourceUnavailableException
-     */
-    public List<Sequence> getNucleotidesFromNibGA4GH(int startPosition, final int endPosition,
-            final String referenceId) throws Ga4ghResourceUnavailableException {
-        ReferenceBasesGA4GH referenceGA4GH;
-
-        try {
-            referenceGA4GH = fetchReferenceBaseEntry(referenceId, startPosition, endPosition);
-        } catch (ReferenceReadingException e) {
-            throw new Ga4ghResourceUnavailableException(referenceId, e);
-        }
-        List<Sequence> result = new ArrayList<>();
-        final int sequenceLength = endPosition - startPosition;
-        for (int i = 0; i < sequenceLength; i++) {
-            // i + absolutePosition + 1 - because at chromosome started at first index but ib array started from zero
-            String sequenceText = String.valueOf(referenceGA4GH.getSequence().charAt(i));
-            result.add(new Sequence(i + startPosition + 1, sequenceText));
-        }
-        Assert.isTrue(sequenceLength >= 0, getMessage(MessagesConstants.ERROR_LENGTH_ABOVE_ZERO));
-        Assert.isTrue(startPosition >= 0, getMessage(MessagesConstants.ERROR_START_POSITION_ABOVE_ZERO));
-        return result;
     }
 
     /**
@@ -331,31 +283,6 @@ public class NibDataReader {
         return template;
     }
 
-
-    /**
-     * Fills a GC-content data from a GA4GH service
-     * @param startPosition {@code int} start position at chromosome
-     * @param endPosition   {@code int} end position at chromosome
-     * @param scaleFactor   track scale in the client
-     * @param referenceId   to load data
-     * @return {@code List} of sequences filled with GC-content data
-     */
-    public List<Sequence> fillSequenceOfGCForGA4GH(final Integer startPosition, final Integer endPosition,
-            final Double scaleFactor, final String referenceId)
-            throws IOException {
-        List<Sequence> template = createGCList(startPosition, endPosition, scaleFactor);
-        final int sequenceLength = endPosition - startPosition;
-        Assert.isTrue(sequenceLength >= 0, getMessage(MessagesConstants.ERROR_LENGTH_ABOVE_ZERO));
-
-        String sequenceText = null;
-        try {
-            sequenceText = fetchReferenceBaseEntry(referenceId, startPosition, endPosition).getSequence();
-        } catch (ReferenceReadingException e) {
-            LOG.info(String.format("Failed to load reference entry for reference %s.", referenceId), e);
-        }
-        setContentGc(startPosition, endPosition, template, sequenceText);
-        return template;
-    }
 
     public List<Sequence> fillSequenceOfGCFromFasta(final Integer startPosition, final Integer endPosition,
             final Double scaleFactor, final String sequence)
@@ -542,25 +469,6 @@ public class NibDataReader {
         IOUtils.closeQuietly(indexStream);
         IOUtils.closeQuietly(gcContentStream);
         return gcContentArray;
-    }
-
-    private ReferenceBasesGA4GH fetchReferenceBaseEntry(final String referenceId,
-            final Integer start, final Integer end) throws ReferenceReadingException {
-
-        try {
-            ParameterNameValue[] params = new ParameterNameValue[] {};
-            StringBuilder builder = new StringBuilder().append(Constants.URL_GOOGLE_GENOMIC_API)
-                    .append(Constants.URL_REFERENCE).append(referenceId)
-                    .append(Constants.URL_REFERENCE_BASES).append(Constants.GOOGLE_API_KEY)
-                    .append(Constants.URL_REFERENCE_START).append(start)
-                    .append(Constants.URL_REFERENCE_END).append(end);
-            String locationReference = builder.toString();
-            String geneData = httpDataManager.fetchData(locationReference, params);
-            return objectMapper.readValue(geneData, ReferenceBasesGA4GH.class);
-        } catch (IOException | ExternalDbUnavailableException e) {
-            LOG.error(getMessage(ERROR_REFERENCE_READING), e);
-            throw new ReferenceReadingException(referenceId, e);
-        }
     }
 
     private double encodingGCContent(final double gcCode) {

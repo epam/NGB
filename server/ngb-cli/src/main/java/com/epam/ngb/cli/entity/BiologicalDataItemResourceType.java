@@ -28,15 +28,10 @@ public enum BiologicalDataItemResourceType {
      */
     ONLINE(4),
 
-    /**
-     * Indicates that item is located in HDFS
+    /*
+     * Ids 5 (HDFS) and 6 (GA4GH) were used by resource types NGB no longer supports. The gap is
+     * deliberate: the ids below are persisted server-side and must not be reassigned.
      */
-    HDFS(5),
-
-    /**
-     * Indicates that item is provided by GA4GH protocol
-     */
-    GA4GH(6),
 
     /**
      * Indicates that item was downloaded by NGB and is located in it's download directory
@@ -53,8 +48,6 @@ public enum BiologicalDataItemResourceType {
         idMap.put(URL.id, URL);
         idMap.put(S3.id, S3);
         idMap.put(ONLINE.id, ONLINE);
-        idMap.put(HDFS.id, HDFS);
-        idMap.put(GA4GH.id, GA4GH);
         idMap.put(DOWNLOAD.id, DOWNLOAD);
     }
 

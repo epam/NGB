@@ -48,7 +48,6 @@
     <!--</context:component-scan>-->
 
     <!-- Multipart resolver required to support file upload -->
-    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
 
     <bean id="s3Manager" class="com.epam.catgenome.manager.aws.S3Manager" factory-method="singleton"/>
 

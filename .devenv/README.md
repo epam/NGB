@@ -254,7 +254,7 @@ keeping in mind for the Flyway upgrade: the two flavours' schemas are not identi
   ~12 GB / 6 CPU; if the test task gets killed, give colima more memory
   (`colima stop && colima start --memory 16`) or lower `NGB_HEAP`.
 - **arm64.** All base images are multi-arch, but some dependencies aren't
-  (`snappy-java 1.0.3-rc3`, hadoop 2.2 natives, external BLAST binaries). If one
+  (`snappy-java 1.0.3-rc3`, external BLAST binaries). If one
   misbehaves, add `platform: linux/amd64` to that single service.
 - **`muscle`** is installed if the distro has it for your architecture; target-
   identification alignment needs it.
@@ -279,5 +279,5 @@ class with the lombok the build actually resolves: fine on javac 8, and
    `SAMLSecurityConfiguration.java` is a full rewrite. Verify against `make up-saml`.
 4. Flyway 3.2.1 → 10.x and H2 1.3.176 → 2.x (schema/SQL differences), then
    `PG_VERSION=16`. Verify with `make test-pg` on both flavours.
-5. Lucene 6.6 → 9.x, htsjdk, POI 3.16, hadoop-client 2.2.0, `mangofactory` swagger →
+5. Lucene 6.6 → 9.x, htsjdk, POI 3.16, `mangofactory` swagger →
    springdoc. Verify with `make test` and by clicking through tracks in the UI.

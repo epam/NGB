@@ -64,7 +64,6 @@ import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
@@ -116,9 +115,6 @@ public class ReferenceControllerTest extends AbstractControllerTest {
     private static final String REGISTER_GENOME_IN_FASTA_FORMAT = "/restapi/secure/reference/register/fasta";
     private static final String UPDATE_REFERENCE_GENE_FILE = "/restapi/secure/reference/%d/genes";
     private static final String ADD_REFERENCE_GENOME_ANNOTATION_FILE = "/restapi/secure/reference/%d/updateAnnotation";
-
-    //describes GA4GH API Google genomic
-    private static final String REFERENCE_SET_ID = "EJjur6DxjIa6KQ";
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
@@ -244,33 +240,6 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         Assert.assertNotNull(referenceResult);
         Assert.assertNull(referenceResult.getPayload());
     }
-
-    @Ignore
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveAndGetTrackDataGA4GH() throws Exception {
-
-        FileRegistrationRequest request;
-        ResultActions actions;
-        // 1. tries to save a genome with all parameters
-        request = new FileRegistrationRequest();
-        request.setPath(REFERENCE_SET_ID);
-        request.setType(BiologicalDataItemResourceType.GA4GH);
-        request.setName(PLAIN_GENOME_NAME);
-
-        actions = mvc()
-                .perform(post(REGISTER_GENOME_IN_FASTA_FORMAT).content(getObjectMapper().writeValueAsString(request))
-                        .contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
-                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
-        final Reference ref2 = parseReference(actions.andReturn().getResponse().getContentAsByteArray()).getPayload();
-        Assert.assertNotNull("Genome ID shouldn't be null.", ref2.getId());
-        Assert.assertEquals("Unexpected auto-generated name for a genome.", PLAIN_GENOME_NAME, ref2.getName());
-        actions.andDo(print());
-    }
-
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)

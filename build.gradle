@@ -97,29 +97,6 @@ task buildDocs(dependsOn: buildDoc) {
     }
 }
 
-task buildWar(type: GradleBuild) {
-    dependsOn ui
-    if (runTests) {
-        tasks = ['clean', 'build']
-    } else {
-        tasks = ['clean', 'assemble']
-    }
-
-    startParameter.projectProperties = [profile    : profile,
-                                        database   : database,
-                                        buildNumber: buildNumber]
-
-    buildFile = "$rootDir/server/catgenome/build.gradle"
-    dir = "$rootDir/server/catgenome"
-
-    doLast {
-        copy {
-            from "$serverBuilds/catgenome.war"
-            into distDir
-        }
-    }
-}
-
 task buildJar(type: GradleBuild) {
     dependsOn ui, templates, buildDocs
     if (runTests) {
@@ -189,81 +166,8 @@ task buildDockerDemo(type: Exec) {
     workingDir = "$rootDir/docker/demo"
 }
 
-task buildDesktopUI(type: GradleBuild) {
-    doFirst {
-        delete fileTree(uiFilesDestination) {
-            exclude 'swagger-ui/**'
-        }
-    }
-
-    tasks = ['buildUI']
-
-    buildFile = "$rootDir/client/build.gradle"
-    dir = "$rootDir/client"
-
-    startParameter.projectProperties = [desktop : ""]
-
-    doLast {
-        copy {
-            from "$rootDir/client/dist"
-            into uiFilesDestination
-        }
-    }
-}
-
-task buildDesktopJar(type: GradleBuild) {
-    dependsOn buildDesktopUI
-
-    doFirst {
-        delete fileTree("$rootDir/desktop/lib/logs")
-        delete file("$rootDir/desktop/lib/catgenome.jar")
-    }
-
-    if (runTests) {
-        tasks = ['clean', 'build']
-    } else {
-        tasks = ['clean', 'bootRepackage']
-    }
-    startParameter.projectProperties = [profile    : 'jar',
-                                        database   : database,
-                                        buildNumber: buildNumber]
-    buildFile = "$rootDir/server/catgenome/build.gradle"
-    dir = "$rootDir/server/catgenome"
-    doLast {
-        copy {
-            from "$serverBuilds/catgenome.jar"
-            into "$rootDir/desktop/lib"
-        }
-    }
-}
-
-task buildDesktop(type: GradleBuild) {
-    dependsOn buildDesktopJar
-
-    doFirst {
-        delete file ("$rootDir/dist/ngb-linux-x64")
-        delete file ("$rootDir/dist/ngb-darwin-x64")
-        delete file ("$rootDir/dist/ngb-win32-x64")
-        delete file ("$rootDir/desktop/dist")
-    }
-
-    tasks = ['buildWrapper']
-
-    buildFile = "$rootDir/desktop/build.gradle"
-    dir = "$rootDir/desktop"
-
-    doLast {
-        copy {
-            from "$rootDir/desktop/dist"
-            into distDir
-        }
-
-        delete file("$rootDir/desktop/dist")
-    }
-}
-
 task buildAll(type: GradleBuild) {
-    tasks = ['buildWar', 'buildCli', 'buildJar', 'buildDocs', 'buildDocker', 'buildDesktop']
+    tasks = ['buildCli', 'buildJar', 'buildDocs', 'buildDocker']
     buildFile = "$rootDir/build.gradle"
     dir = "$rootDir"
     if (runTests) {

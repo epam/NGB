@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.controller.person;
+package com.epam.catgenome.controller.user;
 
 import java.util.Collection;
 

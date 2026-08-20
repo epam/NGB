@@ -1,24 +1,33 @@
 # Test baseline for the Java 21 migration
 
-Recorded on 2026-08-20 at the end of **migration Phase 0**, inside this environment (JDK 8,
-Gradle 3.3, H2 1.3.176 / PostgreSQL 9.6, aarch64/colima). **These tests still fail on the
-current code.** From here on this list is the reference: a run that is green except for this
-list is a pass. Anything else is your own breakage.
+First recorded on 2026-08-20 at the end of **migration Phase 0**; re-measured at the end of
+**Phase 1** (same day), inside this environment (JDK 8, Gradle 3.3, H2 1.3.176 /
+PostgreSQL 9.6, aarch64/colima). **These tests still fail on the current code.** From here on
+this list is the reference: a run that is green except for this list is a pass. Anything else
+is your own breakage.
 
 | Suite | Command | Result |
 |---|---|---|
-| H2 | `make test` | 537 tests, **2 failed**, 26 skipped (~3.5 min) |
-| PostgreSQL | `make test-pg` | 537 tests, **10 failed**, 26 skipped (~3.5 min) |
+| H2 | `make test` | 528 tests, **2 failed**, 21 skipped (~4.5 min) |
+| PostgreSQL | `make test-pg` | 528 tests, **10 failed**, 21 skipped (~3 min) |
 | Static analysis | `make lint` | **green** — checkstyle and pmd both clean (~20 s) |
 
+Of those, **1 (H2) / 9 (PostgreSQL)** are the pre-existing failures documented below. The
+remaining one on each flavour is `PdbDataManagerTest.testParse`, which parses live RCSB PDB
+data and flipped to red between the two recordings — see
+["Live-data failures"](#live-data-failures).
+
 Phase 0 took this from 19 H2 / 65 PostgreSQL / red lint. What it fixed is at the bottom.
+Phase 1 removed 9 tests along with the functionality they covered (GA4GH, HDFS, `person`),
+which is the whole of the 537 → 528 change; the only *failure* it removed is
+`VcfManagerTest.testLoadSmallScaleVcfFileGa4GH`.
 
 **Two conditions the numbers depend on.** Get either wrong and you will see extra failures
 that are not yours:
 
 1. **`make test-pg` needs a clean database.** `ngb_test` lives in the persistent `pg-data`
    volume and several tests do not clean up after themselves, so a second run on a dirty
-   volume shows 19 failures instead of 10 — 6 in `HeatmapManagerTest` ("File with name
+   volume shows 9 more failures than the count above — 6 in `HeatmapManagerTest` ("File with name
    'loadHeatmapTest' already exists"), `UrlShorterManagerTest`
    (`expected:<95d52dd9> but was:<alias>`), `TargetManagerTest.filterTargetsByOwnerTest`,
    `RoleDaoTest`. Run `make reset-pg` first. Fixing that self-cleanup is worth doing but is
@@ -29,12 +38,15 @@ that are not yours:
    `TargetManagerTest.loadTargetsTest` fail; both are now self-contained, but if you get an
    inexplicable Lucene result, `rm -rf ../contents` and re-run.
 
-## H2: 2 failures
+## H2: 1 documented failure (+1 live-data)
 
 | Class | Cause | Survives the migration? |
 |---|---|---|
 | `GffManagerTest.testLoadGenesTranscript` | `expected:<protein_coding> but was:<protein_coding_CDS_not_defined>`. **Live external data, not a fixture problem** — see the note below. | Yes. Unaffected by every phase; only an Ensembl change or a decision about network tests will move it. |
-| `VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` | `AccessDeniedException: Parameter path doesn't fall into 'ngs.data.root.path'`. `UrlValidatorService.isRemotePath` does not list `GA4GH`, so a variant-set id is validated as a local filesystem path. | No — **disappears in Phase 1**, which deletes GA4GH. |
+| `PdbDataManagerTest.testParse` | `expected:<B> but was:<A>`. Live RCSB PDB data — see ["Live-data failures"](#live-data-failures). | Yes, until network tests are dealt with. |
+
+`VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` was here until Phase 1 deleted GA4GH; the test
+went with the feature. `UrlValidatorService.isRemotePath` was deliberately left untouched.
 
 ### Why `GffManagerTest.testLoadGenesTranscript` is not a fixture bug
 
@@ -57,15 +69,20 @@ network-dependent assertions belong in the unit suite at all — the same questi
 `protein_coding_CDS_not_defined` is a *different* biotype (no CDS defined), not a rename of
 `protein_coding`, so weakening the assertion would hide a real semantic change.
 
-### Also network-dependent — passes today, may not tomorrow
+### Live-data failures
 
-`PdbDataManagerTest.testParse` parses live RCSB PDB data and asserted
-`expected:<B> but was:<A>` when the previous baseline was taken. It passes as of this
-recording. Treat a failure there as external drift, not regression.
+`PdbDataManagerTest.testParse` parses live RCSB PDB data. It asserted `expected:<B> but was:<A>`
+two baselines ago, passed at the Phase 0 recording, and is red again on both flavours at the
+Phase 1 recording. **It is not Phase 1's doing**: it already failed on PostgreSQL when Phase 0's
+exit criteria were re-verified at the start of the Phase 1 session, before a single Phase 1
+change existed. The assertion is on a chain identifier returned by the RCSB service, so it will
+keep flipping. Treat a failure there as external drift, not regression — and do not "fix" it by
+loosening the assertion, for the same reason as `GffManagerTest.testLoadGenesTranscript`: the
+real question is whether network-dependent assertions belong in the unit suite.
 
-## PostgreSQL: 10 failures
+## PostgreSQL: 9 documented failures (+1 live-data)
 
-All 10 are pre-existing, and 8 of them are the **two Flyway script sets having diverged**.
+All 9 are pre-existing, and 7 of them are the **two Flyway script sets having diverged**.
 None are caused by the environment. See "Latent bugs found" in `JAVA21-MIGRATION-PLAN.md`.
 
 | Count | Class | Cause | Survives the migration? |
@@ -75,7 +92,10 @@ None are caused by the environment. See "Latent bugs found" in `JAVA21-MIGRATION
 | 1 | `RoleDaoTest.testLoadRolesWithUsers` | `expected:<11> but was:<12>` — the two script sets seed a different number of predefined roles (already documented in `README.md`). | Same — **Phase 5**. |
 | 1 | `TargetManagerTest.filterTargetsByOwnerTest` | `TargetGeneDao.loadTargetGenes` emits `WHERE target_id IN ()` for an empty id set. H2 1.3 accepts it, PostgreSQL does not. **Real production bug**: any target filter matching nothing fails on PostgreSQL. | Yes, until someone fixes the DAO. Nothing in the migration touches it. |
 | 1 | `GffManagerTest.testLoadGenesTranscript` | Same live-Ensembl failure as on H2. | Yes. |
-| 1 | `VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` | Same GA4GH failure as on H2. | No — **Phase 1**. |
+| 1 | `PdbDataManagerTest.testParse` | Same live-RCSB failure as on H2. Not counted in the 9. | Yes, until network tests are dealt with. |
+
+`VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` was the tenth entry here until Phase 1 deleted
+GA4GH.
 
 The PostgreSQL suite now exercises the ACL/JWT/auth code, which it previously could not
 (see below). Treat a new context-startup failure in `*SecurityServiceTest` /
@@ -103,6 +123,25 @@ already-red baseline would hide real regressions.
 | Rewrote the 4 PMD violations instead of suppressing them: `EnsemblDataManager.fetchNcbiId` null-checks the deserialised VO rather than catching `NullPointerException`; `AlignmentManager.processParasiteTargets` catches `IOException \| ParseException` | `make lint` green |
 | Fixed the stray trailing apostrophe in the H2 JDBC URL | Removes a landmine for H2 2.x in Phase 5 |
 | Added JDK 17 to the toolbox (`with-java17`, `use-java 17`) and to the app entrypoint / compose (`NGB_JAVA_VERSION=17`) | Phase 2 runs on 17 |
+
+## What Phase 1 changed
+
+Nothing was fixed and nothing was re-baselined; the suite shrank because functionality was
+deleted.
+
+| Removed with its feature | Tests |
+|---|---|
+| GA4GH / Google Genomics | `VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` (the failure), `testGetVariantsGA4GH`, `testAllTrackGa4GH` (`@Ignore`d), `ReferenceManagerTest.getReference` (`@Ignore`d), `ReferenceControllerTest.testSaveAndGetTrackDataGA4GH` (`@Ignore`d) |
+| HDFS / Hadoop | `BamManagerTest.hdfsTest` (`@Ignore`d) |
+| the legacy `person` package | `PersonDaoTest`, `PersonManagerTest` (whole classes) |
+
+Also deleted: the 5 `externaldb/data/GA4GH_id10473*.json` fixtures, the
+`templates/1000-genomes.chrMT.vcf` fixture used only by the GA4GH tests, and the
+`ga4gh.google.*` properties from all four test property files.
+
+Note that `build/test-results/test/` still holds stale XML for the deleted classes — Gradle
+does not remove result files for tests that no longer exist. Trust the run summary's counts,
+not a `grep` over that directory.
 
 ## Reproducing
 

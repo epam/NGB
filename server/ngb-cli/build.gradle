@@ -2,7 +2,6 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     id "com.github.johnrengelman.shadow" version "1.2.4"
-    id "org.sonarqube" version "2.2"
     id "net.saliman.properties" version "1.4.4"
 }
 

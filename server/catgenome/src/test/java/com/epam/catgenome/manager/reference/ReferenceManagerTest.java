@@ -43,7 +43,6 @@ import com.epam.catgenome.entity.reference.Species;
 import com.epam.catgenome.manager.reference.io.FastaUtils;
 import com.epam.catgenome.manager.genbank.GenbankUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +65,6 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.track.TrackType;
-import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
 import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.util.TestUtils;
@@ -89,13 +87,10 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
 
     private static final int START_INDEX = 1;
     private static final int END_INDEX = 1000;
-    private static final int LIST_INDEX = 4;
     private static final String NEW_NAME = "hiMom";
     private static final String A3_FA_PATH = "classpath:templates/A3.fa";
     private static final String GENBANK_PATH = "classpath:templates/KU131557.gbk";
     public static final String PRETTY_NAME = "pretty";
-
-    @Value("${ga4gh.google.referenceSetId}") private String referenseSetID;
 
     @Value("#{catgenome['files.base.directory.path']}")
     private String baseDirPath;
@@ -131,57 +126,6 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
         idRef = reference.getId();
         Chromosome chromosome = reference.getChromosomes().get(0);
         idChrom = chromosome.getId();
-    }
-
-    @Ignore @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void getReference() {
-
-        ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
-        request.setType(BiologicalDataItemResourceType.GA4GH);
-        request.setPath(referenseSetID);
-        request.setName(NEW_NAME);
-        Track<Sequence> trackResult = null;
-        Track<Sequence> track = null;
-        try {
-            Reference reference = referenceManager.registerGenome(request);
-            track = new Track<>();
-            track.setType(TrackType.REF);
-            track.setId(reference.getId());
-            track.setEndIndex(END_INDEX);
-            track.setStartIndex(START_INDEX);
-            track.setScaleFactor(SCALE_FACTOR_4_BASE);
-            List<Chromosome> list =
-                    referenceGenomeDao.loadAllChromosomesByReferenceId(reference.getId());
-            track.setChromosome(list.get(LIST_INDEX));
-            trackResult = referenceManager.getNucleotidesTrackFromNib(track);
-        } catch (IOException | Ga4ghResourceUnavailableException e) {
-            e.printStackTrace();
-        }
-
-        assertNotNull(reference);
-        Reference referenceNew = referenceGenomeDao.loadReferenceGenome(reference.getId());
-        assertEquals(PRETTY_NAME, referenceNew.getPrettyName());
-        assertEquals("Unexpected id bioData.", reference.getBioDataItemId(),
-                referenceNew.getBioDataItemId());
-        assertEquals("Unexpected size reference.", reference.getSize(), referenceNew.getSize());
-        assertEquals("Unexpected chromosome.", trackResult.getChromosome().getName(),
-                track.getChromosome().getName());
-
-        //2 scaleFactor < 0.5
-
-        track.setScaleFactor(SCALE_FACTOR_4_GC_NEW);
-        try {
-            trackResult = referenceManager.getNucleotidesTrackFromNib(track);
-            assertEquals("Unexpected id bioData.", reference.getBioDataItemId(),
-                    referenceNew.getBioDataItemId());
-            assertEquals("Unexpected size reference.", reference.getSize(), referenceNew.getSize());
-            assertEquals("Unexpected chromosome.", trackResult.getChromosome().getName(),
-                    track.getChromosome().getName());
-
-        } catch (IOException | Ga4ghResourceUnavailableException e) {
-            e.printStackTrace();
-        }
     }
 
     @Test @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Throwable.class)

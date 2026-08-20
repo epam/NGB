@@ -49,8 +49,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.epam.catgenome.controller.vo.ga4gh.CallSet;
-import com.epam.catgenome.controller.vo.ga4gh.CallSetSearch;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexBuilder;
 import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexBuilder;
@@ -59,7 +57,6 @@ import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.VcfFieldValues;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.RegistrationException;
@@ -67,7 +64,6 @@ import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.UrlValidatorService;
 import com.epam.catgenome.manager.gene.GeneTrackManager;
-import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.InfoFieldParser;
@@ -88,7 +84,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.codehaus.jettison.json.JSONException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -119,7 +114,6 @@ import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.DownloadFileManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
-import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.vcf.reader.AbstractVcfReader;
 import com.epam.catgenome.manager.vcf.reader.VcfReader;
@@ -152,9 +146,6 @@ public class VcfManager {
 
     @Autowired
     private TrackHelper trackHelper;
-
-    @Autowired
-    private HttpDataManager httpDataManager;
 
     @Autowired
     private DownloadFileManager downloadFileManager;
@@ -211,9 +202,6 @@ public class VcfManager {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
         switch (request.getType()) {
-            case GA4GH:
-                vcfFile = getVcfFileFromGA4GH(request, requestPath);
-                break;
             case FILE:
             case S3:
             case AZ:
@@ -249,9 +237,6 @@ public class VcfManager {
         final VcfFile vcfFile = vcfFileManager.load(vcfFileId);
         Assert.notNull(vcfFile, MessagesConstants.ERROR_NO_SUCH_FILE);
         vcfFileManager.delete(vcfFile);
-        if (vcfFile.getType() == BiologicalDataItemResourceType.GA4GH) {
-            return vcfFile;
-        }
         fileManager.deleteFeatureFileDirectory(vcfFile);
         return vcfFile;
     }
@@ -278,9 +263,8 @@ public class VcfManager {
             track.setType(TrackType.VCF);
         }
 
-        AbstractVcfReader.createVcfReader(vcfFile.getType(), httpDataManager, fileManager,
-                referenceGenomeManager).readVariations(vcfFile, track, chromosome, sampleIndex,
-                loadInfo, collapse, indexCache);
+        AbstractVcfReader.createVcfReader(fileManager, referenceGenomeManager)
+                .readVariations(vcfFile, track, chromosome, sampleIndex, loadInfo, collapse, indexCache);
 
         final double time2 = Utils.getSystemTimeMilliseconds();
         log.debug("Track request took {} ms", time2 - time1);
@@ -312,10 +296,9 @@ public class VcfManager {
             track.setType(TrackType.VCF);
         }
 
-        AbstractVcfReader.createVcfReader(BiologicalDataItemResourceType.URL, httpDataManager, fileManager,
-                                          referenceGenomeManager).readVariations(notRegisteredFile, track, chromosome,
-                                                                                 sampleIndex != null ? sampleIndex : 0,
-                                                                                    loadInfo, collapse, indexCache);
+        AbstractVcfReader.createVcfReader(fileManager, referenceGenomeManager)
+                .readVariations(notRegisteredFile, track, chromosome, sampleIndex != null ? sampleIndex : 0,
+                                loadInfo, collapse, indexCache);
         final double time2 = Utils.getSystemTimeMilliseconds();
         log.debug("Track request took {} ms", time2 - time1);
         return track;
@@ -420,8 +403,7 @@ public class VcfManager {
         } else {
             vcfFile = makeTemporaryVcfFileFromUrl(fileUrl, indexUrl, chromosome);
         }
-        final VcfReader vcfReader = AbstractVcfReader.createVcfReader(vcfFile.getType(), httpDataManager, fileManager,
-                referenceGenomeManager);
+        final VcfReader vcfReader = AbstractVcfReader.createVcfReader(fileManager, referenceGenomeManager);
         final Integer sampleIndex = getSampleIndex(sampleId, vcfFile);
         return vcfReader.getNextOrPreviousVariation(fromPosition, vcfFile, sampleIndex,
                 chromosome, forward, indexCache);
@@ -750,65 +732,6 @@ public class VcfManager {
         return currentKey != null && Utils.chromosomeMapContains(chromosomeMap, currentKey);
     }
 
-    private VcfFile createVcfGA4GH(final IndexedFileRegistrationRequest request) {
-
-        final VcfFile vcfFile = new VcfFile();
-        vcfFile.setId(vcfFileManager.createVcfFileId());
-        vcfFile.setCompressed(true);
-        vcfFile.setPath(request.getPath());
-        vcfFile.setSource(request.getPath());
-        vcfFile.setName(request.getName() != null ? request.getName() : request.getPath());
-        vcfFile.setPrettyName(request.getPrettyName());
-        vcfFile.setType(BiologicalDataItemResourceType.GA4GH); // For now we're working only with files
-        vcfFile.setCreatedDate(new Date());
-        vcfFile.setReferenceId(request.getReferenceId());
-        final VcfGa4ghReader reader = new VcfGa4ghReader(httpDataManager, referenceGenomeManager);
-        CallSetSearch callSetSearch;
-        try {
-            callSetSearch = reader.callSetSearch(vcfFile.getPath());
-        } catch (JSONException | InterruptedException | ExternalDbUnavailableException | IOException e) {
-            throw new RegistrationException(vcfFile.getName(), e);
-        }
-        final Map<String, Integer> sampleMap = getSampleNameToOffset(callSetSearch.getCallSets());
-        if (!CollectionUtils.isEmpty(sampleMap)) {
-            final List<VcfSample> samples = sampleMap.entrySet().stream()
-                    .map(e -> new VcfSample(e.getKey(), e.getValue()))
-                    .collect(Collectors.toList());
-            vcfFile.setSamples(samples);
-        }
-        if (StringUtils.isNotBlank(request.getIndexPath())) {
-            final BiologicalDataItem indexItem = new BiologicalDataItem();
-            indexItem.setCreatedDate(new Date());
-            indexItem.setPath(request.getIndexPath());
-            indexItem.setSource(request.getIndexPath());
-            indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
-            indexItem.setType(BiologicalDataItemResourceType.GA4GH);
-            indexItem.setName("");
-
-            vcfFile.setIndex(indexItem);
-        }
-        final long vcfId = vcfFile.getId();
-        biologicalDataItemManager.createBiologicalDataItem(vcfFile);
-        vcfFile.setBioDataItemId(vcfFile.getId());
-        vcfFile.setId(vcfId);
-        log.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, vcfFile.getId(), vcfFile.getPath()));
-        return vcfFile;
-    }
-
-    private Map<String, Integer> getSampleNameToOffset(final List<CallSet> callSets) {
-        final HashMap<String, Integer> map = new HashMap<>();
-        for (CallSet callSet : callSets) {
-            String sample = callSet.getId();
-            int index = sample.indexOf('-');
-            if (index == -1) {
-                Assert.isTrue(false, "SampleId error");
-            }
-            int sampleId = Integer.parseInt(sample.substring(index + 1, sample.length()));
-            map.put(callSet.getSampleId(), sampleId);
-        }
-        return map;
-    }
-
     private VcfFile createVcfFile(final IndexedFileRegistrationRequest request,
             final FeatureReader<VariantContext> reader) {
         final VcfFile vcfFile = new VcfFile();
@@ -857,22 +780,6 @@ public class VcfManager {
         vcfFile.setBioDataItemId(vcfFile.getId());
         vcfFile.setId(vcfId);
         log.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, vcfFile.getId(), vcfFile.getPath()));
-        return vcfFile;
-    }
-
-    @NotNull
-    private VcfFile getVcfFileFromGA4GH(final IndexedFileRegistrationRequest request, final String requestPath) {
-        final VcfFile vcfFile = createVcfGA4GH(request);
-        final BiologicalDataItem indexItem = new BiologicalDataItem();
-        indexItem.setCreatedDate(new Date());
-        indexItem.setPath(requestPath);
-        indexItem.setSource(requestPath);
-        indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
-        indexItem.setType(BiologicalDataItemResourceType.GA4GH);
-        indexItem.setName("");
-        vcfFile.setIndex(indexItem);
-        biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
-        vcfFileManager.create(vcfFile);
         return vcfFile;
     }
 

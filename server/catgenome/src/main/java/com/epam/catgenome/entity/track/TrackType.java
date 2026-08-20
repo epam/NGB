@@ -67,11 +67,6 @@ public enum TrackType {
     WIG,
 
     /**
-     * for GA4GH tracks
-     */
-    GA4GH,
-
-    /**
      * for BED tracks
      */
     BED,

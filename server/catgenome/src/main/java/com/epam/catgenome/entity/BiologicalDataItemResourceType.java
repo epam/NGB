@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.entity;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,15 +62,10 @@ public enum BiologicalDataItemResourceType {
      */
     ONLINE(4),
 
-    /**
-     * Indicates that item is located in HDFS
+    /*
+     * Ids 5 (HDFS) and 6 (GA4GH) were used by resource types NGB no longer supports. The gap is
+     * deliberate: the ids below are persisted in BIO_DATA_ITEM.TYPE and must not be reassigned.
      */
-    HDFS(5),
-
-    /**
-     * Indicates that item is provided by GA4GH protocol
-     */
-    GA4GH(6),
 
     /**
      * Indicates that item was downloaded by NGB and is located in it's download directory
@@ -81,6 +77,11 @@ public enum BiologicalDataItemResourceType {
      */
     AZ(8);
 
+    /**
+     * Resource types removed from NGB, by the id they used to be persisted under. Kept so a
+     * database written by an older NGB reports what it holds instead of failing obscurely.
+     */
+    private static final Map<Long, String> REMOVED_TYPE_NAMES = removedTypeNames();
 
     private long id;
     private static Map<Long, BiologicalDataItemResourceType> idMap = new HashMap<>((int) DOWNLOAD.getId());
@@ -90,10 +91,15 @@ public enum BiologicalDataItemResourceType {
         idMap.put(URL.id, URL);
         idMap.put(S3.id, S3);
         idMap.put(ONLINE.id, ONLINE);
-        idMap.put(HDFS.id, HDFS);
-        idMap.put(GA4GH.id, GA4GH);
         idMap.put(DOWNLOAD.id, DOWNLOAD);
         idMap.put(AZ.id, AZ);
+    }
+
+    private static Map<Long, String> removedTypeNames() {
+        final Map<Long, String> names = new HashMap<>();
+        names.put(5L, "HDFS");
+        names.put(6L, "GA4GH");
+        return names;
     }
 
     BiologicalDataItemResourceType(long id) {
@@ -104,11 +110,42 @@ public enum BiologicalDataItemResourceType {
         return id;
     }
 
+    /**
+     * @param id a persisted resource type id, or {@code null}
+     * @return the matching type, or {@code null} if {@code id} is {@code null}
+     * @throws IllegalArgumentException if the id is not a supported resource type. Ids of removed
+     *         types are named in the message, because a database written by an older NGB can still
+     *         hold them and the operator has to be told which files to re-register.
+     */
     public static BiologicalDataItemResourceType getById(Long id) {
         if (id == null) {
             return null;
         }
-        return idMap.get(id);
+        final BiologicalDataItemResourceType type = idMap.get(id);
+        if (type == null) {
+            throw new IllegalArgumentException(unsupportedTypeMessage(id));
+        }
+        return type;
+    }
+
+    /**
+     * @param id an unmappable resource type id
+     * @return a message naming the removed resource type the id belonged to, if it was one
+     */
+    public static String unsupportedTypeMessage(final Long id) {
+        final String removed = REMOVED_TYPE_NAMES.get(id);
+        return removed == null
+               ? String.format("Unknown biological data item resource type id: %s.", id)
+               : String.format("Biological data item resource type %s (%s) is no longer supported. Files "
+                               + "registered with it have to be unregistered and, if still needed, "
+                               + "re-registered from a supported resource type.", id, removed);
+    }
+
+    /**
+     * @return ids of the resource types NGB used to support, mapped to their former names
+     */
+    public static Map<Long, String> getRemovedTypeNames() {
+        return Collections.unmodifiableMap(REMOVED_TYPE_NAMES);
     }
 
     public static BiologicalDataItemResourceType translateRequestType(BiologicalDataItemResourceType requestType) {

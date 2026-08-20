@@ -36,7 +36,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.BadSqlGrammarException;
-import org.springframework.security.oauth2.common.exceptions.UnauthorizedClientException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -90,9 +89,6 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
             } else {
                 message = MessageHelper.getMessage("error.sql");
             }
-        } else if (exception instanceof UnauthorizedClientException) {
-            message = exception.getMessage();
-            code = HttpStatus.UNAUTHORIZED;
         } else {
             message = exception.getMessage();
         }
