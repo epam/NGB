@@ -31,6 +31,73 @@ session to know where it is.
 
 ---
 
+## Session settings
+
+### Model and reasoning effort
+
+The dividing line is whether the phase is a **checklist** or asks the session to **make a
+judgement**. Every phase carrying a VERIFY item or an open decision is on the judgement
+side — not a coincidence, those are the places the research could not settle.
+
+| Phase | Model | Effort | Why |
+|---|---|---|---|
+| 0 | Sonnet 5 | medium | Five known fixes, exact file paths, no decisions |
+| 1 | Sonnet 5 | medium | Wide but shallow deletion; the enum-id trap is spelled out |
+| 2 | **Opus 5** | high | Hardest phase: long debug loops on a 2017 build system, no compiling midpoint, PMD ruleset rewritten from scratch |
+| 3 | **Opus 5** | high | ~1,000 files, Spring 6 semantics, cache + pool + API docs swapped at once |
+| 4 | **Opus 5** | high (xhigh for the first design turn) | A rewrite, not a migration — 589 lines of OpenSAML 2 into a different programming model |
+| 5 | **Opus 5** | high | Data-loss risk, 116 SQL files, two strategy decisions |
+| 6 | **Opus 5** | high | Lucene 9-vs-10 choice, guard design, 104 files of API churn |
+| 7 | **Opus 5** | high | 8-year htsjdk gap, 41 call sites, the fixture-vs-parser judgement |
+| 8 | Sonnet 5 | medium | Independent library bumps, one commit each |
+| 9 | Sonnet 5 | medium | CI, Docker, docs — well specified |
+
+Do not default to max effort. These phases are bottlenecked on 4–7 minute build and test
+iterations, not on single-shot reasoning depth, so max mostly buys tokens rather than
+progress. The exception is the opening turn of Phases 4 and 5, where the approach is chosen.
+
+### Build commands need explicit timeouts
+
+The default command timeout is 120 s and the ceiling is 600 s, but:
+
+| Command | Roughly |
+|---|---|
+| `make jar` (UI + docs + server) | ~7 min |
+| `make jar-fast` | ~45 s |
+| `make test` | ~4 min |
+| `make test-pg` | ~7 min |
+| `make cli-test` | long — downloads GBs of test data |
+
+**A session that leaves the timeout at its default will read a timeout as a build failure and
+start "fixing" it.** This is the most likely source of wasted effort in the whole migration.
+Pass an explicit timeout, or run the build in the background and poll it.
+
+### Permission mode
+
+Accept-edits pays off in Phases 1, 2, 3, 7 and 8 — hundreds of mechanical edits each.
+
+**Keep it on ask for Phase 5.** That phase runs `make reset-pg` and `docker volume rm`, and
+touches already-applied Flyway scripts. An unreviewed action there can destroy the very
+pre-migration database you need as the upgrade-path fixture.
+
+### Do not use worktree isolation
+
+`.devenv/docker-compose.yml:22` bind-mounts `../:/workspace`. A git worktree created
+elsewhere on disk is invisible to the containers, so every `make` target would silently run
+against the original tree. Work in place on the `java_21` branch.
+
+### Treat these two documents as the durable state
+
+Phases 2 and 3 touch enough files that the conversation will be compacted mid-phase. A
+finding that exists only in the conversation is gone at that point; one written into
+`JAVA21-MIGRATION-PLAN.md` survives.
+
+So: record VERIFY resolutions and decisions **as you make them**, not in the final report.
+The standing rules also live in the repo's `CLAUDE.md`, so they reload automatically after a
+compaction rather than depending on the original prompt.
+
+---
+
 ## Session 1 — kickoff (Phase 0)
 
 The plan document may still be untracked; this prompt has the session commit it first, so
@@ -63,11 +130,14 @@ Rules for this and every migration session:
 - Report honestly: if something is blocked or you skipped it, say which
   and why. Finish everything else.
 
-Start by committing the plan document itself (and this execution guide)
-if they are untracked, then do Phase 0. End with one commit per logical
-step, message prefixed "[migration 0]", and the rewritten
-TEST-BASELINE.md that Phase 0 requires.
+Start by committing the migration docs and CLAUDE.md if they are still
+untracked, then do Phase 0. End with one commit per logical step,
+message prefixed "[migration 0]", and the rewritten TEST-BASELINE.md
+that Phase 0 requires.
 ```
+
+The standing rules above are also in the repo's `CLAUDE.md`, so they survive a compaction.
+The duplication is deliberate — cheap insurance.
 
 ---
 
