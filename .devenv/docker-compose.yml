@@ -183,6 +183,7 @@ services:
       GRADLE_USER_HOME: /cache/gradle
       npm_config_cache: /cache/npm
     command:
+      - "with-java17"
       - "./gradlew"
       - "-p"
       - "server/catgenome"

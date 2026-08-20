@@ -1,47 +1,40 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
-// copies properties file and filers resources based on environment
-task copyConfiguration {
-    doLast {
+// Folds the selected profile's and database flavour's resources into the normal resource
+// processing. This used to be a `copyConfiguration` task whose `doLast` wrote straight into
+// build/resources — invisible to Gradle's up-to-date checking, and ordered only by an explicit
+// `processResources.dependsOn`. Declaring the profile files as extra `from` specs of
+// processResources/processTestResources gets the same layout with correct incremental builds.
+
+processResources {
+    doFirst {
         println "Target profile: $profile"
         println "Target database: $database"
         println "Build number: $buildNumber"
-//    version.build = buildNumber
-        // specifies the content root directory? used to store
-        //filterTokens.putAt("rootDirPath", profile == "dev" ? escape(rootDir.absolutePath)  : "")
-        filterTokens.putAt("rootDirPath", escape(rootDir.absolutePath))
-        filterTokens.putAt("version", escape("$version"))
+    }
 
-        copy {
-            from "profiles/$profile"
-            into "$buildDir/resources/main"
-            include "*/"
-            filter(ReplaceTokens, tokens: project.filterTokens)
-        }
+    from("profiles/$profile") {
+        filter(ReplaceTokens, tokens: project.filterTokens)
+    }
+    from("profiles/version.properties") {
+        filter(ReplaceTokens, tokens: project.filterTokens)
+    }
+    // Deliberately unfiltered, as before: these two carry no @token@ placeholders.
+    from("profiles/$database") {
+        include "applicationContext*"
+        into "conf/catgenome"
+    }
+    from("profiles/$database/dao") {
+        include "dao-helper.xml"
+        into "conf/catgenome/dao"
+    }
+}
 
-        copy {
-            from "profiles/version.properties"
-            into "$buildDir/resources/main"
-            filter(ReplaceTokens, tokens: project.filterTokens)
-        }
-
-        copy {
-            from "profiles/$database"
-            into "$buildDir/resources/main/conf/catgenome"
-            include "applicationContext*"
-        }
-
-        copy {
-            from "profiles/$database/dao"
-            into "$buildDir/resources/main/conf/catgenome/dao"
-            include "dao-helper.xml"
-        }
-
-        copy {
-            from "profiles/$database"
-            into "$buildDir/resources/test"
-            include "test*"
-            filter(ReplaceTokens, tokens: project.filterTokens)
-        }
+processTestResources {
+    from("profiles/$database") {
+        include "test*"
+    }
+    filesNotMatching("**/templates/**") {  // To exclude binary files, because they are being broken by filtering
+        filter(ReplaceTokens, tokens: project.filterTokens)
     }
 }

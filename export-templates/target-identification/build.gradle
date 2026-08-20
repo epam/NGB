@@ -1,115 +1,52 @@
-import com.moowork.gradle.node.npm.NpmInstallTask
+import org.gradle.internal.os.OperatingSystem
 
-plugins {
-    id "com.moowork.node" version "1.1.1"
-}
+// See client/build.gradle for why `com.moowork.node` is gone. Task names are unchanged — the
+// root build depends on `:export-templates:target-identification:buildTemplate`.
 
 def nodeVersion = "14.17.5"
+def npm = OperatingSystem.current().isWindows() ? "npm.cmd" : "npm"
 
-//to handle Windows issue with CMD output buffer (can be removed
-//after moving to Gradle 3.4
-tasks.withType(NodeTask) {
-    doLast {
-        println()
-    }
-}
-tasks.withType(NpmInstallTask) {
-    doLast {
-        println()
-    }
-}
+checkNodeVersion(nodeVersion)
 
-checkInstalledNodeVersion(nodeVersion)
-
-def checkInstalledNodeVersion(nodeVersion) {
+def checkNodeVersion(required) {
     def stdout = new ByteArrayOutputStream()
+    def result
     try {
-        def result = exec {
+        result = exec {
             standardOutput = stdout
+            errorOutput = new ByteArrayOutputStream()
             ignoreExitValue = true
             commandLine "node", "-v"
         }
-        if (result.exitValue != 0) {
-            throw new GradleException()
-        }
-        if (!isSupportedNodeVersion(stdout.toString(), nodeVersion)) {
-            initNode(nodeVersion)
-        } else {
-            //all checks passed and we don't need to download node.js
-            node {
-                download = false
-            }
-        }
-    } catch (GradleException e) {
-        initNode(nodeVersion)
-    } finally {
-        stdout.close()
+    } catch (Exception e) {
+        throw new GradleException("Node.js v$required is required to build the export templates, " +
+                "but `node` is not on PATH. See .devenv/README.md for the build environment.", e)
     }
-}
-
-task npmPrune(type: NpmTask) {
-    args = ['prune']
+    if (result.exitValue != 0) {
+        throw new GradleException("Node.js v$required is required to build the export templates, " +
+                "but `node -v` failed. See .devenv/README.md for the build environment.")
+    }
+    def installed = stdout.toString().trim()
+    if (installed.replaceFirst(/^v/, "").tokenize(".")[0] != required.tokenize(".")[0]) {
+        logger.warn("WARNING: building the export templates with Node $installed; it is pinned " +
+                "to v$required.")
+    }
 }
 
 task clean(type: Delete) {
-    doFirst {
-        if (node.download) {
-            println "Node v$nodeVersion is required. It will be downloaded."
-        }
-    }
     delete(project.buildDir)
 }
 
-npmInstall.dependsOn npmPrune
-nodeSetup.dependsOn clean
-npmSetup.dependsOn clean
+task npmPrune(type: Exec) {
+    commandLine npm, "prune"
+}
 
-task buildTemplate(type: NpmTask) {
+task npmInstall(type: Exec) {
+    dependsOn npmPrune
+    commandLine npm, "install"
+}
+
+task buildTemplate(type: Exec) {
     dependsOn npmInstall
-    args = ['run', 'build']
-}
-
-private void initNode(nodeVersion) {
-    node {
-        version = nodeVersion
-        download = true
-        workDir = file("${project.buildDir}/nodejs")
-        npmWorkDir = file("${project.buildDir}/npm")
-        distBaseUrl = 'https://direct.nodejs.org/dist/'
-    }
-}
-
-private static boolean isSupportedNodeVersion(installed, required) {
-
-    def (instMajor, instMinor, instBuild) = installed.substring(1).tokenize(".")
-    def (reqMajor, reqMinor, reqBuild) = required.tokenize(".")
-
-    //check Major version
-    if (isLessVersion(instMajor as Integer, reqMajor as Integer)) {
-        return false
-    } else if (isGreaterVersion(instMajor as Integer, reqMajor as Integer)) {
-        return true
-    }
-
-    //check Minor version
-    if (isLessVersion(instMinor as Integer, reqMinor as Integer)) {
-        return false
-    } else if (isGreaterVersion(instMinor as Integer, reqMinor as Integer)) {
-        return true
-    }
-
-    // Build number
-    if (isLessVersion(instBuild as Integer, reqBuild as Integer)) {
-        return false
-    }
-
-    return true
-}
-
-private static isLessVersion(Integer installed, Integer required) {
-    return installed < required
-}
-
-private static isGreaterVersion(Integer installed, Integer required) {
-    return installed > required
+    commandLine npm, "run", "build"
 }

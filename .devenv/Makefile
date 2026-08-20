@@ -14,7 +14,9 @@ SHELL := /bin/bash
 # Prefer the compose plugin, fall back to the standalone binary.
 COMPOSE ?= $(shell docker compose version >/dev/null 2>&1 && echo "docker compose" || echo "docker-compose")
 
-GRADLE_H2  := ./gradlew --no-daemon
+# Gradle 7.6 and Checkstyle 10 both need a JDK newer than the image default of 8, and the
+# build declares a Java 17 toolchain. `with-java17` is the toolbox's JDK switcher.
+GRADLE_H2  := with-java17 ./gradlew --no-daemon
 EXEC_BUILD := $(COMPOSE) exec -T builder
 SERVER     := -p server/catgenome
 

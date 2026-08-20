@@ -749,6 +749,111 @@ Java 9+ modularity breaks. Phase 3 moves to 21.
     an `ext` closure. Groovy 3 (Gradle 7) should still accept it; run `make cli-test` to
     confirm.
 
+**Phase 2 execution findings** *(written as the phase was carried out)*
+
+- **VERIFY resolved — `spring-security-saml2-core` 1.0.10 IS binary-compatible with Spring
+  Security 5.7.11** (the version Boot 2.7.18 manages). This was the load-bearing assumption of
+  the whole waypoint, so it was checked before any code was touched, and not by reading release
+  notes: every `CONSTANT_Class` / `Methodref` / `Fieldref` / `InterfaceMethodref` entry in all
+  **111** classes of the extension jar was extracted from the constant pool and resolved against
+  Spring Security 5.7.11 (`core`, `web`, `config`, `crypto`, `acl`) plus Spring Framework 5.3.31,
+  walking superclasses and interfaces. Result: **0 missing classes, 0 missing or changed
+  members.** The one apparent miss,
+  `org.springframework.security.providers.ExpiringUsernameAuthenticationToken`, is shipped
+  *inside the extension jar itself* — the extension squats on the `org.springframework.security`
+  package. Note the POM *declares* `spring-security-{core,web,config}:4.2.13.RELEASE`; that is a
+  declaration, not a constraint, and the Boot BOM overrides it to 5.7.11 transitively. The same
+  check run against the **1.0.2** jar currently in the build is also clean, so both versions are
+  viable — useful to know, because it makes 1.0.10 a revertible choice.
+  Binary compatibility is not behaviour: `make up-saml` + `make smoke-saml` remains the real
+  acceptance test for this phase.
+- **`org.opensaml:opensaml:2.6.6` is NOT on Maven Central.** Central carries 2.5.3, 2.6.0,
+  2.6.1 and 2.6.4 only, and 1.0.10 requires 2.6.6 exactly. It *is* served by
+  `https://build.shibboleth.net/maven/releases/` (HTTPS, 200 for both POM and jar), which is
+  the canonical OpenSAML host and which **Phase 4 task 1 already anticipates needing** for
+  OpenSAML 4. So bumping the extension 1.0.2 → 1.0.10 costs one new repository. The fallback,
+  if that repository is ever unavailable, is to stay on **1.0.2.RELEASE** (opensaml 2.6.1, on
+  Central) — verified compatible with Spring Security 5.7.11 by the same check.
+- **The insecure BioPAX repository can simply be deleted, not worked around.**
+  `http://www.biopax.org/m2repo/releases/` now returns **404** — it is dead, not merely plain
+  HTTP, so the Gradle 7 insecure-protocol block was never the real problem. All three artifacts
+  resolve from Maven Central: `org.biopax.paxtools:paxtools-core:5.1.0`,
+  `:sbgn-converter:5.0.0`, `pathwaycommons:chilay-sbgn:3.0.0`. No `allowInsecureProtocol`, no
+  vendoring. This closes the "Insecure/dead Maven repository" row of the risk register.
+- **Boot 2.7.18's BOM would silently upgrade H2 and Flyway if their pins were dropped.** It
+  manages `h2` → **2.1.214** and `flyway-core` → **8.5.13**, both of which belong to Phase 5,
+  not here. The pins on `com.h2database:h2:1.3.176` and `org.flywaydb:flyway-core:3.2.1` are
+  therefore **load-bearing and must stay** through Phase 2 — an explicitly declared version
+  beats a BOM-managed one, so keeping them written out is sufficient. Same reasoning applies to
+  the `org.postgresql:postgresql:9.4-1206-jdbc4` pin (BOM would say 42.3.8). Task 5's "delete
+  the pins the BOM now manages" is about `versionSpring`, `versionSpringSecurity`,
+  `versionJackson`, `versionSlf4j`, `versionJUnit`, `versionMockito` and the two `ext[...]`
+  overrides — **not** about the persistence layer.
+- **The resource-copy restructure is safe: there are no path collisions.** `copyConfiguration`
+  wrote into `$buildDir/resources/main` behind `processResources`'s back, which is what the plan
+  warned would trip Gradle 7's overlap checks. Checked before rewriting it, and every file it
+  produces lands where `src/main/resources` has nothing: `catgenome.properties` and `log4j.xml`
+  (from `profiles/<profile>/`), `version.properties`, `conf/catgenome/applicationContext-flyway.xml`
+  and `conf/catgenome/dao/dao-helper.xml` (from `profiles/<database>/`). So the copies could be
+  folded into `processResources`/`processTestResources` as ordinary `from` specs with no
+  duplicate-strategy decision to make and no change in which file wins. Also worth recording:
+  the old `include "*/"` pattern was **not** a directories-only filter — Gradle expands a
+  trailing `/` to `/**` and `**` matches zero segments, so it matched top-level files too. It
+  was a no-op and is gone.
+- **`net.saliman.properties` was only ever providing `project.filterTokens`.** Confirmed by
+  grep: `filterTokens` is the sole symbol either module uses from it, and `gradle.properties`
+  (its other reason to exist) was deleted in Phase 1. Replaced with a plain
+  `ext.filterTokens` map in both modules, as the plan recommended.
+- **VERIFY resolved — `fast-classpath-scanner` 2.0.9 works on JDK 17 and does not need
+  bumping.** The plan flagged it because it predates JDK 9 and the CLI's whole command dispatch
+  depends on it: `CommandManager` scans for `@Command` classes and throws
+  "command handler not found" if the scan comes back empty. Tested for real rather than
+  reasoned about — built `installDist` on the 17 toolchain and ran `bin/ngb version`, which is
+  served by `VersionCommandHandler` (`@Command(command = {"version"})`) and therefore only
+  answers if the scan found it. It printed `2.8.0`. 2.20.2 (last 2.x) was tried first and also
+  works, so the bump is available if a later phase needs it, but it is not required here and
+  library bumps belong to Phase 8. Left at 2.0.9.
+- **`checkstyle { }` needs an explicit `configDirectory` in both modules.** Gradle 4 changed the
+  default from `<project>/config/checkstyle` to `<rootProject>/config/checkstyle`, which does not
+  exist here, so every `checkstyleMain` failed with
+  `Unable to create a Checker: configLocation {/workspace/config/checkstyle/checkstyle.xml}`.
+  Both modules keep their own (byte-identical) copy, so both now set
+  `configDirectory = file("config/checkstyle")`. PMD was unaffected — it already names its
+  rulesets with a project-relative `files(...)`.
+- **The `regression` task in `server/ngb-cli/build.gradle` was dead and is deleted, not fixed.**
+  The plan's task 12 asks for its `'script\\regression_test.sh'` argument to be corrected to a
+  forward slash. But `server/ngb-cli/script/` does not exist, and `git log` shows
+  `regression_test.sh` was removed back in the 2.5 release; no `make` target, script or other
+  Gradle task invokes `regression`. Correcting the separator would have produced a task that
+  still cannot run.
+- **Sub-commit (a) genuinely does not build, and the reason is exactly the one predicted.** The
+  Boot 1.5.2 plugin fails at *plugin application* under Gradle 7.6 with
+  `Failed to apply plugin 'org.springframework.boot' > Configuration with name 'runtime' not
+  found` — it reaches for the `runtime` configuration that Gradle 7 removed. Because that
+  happens while configuring `server:catgenome`, and Gradle configures every project in
+  `settings.gradle` before running anything, *no* task in the build can run at (a) — not even
+  ones in unrelated modules. To keep (a) from being committed entirely unverified, it was
+  checked with `server:catgenome` temporarily dropped from `settings.gradle` (restored
+  afterwards), which confirmed: root/`client`/`ngb-cli`/`target-identification` all configure
+  clean; `:server:ngb-cli:build` compiles main + test on the 17 toolchain with Lombok 1.18.46
+  as an `annotationProcessor`, and produces the fixed-name `ngb-cli.tar.gz` / `ngb-cli.zip` from
+  `archiveFileName` instead of the old blank-the-version-and-rename hack; `:server:ngb-cli:test`
+  passes; and `:client:buildUI` and
+  `:export-templates:target-identification:buildTemplate` both succeed as plain `Exec` tasks
+  against the toolbox's Node 14.17.5. `--configure-on-demand` is what makes per-module runs
+  possible; it does not help root-project tasks such as `buildDocs`, which still need every
+  project configured.
+- **Lombok 1.16.16 → 1.18.46, and the version stays pinned in `ext`.** 1.16.16 cannot run on
+  any JDK past 8 (it reaches into `com.sun.tools.javac` internals that JEP 396 closed), so this
+  is not a routine bump but a precondition for the 17 toolchain. Lombok is compile-time only, so
+  the version is the build's to choose rather than the Boot BOM's, and pinning it keeps Phase 3's
+  JDK 21 move independent of whatever Boot 3.5 happens to manage.
+- **`.devenv` needed two edits for the JDK, not one.** `GRADLE_H2` in the `Makefile` becomes
+  `with-java17 ./gradlew --no-daemon`, but `make test-pg` does not go through it — the `test-pg`
+  service in `docker-compose.yml` carries its own `command:` array, which also has to be
+  prefixed with `with-java17`. The toolbox image still defaults to JDK 8, which stays correct
+  until Phase 9 retires it.
+
 **Exit criteria**
 
 - `make jar`, `make jar-pg`, `make cli-build` succeed with Gradle 7.6 on **JDK 17**.
