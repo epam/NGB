@@ -1,13 +1,17 @@
-# NGB dev toolbox: everything needed to build and run NGB, on both JDK 8 and JDK 21.
+# NGB dev toolbox: everything needed to build and run NGB, on JDK 8, 17 and 21.
 #
-# Why both JDKs: the Gradle wrapper is pinned to Gradle 3.3, which only runs on JDK 8.
+# Why three JDKs: the Gradle wrapper is pinned to Gradle 3.3, which only runs on JDK 8.
 # The Java 21 migration therefore has to keep the JDK 8 baseline buildable while the
-# new toolchain is introduced. `with-java8` / `with-java21` switch per command.
+# new toolchain is introduced. JDK 17 is the Phase 2 waypoint - Spring Boot 2.7 does not
+# officially support Java 21, so the Gradle 7.6 + Boot 2.7 intermediate state is built and
+# run on 17. `with-java8` / `with-java17` / `with-java21` switch per command.
 #
 # The same image is used for the builder, the app runtime and the CLI, so a jar built
 # here runs on exactly the JDK you point at it, with no second image to keep in sync.
 
 FROM eclipse-temurin:8-jdk-jammy AS jdk8
+
+FROM eclipse-temurin:17-jdk-jammy AS jdk17
 
 FROM eclipse-temurin:21-jdk-jammy
 
@@ -33,9 +37,11 @@ RUN apt-get update \
      || echo "WARNING: 'muscle' package unavailable for this architecture; sequence alignment features will be disabled") \
  && rm -rf /var/lib/apt/lists/*
 
-# --- JDK 8 alongside the image's JDK 21 -------------------------------------
+# --- JDK 8 and JDK 17 alongside the image's JDK 21 --------------------------
 COPY --from=jdk8 /opt/java/openjdk /opt/java/jdk8
+COPY --from=jdk17 /opt/java/openjdk /opt/java/jdk17
 ENV JAVA_HOME_8=/opt/java/jdk8
+ENV JAVA_HOME_17=/opt/java/jdk17
 ENV JAVA_HOME_21=/opt/java/openjdk
 
 # --- Node.js pinned to the version client/build.gradle expects --------------
@@ -67,16 +73,19 @@ RUN set -eux; \
     printf '#!/bin/sh\nexport JAVA_HOME="%s"\nexport PATH="$JAVA_HOME/bin:$PATH"\nexec "$@"\n' \
       "$JAVA_HOME_8" > /usr/local/bin/with-java8; \
     printf '#!/bin/sh\nexport JAVA_HOME="%s"\nexport PATH="$JAVA_HOME/bin:$PATH"\nexec "$@"\n' \
+      "$JAVA_HOME_17" > /usr/local/bin/with-java17; \
+    printf '#!/bin/sh\nexport JAVA_HOME="%s"\nexport PATH="$JAVA_HOME/bin:$PATH"\nexec "$@"\n' \
       "$JAVA_HOME_21" > /usr/local/bin/with-java21; \
-    chmod +x /usr/local/bin/with-java8 /usr/local/bin/with-java21
+    chmod +x /usr/local/bin/with-java8 /usr/local/bin/with-java17 /usr/local/bin/with-java21
 
-# Interactive convenience: `use-java 21` inside a shell.
+# Interactive convenience: `use-java 17` inside a shell.
 RUN printf '%s\n' \
   'use-java() {' \
   '  case "$1" in' \
   '    8)  export JAVA_HOME="$JAVA_HOME_8" ;;' \
+  '    17) export JAVA_HOME="$JAVA_HOME_17" ;;' \
   '    21) export JAVA_HOME="$JAVA_HOME_21" ;;' \
-  '    *)  echo "usage: use-java 8|21" >&2; return 1 ;;' \
+  '    *)  echo "usage: use-java 8|17|21" >&2; return 1 ;;' \
   '  esac' \
   '  export PATH="$JAVA_HOME/bin:/opt/node/bin:/usr/local/bin:/usr/bin:/bin"' \
   '  java -version' \

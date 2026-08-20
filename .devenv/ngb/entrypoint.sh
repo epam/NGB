@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Starts an NGB server inside the dev environment.
 #
-#   JAVA_VERSION=8|21   which JDK to run the jar on (the whole point of this env)
-#   AUTH_MODE=none|saml no security, or Keycloak SAML SSO + JWT for the CLI
+#   JAVA_VERSION=8|17|21  which JDK to run the jar on (the whole point of this env)
+#   AUTH_MODE=none|saml   no security, or Keycloak SAML SSO + JWT for the CLI
 #
 # Config is rendered into /opt/ngb/config/catgenome.properties, which the app picks up
 # via both --conf and CATGENOME_CONF_DIR.
@@ -24,8 +24,9 @@ die() { echo "[ngb-entrypoint] ERROR: $*" >&2; exit 1; }
 # --- JDK selection ----------------------------------------------------------
 case "$JAVA_VERSION" in
   8)  export JAVA_HOME="${JAVA_HOME_8}" ;;
+  17) export JAVA_HOME="${JAVA_HOME_17}" ;;
   21) export JAVA_HOME="${JAVA_HOME_21}" ;;
-  *)  die "JAVA_VERSION must be 8 or 21 (got '$JAVA_VERSION')" ;;
+  *)  die "JAVA_VERSION must be 8, 17 or 21 (got '$JAVA_VERSION')" ;;
 esac
 export PATH="$JAVA_HOME/bin:$PATH"
 log "using JDK $JAVA_VERSION -> $JAVA_HOME"

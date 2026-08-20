@@ -42,7 +42,7 @@ hosts: ## Print the /etc/hosts entries this environment needs
 	@echo "  sudo sh -c 'echo \"127.0.0.1 ngb.dev.local ngb-pg.dev.local idp.dev.local\" >> /etc/hosts'"
 
 .PHONY: image
-image: ## Build the toolbox image (JDK 8 + JDK 21 + Node 14 + mkdocs)
+image: ## Build the toolbox image (JDK 8 + 17 + 21 + Node 14 + mkdocs)
 	# Plain `docker build` with the legacy builder: this host has no buildx plugin,
 	# and compose's build path trips over multi-arch manifests without it.
 	DOCKER_BUILDKIT=0 docker build -t ngb-dev-toolbox:latest \
@@ -150,7 +150,7 @@ cli: ## Shell with ngb-cli configured against the running server
 	$(COMPOSE) --profile cli exec cli bash
 
 .PHONY: shell
-shell: builder ## Shell in the builder (JDK 8 default; `use-java 21` to switch)
+shell: builder ## Shell in the builder (JDK 8 default; `use-java 17|21` to switch)
 	$(COMPOSE) exec builder bash -l
 
 .PHONY: logs

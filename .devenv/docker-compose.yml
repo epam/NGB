@@ -67,7 +67,7 @@ services:
         condition: service_completed_successfully
     environment:
       AUTH_MODE: ${AUTH_MODE:-none}
-      JAVA_VERSION: ${NGB_JAVA_VERSION:-8}
+      JAVA_VERSION: ${NGB_JAVA_VERSION:-8}   # 8 | 17 (Boot 2.7 waypoint) | 21
       JAVA_EXTRA_OPTS: ${JAVA_EXTRA_OPTS:-}
       NGB_HEAP: ${NGB_HEAP:-2g}
       NGB_JAR: /dist/catgenome-h2.jar
@@ -111,7 +111,7 @@ services:
         condition: service_healthy
     environment:
       AUTH_MODE: ${AUTH_MODE:-none}
-      JAVA_VERSION: ${NGB_JAVA_VERSION:-8}
+      JAVA_VERSION: ${NGB_JAVA_VERSION:-8}   # 8 | 17 (Boot 2.7 waypoint) | 21
       JAVA_EXTRA_OPTS: ${JAVA_EXTRA_OPTS:-}
       NGB_HEAP: ${NGB_HEAP:-2g}
       NGB_JAR: /dist/catgenome-psql.jar
