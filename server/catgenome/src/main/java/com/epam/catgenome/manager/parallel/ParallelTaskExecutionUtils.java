@@ -68,8 +68,8 @@ public final class ParallelTaskExecutionUtils {
                                                final int maxTaskNumber) {
         int numOfSubIntervals = 1;
         int interval = endIndex - startIndex;
-        if (interval >= ParallelTaskExecutionUtils.MAX_BLOCK_SIZE) {
-            numOfSubIntervals = interval / ParallelTaskExecutionUtils.MAX_BLOCK_SIZE;
+        if (interval >= MAX_BLOCK_SIZE) {
+            numOfSubIntervals = interval / MAX_BLOCK_SIZE;
             if (numOfSubIntervals > maxTaskNumber) {
                 numOfSubIntervals = maxTaskNumber;
             }

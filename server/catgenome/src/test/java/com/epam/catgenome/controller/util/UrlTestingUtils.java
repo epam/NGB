@@ -59,7 +59,7 @@ public final class UrlTestingUtils {
     public static Server getFileServer(ApplicationContext context) {
         Resource resource = context.getResource("classpath:templates");
 
-        Server server = new Server(UrlTestingUtils.TEST_FILE_SERVER_PORT);
+        Server server = new Server(TEST_FILE_SERVER_PORT);
         server.setHandler(new AbstractHandler() {
                 @Override
                 public void handle(String target, Request baseRequest, HttpServletRequest request,

@@ -279,7 +279,7 @@ public final class Utils {
             chromosomeName, final int start, final int end) throws IOException {
         CloseableIterator<T> iterator = featureReader.query(chromosomeName, start, end);
         if (!iterator.hasNext()) {
-            iterator = featureReader.query(Utils.changeChromosomeName(chromosomeName), start, end);
+            iterator = featureReader.query(changeChromosomeName(chromosomeName), start, end);
         }
 
         return iterator;
@@ -301,7 +301,7 @@ public final class Utils {
                                                                  final int start, final int end) throws IOException {
         CloseableIterator<T> iterator = featureReader.query(chromosomeName, start, end);
         if (!iterator.hasNext()) {
-            iterator = featureReader.query(Utils.changeChromosomeName(chromosomeName), start, end);
+            iterator = featureReader.query(changeChromosomeName(chromosomeName), start, end);
         }
 
         return iterator;
@@ -367,16 +367,16 @@ public final class Utils {
      * @param message a message to add to debug information
      */
     public static void debugLogTime(MeasuredTask measuredTask, String message) {
-        double time1 = Utils.getSystemTimeMilliseconds();
+        double time1 = getSystemTimeMilliseconds();
         measuredTask.doWork();
-        double time2 = Utils.getSystemTimeMilliseconds();
+        double time2 = getSystemTimeMilliseconds();
         LOGGER.debug(message + " took {} ms", time2 - time1);
     }
 
     public static double debugMeasureTime(MeasuredTask measuredTask, String message) {
-        double time1 = Utils.getSystemTimeMilliseconds();
+        double time1 = getSystemTimeMilliseconds();
         measuredTask.doWork();
-        double time2 = Utils.getSystemTimeMilliseconds();
+        double time2 = getSystemTimeMilliseconds();
         LOGGER.debug(message + " took {} ms", time2 - time1);
         return time2 - time1;
     }

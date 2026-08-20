@@ -119,7 +119,7 @@ public class NCBISummaryVO {
         this.author = author;
     }
 
-    public Boolean getMultipleAuthors() {
+    public Boolean isMultipleAuthors() {
         return multipleAuthors;
     }
 

@@ -42,7 +42,7 @@ public enum BlastDatabaseSource {
      * @return a {@code BlastDatabaseSource} instance corresponding to the input ID
      */
     public static BlastDatabaseSource getSourceById(final Long sourceId) {
-        for (BlastDatabaseSource source : BlastDatabaseSource.values()) {
+        for (BlastDatabaseSource source : values()) {
             if (source.getSourceId().equals(sourceId)) {
                 return source;
             }

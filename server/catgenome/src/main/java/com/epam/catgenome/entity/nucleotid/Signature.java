@@ -37,7 +37,7 @@ public enum Signature {
         this.signatureCode = signature;
     }
 
-    public final int getSignature() {
+    public int getSignature() {
         return signatureCode;
     }
 }

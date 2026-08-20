@@ -54,9 +54,17 @@ test {
     // htsjdk index objects reach java.io.File, ehcache's own store is a
     // java.util.concurrent.ConcurrentHashMap, and its element metadata is held in
     // java.util.concurrent.atomic.AtomicReference / AtomicLongFieldUpdater. A package does not
-    // imply its sub-packages, hence all four. The app needs the same flags on 17/21 - see
+    // imply its sub-packages, hence one each. The running app needs those four too on 17/21 - see
     // JAVA_REQUIRED_OPTS in .devenv/ngb/entrypoint.sh. Both go away in Phase 3 with Caffeine.
+    //
+    // java.base/java.lang was added in Phase 3: the walker reaches java.lang.String.value and dies
+    // there, but only under the JaCoCo agent Gradle 8.14.5 bundles (0.8.13). With Gradle 7.6's 0.8.8
+    // agent the same code, same JDK and same flags pass - checked both ways round. Pinning JaCoCo
+    // back would be a trap rather than a fix: 0.8.8 cannot read Java 21 class files, which this
+    // phase is heading for. Why the newer agent's instrumentation puts a String in the sized graph
+    // is not pinned down; it stops mattering when EhCache goes.
     jvmArgs = ["-XX:MaxDirectMemorySize=7937m",
+               "--add-opens=java.base/java.lang=ALL-UNNAMED",
                "--add-opens=java.base/java.util=ALL-UNNAMED",
                "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
                "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
@@ -260,11 +268,24 @@ dependencies {
     testRuntimeOnly group: "javax.transaction", name: "jta", version: "1.1"
 }
 
+// io.spring.dependency-management applies the Boot BOM to *every* configuration, including the one
+// Gradle assembles to run PMD. PMD 7 needs commons-lang3 >= 3.13 for
+// EnumUtils.getEnumMap(Class, Function), and a BOM pinning it lower kills pmdMain with a
+// NoSuchMethodError before it reads a source file. The analyser's classpath is not the
+// application's, so keep the app's managed version off it. A resolution rule rather than a `pmd`
+// dependency declaration: the Pmd plugin adds the tool itself through defaultDependencies, which
+// only fires while the configuration has no declared dependencies at all.
+configurations.pmd {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == "org.apache.commons" && details.requested.name == "commons-lang3") {
+            details.useVersion "3.20.0"
+        }
+    }
+}
+
 // >>>>> configuration for pmd plugin
 pmd {
-    // Not 7.x: Gradle 7.6's Pmd task drives the tool through net.sourceforge.pmd.ant.PMDTask, which
-    // PMD 7 dropped, so PMD 7 needs Gradle 8.6+. Bump this in Phase 3 with the wrapper.
-    toolVersion = "6.55.0"
+    toolVersion = "7.26.0"
     // ruleSetFiles does not replace ruleSets, it adds to it, and Gradle's default for ruleSets is
     // the entire category/java/errorprone.xml (it was the much narrower java-basic under Gradle 3).
     // Left at the default it contributes ~1690 violations from rules this project never asked for.
@@ -275,8 +296,10 @@ pmd {
     // RuleSets.apply() runs the rule chain before it consults each ruleset's file patterns, and
     // nearly every PMD rule is rule-chain based, so the patterns were ignored and every shared rule
     // ran twice (116 reported violations for 58 actual ones). It is also no longer needed -
-    // FeatureIndexManager only catches IOException now, and util/TestUtils.java lives under
-    // src/test, which pmdMain never scans.
+    // FeatureIndexManager only catches IOException now, and the one place that does still need the
+    // exemption, util/TestUtils.assertFail, carries a @SuppressWarnings for that single rule. (Phase
+    // 2 recorded that util/TestUtils.java was out of reach because it is under src/test; true of
+    // pmdMain, but pmdTest scans it, and Phase 3 is where pmdTest was first run.)
     ruleSetFiles = files("config/pmd/pmd-ruleset.xml")
 }
 

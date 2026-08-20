@@ -294,7 +294,7 @@ public class BamControllerTest extends AbstractControllerTest {
 
     private void assertIsReadCorrect(Read read) {
         Assert.assertNotNull(read);
-        Assert.assertNotNull(read.getStand());
+        Assert.assertNotNull(read.isStand());
         Assert.assertNotNull(read.getName());
         Assert.assertNotNull(read.getStartIndex());
         Assert.assertNotNull(read.getEndIndex());

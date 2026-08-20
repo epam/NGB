@@ -46,7 +46,7 @@ public enum TrackDirectionType {
 
     private long id;
 
-    private static Map<Long, TrackDirectionType> idMap = new HashMap<>(TrackDirectionType.values().length);
+    private static Map<Long, TrackDirectionType> idMap = new HashMap<>(values().length);
 
     static {
         idMap.put(LEFT.getId(), LEFT);

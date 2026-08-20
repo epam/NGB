@@ -34,16 +34,22 @@
          so the rule is dropped rather than replaced. Same reasoning applies to
          VariableNamingConventions itself: its successors (Field/LocalVariable/
          FormalParameterNamingConventions) are not enabled.
-      7. BooleanInstantiation is deprecated in 6.55; PMD 7 covers it with UnnecessaryBoxing, which
-         does not exist in 6.x. Kept as-is - swap it when Phase 3 moves to Gradle 8 and PMD 7.
+      7. BooleanInstantiation, deprecated in 6.55 and removed in 7, is replaced by
+         codestyle.xml/UnnecessaryBoxing - note the category change, it is not in performance.xml.
+         UnnecessaryBoxing is wider than its predecessor: it also flags redundant valueOf/xxxValue
+         calls on the other wrapper types, not just Boolean.
 
       The exclude-patterns this file used to carry, and the companion ruleset that took the two
       excluded files with AvoidCatchingGenericException switched off, are gone; see the pmd block in
       build.gradle for why they never worked and are no longer needed.
 
-      PMD 7 needs Gradle 8.6+ (Gradle 7.6's PMD plugin invokes net.sourceforge.pmd.ant.PMDTask,
-      which PMD 7 does not ship), which is why this is 6.55.0 and not 7.x. The category paths below
-      are unchanged in PMD 7, so Phase 3 is a toolVersion bump plus the two notes above.
+      Moved to PMD 7.26.0 in Phase 3 (7.x needs Gradle 8.6+; 6.55.0 was as far as Gradle 7.6 could
+      go). Beyond the two rule references above, every category path below is unchanged. PMD 7 also
+      warns that four of the rules kept here - codestyle/GenericsNaming,
+      errorprone/AvoidCatchingThrowable, errorprone/AvoidCatchingNPE and
+      errorprone/AvoidLosingExceptionInformation - are scheduled for removal in PMD 8. They work in
+      7.x and each is a rule this project wants, so they stay; PMD 8 is where that has to be
+      answered, and none of the four has a named successor yet.
     -->
 
     <!-- was rulesets/java/basic.xml -->
@@ -68,7 +74,7 @@
     <rule ref="category/java/design.xml/CollapsibleIfStatements"/>
     <rule ref="category/java/design.xml/SimplifiedTernary"/>
     <rule ref="category/java/performance.xml/BigIntegerInstantiation"/>
-    <rule ref="category/java/performance.xml/BooleanInstantiation"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryBoxing"/>
     <rule ref="category/java/bestpractices.xml/AvoidUsingHardCodedIP"/>
     <rule ref="category/java/bestpractices.xml/CheckResultSet"/>
 
@@ -165,5 +171,5 @@
     <rule ref="category/java/design.xml/AvoidRethrowingException"/>
     <rule ref="category/java/design.xml/DoNotExtendJavaLangError"/>
     <rule ref="category/java/design.xml/AvoidThrowingNewInstanceOfSameException"/>
-    <rule ref="category/java/design.xml/AvoidCatchingGenericException"/>
+    <rule ref="category/java/errorprone.xml/AvoidCatchingGenericException"/>
 </ruleset>

@@ -10,6 +10,11 @@
       rule list below. This module's ruleset used to differ from the server's in one respect - it did
       not exclude AbstractNaming - and that rule no longer exists in PMD 6, so the two are now
       identical apart from the server's file patterns.
+
+      Moved to PMD 7.26.0 in Phase 3, along with the server. Two rule references had to change and
+      the server ruleset explains both: BooleanInstantiation was removed in 7 and is replaced by
+      codestyle.xml/UnnecessaryBoxing, and AvoidCatchingGenericException moved from design.xml to
+      errorprone.xml. Everything else below is unchanged.
     -->
 
     <!-- was rulesets/java/basic.xml -->
@@ -34,7 +39,7 @@
     <rule ref="category/java/design.xml/CollapsibleIfStatements"/>
     <rule ref="category/java/design.xml/SimplifiedTernary"/>
     <rule ref="category/java/performance.xml/BigIntegerInstantiation"/>
-    <rule ref="category/java/performance.xml/BooleanInstantiation"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryBoxing"/>
     <rule ref="category/java/bestpractices.xml/AvoidUsingHardCodedIP"/>
     <rule ref="category/java/bestpractices.xml/CheckResultSet"/>
 
@@ -126,5 +131,5 @@
     <rule ref="category/java/design.xml/AvoidRethrowingException"/>
     <rule ref="category/java/design.xml/DoNotExtendJavaLangError"/>
     <rule ref="category/java/design.xml/AvoidThrowingNewInstanceOfSameException"/>
-    <rule ref="category/java/design.xml/AvoidCatchingGenericException"/>
+    <rule ref="category/java/errorprone.xml/AvoidCatchingGenericException"/>
 </ruleset>

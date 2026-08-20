@@ -87,7 +87,7 @@ public final class MessageHelper {
 
     @Autowired
     public static void setInstance(MessageHelper helper) {
-        MessageHelper.instance = helper;
+        instance = helper;
     }
 
     /**

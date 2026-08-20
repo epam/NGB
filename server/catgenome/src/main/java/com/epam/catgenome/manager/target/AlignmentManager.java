@@ -331,8 +331,7 @@ public class AlignmentManager {
             final StringBuilder result = new StringBuilder();
             String s;
             while ((s = stdError.readLine()) != null) {
-                result.append(s);
-                result.append('\n');
+                result.append(s).append('\n');
             }
             throw new AlignmentException(result.toString());
         }

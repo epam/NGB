@@ -139,7 +139,7 @@ public class Read extends Block implements Serializable {
         this.name = name;
     }
 
-    public Boolean getStand() {
+    public Boolean isStand() {
         return stand;
     }
 

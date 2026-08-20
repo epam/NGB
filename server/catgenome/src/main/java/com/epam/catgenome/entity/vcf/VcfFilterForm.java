@@ -60,7 +60,12 @@ public class VcfFilterForm extends AbstractFilterForm {
     private FilterSection<List<VariationImpact>> impacts;
     private Map<String, Object> additionalFilters;
     private List<Float> quality;
-    private Boolean isExon;
+    // Named `exon` and not `isExon`: the getter below has to be isExon() for a Boolean (PMD
+    // BooleanGetMethodName), and a field of the same name as a method trips
+    // AvoidFieldNameMatchingMethodName. The JSON property the client sends is "exon" either way -
+    // it was also reachable as "isExon" before, through the setIsExon() that @Setter generated for
+    // the old field name, but nothing sends that.
+    private Boolean exon;
     private Boolean hasGene;
     private Integer startIndex;
     private Integer endIndex;
@@ -108,7 +113,7 @@ public class VcfFilterForm extends AbstractFilterForm {
     public boolean filterEmpty() {
         return isFilterEmpty(variationTypes) && isFilterEmpty(genes) && isFilterEmpty(effects)
                 && isFilterEmpty(impacts) && MapUtils.isEmpty(additionalFilters)
-                && CollectionUtils.isEmpty(quality) && (isExon == null || !isExon) && startIndex == null &&
+                && CollectionUtils.isEmpty(quality) && (exon == null || !exon) && startIndex == null &&
                 endIndex == null && CollectionUtils.isEmpty(chromosomeIds);
     }
 
@@ -209,8 +214,8 @@ public class VcfFilterForm extends AbstractFilterForm {
     }
 
     private void addExonFilter(BooleanQuery.Builder builder) {
-        if (isExon != null && isExon) {
-            builder.add(new TermQuery(new Term(FeatureIndexFields.IS_EXON.getFieldName(), isExon.toString())),
+        if (exon != null && exon) {
+            builder.add(new TermQuery(new Term(FeatureIndexFields.IS_EXON.getFieldName(), exon.toString())),
                         BooleanClause.Occur.MUST);
         }
     }
@@ -398,12 +403,12 @@ public class VcfFilterForm extends AbstractFilterForm {
         this.infoFields = infoFields;
     }
 
-    public Boolean getExon() {
-        return isExon;
+    public Boolean isExon() {
+        return exon;
     }
 
     public void setExon(Boolean exon) {
-        isExon = exon;
+        this.exon = exon;
     }
 
     public Integer getPage() {

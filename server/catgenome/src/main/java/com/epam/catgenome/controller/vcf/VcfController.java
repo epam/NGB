@@ -164,7 +164,7 @@ public class VcfController extends AbstractRESTController {
                                                         @RequestParam(required = false) final String indexUrl) {
         return () -> {
             final Track<Variation> variationTrack = convertToTrack(trackQuery);
-            final boolean collapsed = trackQuery.getCollapsed() == null || trackQuery.getCollapsed();
+            final boolean collapsed = trackQuery.isCollapsed() == null || trackQuery.isCollapsed();
 
             if (fileUrl == null) {
                 return Result.success(vcfSecurityService

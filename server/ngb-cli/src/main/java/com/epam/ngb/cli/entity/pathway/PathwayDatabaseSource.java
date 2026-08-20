@@ -41,7 +41,7 @@ public enum PathwayDatabaseSource {
      * @return a {@code PathwayDatabaseSource} instance corresponding to the input ID
      */
     public static PathwayDatabaseSource getById(final Long sourceId) {
-        for (PathwayDatabaseSource source : PathwayDatabaseSource.values()) {
+        for (PathwayDatabaseSource source : values()) {
             if (source.getSourceId().equals(sourceId)) {
                 return source;
             }
@@ -50,7 +50,7 @@ public enum PathwayDatabaseSource {
     }
 
     public static PathwayDatabaseSource getByExtension(final String extension) {
-        for (PathwayDatabaseSource source : PathwayDatabaseSource.values()) {
+        for (PathwayDatabaseSource source : values()) {
             if (source.getExtension().equals(extension)) {
                 return source;
             }

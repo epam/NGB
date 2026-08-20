@@ -51,6 +51,12 @@ public final class TestUtils {
      * @param task a task, represented by {@code TestTask} functional interface
      * @param exceptions a list of Exception classes, that should happen
      */
+    // Catching Exception is the point of this method: TestTask.doTest() is declared `throws
+    // Exception`, and the helper's job is to catch whatever comes out and compare its class against
+    // the supplied list. A narrower catch would make the helper unable to express what it is for.
+    // The ruleset used to carry a second file, pmd-ruleset-feature-index-manager.xml, that existed
+    // to exempt this method from the rule; the suppression is the same exemption, stated locally.
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     public static void assertFail(TestTask task, List<Class<? extends Exception>> exceptions) {
         boolean fail = false;
 

@@ -170,7 +170,7 @@ public class GeneController extends AbstractRESTController {
             @RequestParam(required = false) final String fileUrl,
             @RequestParam(required = false) final String indexUrl) throws GeneReadingException, AccessDeniedException {
         final Track<Gene> geneTrack = Query2TrackConverter.convertToTrack(trackQuery);
-        boolean collapsed = trackQuery.getCollapsed() != null && trackQuery.getCollapsed();
+        boolean collapsed = trackQuery.isCollapsed() != null && trackQuery.isCollapsed();
 
         Track<Gene> genes;
         if (fileUrl == null) {

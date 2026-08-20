@@ -196,15 +196,15 @@ public enum NibByteFormat {
         return charCode;
     }
 
-    public final byte getByteCode() {
+    public byte getByteCode() {
         return byteCode;
     }
 
-    public final char getNucleobase() {
+    public char getNucleobase() {
         return nucleobase;
     }
 
-    public final byte getCharCode() {
+    public byte getCharCode() {
         return charCode;
     }
 

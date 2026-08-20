@@ -43,7 +43,7 @@ public enum FileTemplates {
 
     private final String path;
 
-    public final String getPath() {
+    public String getPath() {
         return path;
     }
 

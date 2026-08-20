@@ -283,7 +283,7 @@ public class FeatureIndexManager {
         List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds());
         int totalCount = featureIndexDao.getTotalVariationsCountFacet(files, filterForm.computeQuery(
             FeatureType.VARIATION));
-        return (int) Math.ceil(totalCount / filterForm.getPageSize().doubleValue());
+        return (int) Math.ceil(totalCount / (double) filterForm.getPageSize());
     }
 
     public int getTotalPagesCount(VcfFilterForm filterForm, long projectId) throws IOException {
@@ -298,7 +298,7 @@ public class FeatureIndexManager {
             .collect(Collectors.toList());
         int totalCount = featureIndexDao.getTotalVariationsCountFacet(files, filterForm.computeQuery(
             FeatureType.VARIATION));
-        return (int) Math.ceil(totalCount / filterForm.getPageSize().doubleValue());
+        return (int) Math.ceil(totalCount / (double) filterForm.getPageSize());
     }
 
     /**
@@ -400,7 +400,7 @@ public class FeatureIndexManager {
             final IndexSearchResult<VcfIndexEntry> res =
                     indexSearcher.getSearchResults(vcfFiles, filterForm.computeQuery(FeatureType.VARIATION), sort);
             res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
-                    / filterForm.getPageSize().doubleValue()));
+                    / (double) filterForm.getPageSize()));
             return res;
         } else {
             final IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(vcfFiles,
@@ -422,7 +422,7 @@ public class FeatureIndexManager {
         final IndexSearchResult<GeneIndexEntry> res =
                 indexSearcher.getSearchResults(featureFiles, filterForm.computeQuery(), sort);
         res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
-                / filterForm.getPageSize().doubleValue()));
+                / (double) filterForm.getPageSize()));
         return res;
     }
 
@@ -439,7 +439,7 @@ public class FeatureIndexManager {
             final IndexSearchResult<GeneIndexEntry> result = featureIndexDao
                     .searchGeneFeaturesFully(geneFile, chrId.toString(), filterForm, sort);
             result.setTotalPagesCount((int) Math.ceil(result.getTotalResultsCount()
-                    / filterForm.getPageSize().doubleValue()));
+                    / (double) filterForm.getPageSize()));
             return result;
         } catch (IOException e) {
             throw new IllegalArgumentException(e);

@@ -68,8 +68,7 @@ public enum BiologicalDataItemResourceType {
     }
 
     public static BiologicalDataItemResourceType translateRequestType(BiologicalDataItemResourceType requestType) {
-        return requestType == null || requestType == BiologicalDataItemResourceType.DOWNLOAD ?
-                BiologicalDataItemResourceType.FILE : requestType;
+        return requestType == null || requestType == DOWNLOAD ? FILE : requestType;
     }
 
     /**

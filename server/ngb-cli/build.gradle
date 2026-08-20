@@ -121,8 +121,7 @@ distributions {
 }
 
 pmd {
-    // See the note in server/catgenome/build.gradle: PMD 7 needs Gradle 8.6+.
-    toolVersion = "6.55.0"
+    toolVersion = "7.26.0"
     // See the note in server/catgenome/build.gradle: Gradle's default ruleSets is additive.
     ruleSets = []
     ruleSetFiles = files("config/pmd/pmd-ruleset.xml")

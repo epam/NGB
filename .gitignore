@@ -1,6 +1,9 @@
 /dist
 /docs/site
 /.gradle
+# Gradle 8 writes its incubating "problems report" into the root project's build dir on every
+# invocation, so the root gets a build/ of its own now. The modules ignore theirs locally.
+/build
 
 # build outputs the gradle build writes into the source tree, not into build/:
 # `ui` drops webpack bundles into the server's static resources, `templates` writes

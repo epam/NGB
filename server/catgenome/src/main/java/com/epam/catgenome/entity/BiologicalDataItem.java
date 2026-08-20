@@ -140,7 +140,7 @@ public class BiologicalDataItem extends AbstractSecuredEntity {
 
     @Override
     public int hashCode() {
-        return (int) BiologicalDataItem.getBioDataItemId(this).longValue();
+        return (int) getBioDataItemId(this).longValue();
     }
 
     /**

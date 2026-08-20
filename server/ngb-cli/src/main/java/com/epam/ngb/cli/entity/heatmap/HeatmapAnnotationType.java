@@ -24,6 +24,8 @@
 
 package com.epam.ngb.cli.entity.heatmap;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang3.StringUtils;
 
 public enum HeatmapAnnotationType {
@@ -33,10 +35,13 @@ public enum HeatmapAnnotationType {
         if (StringUtils.isBlank(value)) {
             return null;
         }
-        try {
-            return HeatmapAnnotationType.valueOf(value);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid annotation type: " + value);
-        }
+        // Used to call valueOf() and catch its IllegalArgumentException only to throw another
+        // IllegalArgumentException with a friendlier message, which is the pattern PMD reports as
+        // AvoidThrowingNewInstanceOfSameException. Same exception type and same message, without the
+        // rewrap - and the name is now matched rather than thrown at.
+        return Arrays.stream(values())
+                .filter(type -> type.name().equals(value))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid annotation type: " + value));
     }
 }

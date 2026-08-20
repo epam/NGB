@@ -32,7 +32,7 @@ class Version {
 }
 
 wrapper {
-    gradleVersion = '7.6.6'
+    gradleVersion = '8.14.5'
 }
 
 task ui(type: Copy) {
@@ -96,6 +96,9 @@ task buildDocs(dependsOn: buildDoc) {
     }
 }
 
+// The three GradleBuild tasks below used to set buildFile alongside dir, which named the same file
+// dir already implies. Gradle 8 deprecates GradleBuild.buildFile and tells you to use dir; removing
+// it leaves the nested builds' task graphs byte-for-byte identical (checked on buildCli).
 task buildJar(type: GradleBuild) {
     dependsOn ui, templates, buildDocs
     if (runTests) {
@@ -106,7 +109,6 @@ task buildJar(type: GradleBuild) {
     startParameter.projectProperties = [profile    : 'jar',
                                         database   : database,
                                         buildNumber: buildNumber]
-    buildFile = "$rootDir/server/catgenome/build.gradle"
     dir = "$rootDir/server/catgenome"
     doLast {
         copy {
@@ -122,7 +124,6 @@ task buildCli(type: GradleBuild) {
     } else {
         tasks = ['clean', 'assemble']
     }
-    buildFile = "$rootDir/server/ngb-cli/build.gradle"
     dir = "$rootDir/server/ngb-cli"
     doLast {
         copy {
@@ -167,7 +168,6 @@ task buildDockerDemo(type: Exec) {
 
 task buildAll(type: GradleBuild) {
     tasks = ['buildCli', 'buildJar', 'buildDocs', 'buildDocker']
-    buildFile = "$rootDir/build.gradle"
     dir = "$rootDir"
     if (runTests) {
         startParameter.projectProperties = [database   : database,

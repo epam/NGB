@@ -46,7 +46,7 @@ public enum BlastDatabaseType {
      * @return a {@code BlastDatabaseType} instance corresponding to the input ID
      */
     public static BlastDatabaseType getTypeById(final Long typeId) {
-        for (BlastDatabaseType type : BlastDatabaseType.values()) {
+        for (BlastDatabaseType type : values()) {
             if (type.getTypeId().equals(typeId)) {
                 return type;
             }

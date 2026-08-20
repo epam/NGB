@@ -78,7 +78,7 @@ public final class GenbankUtils {
                 .map(AccessionID::getID)
                 .filter(StringUtils::isNotBlank)
                 .orElseGet(
-                        () -> GenbankUtils.parseSequenceNameFromHeader(sequence.getOriginalHeader())
+                        () -> parseSequenceNameFromHeader(sequence.getOriginalHeader())
                 );
     }
 

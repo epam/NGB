@@ -136,7 +136,11 @@ public class FeatureIterator<T extends Feature, S> implements CloseableTribbleIt
             if (skip > 0) {
                 long skipped = pbs.skip(skip);
                 if (skipped == 0) {
-                    throw new EOFException();
+                    // Used to throw a bare EOFException here and let the IOException clause below
+                    // wrap it, which is the exception-as-flow-control pattern PMD 7 reports. Same
+                    // exception, same message, same cause - raised where the condition is found.
+                    throw new TribbleException.MalformedFeatureFile("Error initializing stream",
+                            inputFile.getAbsolutePath(), new EOFException());
                 }
             }
             return pbs;

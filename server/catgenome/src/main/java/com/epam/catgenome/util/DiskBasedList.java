@@ -205,7 +205,7 @@ public class DiskBasedList<T> implements Iterable<T> {
 
         @NotNull
         @Override
-        public <T1> T1[] toArray(@NotNull T1[] a) {
+        public <E> E[] toArray(@NotNull E[] a) {
             throw new UnsupportedOperationException(getMessage(MessagesConstants.ERROR_UNSUPPORTED_OPERATION));
         }
 

@@ -97,7 +97,7 @@ public class BamQueryOption {
         this.trackDirection = trackDirection;
     }
 
-    public Boolean getShowClipping() {
+    public Boolean isShowClipping() {
         return showClipping;
     }
 
@@ -137,7 +137,7 @@ public class BamQueryOption {
         this.count = count;
     }
 
-    public Boolean getShowSpliceJunction() {
+    public Boolean isShowSpliceJunction() {
         return showSpliceJunction;
     }
 

@@ -172,7 +172,7 @@ public class PathwayDao extends NamedParameterJdbcDaoSupport {
                 while (rs.next()) {
                     if (pathwayId != rs.getLong(PATHWAY_ID.name())) {
                         organisms = new ArrayList<>();
-                        pathway = PathwayParameters.parsePathway(rs);
+                        pathway = parsePathway(rs);
                         pathway.setOrganisms(organisms);
                         pathways.add(pathway);
                         pathwayId = rs.getLong(PATHWAY_ID.name());

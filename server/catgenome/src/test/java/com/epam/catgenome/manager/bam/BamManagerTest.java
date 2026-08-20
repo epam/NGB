@@ -676,7 +676,7 @@ public class BamManagerTest extends AbstractManagerTest {
         assertNotNull(read.getName());
         assertNotNull(read.getEndIndex());
         assertNotNull(read.getStartIndex());
-        assertNotNull(read.getStand());
+        assertNotNull(read.isStand());
         assertNotNull(read.getCigarString());
         assertFalse(read.getCigarString().isEmpty());
         assertNotNull(read.getFlagMask());

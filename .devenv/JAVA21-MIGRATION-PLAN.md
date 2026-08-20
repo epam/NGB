@@ -1383,6 +1383,179 @@ two attributable checkpoints.
   non-standard path. Verify `.devenv/ngb/catgenome.properties.tpl` still wins over the
   jar's baked-in defaults after the upgrade.
 
+#### Phase 3 execution findings
+
+Written as they were made. Phase 2's exit criteria were re-confirmed first: `jar-fast` and
+`lint` green, H2 `make test` 528/**4** failed/21 skipped — the 3 baseline failures plus
+`PdbDataManagerTest.testParse`, which `TEST-BASELINE.md` already documents as flapping on
+live RCSB data.
+
+**Versions resolved (VERIFY items in tasks 1, 2, 9, and the PMD carry-over from Phase 2).**
+All checked against Maven Central / the Gradle release feed on 2026-08-21:
+
+| Thing | Plan said | Reality | Chosen |
+|---|---|---|---|
+| Gradle | 8.14.x | 8.14.5 is the latest 8.x | **8.14.5** |
+| Spring Boot | 3.5.x | 3.5.16 | **3.5.16** |
+| springdoc | `2.x` | latest is 3.1.0, but 3.x targets **Boot 4** | **2.8.17** (the current 2.x, the Boot-3 line) |
+| PMD | "7.x" | 7.26.0 | **7.26.0** |
+| Checkstyle | stays 11.1.0 | 14.0.0 exists | **11.1.0** — the decision table pins it |
+| `io.spring.dependency-management` | — | 1.1.7 already in use, still current | unchanged |
+| Caffeine | — | 3.2.4; Boot 3.5's BOM manages it | **no explicit pin** |
+| JAXB runtime | `org.glassfish.jaxb:jaxb-runtime` | Central's "release" for `jakarta.xml.bind-api` is 4.1.0-M1 | **Boot-managed 4.0.x**, no pin |
+
+**Rename surface measured** (`javax.` imports across `server/`, before any edit):
+
+| Package | Files | Imports | Action |
+|---|---|---|---|
+| `javax.servlet` | 24 | 46 | → `jakarta.servlet` |
+| `javax.xml.bind` | 64 | 282 | → `jakarta.xml.bind` |
+| `javax.xml.xpath` (16), `javax.xml.parsers` (12), `javax.net.ssl` (11), `javax.annotation` (9), `javax.xml.datatype` (5), `javax.sql` (3), `javax.xml.stream` (2), `javax.xml.namespace` (2), `javax.naming{,.ldap}` (3) | | 63 | **left alone** — still JDK packages |
+
+No `javax.` reference exists in any XML or `.properties` file, so the rename is Java-source-only.
+
+**Security blast radius mapped (task 5).** SAML is fully contained in
+`app/SAMLSecurityConfiguration.java`, `app/JWTSecurityConfiguration.java` and
+`security/saml/**`. The `com.auth0:java-jwt` dependency is confined to `security/jwt/**`;
+`entity/security/{JwtRawToken,JwtTokenClaims}` are plain entities with no auth0 import and are
+used by `UserContext`, `UserSecurityService`, `UserController` and `AuthManager`, so they stay.
+The single real coupling out of the deleted set is `AuthManager`'s constructor-injected
+`JwtTokenGenerator`.
+
+**Swagger surface measured (task 9).** 41 files import `com.wordnik` (39 `@Api`, 40
+`@ApiOperation`, 39 `@ApiResponse(s)`, 1 `@ApiModelProperty`); only `config/SwaggerConfig.java`
+imports `com.mangofactory`.
+
+**Logging format checked (task 10).** All five `log4j.xml` files (`profiles/{dev,jar,release,staging}`
+and `src/test/resources`) are **log4j 1.x format** — `<!DOCTYPE log4j:configuration SYSTEM
+"log4j.dtd">`, `<log4j:configuration>`, `org.apache.log4j.*` appender classes, `<param name=.../>`.
+So the plan's "converted to log4j2 format if it is still log4j-1 format — **check**" resolves to:
+yes, they need converting.
+
+**Sub-commit (a): Gradle 8.14.5 + PMD 7.26.0 + Phase 2 carry-overs.** Landed on its own, before any
+Boot 3 work: the Boot 2.7.18 Gradle plugin configures and builds fine on Gradle 8.14.5, so the
+toolchain move does not have to be entangled with the framework move.
+
+*Phase 2 carry-over #4 resolved.* The `--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED` in the
+root `gradle.properties` is no longer needed — Gradle 8.14 supplies it to its own daemon. Removed,
+and `make lint` is green without it.
+
+*The Boot BOM poisons the PMD tool classpath.* `io.spring.dependency-management` applies the Boot
+BOM to **every** configuration in the project, including the `pmd` configuration Gradle assembles to
+run the analyser. PMD 7 needs `commons-lang3 >= 3.13` for `EnumUtils.getEnumMap(Class, Function)`;
+Boot 2.7.18's BOM pins 3.12.0, and `pmdMain` then dies with a `NoSuchMethodError` before it reads a
+source file. The fix is a `resolutionStrategy.eachDependency` rule on `configurations.pmd`, **not** a
+`pmd "org.apache.commons:commons-lang3:3.20.0"` dependency declaration: Gradle's `PmdPlugin` adds
+the analyser jars themselves through `Configuration.defaultDependencies`, which is skipped the
+moment the configuration has any declared dependency, so declaring one trades the `NoSuchMethodError`
+for `ClassNotFoundException: net.sourceforge.pmd.PMD`. The analyser's classpath is not the
+application's; keeping the app's managed version off it is the right shape regardless.
+
+*Two rule references had to move* (both rulesets, server and ngb-cli):
+`performance.xml/BooleanInstantiation` was removed in PMD 7 → `codestyle.xml/UnnecessaryBoxing`
+(wider: it also flags redundant `valueOf`/`xxxValue` on the other wrapper types), and
+`AvoidCatchingGenericException` moved from `design.xml` to `errorprone.xml`. **A stale rule reference
+fails silently:** PMD logs `Cannot load ruleset … An XML validation error occurred` and
+`No files to analyze`, and Gradle still reports `BUILD SUCCESSFUL`. Worth knowing before trusting a
+green PMD run after any ruleset edit — check that the report has a non-zero file count.
+
+*Four kept rules are scheduled for removal in PMD 8* (warnings on every run, both modules):
+`codestyle/GenericsNaming`, `errorprone/AvoidCatchingThrowable`, `errorprone/AvoidCatchingNPE`,
+`errorprone/AvoidLosingExceptionInformation`. None has a named successor. They work in 7.x and each
+is a rule this project wants, so they stay; PMD 8 is where that has to be answered.
+
+*Violation counts, all fixed at source — no suppressions except one:*
+
+| Task | Violations | Notes |
+|---|---|---|
+| `catgenome:pmdMain` | 79 | 33 self-qualifier removals, 6 redundant `final`, the rest below |
+| `catgenome:pmdTest` | 33 | 28 self-qualifier, 3 unused import, 1 redundant `final`, 1 `AvoidCatchingGenericException` |
+| `ngb-cli:pmdMain` | 9 | |
+| `ngb-cli:pmdTest` | 18 | all same-package imports |
+
+**`pmdTest` and `checkstyleTest` have never run in this repo's workflow**, which is why 51 of those
+violations existed before PMD 7 and would have been reported by 6.55 just the same (every rule
+involved exists in 6.55 under the paths the Phase 2 ruleset already used). `make lint` runs
+`checkstyleMain pmdMain` only, and `make jar` passes `-PnoTest`, which switches `buildJar`'s task
+list from `clean build` to `clean bootJar` — so `check`, and with it the test-source analysis, is
+never reached. Phase 3 ran them for the first time. This also corrects a Phase 2 note now amended in
+`server/catgenome/build.gradle`: it said `util/TestUtils.java` no longer needed the
+`AvoidCatchingGenericException` exemption "because it lives under src/test, which pmdMain never
+scans" — true of `pmdMain`, but `pmdTest` scans it.
+
+*The one suppression.* `util/TestUtils.assertFail` carries
+`@SuppressWarnings("PMD.AvoidCatchingGenericException")`. Its `TestTask.doTest()` is declared
+`throws Exception` and the helper's whole job is to catch whatever comes out and compare its class
+against a caller-supplied list, so a narrower catch cannot express what the method is for. This is
+the same exemption the deleted `pmd-ruleset-feature-index-manager.xml` was trying to grant, stated
+locally where it can be seen.
+
+*Six of the fixes were not mechanical and are recorded because a naive fix would have changed
+behaviour:*
+
+- `FeatureIndexManager` — `UnnecessaryBoxing` on `filterForm.getPageSize().doubleValue()` (×5).
+  Deleting `.doubleValue()` would have turned double division into **integer** division, because the
+  other operand is an `int` count. Replaced with a `(double)` cast, which PMD reports under a
+  different rule (`UnnecessaryCast`) that does not fire here.
+- `entity/FeatureFile` — `BooleanGetMethodName` on `getCompressed()`. Renaming it to `isCompressed()`
+  would have left the class-level Lombok `@Getter` free to generate `getCompressed()` alongside it:
+  two accessors for one property, which is how Jackson conflicts get made (Lombok generates `getX`
+  for a `Boolean` field, not `isX`). The six hand-written accessors on this class were byte-for-byte
+  what `@Getter`/`@Setter` already generate, so they were deleted instead; all 26 `getCompressed()`
+  call sites keep working.
+- `entity/vcf/VcfFilterForm` — renaming `getIsExon()` to `isExon()` then tripped
+  `AvoidFieldNameMatchingMethodName` against the field `isExon`, so the field became `exon`. The JSON
+  property the client sends is `"exon"` either way; it was *also* reachable as `"isExon"` before,
+  through the `setIsExon()` Lombok generated for the old field name, and nothing sends that.
+- The other `getX`→`isX` renames are safe for the wire format because Jackson accepts an `is`-getter
+  for both `boolean` and `Boolean`, so the JSON property name is unchanged.
+  `java.beans.Introspector` and `BeanUtils.copyProperties`, which do **not**, are unused in this
+  repo — checked. Renamed: `BookmarkItemVO.isCompressed`, `NCBISummaryVO.isMultipleAuthors`,
+  `TrackQuery.isCollapsed`, `BamQueryOption.isShowClipping`/`isShowSpliceJunction`, `Read.isStand`,
+  `VcfFilterForm.isExon`, and in ngb-cli `PermissionGrantRequest.isPrincipal`,
+  `RegistrationRequest.isDoIndex`/`isNoGCContent`.
+- `ExceptionAsFlowControl` in `AbstractFeatureReader` and `AbstractEnhancedFeatureReader` — the
+  `TribbleException` thrown for a non-Ascii codec was caught by the same `try`'s
+  attach-the-source clause and rethrown. Reader construction moved into a private helper so the
+  `try` only translates failures; the exception still reaches that clause and still comes out with
+  the source attached. Same rule in `FeatureIterator.initStream`, where a bare `EOFException` was
+  thrown to be wrapped by the `IOException` clause below it — now the wrapped exception is raised
+  where the condition is found, with the same message and the `EOFException` as its cause.
+- `util/ProteinSequenceUtils.RnaCodonTable` and `ngb-cli entity/BiologicalDataItemFormat` both
+  carried `UnusedPrivateField` state that nothing ever read. In the codon table it was an "extended
+  title" and a full amino acid name, and the errors that had accumulated in them prove nobody read
+  them: `PRO`'s extended title was `"Ser"` and `THR`'s full name had a trailing space. In the CLI
+  enum it was a numeric `id` with no getter whose values were exactly declaration order 1..22, so
+  the ordinal already says everything it said; the format goes to the server by name. Both deleted,
+  with the full names kept as comments since that is all they ever were.
+  `HeatmapAnnotationType.from` caught `IllegalArgumentException` from `valueOf` only to throw another
+  `IllegalArgumentException` with a friendlier message (`AvoidThrowingNewInstanceOfSameException`);
+  it now matches the name instead, same exception type and message.
+
+*Gradle 8's newer JaCoCo agent needs a fifth `--add-opens` for EhCache's sizer.* `make test` went
+from 4 failures to **28** on Gradle 8.14.5 with no source or JVM-flag change: 24 new
+`InaccessibleObjectException: Unable to make field private final byte[] java.lang.String.value
+accessible`, thrown from `ObjectGraphWalker.getAllFields` under `EhCacheBasedIndexCache.putInCache`.
+The test worker's command line is byte-identical between 7.6.6 and 8.14.5 apart from
+`-Dorg.gradle.native=false` (7.6 only) and the **JaCoCo agent version — 0.8.8 on Gradle 7.6, 0.8.13
+on Gradle 8.14.5**. Pinning `jacoco { toolVersion = '0.8.8' }` under Gradle 8 makes the failures go
+away, which identifies the agent as the trigger; why the newer instrumentation puts a `String` in the
+sized graph is not pinned down. **The pin is not the fix** — JaCoCo 0.8.8 cannot read Java 21 class
+files, so it would fail the moment the toolchain moves later in this phase. Added
+`--add-opens=java.base/java.lang=ALL-UNNAMED` to the test JVM args instead; `make test` is back to
+528/**4**. All five flags go away with EhCache → Caffeine (D11) later in this phase. The running app
+is unaffected — it has no JaCoCo agent — so `JAVA_REQUIRED_OPTS` in `.devenv/ngb/entrypoint.sh` still
+needs only the original four.
+
+*Gradle 8 deprecations found, two of them Gradle-9-blocking.* `GradleBuild.buildFile` (root
+`build.gradle`, `buildJar`/`buildCli`/`buildAll`) is deprecated for removal in Gradle 9, and Gradle's
+own advice is to use `dir` — which all three tasks already set to the same directory. Removed; the
+nested builds' task graphs are identical with and without it (checked on `buildCli`), and `make jar`
+is green. Still outstanding for whenever Gradle 9 arrives, and **not** touched here:
+`Project.exec(Closure)` in `client/build.gradle:18` and
+`export-templates/target-identification/build.gradle:15` (→ `ExecOperations.exec(Action)`), plus a
+long tail of Groovy space-assignment nags (`group "com.epam"`, `url "…"`) that Gradle 10 removes.
+
 ---
 
 ### Phase 4 — Security: SAML 2 and JWT on Spring Security 6

@@ -58,8 +58,8 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
      * Calls {@link #getFeatureReader(String, FeatureCodec, boolean, EhCacheBasedIndexCache)}
      * with {@code requireIndex} = true
      */
-    public static <FEATURE extends Feature, SOURCE> AbstractFeatureReader<FEATURE, SOURCE> getFeatureReader(
-            final String featureFile, final FeatureCodec<FEATURE, SOURCE> codec,
+    public static <F extends Feature, S> AbstractFeatureReader<F, S> getFeatureReader(
+            final String featureFile, final FeatureCodec<F, S> codec,
             EhCacheBasedIndexCache indexCache) throws TribbleException {
         return getFeatureReader(featureFile, codec, true, indexCache);
     }
@@ -69,8 +69,8 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
      * with {@code null} for indexResource
      * @throws TribbleException
      */
-    public static <FEATURE extends Feature, SOURCE> AbstractFeatureReader<FEATURE, SOURCE> getFeatureReader(
-            final String featureResource, final FeatureCodec<FEATURE, SOURCE> codec,
+    public static <F extends Feature, S> AbstractFeatureReader<F, S> getFeatureReader(
+            final String featureResource, final FeatureCodec<F, S> codec,
             final boolean requireIndex, EhCacheBasedIndexCache indexCache)
             throws TribbleException {
         return getFeatureReader(featureResource, null, codec, requireIndex, indexCache);
@@ -85,25 +85,13 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
      * @return
      * @throws TribbleException
      */
-    public static <FEATURE extends Feature, SOURCE> AbstractFeatureReader<FEATURE, SOURCE> getFeatureReader(
+    public static <F extends Feature, S> AbstractFeatureReader<F, S> getFeatureReader(
             final String featureResource, String indexResource,
-            final FeatureCodec<FEATURE, SOURCE> codec, final boolean requireIndex,
+            final FeatureCodec<F, S> codec, final boolean requireIndex,
             EhCacheBasedIndexCache indexCache) throws TribbleException {
         ParsingUtils.registerHelperClass(EnhancedUrlHelper.class);
         try {
-            // Test for tabix index
-            if (methods.isTabix(featureResource, indexResource)) {
-                if (!(codec instanceof AsciiFeatureCodec)) {
-                    throw new TribbleException("Tabix indexed files only work with ASCII codecs, "
-                            + "but received non-Ascii codec " + codec.getClass().getSimpleName());
-                }
-                return new TabixFeatureReader<>(featureResource, indexResource,
-                        (AsciiFeatureCodec) codec, indexCache);
-            } else {
-                // Not tabix => tribble index file (might be gzipped, but not block gzipped)
-                return new TribbleIndexedFeatureReader<>(featureResource, indexResource,
-                        codec, requireIndex, indexCache);
-            }
+            return openReader(featureResource, indexResource, codec, requireIndex, indexCache);
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile("Unable to create"
                     + "BasicFeatureReader using feature file ", featureResource, e);
@@ -111,6 +99,25 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
             e.setSource(featureResource);
             throw e;
         }
+    }
+
+    // Split out of the method above so that the try there is only about translating failures; see
+    // the same split in AbstractFeatureReader for why. Behaviour is unchanged.
+    private static <F extends Feature, S> AbstractFeatureReader<F, S> openReader(
+            final String featureResource, final String indexResource, final FeatureCodec<F, S> codec,
+            final boolean requireIndex, final EhCacheBasedIndexCache indexCache) throws IOException {
+        // Test for tabix index
+        if (methods.isTabix(featureResource, indexResource)) {
+            if (!(codec instanceof AsciiFeatureCodec)) {
+                throw new TribbleException("Tabix indexed files only work with ASCII codecs, "
+                        + "but received non-Ascii codec " + codec.getClass().getSimpleName());
+            }
+            return new TabixFeatureReader<>(featureResource, indexResource,
+                    (AsciiFeatureCodec) codec, indexCache);
+        }
+        // Not tabix => tribble index file (might be gzipped, but not block gzipped)
+        return new TribbleIndexedFeatureReader<>(featureResource, indexResource,
+                codec, requireIndex, indexCache);
     }
 
     /**
@@ -122,8 +129,8 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
      * @return a reader for this data
      * @throws TribbleException
      */
-    public static <FEATURE extends Feature, SOURCE> AbstractFeatureReader<FEATURE, SOURCE> getFeatureReader(
-            final String featureResource, final FeatureCodec<FEATURE, SOURCE>  codec, final Index index,
+    public static <F extends Feature, S> AbstractFeatureReader<F, S> getFeatureReader(
+            final String featureResource, final FeatureCodec<F, S>  codec, final Index index,
             EhCacheBasedIndexCache indexCache)
             throws TribbleException {
         try {

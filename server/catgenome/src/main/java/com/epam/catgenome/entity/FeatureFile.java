@@ -48,29 +48,11 @@ public class FeatureFile extends IndexedDataItem {
     @JsonIgnore
     private Boolean compressed;
 
-    public Long getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(Long referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public Boolean getCompressed() {
-        return compressed;
-    }
-
-    public void setCompressed(Boolean compressed) {
-        this.compressed = compressed;
-    }
-
-    public Long getBioDataItemId() {
-        return bioDataItemId;
-    }
-
-    public void setBioDataItemId(Long bioDataItemId) {
-        this.bioDataItemId = bioDataItemId;
-    }
+    // The accessors for the three fields above were written out by hand and then kept after
+    // @Getter/@Setter were added to the class, which generate exactly the same six methods. Removed
+    // rather than renamed: PMD 7 flags a Boolean getCompressed() as needing an is- name, and an
+    // explicit isCompressed() would leave Lombok free to generate getCompressed() alongside it -
+    // two accessors for one property, which is how Jackson conflicts get made.
 
     @Override
     public boolean equals(Object obj) {

@@ -92,7 +92,7 @@ public enum GeneType {
     private final String gffPseudoName;
 
     public static String getType(final String genbankName, final boolean pseudo) {
-        for (GeneType type: GeneType.values()) {
+        for (GeneType type: values()) {
             if (type.getGenbankName().equals(genbankName)) {
                 return pseudo ? type.getGffPseudoName() : type.getGffName();
             }

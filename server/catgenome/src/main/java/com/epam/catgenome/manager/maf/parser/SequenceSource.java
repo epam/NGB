@@ -64,7 +64,7 @@ public enum SequenceSource {
     private String fileValue;
     private static Map<String, SequenceSource> valueMap = new HashMap<>();
     static {
-        for (SequenceSource sequenceSource : SequenceSource.values()) {
+        for (SequenceSource sequenceSource : values()) {
             valueMap.put(sequenceSource.getFileValue(), sequenceSource);
         }
     }

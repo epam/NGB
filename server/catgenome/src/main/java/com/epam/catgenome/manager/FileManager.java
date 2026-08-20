@@ -270,7 +270,7 @@ public class FileManager {
             this.path = path;
         }
 
-        public final String getPath() {
+        public String getPath() {
             return path;
         }
     }

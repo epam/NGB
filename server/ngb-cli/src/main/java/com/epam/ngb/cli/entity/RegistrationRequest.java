@@ -108,7 +108,7 @@ public class RegistrationRequest implements RequestPayload {
         this.geneFileId = geneFileId;
     }
 
-    public Boolean getDoIndex() {
+    public Boolean isDoIndex() {
         return doIndex;
     }
 
@@ -116,7 +116,7 @@ public class RegistrationRequest implements RequestPayload {
         this.doIndex = doIndex;
     }
 
-    public Boolean getNoGCContent() {
+    public Boolean isNoGCContent() {
         return noGCContent;
     }
 

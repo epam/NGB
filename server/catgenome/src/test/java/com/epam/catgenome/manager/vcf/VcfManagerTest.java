@@ -86,7 +86,6 @@ import com.epam.catgenome.entity.vcf.VariationQuery;
 import com.epam.catgenome.entity.vcf.VariationType;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
-import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.DownloadFileManager;

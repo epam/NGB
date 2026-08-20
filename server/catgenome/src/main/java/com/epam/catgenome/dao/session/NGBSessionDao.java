@@ -48,6 +48,10 @@ public class NGBSessionDao  extends NamedParameterJdbcDaoSupport {
     private static final String WHERE = "WHERE ";
     private static final String LIKE = " LIKE '%";
     private static final String EMPTY = "";
+    // Enough for the WHERE keyword plus a couple of clauses; the filter builds at most six of them
+    // and StringBuilder grows if it has to. Explicit because the default 16 is smaller than the
+    // shortest clause this method can produce.
+    private static final int FILTER_INITIAL_CAPACITY = 128;
 
     @Autowired
     private DaoHelper daoHelper;
@@ -135,7 +139,7 @@ public class NGBSessionDao  extends NamedParameterJdbcDaoSupport {
     }
 
     private String generateSessionFilter(final NGBSessionFilter filter) {
-        final StringBuilder result = new StringBuilder();
+        final StringBuilder result = new StringBuilder(FILTER_INITIAL_CAPACITY);
         if (isFilterEmpty(filter)) {
             return result.toString();
         }

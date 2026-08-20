@@ -54,7 +54,7 @@ public class S3Manager {
 
     @Autowired
     public static void setInstance(S3Manager s3Manager) {
-        S3Manager.instance = s3Manager;
+        instance = s3Manager;
     }
 
     public S3Manager() {

@@ -134,7 +134,7 @@ public class ProjectDescriptionDao extends NamedParameterJdbcDaoSupport {
 
         static RowMapper<InputStream> getContentRowMapper() {
             final LobHandler lobHandler = new DefaultLobHandler();
-            return (rs, rowNum) -> lobHandler.getBlobAsBinaryStream(rs, ProjectDescriptionParameters.CONTENT.name());
+            return (rs, rowNum) -> lobHandler.getBlobAsBinaryStream(rs, CONTENT.name());
         }
 
         static RowMapper<ProjectDescription> getRowMapper() {
@@ -147,10 +147,10 @@ public class ProjectDescriptionDao extends NamedParameterJdbcDaoSupport {
 
         static MapSqlParameterSource getParameters(final ProjectDescription projectDescription, final byte[] content) {
             final MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(ProjectDescriptionParameters.ID.name(), projectDescription.getId());
-            params.addValue(ProjectDescriptionParameters.PROJECT_ID.name(), projectDescription.getProjectId());
-            params.addValue(ProjectDescriptionParameters.NAME.name(), projectDescription.getName());
-            params.addValue(ProjectDescriptionParameters.CONTENT.name(), content);
+            params.addValue(ID.name(), projectDescription.getId());
+            params.addValue(PROJECT_ID.name(), projectDescription.getProjectId());
+            params.addValue(NAME.name(), projectDescription.getName());
+            params.addValue(CONTENT.name(), content);
             return params;
         }
     }

@@ -577,8 +577,8 @@ public class ProteinSequenceReconstructionManager {
             String aminoAcid = ProteinSequenceUtils.tripletToAminoAcid(
                 triple.stream().map(Sequence::getText).collect(Collectors.joining()));
 
-            long tripleStartIndex = isNegative? triple.get(2).getStartIndex().longValue()
-                                              : triple.get(0).getStartIndex().longValue();
+            long tripleStartIndex = isNegative? triple.get(2).getStartIndex()
+                                              : triple.get(0).getStartIndex();
             if (((newExtendedStart > 0) && isNegative) || ((newExtendedStart < 0) && !isNegative)) {
                 tripleStartIndex = cds.getStartIndex();
             }

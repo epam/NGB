@@ -62,7 +62,6 @@ import com.epam.catgenome.common.ResponseResult;
 import com.epam.catgenome.controller.util.ResultReference;
 import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
-import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.reference.Chromosome;

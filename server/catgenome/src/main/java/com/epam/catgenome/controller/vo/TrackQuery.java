@@ -122,7 +122,7 @@ public class TrackQuery {
         this.scaleFactor = scaleFactor;
     }
 
-    public Boolean getCollapsed() {
+    public Boolean isCollapsed() {
         return collapsed;
     }
 

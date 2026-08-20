@@ -117,7 +117,7 @@ public class BookmarkItemVO {
         this.referenceId = referenceId;
     }
 
-    public Boolean getCompressed() {
+    public Boolean isCompressed() {
         return compressed;
     }
 

@@ -141,17 +141,17 @@ public final class BamUtil {
         switch (options.getTrackDirection()) {
             case LEFT:
                 filter = new SAMRecordHandler(startTrack, endTrack, referenceManager, new LeftSAMRecordFilter(endTrack,
-                        BamUtil.createSifter(endTrack, options, coverageOnly, trackEmitter)), options); //maxReadCount
+                        createSifter(endTrack, options, coverageOnly, trackEmitter)), options); //maxReadCount
                 break;
             case MIDDLE:
                 filter = new SAMRecordHandler(startTrack, endTrack, referenceManager, new MiddleSAMRecordFilter(
-                        BamUtil.createSifter(endTrack, options, coverageOnly, trackEmitter)), options); //maxReadCount
+                        createSifter(endTrack, options, coverageOnly, trackEmitter)), options); //maxReadCount
                 break;
             case RIGHT:
                 filter = new SAMRecordHandler(startTrack, endTrack, referenceManager,
                         new RightSAMRecordFilter(
                                 startTrack,
-                                BamUtil.createSifter(endTrack, options, coverageOnly, trackEmitter)),
+                                createSifter(endTrack, options, coverageOnly, trackEmitter)),
                         options); //maxReadCount
                 break;
             default:
@@ -171,10 +171,10 @@ public final class BamUtil {
         if (null == option.getTrackDirection()) {
             option.setTrackDirection(TrackDirectionType.MIDDLE);
         }
-        if (null == option.getShowClipping()) {
+        if (null == option.isShowClipping()) {
             option.setShowClipping(false);
         }
-        if (null == option.getShowSpliceJunction()) {
+        if (null == option.isShowSpliceJunction()) {
             option.setShowSpliceJunction(false);
         }
         if (validDownsempleParams(option.getFrame(), option.getCount())) {

@@ -45,30 +45,33 @@ import org.slf4j.LoggerFactory;
  * for verifying file formats and indexes. Data format is determined by the file extension.
  */
 public enum BiologicalDataItemFormat {
-    REFERENCE(1, false, true),
-    VCF(2, false, true),
-    BAM(3, true),
-    GENE(4, false, true),
-    WIG(5, false, true),
-    VCF_INDEX(6),
-    GENE_INDEX(7),
-    BAM_INDEX(8),
-    BED_INDEX(9),
-    BED(10, false, true),
-    SEG(11, false, true),
-    SEG_INDEX(12),
-    MAF(13, false, true),
-    MAF_INDEX(14),
-    VG(15),
-    GENBANK(16),
-    GBK(17),
-    GB(18),
-    FEATURE_COUNTS(19),
-    HEATMAP(20),
-    LINEAGE_TREE(21),
-    PATHWAY(22);
+    REFERENCE(false, true),
+    VCF(false, true),
+    BAM(true),
+    GENE(false, true),
+    WIG(false, true),
+    VCF_INDEX,
+    GENE_INDEX,
+    BAM_INDEX,
+    BED_INDEX,
+    BED(false, true),
+    SEG(false, true),
+    SEG_INDEX,
+    MAF(false, true),
+    MAF_INDEX,
+    VG,
+    GENBANK,
+    GBK,
+    GB,
+    FEATURE_COUNTS,
+    HEATMAP,
+    LINEAGE_TREE,
+    PATHWAY;
 
-    private long id;
+    // The constants above used to carry a numeric id as their first constructor argument. Nothing
+    // ever read it - there was no getter and the field was assigned and never used - and the values
+    // were the declaration order, 1 to 22, so the ordinal already carries whatever they said. The
+    // format is sent to the server by name, not by id.
     /**
      * If true format requires index for registration, otherwise index is optional
      */
@@ -140,18 +143,16 @@ public enum BiologicalDataItemFormat {
 
     /**
      * By default index is not required and gzip compression is not supported
-     * @param id
      */
-    BiologicalDataItemFormat(long id) {
-        this(id, false, false);
+    BiologicalDataItemFormat() {
+        this(false, false);
     }
 
-    BiologicalDataItemFormat(long id, boolean requireIndex) {
-        this(id, requireIndex, false);
+    BiologicalDataItemFormat(boolean requireIndex) {
+        this(requireIndex, false);
     }
 
-    BiologicalDataItemFormat(long id, boolean requireIndex, boolean supportGZip) {
-        this.id = id;
+    BiologicalDataItemFormat(boolean requireIndex, boolean supportGZip) {
         this.requireIndex = requireIndex;
         this.supportGZip = supportGZip;
     }

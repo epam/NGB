@@ -102,9 +102,9 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
         this.max = endTrack + Constants.REFERENCE_STEP;
 
         this.refID = options.getRefID();
-        this.showClipping = options.getShowClipping() != null && options.getShowClipping();
+        this.showClipping = options.isShowClipping() != null && options.isShowClipping();
         this.chromosomeName = options.getChromosomeName();
-        this.showSpliceJunction = options.getShowSpliceJunction() != null && options.getShowSpliceJunction();
+        this.showSpliceJunction = options.isShowSpliceJunction() != null && options.isShowSpliceJunction();
         this.filter = filter;
 
         if (options.getMode() == BamTrackMode.FULL) {

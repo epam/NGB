@@ -99,20 +99,7 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
             final boolean requireIndex, EhCacheBasedIndexCache indexCache) throws TribbleException {
 
         try {
-            // Test for tabix index
-            if (methods.isTabix(featureResource, indexResource)) {
-                if (!(codec instanceof AsciiFeatureCodec)) {
-                    throw new TribbleException(
-                            "Tabix indexed files only work with ASCII codecs, but received non-Ascii codec "
-                                    + codec.getClass().getSimpleName());
-                }
-                return new TabixFeatureReader<F, S>(featureResource, indexResource,
-                        (AsciiFeatureCodec) codec, indexCache);
-            } else {
-                // Not tabix => tribble index file (might be gzipped, but not block gzipped)
-                return new TribbleIndexedFeatureReader<F, S>(featureResource, indexResource, codec,
-                        requireIndex, indexCache);
-            }
+            return openReader(featureResource, indexResource, codec, requireIndex, indexCache);
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile(
                     "Unable to create BasicFeatureReader using feature file ", featureResource, e);
@@ -120,6 +107,29 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
             e.setSource(featureResource);
             throw e;
         }
+    }
+
+    // Split out of the method above so that the try there is only about translating failures. It
+    // used to contain the codec check as well, and PMD 7 reads a throw whose own catch clause is in
+    // the same try as flow control: the TribbleException raised for a non-Ascii codec was caught by
+    // the clause that attaches the source and rethrown. Behaviour is unchanged - the exception still
+    // reaches that clause and still comes out with the source attached.
+    private static <F extends Feature, S> AbstractFeatureReader<F, S> openReader(
+            final String featureResource, final String indexResource, final FeatureCodec<F, S> codec,
+            final boolean requireIndex, final EhCacheBasedIndexCache indexCache) throws IOException {
+        // Test for tabix index
+        if (methods.isTabix(featureResource, indexResource)) {
+            if (!(codec instanceof AsciiFeatureCodec)) {
+                throw new TribbleException(
+                        "Tabix indexed files only work with ASCII codecs, but received non-Ascii codec "
+                                + codec.getClass().getSimpleName());
+            }
+            return new TabixFeatureReader<>(featureResource, indexResource,
+                    (AsciiFeatureCodec) codec, indexCache);
+        }
+        // Not tabix => tribble index file (might be gzipped, but not block gzipped)
+        return new TribbleIndexedFeatureReader<>(featureResource, indexResource, codec,
+                requireIndex, indexCache);
     }
 
     /**

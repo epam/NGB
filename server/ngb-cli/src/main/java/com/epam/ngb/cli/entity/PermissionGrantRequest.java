@@ -44,7 +44,7 @@ public class PermissionGrantRequest implements RequestPayload {
 
     }
 
-    public Boolean getPrincipal() {
+    public Boolean isPrincipal() {
         return principal;
     }
 

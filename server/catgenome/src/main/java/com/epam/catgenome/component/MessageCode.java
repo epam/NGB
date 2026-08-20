@@ -64,7 +64,7 @@ public enum MessageCode {
         this.code = code;
     }
 
-    public final String getCode() {
+    public String getCode() {
         return code;
     }
 

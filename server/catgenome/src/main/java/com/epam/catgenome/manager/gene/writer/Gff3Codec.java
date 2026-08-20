@@ -80,7 +80,7 @@ public final class Gff3Codec {
         }
 
         public static Gff3Directive toDirective(final String line) {
-            for (final Gff3Directive directive : Gff3Directive.values()) {
+            for (final Gff3Directive directive : values()) {
                 if(directive.regexPattern.matcher(line).matches()) {
                     return directive;
                 }

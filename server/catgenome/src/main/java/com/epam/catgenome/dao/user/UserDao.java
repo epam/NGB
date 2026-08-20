@@ -364,7 +364,7 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
 
         private static MapSqlParameterSource getUserRoleParameters(Long userId, Long roleId) {
             MapSqlParameterSource params = new MapSqlParameterSource();
-            params.addValue(UserParameters.USER_ID.name(), userId);
+            params.addValue(USER_ID.name(), userId);
             params.addValue(RoleDao.RoleParameters.ROLE_ID.name(), roleId);
             return params;
         }

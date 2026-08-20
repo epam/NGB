@@ -175,7 +175,7 @@ public final class S3Client {
     @SuppressWarnings("WeakerAccess")
     public InputStream loadFrom(String obj,
                                        @SuppressWarnings("SameParameterValue") long offset) {
-        long contentLength = S3Client.getInstance().getFileSize(obj);
+        long contentLength = getInstance().getFileSize(obj);
         return loadFromTo(obj, offset, contentLength);
     }
 

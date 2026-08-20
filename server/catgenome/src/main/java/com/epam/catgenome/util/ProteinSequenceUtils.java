@@ -54,38 +54,38 @@ public final class ProteinSequenceUtils {
      * Represents RNA codon table to convert nucleotides to amino acids.
      */
     private enum RnaCodonTable {
-        PHE("F", "Phe", "Phenylalanine", Arrays.asList("UUU", "UUC")),
-        LEU("L", "Leu", "Leucine", Arrays.asList("UUA", "UUG", "CUU", "CUC", "CUA", "CUG")),
-        ILE("I", "Ile", "Isoleucine", Arrays.asList("AUU", "AUC", "AUA")),
-        MET("M", "Met", "Methionine", Collections.singletonList("AUG")),
-        VAL("V", "Val", "Valine", Arrays.asList("GUU", "GUC", "GUA", "GUG")),
-        SER("S", "Ser", "Serine", Arrays.asList("UCU", "UCC", "UCA", "UCG", "AGU", "AGC")),
-        PRO("P", "Ser", "Proline", Arrays.asList("CCU", "CCC", "CCA", "CCG")),
-        THR("T", "Thr", "Threonine ", Arrays.asList("ACU", "ACC", "ACA", "ACG")),
-        ALA("A", "Ala", "Alanine", Arrays.asList("GCU", "GCC", "GCA", "GCG")),
-        TYR("Y", "Tyr", "Tyrosine", Arrays.asList("UAU", "UAC")),
-        STOP("Stop", "Stop", "Stop codon", Arrays.asList("UAA", "UAG", "UGA")),
-        HIS("H", "His", "Histidine", Arrays.asList("CAU", "CAC")),
-        GLN("Q", "Gln", "Glutamine", Arrays.asList("CAA", "CAG")),
-        ASN("N", "Asn", "Asparagine", Arrays.asList("AAU", "AAC")),
-        LYS("K", "Lys", "Lysine", Arrays.asList("AAA", "AAG")),
-        ASP("D", "Asp", "Aspartic acid", Arrays.asList("GAU", "GAC")),
-        GLU("E", "Glu", "Glutamic acid", Arrays.asList("GAA", "GAG")),
-        CYS("C", "Cys", "Cysteine", Arrays.asList("UGU", "UGC")),
-        TRP("W", "Trp", "Tryptophan", Collections.singletonList("UGG")),
-        ARG("R", "Arg", "Arginine", Arrays.asList("CGU", "CGC", "CGA", "CGG", "AGA", "AGG")),
-        GLY("G", "Gly", "Glycine", Arrays.asList("GGU", "GGC", "GGA", "GGG"));
+        PHE("F", Arrays.asList("UUU", "UUC")),                                          // Phenylalanine
+        LEU("L", Arrays.asList("UUA", "UUG", "CUU", "CUC", "CUA", "CUG")),              // Leucine
+        ILE("I", Arrays.asList("AUU", "AUC", "AUA")),                                   // Isoleucine
+        MET("M", Collections.singletonList("AUG")),                                     // Methionine
+        VAL("V", Arrays.asList("GUU", "GUC", "GUA", "GUG")),                            // Valine
+        SER("S", Arrays.asList("UCU", "UCC", "UCA", "UCG", "AGU", "AGC")),              // Serine
+        PRO("P", Arrays.asList("CCU", "CCC", "CCA", "CCG")),                            // Proline
+        THR("T", Arrays.asList("ACU", "ACC", "ACA", "ACG")),                            // Threonine
+        ALA("A", Arrays.asList("GCU", "GCC", "GCA", "GCG")),                            // Alanine
+        TYR("Y", Arrays.asList("UAU", "UAC")),                                          // Tyrosine
+        STOP("Stop", Arrays.asList("UAA", "UAG", "UGA")),                               // Stop codon
+        HIS("H", Arrays.asList("CAU", "CAC")),                                          // Histidine
+        GLN("Q", Arrays.asList("CAA", "CAG")),                                          // Glutamine
+        ASN("N", Arrays.asList("AAU", "AAC")),                                          // Asparagine
+        LYS("K", Arrays.asList("AAA", "AAG")),                                          // Lysine
+        ASP("D", Arrays.asList("GAU", "GAC")),                                          // Aspartic acid
+        GLU("E", Arrays.asList("GAA", "GAG")),                                          // Glutamic acid
+        CYS("C", Arrays.asList("UGU", "UGC")),                                          // Cysteine
+        TRP("W", Collections.singletonList("UGG")),                                     // Tryptophan
+        ARG("R", Arrays.asList("CGU", "CGC", "CGA", "CGG", "AGA", "AGG")),              // Arginine
+        GLY("G", Arrays.asList("GGU", "GGC", "GGA", "GGG"));                            // Glycine
 
-        private String title;
-        private String extendedTitle;
-        private String fullName;
-        private List<String> correspondedTriples;
+        // The table used to carry two more strings per constant, an "extended title" (the
+        // capitalised form of the constant name) and a full amino acid name. Nothing ever read
+        // either - the errors that accumulated in them show it: PRO's extended title was "Ser" and
+        // THR's full name had a trailing space. The full names are kept above as comments, since
+        // that is all they ever were; the extended title is derivable from the constant name.
+        private final String title;
+        private final List<String> correspondedTriples;
 
-        RnaCodonTable(final String title, final String extendedTitle, final String fullName,
-                final List<String> correspondedTriples) {
+        RnaCodonTable(final String title, final List<String> correspondedTriples) {
             this.title = title;
-            this.extendedTitle = extendedTitle;
-            this.fullName = fullName;
             this.correspondedTriples = correspondedTriples;
         }
     }
