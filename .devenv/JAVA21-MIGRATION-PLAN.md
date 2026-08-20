@@ -1365,7 +1365,8 @@ two attributable checkpoints.
 - `make test-pg` likewise.
 - Click through, in the UI: a reference track, a genes track, a VCF track, a BAM track.
   Verify `/swagger-ui` (or springdoc's path) renders.
-- `make cli-test` passes against `AUTH_MODE=none`.
+- `make cli-test` — **unrunnable since Phase 2** (its fixture host is NXDOMAIN; see
+  `TEST-BASELINE.md`). Drive the CLI by hand against `AUTH_MODE=none` instead, as Phase 2 did.
 - `make lint` green.
 
 **Risks**
@@ -1472,7 +1473,8 @@ Behaviour that must be preserved:
 - Browser login at the SAML URL works; the post-login redirect lands on the app, not a
   refused connection.
 - A JWT generated in the UI authenticates `ngb-cli` (`ngb set_token`, then
-  `ngb list_ref`), and `make cli-test` passes in SAML mode.
+  `ngb list_ref`), and the CLI works in SAML mode — by hand, because `make cli-test` itself is
+  unrunnable; see `TEST-BASELINE.md`.
 - The ACL/security/JWT test classes are re-enabled and pass on **both** flavours (Phase 0
   fixed the PostgreSQL datasource, so they now genuinely run there).
 - `make up` with `AUTH_MODE=none` still works.
@@ -1754,7 +1756,8 @@ other; do them as separate commits and verify each.
 - `./gradlew dependencies` shows no EOL AWS v1, no `com.wordnik`, no `com.mangofactory`,
   no `net.sf.ehcache`, no `c3p0`, no hadoop, no `spring-security-oauth2`,
   no `spring-security-saml2-core`, no duplicate htsjdk.
-- `make test`, `make test-pg`, `make lint`, `make cli-test` all green against the Phase 7
+- `make test`, `make test-pg`, `make lint` all green (and `make cli-test`, if Phase 9's fixture
+  hosting has happened by then — see `TEST-BASELINE.md`) against the Phase 7
   baseline.
 - Excel export, protein/PDB views, LLM target summaries, S3 and Azure track loading all
   verified by hand.
@@ -1829,7 +1832,8 @@ other; do them as separate commits and verify each.
 - `docker build` produces a working image; `docker run` serves the app.
 - The bundled Windows and Linux distributions unpack and start without a system JDK.
 - `mkdocs build` succeeds; the upgrade notes are present and accurate.
-- `make test`, `make test-pg`, `make lint`, `make cli-test`, `make smoke`, `make smoke-saml`
+- `make test`, `make test-pg`, `make lint`, `make cli-test` (**this phase has to make it runnable
+  again**), `make smoke`, `make smoke-saml`
   all green.
 
 ---
@@ -1883,7 +1887,7 @@ make test             # server unit tests on H2
 make test-one T=Xxx   # single test class
 make test-pg          # server unit tests on PostgreSQL
 make lint             # checkstyle + pmd
-make cli-test         # CLI <-> server integration suite
+make cli-test         # CLI <-> server integration suite (unrunnable: dead fixture host)
 
 make up               # run on H2
 NGB_JAVA_VERSION=21 make up
