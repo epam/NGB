@@ -253,6 +253,7 @@ public class NCBIPugManager extends HttpDataManager{
     }
 
     private static String replaceHttpSymbols(final String data) {
-        return URLEncoder.DEFAULT.encode(data, StandardCharsets.UTF_8.toString());
+        // Tomcat 9 (which Boot 2.7 brings) takes a Charset here; Tomcat 8.5 took its name.
+        return URLEncoder.DEFAULT.encode(data, StandardCharsets.UTF_8);
     }
 }

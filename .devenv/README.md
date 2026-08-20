@@ -77,10 +77,11 @@ make cli-test                # CLI<->server integration suite (downloads test da
 ```
 
 **Read [`TEST-BASELINE.md`](TEST-BASELINE.md) before you trust a red run.** `make lint` is
-green; neither test suite quite is (2 failures on H2, 10 on PostgreSQL after migration
-Phase 0). That file records each failure and why, so during the migration you can tell new
-breakage from old — and it lists the two preconditions the numbers depend on: `make test-pg`
-wants `make reset-pg` first, and `make test` wants an empty `../contents/`.
+green; neither test suite quite is (3 failures on H2, 12 on PostgreSQL after migration
+Phase 2 — five of those are network tests). That file records each failure and why, so during
+the migration you can tell new breakage from old — and it lists the two preconditions the
+numbers depend on: `make test-pg` wants `make reset-pg` first, and `make test` wants an empty
+`../contents/`.
 
 **Run the same jar on JDK 21**
 
@@ -125,6 +126,17 @@ SAML SSO OK
 
 Use `make smoke-saml U=ngbuser@ngb.dev.local P=user` for the non-admin user. When the
 SAML rewrite lands (migration step 3), this is the check that tells you it still works.
+
+When it *doesn't* work, the packaged `log4j.xml` is the first obstacle: its console appender
+is pinned to `ERROR`, so Spring Security says nothing. Point the app at the debug config in
+this directory instead — it logs `org.springframework.security` at DEBUG and Boot's servlet
+filter mappings, which is what most SAML failures come down to:
+
+```bash
+NGB_JAVA_VERSION=17 AUTH_MODE=saml \
+  JAVA_EXTRA_OPTS="-Dlog4j.configuration=file:/opt/ngb/bin/log4j-debug.xml" \
+  docker-compose up -d --force-recreate ngb-h2
+```
 
 Then open <https://ngb.dev.local:9443/catgenome> (accept the self-signed certificate) and
 sign in as `ngbadmin@ngb.dev.local` / `admin` (NGB admin, via `security.default.admin`)

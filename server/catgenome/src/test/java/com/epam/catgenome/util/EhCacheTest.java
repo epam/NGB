@@ -109,7 +109,12 @@ public class EhCacheTest {
         cacheConfiguration.setTimeToIdleSeconds(timeToIdleSeconds);
     }
 
-    private class TestIndexCache implements IndexCache {
+    // Static on purpose. As an inner class every instance carries a this$0 reference to the test,
+    // and through its @Autowired ApplicationContext to the whole Spring container - which EhCache's
+    // sizing walker then traverses on every put, since indexCache is configured with
+    // maxBytesLocalHeap. On JDK 17 that walk reaches jdk.internal.loader.BuiltinClassLoader and
+    // dies with InaccessibleObjectException; on JDK 8 it merely mis-sized every entry by megabytes.
+    private static class TestIndexCache implements IndexCache {
         private String name;
 
         TestIndexCache(String name) {

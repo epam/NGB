@@ -102,7 +102,8 @@ public class PdbDataManager {
     }
 
     private String replaceHttpSymbols(final String query, final String pdbIds) {
-        return URLEncoder.DEFAULT.encode(String.format(query, pdbIds), StandardCharsets.UTF_8.toString());
+        // Tomcat 9 (which Boot 2.7 brings) takes a Charset here; Tomcat 8.5 took its name.
+        return URLEncoder.DEFAULT.encode(String.format(query, pdbIds), StandardCharsets.UTF_8);
     }
 
     private Dasalignment parseToDasalignment(final DasalignmentDTO das) {

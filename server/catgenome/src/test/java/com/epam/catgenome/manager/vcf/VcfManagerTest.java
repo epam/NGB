@@ -53,8 +53,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.event.ApplicationEventsTestExecutionListener;
+import org.springframework.test.context.event.EventPublishingTestExecutionListener;
+import org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener;
+import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
+import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.test.context.web.ServletTestExecutionListener;
+import org.springframework.test.util.AopTestUtils;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,6 +112,24 @@ import com.epam.catgenome.manager.UrlValidatorService;
  */
 @SuppressWarnings("PMD.UnusedPrivateField")
 @RunWith(SpringJUnit4ClassRunner.class)
+// Spring's stock default listeners, explicitly listed to leave out the two that spring-boot-test
+// contributes. Boot 2.x's MockitoTestExecutionListener runs MockitoAnnotations.openMocks() itself,
+// at order 1950 - i.e. *before* DependencyInjectionTestExecutionListener (2000) has populated the
+// @Autowired fields below. It therefore tries to instantiate the spied types from scratch, and
+// they have no no-arg constructor, so every test in this class fails before it starts. Boot 1.5's
+// listener only handled @MockBean, which is why this pattern worked until now. The @Before method
+// still calls openMocks() itself, once the beans are in place, so nothing else is lost by
+// dropping the listener. Declared listeners are used in declaration order and replace the
+// defaults; the list below is spring-test's own default set, unchanged and unreordered.
+@TestExecutionListeners({
+        ServletTestExecutionListener.class,
+        DirtiesContextBeforeModesTestExecutionListener.class,
+        ApplicationEventsTestExecutionListener.class,
+        DependencyInjectionTestExecutionListener.class,
+        DirtiesContextTestExecutionListener.class,
+        TransactionalTestExecutionListener.class,
+        SqlScriptsTestExecutionListener.class,
+        EventPublishingTestExecutionListener.class})
 @TestPropertySource("classpath:test-catgenome.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
@@ -192,7 +220,8 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Before
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        unwrapSpringProxies();
+        MockitoAnnotations.openMocks(this);
 
         Assert.assertNotNull(featureIndexManager);
         Assert.assertNotNull(downloadFileManager);
@@ -209,6 +238,40 @@ public class VcfManagerTest extends AbstractManagerTest {
         referenceId = testReference.getId();
         vcfManager.setExtendedInfoTemplates(infoTemplate);
         vcfManager.setIndexBufferSize(INDEX_BUFFER_SIZE);
+    }
+
+    /**
+     * Replaces the @Spy @Autowired fields with the beans behind their Spring AOP proxies, so that
+     * the spies Mockito is about to build wrap plain objects.
+     * <p>
+     * spring-boot-test registers {@code SpringBootMockResolver} as a Mockito {@code MockResolver}
+     * service, and Mockito 2+ runs every object through the registered resolvers before looking up
+     * its mock handler. That resolver unwraps anything implementing {@code Advised} down to its
+     * ultimate target. A spy over a CGLIB-proxied bean - here vcfFileManager,
+     * biologicalDataItemManager and referenceGenomeManager, all @Transactional - is a subclass of
+     * the proxy and so is itself {@code Advised}, which means Mockito resolves its own spy back to
+     * the raw bean, finds no handler and fails the whole class with "Argument should be a mock, but
+     * is: class ...". Unwrapping first sidesteps the resolver instead of fighting it.
+     * <p>
+     * The spied methods here are all {@code Propagation.REQUIRED} or {@code SUPPORTS} and every
+     * test method already runs in a transaction of its own, so losing the transactional advice on
+     * the spy changes nothing that these tests observe.
+     */
+    private void unwrapSpringProxies() {
+        vcfFileManager = unproxy(vcfFileManager);
+        trackHelper = unproxy(trackHelper);
+        fileManager = unproxy(fileManager);
+        biologicalDataItemManager = unproxy(biologicalDataItemManager);
+        featureIndexManager = unproxy(featureIndexManager);
+        referenceGenomeManager = unproxy(referenceGenomeManager);
+        downloadFileManager = unproxy(downloadFileManager);
+        geneTrackManager = unproxy(geneTrackManager);
+        indexCache = unproxy(indexCache);
+        urlValidatorService = unproxy(urlValidatorService);
+    }
+
+    private static <T> T unproxy(final T bean) {
+        return bean == null ? null : AopTestUtils.getUltimateTargetObject(bean);
     }
 
     @Test

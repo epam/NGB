@@ -187,7 +187,7 @@ public class GffManagerTest extends AbstractManagerTest {
     @Before
     public void setup() throws Exception {
 
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         Assert.assertNotNull(pBDataManager);
         Assert.assertNotNull(uniprotDataManager);
         Assert.assertNotNull(ensemblDataManager);
@@ -412,7 +412,7 @@ public class GffManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadGenesTranscript() throws IOException, ExternalDbUnavailableException {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         String fetchRes1 = readFile("ensembl_id_ENSG00000177663.json");
         String fetchRes2 = readFile("uniprot_id_ENST00000319363.xml");
         String fetchRes3 = readFile("uniprot_id_ENST00000319363.xml");
@@ -470,7 +470,7 @@ public class GffManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testPBD() throws IOException, ExternalDbUnavailableException {
 
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
 
         String fetchRes1 = readFile("pbd_id_2k8d.xml");
         String fetchRes2 = readFile("pbd_map_id_2k8d.xml");

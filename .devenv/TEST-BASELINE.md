@@ -1,26 +1,30 @@
 # Test baseline for the Java 21 migration
 
 First recorded on 2026-08-20 at the end of **migration Phase 0**; re-measured at the end of
-**Phase 1** (same day), inside this environment (JDK 8, Gradle 3.3, H2 1.3.176 /
-PostgreSQL 9.6, aarch64/colima). **These tests still fail on the current code.** From here on
-this list is the reference: a run that is green except for this list is a pass. Anything else
-is your own breakage.
+**Phase 1** and again at the end of **Phase 2** (same day), inside this environment (H2 1.3.176 /
+PostgreSQL 9.6, aarch64/colima). The first two recordings were on JDK 8 / Gradle 3.3 / Boot 1.5;
+**the numbers below are Phase 2's, on JDK 17 / Gradle 7.6 / Boot 2.7.18**. **These tests still
+fail on the current code.** From here on this list is the reference: a run that is green except
+for this list is a pass. Anything else is your own breakage.
 
 | Suite | Command | Result |
 |---|---|---|
-| H2 | `make test` | 528 tests, **2 failed**, 21 skipped (~4.5 min) |
-| PostgreSQL | `make test-pg` | 528 tests, **10 failed**, 21 skipped (~3 min) |
+| H2 | `make test` | 528 tests, **3 failed**, 21 skipped (~2.5 min) |
+| PostgreSQL | `make test-pg` | 528 tests, **12 failed**, 21 skipped (~4 min) |
 | Static analysis | `make lint` | **green** — checkstyle and pmd both clean (~20 s) |
 
-Of those, **1 (H2) / 9 (PostgreSQL)** are the pre-existing failures documented below. The
-remaining one on each flavour is `PdbDataManagerTest.testParse`, which parses live RCSB PDB
-data and flipped to red between the two recordings — see
+Of those, **1 (H2) / 9 (PostgreSQL)** are the pre-existing failures documented below. The rest
+are network tests that external services moved under: `PdbDataManagerTest.testParse` (live RCSB
+data — it passed in the H2 run and failed in the PostgreSQL run five minutes later, which is all
+you need to know about it) and `BlatSearchManagerTest.testFind` /
+`testFindBlatReadSequence`, new since Phase 1 because UCSC now redirects HTTP to HTTPS — see
 ["Live-data failures"](#live-data-failures).
 
 Phase 0 took this from 19 H2 / 65 PostgreSQL / red lint. What it fixed is at the bottom.
 Phase 1 removed 9 tests along with the functionality they covered (GA4GH, HDFS, `person`),
 which is the whole of the 537 → 528 change; the only *failure* it removed is
-`VcfManagerTest.testLoadSmallScaleVcfFileGa4GH`.
+`VcfManagerTest.testLoadSmallScaleVcfFileGa4GH`. Phase 2 fixed the seven failures the toolchain
+move introduced instead of re-baselining them — see ["What Phase 2 changed"](#what-phase-2-changed).
 
 **Two conditions the numbers depend on.** Get either wrong and you will see extra failures
 that are not yours:
@@ -38,12 +42,13 @@ that are not yours:
    `TargetManagerTest.loadTargetsTest` fail; both are now self-contained, but if you get an
    inexplicable Lucene result, `rm -rf ../contents` and re-run.
 
-## H2: 1 documented failure (+1 live-data)
+## H2: 1 documented failure (+2 live-data)
 
 | Class | Cause | Survives the migration? |
 |---|---|---|
 | `GffManagerTest.testLoadGenesTranscript` | `expected:<protein_coding> but was:<protein_coding_CDS_not_defined>`. **Live external data, not a fixture problem** — see the note below. | Yes. Unaffected by every phase; only an Ensembl change or a decision about network tests will move it. |
-| `PdbDataManagerTest.testParse` | `expected:<B> but was:<A>`. Live RCSB PDB data — see ["Live-data failures"](#live-data-failures). | Yes, until network tests are dealt with. |
+| `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | `ExternalDbUnavailableException: Unexpected HTTP status: 302 Found`. UCSC redirects `http://genome.cse.ucsc.edu/cgi-bin/hgBlat` to HTTPS and `HttpURLConnection` will not follow a cross-protocol redirect — see ["Live-data failures"](#live-data-failures). | Yes, until `blat.search.url` is changed to `https`. |
+| `PdbDataManagerTest.testParse` | `expected:<B> but was:<A>`. Live RCSB PDB data — see ["Live-data failures"](#live-data-failures). Passed at the Phase 2 H2 recording and failed at the PostgreSQL one. | Yes, until network tests are dealt with. |
 
 `VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` was here until Phase 1 deleted GA4GH; the test
 went with the feature. `UrlValidatorService.isRemotePath` was deliberately left untouched.
@@ -71,6 +76,15 @@ network-dependent assertions belong in the unit suite at all — the same questi
 
 ### Live-data failures
 
+`BlatSearchManagerTest.testFind` and `testFindBlatReadSequence` started failing during Phase 2 for a
+reason that has nothing to do with the migration: `blat.search.url` is
+`http://genome.cse.ucsc.edu/cgi-bin/hgBlat` in seven property files, and UCSC now answers `302
+Found` pointing at `https://` (confirmed with `curl`; no JDK has ever let `HttpURLConnection` follow
+a cross-protocol redirect). `BlatSearchManager` turns the 302 into
+`ExternalDbUnavailableException: Unexpected HTTP status: 302 Found`. **This breaks BLAT search in
+production too**, not just the test. Fixing it means changing the default URL, which is a behaviour
+change and so belongs to a phase allowed to make one — recorded here rather than papered over.
+
 `PdbDataManagerTest.testParse` parses live RCSB PDB data. It asserted `expected:<B> but was:<A>`
 two baselines ago, passed at the Phase 0 recording, and is red again on both flavours at the
 Phase 1 recording. **It is not Phase 1's doing**: it already failed on PostgreSQL when Phase 0's
@@ -80,7 +94,7 @@ keep flipping. Treat a failure there as external drift, not regression — and d
 loosening the assertion, for the same reason as `GffManagerTest.testLoadGenesTranscript`: the
 real question is whether network-dependent assertions belong in the unit suite.
 
-## PostgreSQL: 9 documented failures (+1 live-data)
+## PostgreSQL: 9 documented failures (+3 live-data)
 
 All 9 are pre-existing, and 7 of them are the **two Flyway script sets having diverged**.
 None are caused by the environment. See "Latent bugs found" in `JAVA21-MIGRATION-PLAN.md`.
@@ -93,6 +107,7 @@ None are caused by the environment. See "Latent bugs found" in `JAVA21-MIGRATION
 | 1 | `TargetManagerTest.filterTargetsByOwnerTest` | `TargetGeneDao.loadTargetGenes` emits `WHERE target_id IN ()` for an empty id set. H2 1.3 accepts it, PostgreSQL does not. **Real production bug**: any target filter matching nothing fails on PostgreSQL. | Yes, until someone fixes the DAO. Nothing in the migration touches it. |
 | 1 | `GffManagerTest.testLoadGenesTranscript` | Same live-Ensembl failure as on H2. | Yes. |
 | 1 | `PdbDataManagerTest.testParse` | Same live-RCSB failure as on H2. Not counted in the 9. | Yes, until network tests are dealt with. |
+| 2 | `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | Same UCSC HTTP→HTTPS drift as on H2. Not counted in the 9. | Yes, until `blat.search.url` is changed. |
 
 `VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` was the tenth entry here until Phase 1 deleted
 GA4GH.
@@ -142,6 +157,27 @@ Also deleted: the 5 `externaldb/data/GA4GH_id10473*.json` fixtures, the
 Note that `build/test-results/test/` still holds stale XML for the deleted classes — Gradle
 does not remove result files for tests that no longer exist. Trust the run summary's counts,
 not a `grep` over that directory.
+
+## What Phase 2 changed
+
+The Gradle 7.6 / Boot 2.7.18 / JDK 17 waypoint broke a good number of tests on the way through. All
+of them were fixed; nothing was re-baselined, and the only new entries in the lists above are the two
+`BlatSearchManagerTest` network failures, which are not the migration's doing. The full reasoning is
+in `JAVA21-MIGRATION-PLAN.md` ("Phase 2 execution findings") — the test-visible fixes:
+
+| Fix | Effect |
+|---|---|
+| `MockitoAnnotations.initMocks` → `openMocks` at all 12 call sites, and `VcfManagerTest` unwraps its Spring proxies with `AopTestUtils.getTargetObject` before `openMocks` | Mockito 4 implements `initMocks` as `openMocks(...).close()`, which throws `NotAMockException` on a `@Spy` field holding a Spring bean |
+| `org.mockito.internal.matchers.{Equals,Find}` in `ToolsControllerTest` → `org.hamcrest.Matchers.is` / `matchesPattern` | Those were always Hamcrest matchers passed to `jsonPath().value()`; from Mockito 2 they no longer implement `org.hamcrest.Matcher`, so the call silently bound to `value(Object)` |
+| New `server/lombok.config` with `lombok.anyConstructor.addConstructorProperties = true` | Restores the `@ConstructorProperties` Lombok stopped emitting in 1.16.20, i.e. every implicit Jackson creator on the ~90 `@Builder` classes. 6 `NGBSessionSharingSecurityTest` failures, but the real exposure is production JSON parsing |
+| Four `--add-opens` in the test JVM args (`java.util`, `java.util.concurrent`, `java.util.concurrent.atomic`, `java.io`) and `EhCacheTest.TestIndexCache` made `static` | EhCache 2.10.1 sizes `indexCache` by walking the object graph reflectively, which JEP 396 forbids. 11 failures |
+| `CAST(? AS BIGINT)` around the three `object_id_identity` parameters in `conf/catgenome/acl-dao.xml` | Spring Security 5 binds the ACL identifier as a string against a `bigint` column; PostgreSQL rejects it and the library swallows the error, so it surfaced as `25P02` on the *next* statement. 4 PostgreSQL failures (`AclPermissionSecurityServiceTest` ×2, `BamSecurityServiceTest.saveBamTest`, `DataItemSecurityServiceTest.deleteFileByBioItemId`) |
+| `LocalDateTime.now().truncatedTo(ChronoUnit.MICROS)` in the `BlastTaskDaoTest` and `ActivityDaoTest` fixtures | JDK 9+ `now()` carries nanoseconds; PostgreSQL `timestamp` keeps microseconds. The assertions stay exact equality — the fixture just stops asking for precision no database here has. 3 PostgreSQL failures |
+
+Two things worth knowing when reading a Phase 2 run: the ACL failures are only visible because
+Phase 0 made the PostgreSQL suite exercise the ACL code at all, and both PostgreSQL fixes are
+PostgreSQL-only — H2 1.3 coerces the string to `bigint` and stores nanoseconds, so it never
+complained.
 
 ## Reproducing
 

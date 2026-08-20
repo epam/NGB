@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd" >
+<!-- Diagnostic logging config for this dev environment. The log4j.xml packaged in the jar pins the
+     console appender to ERROR, so Spring Security and Boot's servlet-filter wiring say nothing at
+     all - which is exactly what you need when SAML or a filter order is misbehaving. Activate with
+     JAVA_EXTRA_OPTS="-Dlog4j.configuration=file:/opt/ngb/bin/log4j-debug.xml"; see README.md. -->
+<log4j:configuration>
+    <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+        <param name="Target" value="System.out" />
+        <param name="Threshold" value="DEBUG"/>
+        <param name="Encoding" value="UTF-8" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-5p [%c] %m%n" />
+        </layout>
+    </appender>
+
+    <category name="org.springframework.security">
+        <priority value="DEBUG"/>
+    </category>
+
+    <category name="org.springframework.boot.web.servlet">
+        <priority value="DEBUG"/>
+    </category>
+
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="stdout"/>
+    </root>
+</log4j:configuration>

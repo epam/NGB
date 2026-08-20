@@ -86,6 +86,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -150,10 +151,18 @@ public class VcfManager {
     @Autowired
     private DownloadFileManager downloadFileManager;
 
+    // Both of these injection points are @Lazy to break the bean-creation cycle that Boot 2.6+
+    // refuses to start with: VcfManager -> GeneTrackManager -> FeatureIndexManager -> VcfManager
+    // (and the shorter VcfManager -> FeatureIndexManager -> VcfManager). GeneTrackManager takes
+    // FeatureIndexManager through its constructor, so that edge cannot be deferred; cutting on
+    // VcfManager's side leaves it out of every cycle in this group. The cycle predates the
+    // migration - Boot 1.5 resolved it silently through early bean references.
     @Autowired
+    @Lazy
     private GeneTrackManager geneTrackManager;
 
     @Autowired
+    @Lazy
     private FeatureIndexManager featureIndexManager;
 
     @Autowired(required = false)

@@ -81,7 +81,7 @@ public class UniprotDataManagerTest {
 
     @Before
     public void init() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test

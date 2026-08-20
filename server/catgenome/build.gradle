@@ -1,7 +1,9 @@
 import de.undercouch.gradle.tasks.download.Download
 
 plugins {
-    id 'org.springframework.boot' version '1.5.2.RELEASE'
+    id 'org.springframework.boot' version '2.7.18'
+    // From Boot 2.x the dependency BOM is a separate plugin rather than part of the Boot one.
+    id 'io.spring.dependency-management' version '1.1.7'
     id "de.undercouch.download" version "5.7.0"
 }
 
@@ -19,9 +21,6 @@ def loadConfiguration() {
     project.ext.setProperty("database", database)
     project.ext.setProperty("buildNumber", buildNumber)
     apply plugin: "java"
-    jar {
-        archiveFileName = "catgenome.jar"
-    }
 }
 
 // Token substitutions applied to the profile resources. This used to come from the
@@ -49,20 +48,28 @@ java {
 }
 
 test {
-    jvmArgs = ["-XX:MaxDirectMemorySize=7937m"]
+    // EhCache 2.10.1 sizes the `indexCache` entries (maxBytesLocalHeap="100M") by walking the
+    // object graph reflectively, which JDK 16+ refuses for java.base fields. One package per
+    // --add-opens, and the packages are dictated by what actually ends up in the cache: the
+    // htsjdk index objects reach java.io.File, ehcache's own store is a
+    // java.util.concurrent.ConcurrentHashMap, and its element metadata is held in
+    // java.util.concurrent.atomic.AtomicReference / AtomicLongFieldUpdater. A package does not
+    // imply its sub-packages, hence all four. The app needs the same flags on 17/21 - see
+    // JAVA_REQUIRED_OPTS in .devenv/ngb/entrypoint.sh. Both go away in Phase 3 with Caffeine.
+    jvmArgs = ["-XX:MaxDirectMemorySize=7937m",
+               "--add-opens=java.base/java.util=ALL-UNNAMED",
+               "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+               "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+               "--add-opens=java.base/java.io=ALL-UNNAMED"]
 }
 
 // >>>>> defines external project properties, e.g. external dependencies versions
+// Spring, Spring Security, Jackson, slf4j, JUnit, Mockito and Jetty are no longer listed here:
+// the Boot 2.7.18 BOM manages all of them. Only libraries Boot does not know about keep a pin.
 ext {
-    versionSlf4j = "1.7.5"
-    versionJackson = "2.12.5"
-    versionSpring = "4.3.7.RELEASE"
     versionJayWayJsonPath = "2.7.0"
-    versionSpringSecurity = "4.2.2.RELEASE"
-    versionJUnit = "4.12"
     versionUnitils = "3.4.2"
     versionJavaXServlet = "3.1.0"
-    versionMockito = "1.10.19"
     versionLucene = "6.6.0"
     // 1.16.16 cannot run on any JDK past 8 (it reaches into com.sun.tools.javac internals that
     // JEP 396 closed). Lombok is a compile-time-only dependency, so the version is ours to pick
@@ -78,17 +85,25 @@ repositories {
     }
     // OpenSAML 2 is not on Maven Central beyond 2.6.4, and spring-security-saml2-core 1.0.10
     // requires org.opensaml:opensaml:2.6.6 exactly. Shibboleth is its canonical host.
-    // Goes away with the OpenSAML 2 extension itself (see Phase 3/4).
+    // net.shibboleth is needed too: opensaml-2.6.6.pom's parent is net.shibboleth:parent-v2:4,
+    // which is not on Central either. Goes away with the OpenSAML 2 extension (see Phase 3/4).
     maven {
         url "https://build.shibboleth.net/maven/releases/"
         content {
             includeGroup "org.opensaml"
+            includeGroup "net.shibboleth"
+        }
+    }
+    // org.sbgn:libsbgn:0.2 exists on no other repository — not Central, not Sonatype, not EBI —
+    // and paxtools' sbgn-converter needs it transitively as well as directly. This repository
+    // used to be declared as plain http, which Gradle 7 rejects; it serves https fine.
+    maven {
+        url "https://www.biopax.org/m2repo/releases/"
+        content {
+            includeGroup "org.sbgn"
         }
     }
 }
-
-ext['jetty.version'] = '9.4.8.v20171121'
-ext['log4j2.version'] = '2.17.1'
 
 configurations {
     all*.exclude module: 'spring-boot-starter-logging'
@@ -100,30 +115,38 @@ configurations {
 dependencies {
     // >>>>> dependencies used to compile application and include into artifact
     // Spring Framework
-    implementation group: "org.springframework", name: "spring-jdbc", version: project.ext.versionSpring
-    implementation group: "org.springframework", name: "spring-context", version: project.ext.versionSpring
-    implementation group: "org.springframework", name: "spring-context-support", version: project.ext.versionSpring
-    implementation group: 'org.springframework', name: 'spring-aop', version: project.ext.versionSpring
+    implementation group: "org.springframework", name: "spring-jdbc"
+    implementation group: "org.springframework", name: "spring-context"
+    implementation group: "org.springframework", name: "spring-context-support"
+    implementation group: 'org.springframework', name: 'spring-aop'
 
-    implementation group: "org.springframework.security", name: "spring-security-core", version: versionSpringSecurity
-    implementation group: "org.springframework.security", name: "spring-security-web", version: versionSpringSecurity
-    implementation group: "org.springframework.security", name: "spring-security-config", version: versionSpringSecurity
-    implementation group: 'org.springframework.security', name: 'spring-security-acl', version: versionSpringSecurity
+    implementation group: "org.springframework.security", name: "spring-security-core"
+    implementation group: "org.springframework.security", name: "spring-security-web"
+    implementation group: "org.springframework.security", name: "spring-security-config"
+    implementation group: 'org.springframework.security', name: 'spring-security-acl'
 
     implementation group: "org.springframework.security.extensions", name: "spring-security-saml2-core", version: "1.0.10.RELEASE"
 
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
-    implementation("org.springframework.boot:spring-boot-devtools")
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     implementation('org.apache.tomcat.embed:tomcat-embed-jasper')
     implementation("org.springframework.boot:spring-boot-starter-tomcat")
 
     // Jackson
-    implementation group: "com.fasterxml.jackson.core", name: "jackson-core", version: versionJackson
-    implementation group: "com.fasterxml.jackson.core", name: "jackson-databind", version: versionJackson
-    implementation group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: versionJackson
-    implementation group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-xml", version: versionJackson
+    implementation group: "com.fasterxml.jackson.core", name: "jackson-core"
+    implementation group: "com.fasterxml.jackson.core", name: "jackson-databind"
+    implementation group: "com.fasterxml.jackson.core", name: "jackson-annotations"
+    implementation group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-xml"
     implementation group: "com.squareup.retrofit2", name: "converter-jackson", version: "2.7.2"
+
+    // JAXB left the JDK in Java 11, and ~282 imports here depend on it. Phase 2 deliberately
+    // stays on the `javax.xml.bind` package names, and jakarta.xml.bind-api 2.3.x still *is*
+    // that package — the rename to `jakarta.*` only happened in 3.0 — so the Boot-managed 2.3
+    // artifacts drop in without touching a single source file. Phase 3 renames the imports and
+    // moves to the 4.x artifacts.
+    implementation group: "jakarta.xml.bind", name: "jakarta.xml.bind-api"
+    runtimeOnly group: "org.glassfish.jaxb", name: "jaxb-runtime"
 
     // Jettison. Used directly by HttpDataManager, NCBIDataManager, PdbEntriesManager and
     // OpenTargetsManager; until Phase 1 it arrived transitively through hadoop-client, so the
@@ -139,15 +162,18 @@ dependencies {
     implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     // Logging
     implementation group: "org.apache.logging.log4j", name: "log4j", version: "2.17.1"
-    implementation group: "org.slf4j", name: "slf4j-api", version: project.ext.versionSlf4j
-    implementation group: "org.slf4j", name: "slf4j-log4j12", version: project.ext.versionSlf4j
+    implementation group: "org.slf4j", name: "slf4j-api"
+    implementation group: "org.slf4j", name: "slf4j-log4j12"
     // Samtools
     implementation group: "com.github.samtools", name: "htsjdk", version: "2.2.4"
     implementation "org.xerial.snappy:snappy-java:1.0.3-rc3"
     // Swagger
     implementation group: "org.webjars", name: "swagger-ui", version: "2.0.24"
     implementation group: "com.mangofactory", name: "swagger-springmvc", version: "1.0.2"
-    // H2 Database Engine & Connection pool
+    // H2 Database Engine & Connection pool.
+    // The h2, postgresql and flyway-core versions below are LOAD-BEARING pins: Boot 2.7.18's BOM
+    // would move them to 2.1.214 / 42.3.8 / 8.5.13, and the persistence-layer upgrade (with its
+    // 116 SQL scripts and applied-migration history) is Phase 5, not this phase.
     implementation group: "com.mchange", name: "c3p0", version: "0.9.5.1"
     implementation group: "com.h2database", name: "h2", version: "1.3.176"
     implementation group: "org.aspectj", name: "aspectjweaver", version: "1.8.8"
@@ -220,12 +246,16 @@ dependencies {
 
     // >>>>> dependencies used to compile tests; in fact no need to include them into artifact
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    // spring-boot-starter-test dropped JUnit 4 in Boot 2.2 in favour of JUnit 5; all 129 test
+    // classes here are JUnit 4, and Gradle's default test framework is JUnit 4, so it comes back
+    // as an explicit dependency rather than through the starter.
+    testImplementation group: "junit", name: "junit", version: "4.13.2"
     testImplementation group: "org.unitils", name: "unitils-core", version: project.ext.versionUnitils
     testImplementation group: "javax.servlet", name: "javax.servlet-api", version: project.ext.versionJavaXServlet
     testImplementation group: "com.jayway.jsonpath", name: "json-path", version: project.ext.versionJayWayJsonPath
     testImplementation group: "com.jayway.jsonpath", name: "json-path-assert", version: project.ext.versionJayWayJsonPath
-    testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.8.v20171121'
-    testImplementation group: "org.springframework.security", name: "spring-security-test", version: versionSpringSecurity
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-server'
+    testImplementation group: "org.springframework.security", name: "spring-security-test"
 
     testRuntimeOnly group: "javax.transaction", name: "jta", version: "1.1"
 }
@@ -257,6 +287,19 @@ def escape(String s) {
     return s.replace("\\", "\\\\")
 }
 
+// Packaging. Under Boot 1.5 `bootRepackage` rewrote the output of the plain `jar` task in place,
+// so naming the `jar` task's archive was enough. Boot 2.x builds the executable jar in a separate
+// `bootJar` task and leaves `jar` producing a thin `-plain.jar` alongside it — which the `zip`,
+// `tar` and `bundle*` tasks below would happily pick up too, since they glob build/libs for
+// `**/*.jar`. So name `bootJar` and turn the plain jar off.
+bootJar {
+    archiveFileName = "catgenome.jar"
+}
+
+jar {
+    enabled = false
+}
+
 //Distributions
 //distribution properties
 def appName = 'ngb-server'
@@ -275,7 +318,7 @@ startScripts {
 }
 
 task zip(type: Zip) {
-    dependsOn bootRepackage
+    dependsOn bootJar
     from('build/libs/') {
         include '**/*.jar'
         into('lib')
@@ -288,7 +331,7 @@ task zip(type: Zip) {
 }
 
 task tar(type: Tar) {
-    dependsOn bootRepackage
+    dependsOn bootJar
     from('build/libs/') {
         include '**/*.jar'
         into('lib')
@@ -318,7 +361,7 @@ task customStartScriptsWin(type: CreateStartScripts) {
 }
 
 task downloadJreWin(type: Download) {
-    dependsOn bootRepackage
+    dependsOn bootJar
     src jreURL + windowsJre
     dest "$buildDir/downloads/$windowsJre"
     header 'Cookie', 'oraclelicense=accept-securebackup-cookie'
@@ -327,7 +370,7 @@ task downloadJreWin(type: Download) {
 
 task bundleWindows(type: Zip) {
     dependsOn downloadJreWin
-    dependsOn customStartScriptsWin, bootRepackage
+    dependsOn customStartScriptsWin, bootJar
     from(tarTree(resources.gzip("$buildDir/downloads/$windowsJre"))) {
     }
 
@@ -362,7 +405,7 @@ task customStartScriptsLinux (type: CreateStartScripts) {
 }
 
 task downloadJreLinux(type: Download) {
-    dependsOn bootRepackage
+    dependsOn bootJar
     src jreURL + linuxJre
     dest "$buildDir/downloads/$linuxJre"
     header 'Cookie', 'oraclelicense=accept-securebackup-cookie'
@@ -371,7 +414,7 @@ task downloadJreLinux(type: Download) {
 
 task bundleLinux(type: Tar) {
     dependsOn downloadJreLinux
-    dependsOn customStartScriptsLinux, bootRepackage
+    dependsOn customStartScriptsLinux, bootJar
     from (tarTree(resources.gzip("$buildDir/downloads/$linuxJre"))) {
     }
 

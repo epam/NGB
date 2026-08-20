@@ -42,6 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
@@ -78,7 +79,11 @@ public class ActivityDaoTest extends AbstractDaoTest {
                 .itemId(itemId)
                 .itemType(BiologicalDataItemFormat.GENE)
                 .actionType(ActivityType.CREATE)
-                .datetime(LocalDateTime.now())
+                // Truncated to microseconds because the whole Activity is compared with the
+                // reloaded one: PostgreSQL's `timestamp` keeps microseconds and the JDBC driver
+                // drops the rest, which only became visible when the build moved off JDK 8 (its
+                // default Clock ticked in milliseconds; from JDK 9 now() carries nanoseconds).
+                .datetime(LocalDateTime.now().truncatedTo(ChronoUnit.MICROS))
                 .username(TEST_USER)
                 .newValue(TEST_VALUE_NEW)
                 .oldValue(TEST_VALUE_OLD)

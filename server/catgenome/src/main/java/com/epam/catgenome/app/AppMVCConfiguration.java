@@ -24,15 +24,16 @@
 
 package com.epam.catgenome.app;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -45,7 +46,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.epam.catgenome.config.SwaggerConfig;
 import com.epam.catgenome.controller.JsonMapper;
@@ -57,7 +58,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Configuration
 @Import(SwaggerConfig.class)
 @ComponentScan(basePackages = {"com.epam.catgenome.config", "com.epam.catgenome.controller"})
-public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
+public class AppMVCConfiguration implements WebMvcConfigurer {
 
     private static final int MILLISECONDS = 1000;
     private static final int CACHE_SIZE = 1024 * 1024 * 100;
@@ -93,11 +94,12 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
     }
 
     @Bean
-    @ConditionalOnClass({EmbeddedServletContainerFactory.class })
-    public EmbeddedServletContainerCustomizer tomcatContainerCustomizer() {
-        return container -> {
-            TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container;
-            tomcat.setTldSkip("*.jar");
+    @ConditionalOnClass({ServletWebServerFactory.class })
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatContainerCustomizer() {
+        return tomcat -> {
+            // Boot 1.5's setTldSkip(String) replaced the whole skip list with the single pattern
+            // given; in Boot 2.x the list is a collection, so replace it rather than add to it.
+            tomcat.setTldSkipPatterns(Collections.singletonList("*.jar"));
             if (useEmbeddedContainer() && staticResourcesCachePeriod > 0) {
                 TomcatConfigurer configurer = applicationContext.getBean(TomcatConfigurer.class);
                 configurer.configure(tomcat, CACHE_SIZE, staticResourcesCachePeriod * MILLISECONDS);
@@ -123,12 +125,10 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
                 new MappingJackson2HttpMessageConverter();
         converter.setObjectMapper(objectMapper());
         converters.add(converter);
-        super.configureMessageConverters(converters);
     }
 
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {
-        super.configurePathMatch(configurer);
         configurer.setUseSuffixPatternMatch(false);
     }
 
@@ -137,10 +137,11 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
         return new JsonMapper();
     }
 
-    @Bean
-    public SwaggerConfig swaggerConfig() {
-        return new SwaggerConfig();
-    }
+    // SwaggerConfig is deliberately *not* declared as a @Bean here. It is a @Configuration class
+    // that both the @Import above and the component scan of com.epam.catgenome.config already
+    // register under the name "swaggerConfig"; Boot 1.5 silently let the @Bean method override
+    // that definition, but bean-definition overriding is disabled by default from Boot 2.1, so
+    // the duplicate is now a startup failure. Removing the method keeps the same single bean.
 
     /*@Bean //TODO: may be useful if we'll need to move swagger back to restapi
     public ServletRegistrationBean dispatcherRegistration(DispatcherServlet dispatcherServlet) {

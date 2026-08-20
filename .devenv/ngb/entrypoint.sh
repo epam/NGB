@@ -32,6 +32,20 @@ export PATH="$JAVA_HOME/bin:$PATH"
 log "using JDK $JAVA_VERSION -> $JAVA_HOME"
 java -version 2>&1 | sed 's/^/[ngb-entrypoint]   /'
 
+# Flags the app cannot run without on this JDK. JAVA_EXTRA_OPTS stays the user's escape hatch
+# for experiments; these are not optional, so they do not live there.
+#   --add-opens java.base/{java.util,java.util.concurrent,java.util.concurrent.atomic,java.io}:
+#   EhCache 2.10.1 sizes the `indexCache` entries (maxBytesLocalHeap="100M" in
+#   conf/catgenome/ehcache.xml) by walking the object graph reflectively, which JDK 16+ refuses
+#   for java.base fields - every cache put then throws InaccessibleObjectException. A package
+#   does not imply its sub-packages, hence all four. The same four are in
+#   server/catgenome/build.gradle's test { jvmArgs }. Goes away in Phase 3 with Caffeine.
+JAVA_REQUIRED_OPTS=""
+if [[ "$JAVA_VERSION" != "8" ]]; then
+  JAVA_REQUIRED_OPTS="--add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED"
+  log "required JDK $JAVA_VERSION flags: $JAVA_REQUIRED_OPTS"
+fi
+
 # --- the jar ----------------------------------------------------------------
 if [[ ! -f "$NGB_JAR" ]]; then
   die "$NGB_JAR not found. Build it first:
@@ -109,6 +123,7 @@ log "URL: ${NGB_BASE_URL}"
 exec java \
   -Xmx"${NGB_HEAP}" \
   -Djava.security.egd=file:/dev/./urandom \
+  ${JAVA_REQUIRED_OPTS} \
   ${JAVA_EXTRA_OPTS:-} \
   -jar "$NGB_JAR" \
   --conf="$CONF_DIR"

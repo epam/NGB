@@ -78,6 +78,21 @@
                 ]]>
             </value>
         </property>
+        <!--
+          ~ CAST(? AS BIGINT) around every object_id_identity parameter below is not decoration.
+          ~ Spring Security 5 binds the ACL identifier as a *string* - JdbcAclService.findChildren,
+          ~ JdbcMutableAclService.retrieveObjectIdentityPrimaryKey and .createObjectIdentity all call
+          ~ ObjectIdentity.getIdentifier().toString() (Spring Security 4.2 passed the raw Serializable,
+          ~ i.e. a Long). That came in with the aclClassIdSupported feature, whose reference schema
+          ~ declares object_id_identity as varchar; NGB's is `bigint not null` in both script sets, and
+          ~ NGB's own LookupStrategyImpl binds it with ps.setLong. H2 1.3 coerces varchar to bigint
+          ~ silently, PostgreSQL does not: it rejects `bigint = character varying` (SQLSTATE 42883),
+          ~ and because JdbcMutableAclService swallows the resulting DataAccessException the visible
+          ~ symptom is the *next* statement in the transaction failing with 25P02. The cast is on the
+          ~ parameter, not the column, so the unique index on (object_id_class, object_id_identity)
+          ~ is still usable. Alternative would be widening the column to varchar, which is a schema
+          ~ change to both script sets and belongs to the Flyway/H2 phase, if ever.
+          -->
         <property name="findChildrenQuery">
             <value>
                 <![CDATA[
@@ -86,7 +101,7 @@
 			        where
 			            obj.parent_object = parent.id
 			            and obj.object_id_class = class.id
-			            and parent.object_id_identity = ?
+			            and parent.object_id_identity = CAST(? AS BIGINT)
 			            and parent.object_id_class = (
 			                select id FROM catgenome.acl_class where acl_class.class = ?
                         )
@@ -114,7 +129,7 @@
                 <![CDATA[
                     insert into catgenome.acl_object_identity (
                         object_id_class, object_id_identity, owner_sid, entries_inheriting
-                    ) values (?, ?, ?, ?)
+                    ) values (?, CAST(? AS BIGINT), ?, ?)
                 ]]>
             </value>
         </property>
@@ -127,7 +142,7 @@
                         catgenome.acl_class
                     where
                         acl_object_identity.object_id_class = acl_class.id and acl_class.class=?
-			            and acl_object_identity.object_id_identity = ?
+			            and acl_object_identity.object_id_identity = CAST(? AS BIGINT)
                 ]]>
             </value>
         </property>

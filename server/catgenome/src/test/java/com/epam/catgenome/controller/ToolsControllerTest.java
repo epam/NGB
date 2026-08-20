@@ -36,9 +36,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
-import org.mockito.internal.matchers.Equals;
-import org.mockito.internal.matchers.Find;
+// These used to be org.mockito.internal.matchers.{Equals,Find}, passed to jsonPath().value().
+// That compiled and worked because Mockito 1's matchers implemented org.hamcrest.Matcher; from
+// Mockito 2 they implement org.mockito.ArgumentMatcher instead, which jsonPath() knows nothing
+// about - so the call silently bound to value(Object) and compared the payload against the
+// matcher object's toString(). Hamcrest is what this assertion always wanted.
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -87,7 +91,7 @@ public class ToolsControllerTest extends AbstractControllerTest {
         FeatureFileSortRequest request = new FeatureFileSortRequest();
         request.setOriginalFilePath(copiedToBeSorted.getAbsolutePath());
 
-        assertSortRequest(request, new Find(".*" + EXPECTED_SORTED_SUFFIX_BED_NAME + "$"));
+        assertSortRequest(request, Matchers.matchesPattern(".*" + EXPECTED_SORTED_SUFFIX_BED_NAME + "$"));
     }
 
     @Test
@@ -105,10 +109,11 @@ public class ToolsControllerTest extends AbstractControllerTest {
         request.setOriginalFilePath(copiedToBeSorted.getAbsolutePath());
         request.setSortedFilePath(sortedPath.getAbsolutePath());
 
-        assertSortRequest(request, new Equals(sortedPath.getAbsolutePath()));
+        assertSortRequest(request, Matchers.is(sortedPath.getAbsolutePath()));
     }
 
-    private void assertSortRequest(FeatureFileSortRequest request, ArgumentMatcher payloadMatcher) throws Exception {
+    private void assertSortRequest(FeatureFileSortRequest request, Matcher<String> payloadMatcher)
+            throws Exception {
         ResultActions actions = mvc()
                 .perform(post(URL_SORT).content(getObjectMapper().writeValueAsString(request))
                         .contentType(EXPECTED_CONTENT_TYPE))

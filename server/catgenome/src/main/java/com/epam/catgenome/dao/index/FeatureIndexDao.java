@@ -108,6 +108,7 @@ import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Repository;
@@ -150,7 +151,11 @@ public class FeatureIndexDao {
     @Autowired
     private BookmarkManager bookmarkManager;
 
+    // @Lazy breaks a bean-creation cycle that Boot 2.6+ refuses to start with
+    // (VcfManager -> FeatureIndexManager -> FeatureIndexDao -> VcfManager). The cycle predates the migration; deferring
+    // resolution of this one edge to first use is the smallest change that removes it.
     @Autowired
+    @Lazy
     private VcfManager vcfManager;
 
     @Autowired

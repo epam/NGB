@@ -75,14 +75,11 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
     @Autowired
     private PermissionFactory permissionFactory;
 
-    @Autowired
-    private JdbcMutableAclService jdbcMutableAclService;
-
     @Override
     protected MethodSecurityExpressionHandler createExpressionHandler() {
         NGBMethodSecurityExpressionHandler expressionHandler =
             new NGBMethodSecurityExpressionHandler();
-        expressionHandler.setPermissionEvaluator(permissionEvaluator());
+        expressionHandler.setPermissionEvaluator(context.getBean(PermissionEvaluator.class));
         expressionHandler.setRoleHierarchy(roleHierarchy());
         expressionHandler.setApplicationContext(context);
         expressionHandler.setPermissionHelper(context.getBean(PermissionHelper.class));
@@ -111,8 +108,20 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
         return roleHierarchy;
     }
 
+    /**
+     * Takes the ACL service as a method parameter rather than an {@code @Autowired} field, because
+     * the two are mutually dependent: the {@code jdbcMutableAclService} bean from the imported
+     * conf/catgenome/acl-dao.xml is {@code autowire="constructor"} over {@link LookupStrategy} and
+     * {@link net.sf.ehcache.Ehcache}-backed {@code aclCache()}, both defined here - so it cannot be
+     * built until this configuration class exists, while a field would have required it to exist
+     * before this class could be instantiated. Boot 2.6 turned that cycle from a warning into a
+     * startup failure ({@code spring.main.allow-circular-references} defaults to false), and as a
+     * parameter it is only resolved when this bean is actually created, by which time
+     * {@code lookupStrategy()} and {@code aclCache()} are available. Only reachable with
+     * security.acl.enable=true, which is why the unauthenticated profile never saw it.
+     */
     @Bean
-    public PermissionEvaluator permissionEvaluator() {
+    public PermissionEvaluator permissionEvaluator(final JdbcMutableAclService jdbcMutableAclService) {
         AclPermissionEvaluator evaluator = new AclPermissionEvaluator(jdbcMutableAclService);
         evaluator.setPermissionFactory(permissionFactory);
         return evaluator;

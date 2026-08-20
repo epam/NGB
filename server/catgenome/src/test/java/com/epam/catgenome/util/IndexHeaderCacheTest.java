@@ -49,7 +49,7 @@ public class IndexHeaderCacheTest<T extends Feature, S> extends AbstractManagerT
 
     @Before
     public void setup() throws IOException {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         assertNotNull(context);
         assertNotNull(indexCache);
         vcf = context.getResource(FELIS_CATUS_VCF).getFile().getAbsolutePath();

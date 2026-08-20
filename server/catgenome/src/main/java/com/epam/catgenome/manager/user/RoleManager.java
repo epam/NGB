@@ -40,6 +40,7 @@ import com.epam.catgenome.security.acl.GrantPermissionManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
@@ -59,7 +60,11 @@ public class RoleManager {
     @Autowired
     private UserDao userDao;
 
+    // @Lazy breaks a bean-creation cycle that Boot 2.6+ refuses to start with
+    // (RoleManager -> GrantPermissionManager -> RoleManager). The cycle predates the migration; deferring
+    // resolution of this one edge to first use is the smallest change that removes it.
     @Autowired
+    @Lazy
     private GrantPermissionManager permissionManager;
 
     @Transactional(propagation = Propagation.REQUIRED)

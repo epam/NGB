@@ -25,6 +25,7 @@
 package com.epam.catgenome.dao;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -210,7 +211,12 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
         blastTask.setTitle(title);
         blastTask.setStatus(BlastTaskStatus.CREATED);
         blastTask.setOwner(authManager.getAuthorizedUser());
-        blastTask.setCreatedDate(LocalDateTime.now());
+        // Truncated to microseconds because the assertions below compare the saved instance with
+        // the reloaded one: PostgreSQL's `timestamp` keeps microseconds and the JDBC driver drops
+        // the rest. On JDK 8 that was invisible - the default Clock ticked in milliseconds - but
+        // from JDK 9 LocalDateTime.now() carries sub-microsecond digits that no database here can
+        // store. Micros is the coarser of the two flavours (H2 1.3 keeps nanoseconds).
+        blastTask.setCreatedDate(LocalDateTime.now().truncatedTo(ChronoUnit.MICROS));
         blastTask.setDatabase(blastDatabase);
         return blastTask;
     }

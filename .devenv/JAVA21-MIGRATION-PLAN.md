@@ -774,12 +774,18 @@ Java 9+ modularity breaks. Phase 3 moves to 21.
   OpenSAML 4. So bumping the extension 1.0.2 → 1.0.10 costs one new repository. The fallback,
   if that repository is ever unavailable, is to stay on **1.0.2.RELEASE** (opensaml 2.6.1, on
   Central) — verified compatible with Spring Security 5.7.11 by the same check.
-- **The insecure BioPAX repository can simply be deleted, not worked around.**
-  `http://www.biopax.org/m2repo/releases/` now returns **404** — it is dead, not merely plain
-  HTTP, so the Gradle 7 insecure-protocol block was never the real problem. All three artifacts
-  resolve from Maven Central: `org.biopax.paxtools:paxtools-core:5.1.0`,
-  `:sbgn-converter:5.0.0`, `pathwaycommons:chilay-sbgn:3.0.0`. No `allowInsecureProtocol`, no
-  vendoring. This closes the "Insecure/dead Maven repository" row of the risk register.
+- **The insecure BioPAX repository stays, re-declared as HTTPS.** *(Corrects an earlier finding
+  in this list which said the repository was dead and could be deleted — that was wrong, and the
+  build proved it: dropping the repository made `org.sbgn:libsbgn:0.2` unresolvable.)* The three
+  BioPAX/PathwayCommons artifacts the plan names do resolve from Maven Central
+  (`org.biopax.paxtools:paxtools-core:5.1.0`, `:sbgn-converter:5.0.0`,
+  `pathwaycommons:chilay-sbgn:3.0.0`), but the module also declares **`org.sbgn:libsbgn:0.2`**
+  directly, and `sbgn-converter` needs it transitively — and that artifact is on **no** other
+  repository (not Central, not Sonatype, not EBI). `https://www.biopax.org/m2repo/releases/`
+  serves it fine; only the `http://` scheme was the Gradle 7 problem. So the fix is one character
+  plus a `content { includeGroup "org.sbgn" }` block to keep the repository from being consulted
+  for anything else. No `allowInsecureProtocol`, no vendoring. The risk-register row stays open:
+  a single-source dependency on a research-group web server.
 - **Boot 2.7.18's BOM would silently upgrade H2 and Flyway if their pins were dropped.** It
   manages `h2` → **2.1.214** and `flyway-core` → **8.5.13**, both of which belong to Phase 5,
   not here. The pins on `com.h2database:h2:1.3.176` and `org.flywaydb:flyway-core:3.2.1` are
@@ -848,6 +854,232 @@ Java 9+ modularity breaks. Phase 3 moves to 21.
   is not a routine bump but a precondition for the 17 toolchain. Lombok is compile-time only, so
   the version is the build's to choose rather than the Boot BOM's, and pinning it keeps Phase 3's
   JDK 21 move independent of whatever Boot 3.5 happens to manage.
+- **Boot 2.6's default path matcher breaks `swagger-springmvc` outright.** The app started up
+  under Boot 2.7 and then died in `finishRefresh` with a bare `NullPointerException` in
+  `RegexRequestMappingPatternMatcher.patternConditionsMatchOneOfIncluded`. Boot 2.6 switched Spring
+  MVC's default from `AntPathMatcher` to `PathPatternParser`, which leaves
+  `RequestMappingInfo.getPatternsCondition()` **null**; `com.mangofactory:swagger-springmvc` 1.0.2
+  dereferences it while scanning the request mappings. Fixed by pinning the old matcher in
+  `application.properties`:
+  ```
+  spring.mvc.pathmatch.matching-strategy=ant-path-matcher
+  ```
+  `AppMVCConfiguration.setUseSuffixPatternMatch(false)` is an `AntPathMatcher`-only setting too, so
+  this keeps both consistent. **The property goes away in Phase 3 with the Swagger → springdoc
+  move**, which is also when `setUseSuffixPatternMatch` disappears — do not forget it, or the whole
+  API will silently start matching paths by different rules.
+- **Spring 5.2 dropped `charset=UTF-8` from JSON responses, which is 40 test assertions.**
+  `MediaType.APPLICATION_JSON_UTF8` is deprecated in 5.2 and the Jackson converter no longer lists
+  the charset parameter among its supported media types (RFC 8259 fixes JSON to UTF-8, so it was
+  redundant). Responses are still UTF-8; only the header changed. 39 controller tests assert on
+  `AbstractControllerTest.EXPECTED_CONTENT_TYPE`, so they were fixed by changing that one constant
+  to `MediaType.APPLICATION_JSON_VALUE`. The 40th, `BamControllerTest.bamTrackGetTest`, failed the
+  *other* way round — `BamController.loadTrackStream` sets the header by hand on its
+  `ResponseBodyEmitter`, so that one is a main-source change from `APPLICATION_JSON_UTF8` to
+  `APPLICATION_JSON` (it has to happen anyway: the constant is gone in Spring 6).
+- **Boot 2's `MockitoTestExecutionListener` runs before dependency injection, which breaks
+  `VcfManagerTest`.** All 13 of its tests failed in `@Before` because Boot 2.x contributes a
+  listener at order **1950** that calls `MockitoAnnotations.openMocks()` — i.e. *before*
+  `DependencyInjectionTestExecutionListener` (2000) has populated the fields. The class has ten
+  `@Spy @Autowired` fields, so Mockito tried to instantiate the spied managers from scratch, and
+  they have no no-arg constructor. Boot 1.5's listener only handled `@MockBean`, hence no problem
+  until now. Fixed by declaring `@TestExecutionListeners` explicitly with spring-test's own default
+  eight, which leaves out the two spring-boot-test adds; declared listeners *replace* the defaults
+  and are not re-sorted. The alternatives were both worse: `@SpyBean` and plain
+  `@Autowired VcfManager` would each mutate a bean in a context that nine other test classes share.
+  The spies here are pure wiring — the class contains no `Mockito.when`/`verify` at all.
+- **`MockitoAnnotations.initMocks(x)` is `openMocks(x).close()` in Mockito 4 — it releases the
+  mocks it just created.** With the listener fixed, `VcfManagerTest` still failed, now with
+  `MockitoException: Failed to release mocks`, caused by
+  `NotAMockException: Argument should be a mock, but is: class BiologicalDataItemManager`. Mockito 4
+  implements the deprecated `initMocks` as `openMocks(testClass).close()`, and that close breaks on
+  `@Spy` fields holding Spring beans. The plan's exit criteria already calls for
+  `initMocks` → `openMocks`; done at all **12** call sites, not just the failing one, since the
+  immediate-release semantics is wrong everywhere and the method is deprecated in Mockito 4.
+- **The `org.mockito.internal.matchers` uses are Hamcrest matchers, not argument matchers — the
+  exit criteria's advice to port them to `org.mockito.ArgumentMatchers` is wrong for this site.**
+  `ToolsControllerTest` passes `new Equals(...)` / `new Find(...)` to
+  `jsonPath(...).value(...)`. That worked because Mockito 1's matchers implemented
+  `org.hamcrest.Matcher`; from Mockito 2 they implement `org.mockito.ArgumentMatcher`, which
+  `jsonPath()` knows nothing about — so the call bound to the `value(Object)` overload instead and
+  compared the payload against the matcher's `toString()` (hence `expected:<"/tmp/...">` *with*
+  quotes). Ported to `org.hamcrest.Matchers.is(...)` and `Matchers.matchesPattern(...)`, which is
+  what the assertion always meant. Nothing here needs `ArgumentMatchers`.
+- **The Lombok bump silently removed every implicit Jackson creator in the code base.** This is the
+  subtlest thing in the phase and it does not fail at build time. Six
+  `NGBSessionSharingSecurityTest` tests failed with `AccessDeniedException`, and the cause was
+  neither Spring Security nor the ACL layer:
+  ```
+  InvalidDefinitionException: Cannot construct instance of `...entity.session.NGBSessionValue`
+      (no Creators, like default constructor, exist)
+  ```
+  Lombok emitted `@java.beans.ConstructorProperties` on generated constructors up to **1.16.16**
+  and stopped doing so by default in 1.16.20. Jackson uses that annotation as an implicit
+  properties-based creator, so `@Value @Builder` classes with no no-arg constructor deserialised
+  fine on Lombok 1.16.16 and stop dead on 1.18.46. About **90** classes carry `@Builder` without a
+  no-arg constructor and roughly a third of them are deserialised from JSON — external-database
+  responses (OpenTargets, PharmGKB, DGIdb, TTD, HomoloGene, NCBI), controller request bodies,
+  `NGBSessionValue`. Only the session one had a test to catch it, and even there the failure was
+  disguised: `PermissionHelper.sessionIsReadable` catches the `IOException` and returns `false`, so
+  a parse error presents as "permission denied". Fixed globally with a new **`server/lombok.config`**
+  carrying `lombok.anyConstructor.addConstructorProperties = true`, which restores the 1.16.16
+  behaviour for both modules. Annotating the affected classes with `@Jacksonized` instead was
+  rejected: the affected set cannot be enumerated reliably from the source, and everything missed
+  would be a silent runtime failure. Note for Phase 3: `lombok.config` is **not** an input Gradle
+  tracks for incremental compilation — after editing it, delete `build/classes` or the change will
+  appear not to work.
+- **EhCache 2.10.1 cannot size its caches on JDK 16+, and this is a production bug, not a test
+  bug.** 11 tests (`EhCacheTest`, `IndexHeaderCacheTest`, `TestAbstractFeatureReader`) failed with
+  `InaccessibleObjectException`. `conf/catgenome/ehcache.xml` configures `indexCache` with
+  `maxBytesLocalHeap="100M"`, which makes EhCache size every entry by walking its object graph
+  reflectively — JEP 396 forbids that for `java.base` fields. It needs one `--add-opens` per
+  package, and the packages follow from what is actually cached: `java.util`,
+  `java.util.concurrent` (EhCache's own store is a `ConcurrentHashMap`),
+  `java.util.concurrent.atomic` and `java.io` (the htsjdk index objects hold a `File`). Note that
+  `--add-opens java.base/java.util` does **not** cover `java.util.concurrent`, which in turn does
+  not cover `java.util.concurrent.atomic`. The flags now live in two places: `test { jvmArgs }` in
+  `server/catgenome/build.gradle`, and `JAVA_REQUIRED_OPTS` in `.devenv/ngb/entrypoint.sh` —
+  deliberately *not* in `.env`'s `JAVA_EXTRA_OPTS`, because they are not optional and because
+  `--add-opens` makes JDK 8 refuse to start, so they have to be conditional on the JDK. Both go
+  away in Phase 3 step 6 (D11, EhCache → Caffeine). The `INFO [AgentLoader] Failed to attach to VM
+  and load the agent` line in the logs is EhCache failing to load its sizing agent and falling back
+  to reflection; it is a symptom of the same thing.
+- **`EhCacheTest` needed a fix of its own, and the `--add-opens` list is not what made it pass.**
+  Its `TestIndexCache` was a non-static inner class, so every cached instance held a `this$0`
+  reference to the test, and through the test's `@Autowired ApplicationContext` to the entire Spring
+  container — which the sizing walker then traversed on every `put`, eventually reaching
+  `jdk.internal.loader.BuiltinClassLoader` (a package it would be wrong to open). Made `static`. On
+  JDK 8 the same bug merely mis-sized every entry by megabytes, silently.
+- **Boot 2's `SpringBootMockResolver` breaks `@Spy` over an AOP-proxied bean, which is what all 13
+  `VcfManagerTest` failures were.** The symptom is Mockito rejecting its own spy:
+  `NotAMockException: Argument should be a mock, but is: class ...BiologicalDataItemManager`, thrown
+  from `openMocks`. `spring-boot-test` registers `SpringBootMockResolver` under
+  `mockito-extensions/org.mockito.plugins.MockResolver`, and Mockito 2+ passes every object through
+  the registered resolvers (`MockUtil.resolve`) before looking up its handler. That resolver unwraps
+  anything implementing `Advised` to its ultimate target — and a spy created over a CGLIB proxy is a
+  *subclass* of the proxy, hence itself `Advised`, so Mockito resolves the spy back to the raw bean,
+  finds no handler and fails the class. It only bites the `@Spy @Autowired` fields whose beans are
+  proxied (`@Transactional`: `vcfFileManager`, `biologicalDataItemManager`,
+  `referenceGenomeManager`); the ten other `@Spy` users in the suite spy unproxied objects and are
+  unaffected. Fixed by unwrapping with `AopTestUtils.getUltimateTargetObject` *before* `openMocks`,
+  so the spies wrap plain beans. The spies are load-bearing — they are the injection candidates for
+  `@InjectMocks VcfManager` — so they cannot simply be dropped; and losing the transactional advice
+  on them changes nothing observable, because every spied method is `Propagation.REQUIRED` or
+  `SUPPORTS` and the test methods already run inside a transaction. Two Mockito diagnostics worth
+  remembering: Mockito strips its own frames from stack traces (a test-source
+  `org/mockito/configuration/MockitoConfiguration` overriding `cleansStackTrace()` to `false`
+  restores them, and without it this trace points at the `openMocks` line and nothing else), and
+  `NotAMockException`'s message prints the class of the *resolved* object, not of the argument.
+- **VERIFY resolved behaviourally — SAML SSO works on Boot 2.7.18 / Spring Security 5.7.11, and
+  `make smoke-saml` prints `SAML SSO OK` on JDK 17.** Getting there took three fixes, all of them
+  Boot 2 defaults rather than SAML problems; the OpenSAML 2 stack itself needed no code changes at
+  all. The three are recorded in the next three entries. The `security.acl.enable=true` profile is
+  the only one that exercises the ACL layer, method security and SAML, so none of this shows up in
+  `make up` / `make smoke` — run `make up-saml` before believing a Boot change is finished.
+- **`SecurityFilterAutoConfiguration` must stop being excluded, or SAML authenticates and then
+  forgets.** Symptom: the whole web SSO profile succeeds — `AuthNResponse;SUCCESS`,
+  `SAMLProcessingFilter Set SecurityContextHolder to ExpiringUsernameAuthenticationToken
+  [... Granted Authorities=[ROLE_USER, ROLE_ADMIN, NGB_ADMINS]]`, 302 to `/catgenome/` — and the
+  very next request is anonymous again, so the browser bounces back to the IdP forever. What gave it
+  away was that no `FilterChainProxy` "Securing POST /saml/SSO" line appeared at all, while
+  "Securing GET /" did: `/saml/**` was never entering the security chain. Boot's
+  `ServletContextInitializerBeans` prints the answer:
+  ```
+  Mapping filters: filterRegistrationBean order=2147483647, ..., samlEntryPoint order=2147483647,
+    samlIDPDiscovery ..., samlWebSSOProcessingFilter ..., samlFilter ...,
+    springSecurityFilterChain urls=[/*] order=2147483647, requestLoggingFilter ...
+  ```
+  `SAMLSecurityConfiguration` declares ten `Filter` beans that are only meant to be reached through
+  `samlFilter` *inside* the chain, but every `Filter` bean is also auto-registered with the servlet
+  container in its own right. With `SecurityFilterAutoConfiguration` excluded (as Boot 1.5 had it),
+  `springSecurityFilterChain` is just another such bean at `LOWEST_PRECEDENCE`, so the tie is broken
+  by bean-definition order — which happened to favour it under Boot 1.5 and does not under Boot 2.7.
+  The standalone `SAMLProcessingFilter` then served `/saml/SSO` outside the chain, with no
+  `SecurityContextPersistenceFilter` to store the result. Un-excluding the auto-configuration puts
+  the chain back at order **-100** via `DelegatingFilterProxyRegistrationBean` (which also stops the
+  raw bean being registered twice), and it contributes nothing else: its one bean is
+  `@ConditionalOnBean(name = "springSecurityFilterChain")`, so `AUTH_MODE=none` is unaffected —
+  verified with `make smoke` afterwards. The alternative, wrapping each of the ten filters in a
+  disabled `FilterRegistrationBean`, is ten times the code for the same effect.
+- **The ACL configuration has always been circular; Boot 2.6 made it fatal.**
+  `security.acl.enable=true` failed at startup with
+  `messageSource → metaDataSourceAdvisor → aclSecurityConfiguration (field private
+  JdbcMutableAclService AclSecurityConfiguration.jdbcMutableAclService) ↔ jdbcMutableAclService
+  defined in acl-dao.xml`. The `jdbcMutableAclService` bean in the `@ImportResource`d
+  `conf/catgenome/acl-dao.xml` is `autowire="constructor"` over `LookupStrategy` and the EhCache-backed
+  `aclCache()`, both `@Bean`s of `AclSecurityConfiguration` — so it cannot exist until that
+  configuration class does, while the `@Autowired` field required it to exist first. Fixed by taking
+  it as a parameter of the one `@Bean` method that uses it
+  (`permissionEvaluator(JdbcMutableAclService)`), which is resolved only when that bean is built, by
+  which time `lookupStrategy()` and `aclCache()` are available; `createExpressionHandler()` now asks
+  the context for the `PermissionEvaluator`, the same idiom it already used for `PermissionHelper`.
+  No `@Lazy`, no proxy.
+- **One circular reference is not ours to fix, so `spring.main.allow-circular-references=true`
+  stays until Phase 3.** `spring-security-saml2-core` 1.0.10 annotates
+  `SAMLEntryPoint.setSamlDiscovery` and `SAMLDiscovery.setSamlEntryPoint` with
+  `@Autowired(required=false)` — verified in the jar's constant pool, not assumed — so two of its
+  own classes are wired to each other, and both directions are used at runtime (the entry point
+  forwards to discovery when no IdP is determined; discovery returns to the entry point's processing
+  URL). Suppressing either injection means changing SAML behaviour, which is the one thing a
+  waypoint must not do. So the global flag goes in `application.properties` with a comment, *after*
+  every cycle in NGB's own code was cut properly rather than masked (four `@Lazy` annotations and
+  the ACL fix above). **Remove the property in Phase 3**, which deletes the OpenSAML 2 stack
+  outright.
+- **Spring Security 5's `StrictHttpFirewall` is the default now, and a literal `//` in a path is a
+  500.** 4.2 used `DefaultHttpFirewall`, which normalised such paths. Nothing in NGB's own routes
+  produces `//`, but `ngb-cli` builds its URLs as `getServerUrl() + getRequestUrl()`, so a server
+  URL configured with a trailing slash now yields `RequestRejectedException` instead of working. Not
+  changed here — Phase 2 does not touch the CLI's URL handling — but it is a behaviour change users
+  can hit, and it belongs in the release notes.
+- **Scheduling survived the loss of `@EnableScheduling`, and the proof is an error in the log.**
+  The `ERROR [TaskUtils$LoggingErrorHandler] Unexpected error occurred in scheduled task /
+  IllegalArgumentException: Patented protein sequences database not available` from
+  `ProteinPatentsScheduledService` is environmental (the dev environment has no BLAST database), but
+  it can only appear if `@Scheduled` methods are still being run — i.e. the XML
+  `task:annotation-driven` really is the superset of the annotation that was removed.
+- **Swagger still answers after the path-matcher pin:** `/catgenome/api-docs` → 200 with the full
+  resource listing, and `/catgenome/docs` → 200. Worth checking explicitly, because the
+  `swagger-springmvc` NPE it works around happens during `finishRefresh` and a half-initialised
+  Swagger would otherwise be invisible until someone opened the UI.
+- **`BlatSearchManagerTest` now fails for a reason outside the migration: UCSC redirects HTTP to
+  HTTPS.** `testFind` and `testFindBlatReadSequence` die with
+  `ExternalDbUnavailableException: Unexpected HTTP status: 302 Found` for
+  `http://genome.cse.ucsc.edu/cgi-bin/hgBlat?...`. Confirmed with `curl` that the host now answers
+  302 to `https://`; `blat.search.url` is plain `http://` in seven property files and the diff does
+  not touch any of them, and `HttpURLConnection` has never followed cross-protocol redirects on any
+  JDK. So this is external drift that also breaks BLAT search in production, recorded in
+  `TEST-BASELINE.md` rather than papered over. Fixing it means changing the default URL to `https`
+  (and belongs to whichever phase is allowed to change behaviour, not this one).
+- **Spring Security 5 binds the ACL object identity as a *string*, and NGB's `object_id_identity` is
+  `bigint` — four PostgreSQL-only failures.** `AclPermissionSecurityServiceTest.set/deletePermissionsTest`,
+  `BamSecurityServiceTest.saveBamTest` and `DataItemSecurityServiceTest.deleteFileByBioItemId` all
+  ended in `SQLSTATE 25P02 "current transaction is aborted"` on an unrelated `select id from
+  catgenome.acl_sid ...`, i.e. a cascade. The originating error was only visible in PostgreSQL's own
+  log: `ERROR: operator does not exist: bigint = character varying`. Cause, verified by disassembling
+  both jars rather than assumed: `JdbcMutableAclService.retrieveObjectIdentityPrimaryKey`,
+  `.createObjectIdentity` and `JdbcAclService.findChildren` pass
+  `ObjectIdentity.getIdentifier().toString()` in 5.7.11 where 4.2.2 passed the raw `Serializable`
+  (a `Long`). That came in with the `aclClassIdSupported` feature, whose reference schema declares
+  `object_id_identity` as `varchar`; NGB's is `bigint not null` in both script sets, and NGB's own
+  `LookupStrategyImpl` binds it with `ps.setLong`. H2 1.3 coerces silently, PostgreSQL refuses.
+  `JdbcMutableAclService` then *swallows* the `DataAccessException` (`catch → return null`), which is
+  why the symptom surfaced one statement later. Fixed by casting the parameter — not the column — in
+  the three affected queries in `conf/catgenome/acl-dao.xml` (`CAST(? AS BIGINT)`), so the unique
+  index on `(object_id_class, object_id_identity)` is still usable and both flavours take the same
+  SQL. Overriding the three library methods in `JdbcMutableAclServiceImpl` was the alternative;
+  rejected because `findChildren` would mean copying private helpers (`mapObjectIdentityRow`,
+  `AclClassIdUtils`) that will move again in Spring Security 6. Note this was reachable only because
+  Phase 0 made the PostgreSQL suite exercise the ACL code at all.
+- **PostgreSQL keeps microseconds, and JDK 9+ `LocalDateTime.now()` does not — three more
+  PostgreSQL-only failures.** `BlastTaskDaoTest.testSaveTask`/`testUpdateTask` and
+  `ActivityDaoTest.shouldCreateReadDeleteActivity` compare a saved instance with the reloaded one and
+  got `expected:<...T20:38:12.677146279> but was:<...677146>`. On JDK 8 the default `Clock` ticked in
+  milliseconds, so the round trip was lossless by accident; from JDK 9 `now()` carries nanoseconds,
+  which `timestamp` cannot store (H2 1.3 can, hence H2 stayed green). The two fixtures now build
+  their timestamps with `.truncatedTo(ChronoUnit.MICROS)`, so the assertions stay exact equality and
+  still catch a real DAO break — rather than being loosened to an approximate comparison. No
+  production code compares a persisted `LocalDateTime` for equality; the stored value has always been
+  truncated on PostgreSQL.
 - **`.devenv` needed two edits for the JDK, not one.** `GRADLE_H2` in the `Makefile` becomes
   `with-java17 ./gradlew --no-daemon`, but `make test-pg` does not go through it — the `test-pg`
   service in `docker-compose.yml` carries its own `command:` array, which also has to be

@@ -78,13 +78,13 @@ jar-pg: builder ## PostgreSQL jar -> dist/catgenome-psql.jar
 
 .PHONY: jar-fast
 jar-fast: builder ## Server-only rebuild, skips UI and mkdocs (fast inner loop)
-	$(EXEC_BUILD) $(GRADLE_H2) $(SERVER) bootRepackage -Pprofile=jar -Pdatabase=h2 -x test
+	$(EXEC_BUILD) $(GRADLE_H2) $(SERVER) bootJar -Pprofile=jar -Pdatabase=h2 -x test
 	$(EXEC_BUILD) cp /workspace/server/catgenome/build/libs/catgenome.jar /workspace/dist/catgenome-h2.jar
 	@echo "==> dist/catgenome-h2.jar (server only - UI and docs unchanged)"
 
 .PHONY: jar-pg-fast
 jar-pg-fast: builder ## Server-only PostgreSQL rebuild (fast inner loop)
-	$(EXEC_BUILD) $(GRADLE_H2) $(SERVER) bootRepackage -Pprofile=jar -Pdatabase=postgres -x test
+	$(EXEC_BUILD) $(GRADLE_H2) $(SERVER) bootJar -Pprofile=jar -Pdatabase=postgres -x test
 	$(EXEC_BUILD) cp /workspace/server/catgenome/build/libs/catgenome.jar /workspace/dist/catgenome-psql.jar
 	@echo "==> dist/catgenome-psql.jar (server only - UI and docs unchanged)"
 

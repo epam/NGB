@@ -154,7 +154,11 @@ public class BamController extends AbstractRESTController {
                     indexUrl, emitter);
         }
         HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        // Was APPLICATION_JSON_UTF8, deprecated in Spring 5.2 and removed in Spring 6: RFC 8259
+        // fixes JSON to UTF-8, so the charset parameter is redundant. The emitter still writes
+        // UTF-8; this only drops the parameter from the header, which is what every other
+        // endpoint here now sends.
+        responseHeaders.setContentType(MediaType.APPLICATION_JSON);
         return new ResponseEntity<>(emitter, responseHeaders, HttpStatus.OK);
     }
 

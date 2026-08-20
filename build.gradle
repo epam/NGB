@@ -101,7 +101,7 @@ task buildJar(type: GradleBuild) {
     if (runTests) {
         tasks = ['clean', 'build']
     } else {
-        tasks = ['clean', 'bootRepackage']
+        tasks = ['clean', 'bootJar']
     }
     startParameter.projectProperties = [profile    : 'jar',
                                         database   : database,

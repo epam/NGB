@@ -36,6 +36,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -63,7 +64,11 @@ public abstract class AbstractControllerTest extends AbstractJUnitTest {
     protected static final String UPLOAD_FILE_PARAM = "saveFile";
     protected static final String REFERENCE_ID_PARAM = "referenceId";
 
-    protected static final String EXPECTED_CONTENT_TYPE = "application/json;charset=UTF-8";
+    // Was "application/json;charset=UTF-8". Spring 5.2 deprecated APPLICATION_JSON_UTF8 and took
+    // the charset parameter off the Jackson converter's supported media types (RFC 8259 fixes JSON
+    // to UTF-8, so the parameter was redundant), which changed what the controllers now write in
+    // the Content-Type header. The responses are still UTF-8 encoded.
+    protected static final String EXPECTED_CONTENT_TYPE = MediaType.APPLICATION_JSON_VALUE;
 
     private MockMvc mockMvc;
 

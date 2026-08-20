@@ -35,7 +35,7 @@ public class CustomSAMLProcessingFilter extends SAMLProcessingFilter {
                                                 final HttpServletResponse response) throws AuthenticationException {
         try {
 
-            logger.debug("Attempting SAML2 authentication using profile {}", getProfileName());
+            log.debug("Attempting SAML2 authentication using profile {}", getProfileName());
             SAMLMessageContext context = contextProvider.getLocalEntity(request, response);
             processor.retrieveMessage(context);
 
@@ -48,13 +48,13 @@ public class CustomSAMLProcessingFilter extends SAMLProcessingFilter {
             return getAuthenticationManager().authenticate(token);
 
         } catch (SAMLException | org.opensaml.xml.security.SecurityException e) {
-            logger.debug(INVALID_SAML_MESSAGE, e);
+            log.debug(INVALID_SAML_MESSAGE, e);
             throw new AuthenticationServiceException(INVALID_SAML_MESSAGE, e);
         } catch (MetadataProviderException e) {
-            logger.debug("Error determining metadata contracts", e);
+            log.debug("Error determining metadata contracts", e);
             throw new AuthenticationServiceException("Error determining metadata contracts", e);
         } catch (MessageDecodingException e) {
-            logger.debug("Error decoding incoming SAML message", e);
+            log.debug("Error decoding incoming SAML message", e);
             throw new AuthenticationServiceException("Error decoding incoming SAML message", e);
         }
     }
@@ -70,12 +70,12 @@ public class CustomSAMLProcessingFilter extends SAMLProcessingFilter {
             if (binding.equals(messageBinding)) {
                 if (endpoint.getLocation() != null &&
                         uriComparator.compare(endpoint.getLocation(), requestURL)) {
-                    logger.debug("Found endpoint {} for request URL {} based on location attribute in metadata",
+                    log.debug("Found endpoint {} for request URL {} based on location attribute in metadata",
                             endpoint, requestURL);
                     return endpoint;
                 } else if (endpoint.getResponseLocation() != null &&
                         uriComparator.compare(endpoint.getResponseLocation(), requestURL)) {
-                    logger.debug("Found endpoint {} for request URL {} based on response " +
+                    log.debug("Found endpoint {} for request URL {} based on response " +
                             "location attribute in metadata", endpoint, requestURL);
                     return endpoint;
                 }

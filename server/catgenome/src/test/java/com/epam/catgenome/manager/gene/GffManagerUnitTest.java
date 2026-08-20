@@ -77,7 +77,7 @@ public class GffManagerUnitTest {
 
     @Before
     public void setup() throws IOException {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         Resource resource = context.getResource("classpath:templates/genes_sorted.gtf");
         try (AbstractFeatureReader<GeneFeature, LineIterator> reader = AbstractEnhancedFeatureReader
                 .getFeatureReader(
