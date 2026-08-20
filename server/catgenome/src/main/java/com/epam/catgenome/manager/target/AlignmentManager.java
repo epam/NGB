@@ -166,7 +166,7 @@ public class AlignmentManager {
                         log.error(e.getMessage(), e);
                     }
                 });
-            } catch (Exception e) {
+            } catch (IOException | ParseException e) {
                 log.error("Failed to process target with id {}", target.getId());
                 log.error(e.getMessage(), e);
             } finally {

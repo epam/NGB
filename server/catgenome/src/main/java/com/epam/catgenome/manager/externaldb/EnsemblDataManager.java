@@ -99,13 +99,18 @@ public class EnsemblDataManager {
         final String location = ensemblServer + ENSEMBL_TOOL + "/" + geneId + "?";
         try {
             final String geneData = httpDataManager.fetchData(location, params);
-            final EnsemblEntryVO ensemblEntryVO;
-            ensemblEntryVO = objectMapper.readValue(geneData, EnsemblEntryVO.class);
-            String[] desc = ensemblEntryVO.getDescription().split("Acc:");
+            final EnsemblEntryVO ensemblEntryVO = objectMapper.readValue(geneData, EnsemblEntryVO.class);
+            // Ensembl omits "description" for some ids, and a JSON `null` body deserialises to
+            // a null VO; both used to surface as a caught NullPointerException.
+            final String description = ensemblEntryVO == null ? null : ensemblEntryVO.getDescription();
+            if (description == null) {
+                return null;
+            }
+            final String[] desc = description.split("Acc:");
             if (desc.length > 1) {
                 return desc[1].replace("]", "");
             }
-        } catch (ExternalDbUnavailableException | JsonProcessingException | NullPointerException e) {
+        } catch (ExternalDbUnavailableException | JsonProcessingException e) {
             log.error(e.getMessage());
         }
         return null;
