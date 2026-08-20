@@ -1,0 +1,284 @@
+# NGB containerised dev environment (see README.md).
+#
+# Profiles:
+#   (default)  builder + certs + ngb-h2      -> build and run on H2
+#   saml       + idp (Keycloak) + idp-metadata
+#   pg         + postgres + ngb-pg + test-pg
+#   cli        + ngb-cli container
+#
+# Ports are deliberately identical inside and outside the containers, because SAML
+# compares URLs byte-for-byte between the browser and the service provider.
+
+name: ngb-dev
+
+x-toolbox: &toolbox
+  image: ngb-dev-toolbox:latest
+  build:
+    context: ./toolbox
+    args:
+      NODE_VERSION: "14.17.5"
+
+x-build-volumes: &build-volumes
+  - ../:/workspace
+  - gradle-cache:/cache/gradle
+  - npm-cache:/cache/npm
+  - node-modules:/workspace/client/node_modules
+
+services:
+
+  # ---------------------------------------------------------------- builder --
+  # Long-lived toolbox. All Gradle/npm/mkdocs work happens in here:
+  #   docker-compose exec builder ./gradlew buildJar -PnoTest
+  builder:
+    <<: *toolbox
+    container_name: ngb-builder
+    working_dir: /workspace
+    volumes: *build-volumes
+    environment:
+      GRADLE_USER_HOME: /cache/gradle
+      npm_config_cache: /cache/npm
+      TERM: xterm-256color
+    command: ["sleep", "infinity"]
+    networks: [ngb]
+
+  # ------------------------------------------------------------------ certs --
+  # One-shot: self-signed JKS (HTTPS + SAML signing key) and the RSA keypair NGB
+  # uses to mint JWT tokens for the CLI. Idempotent - skips what already exists.
+  certs:
+    <<: *toolbox
+    container_name: ngb-certs
+    entrypoint: ["/bin/bash", "/scripts/gen-secrets.sh"]
+    environment:
+      KEYSTORE_PASS: ${KEYSTORE_PASS:-changeit}
+      HTTPS_KEY_ALIAS: ${HTTPS_KEY_ALIAS:-ngb-https}
+      SAML_SIGN_KEY: ${SAML_SIGN_KEY:-ngb-saml}
+      SAN_HOSTS: ${SAN_HOSTS:-ngb.dev.local,ngb-pg.dev.local,localhost}
+    volumes:
+      - ./certs:/scripts:ro
+      - ./secrets:/secrets
+    networks: [ngb]
+
+  # ------------------------------------------------------------------ ngb-h2 --
+  ngb-h2:
+    <<: *toolbox
+    container_name: ngb-h2
+    depends_on:
+      certs:
+        condition: service_completed_successfully
+    environment:
+      AUTH_MODE: ${AUTH_MODE:-none}
+      JAVA_VERSION: ${NGB_JAVA_VERSION:-8}
+      JAVA_EXTRA_OPTS: ${JAVA_EXTRA_OPTS:-}
+      NGB_HEAP: ${NGB_HEAP:-2g}
+      NGB_JAR: /dist/catgenome-h2.jar
+      NGB_HOSTNAME: ngb.dev.local
+      HTTP_PORT: "8080"
+      HTTPS_PORT: "9443"
+      DB_DRIVER: org.h2.Driver
+      DB_URL: jdbc:h2:file:/opt/ngb/H2/catgenome
+      DB_USER: catgenome
+      DB_PASSWORD: ""
+      DEFAULT_ADMIN: ${DEFAULT_ADMIN:-ngbadmin@ngb.dev.local}
+      KEYSTORE_PASS: ${KEYSTORE_PASS:-changeit}
+      HTTPS_KEY_ALIAS: ${HTTPS_KEY_ALIAS:-ngb-https}
+      SAML_SIGN_KEY: ${SAML_SIGN_KEY:-ngb-saml}
+      CATGENOME_CONF_DIR: /opt/ngb/config
+    entrypoint: ["/bin/bash", "/opt/ngb/bin/entrypoint.sh"]
+    volumes:
+      - ./ngb:/opt/ngb/bin:ro
+      - ../dist:/dist:ro
+      - ./secrets:/secrets:ro
+      - ./data/ngs:/ngs
+      - ngb-h2-contents:/opt/ngb/contents
+      - ngb-h2-db:/opt/ngb/H2
+    ports:
+      - "8080:8080"
+      - "9443:9443"
+    networks:
+      ngb:
+        aliases: [ngb.dev.local]
+
+  # ------------------------------------------------------------------ ngb-pg --
+  # Same jar family, PostgreSQL flavour (built with -Pdatabase=postgres).
+  ngb-pg:
+    <<: *toolbox
+    container_name: ngb-pg
+    profiles: [pg]
+    depends_on:
+      certs:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    environment:
+      AUTH_MODE: ${AUTH_MODE:-none}
+      JAVA_VERSION: ${NGB_JAVA_VERSION:-8}
+      JAVA_EXTRA_OPTS: ${JAVA_EXTRA_OPTS:-}
+      NGB_HEAP: ${NGB_HEAP:-2g}
+      NGB_JAR: /dist/catgenome-psql.jar
+      NGB_HOSTNAME: ngb-pg.dev.local
+      HTTP_PORT: "8090"
+      HTTPS_PORT: "8493"
+      DB_DRIVER: org.postgresql.Driver
+      DB_URL: jdbc:postgresql://postgres:5432/ngb
+      DB_USER: catgenome
+      DB_PASSWORD: catgenome
+      DB_WAIT_HOST: postgres
+      DEFAULT_ADMIN: ${DEFAULT_ADMIN:-ngbadmin@ngb.dev.local}
+      KEYSTORE_PASS: ${KEYSTORE_PASS:-changeit}
+      HTTPS_KEY_ALIAS: ${HTTPS_KEY_ALIAS:-ngb-https}
+      SAML_SIGN_KEY: ${SAML_SIGN_KEY:-ngb-saml}
+      CATGENOME_CONF_DIR: /opt/ngb/config
+    entrypoint: ["/bin/bash", "/opt/ngb/bin/entrypoint.sh"]
+    volumes:
+      - ./ngb:/opt/ngb/bin:ro
+      - ../dist:/dist:ro
+      - ./secrets:/secrets:ro
+      - ./data/ngs:/ngs
+      - ngb-pg-contents:/opt/ngb/contents
+    ports:
+      - "8090:8090"
+      - "8493:8493"
+    networks:
+      ngb:
+        aliases: [ngb-pg.dev.local]
+
+  # ---------------------------------------------------------------- postgres --
+  # Pinned to 9.6 by default: Flyway 3.2.1 (server/catgenome/build.gradle) refuses
+  # to run against modern PostgreSQL. Set PG_VERSION=16 once Flyway is upgraded -
+  # that pairing is itself one of the migration checkpoints.
+  postgres:
+    image: postgres:${PG_VERSION:-9.6}
+    container_name: ngb-postgres
+    profiles: [pg]
+    environment:
+      POSTGRES_USER: catgenome
+      POSTGRES_PASSWORD: catgenome
+      POSTGRES_DB: ngb
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catgenome -d ngb"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [ngb]
+
+  # ----------------------------------------------------------------- test-pg --
+  # The PostgreSQL test profile hardcodes localhost:5432/ngb_test, so this runs in
+  # the database's own network namespace instead of patching the properties file.
+  test-pg:
+    <<: *toolbox
+    container_name: ngb-test-pg
+    profiles: [pg]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    network_mode: "service:postgres"
+    working_dir: /workspace
+    volumes: *build-volumes
+    environment:
+      GRADLE_USER_HOME: /cache/gradle
+      npm_config_cache: /cache/npm
+    command:
+      - "./gradlew"
+      - "-p"
+      - "server/catgenome"
+      - "test"
+      - "-Pdatabase=postgres"
+
+  # --------------------------------------------------------------------- idp --
+  # Keycloak as SAML 2.0 IdP. KC_HTTP_PORT matches the published port so the SAML
+  # URLs are identical from the browser and from inside the network.
+  idp:
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-26.0}
+    container_name: ngb-idp
+    profiles: [saml]
+    command: ["start-dev", "--import-realm", "--http-port=8081"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN_USER:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:-admin}
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: http://idp.dev.local:8081
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "false"
+    volumes:
+      - ./keycloak/realm-ngb.json:/opt/keycloak/data/import/realm-ngb.json:ro
+    # No volume for /opt/keycloak/data/h2 on purpose: Keycloak runs as uid 1000 and
+    # cannot write a root-owned named volume. start-dev recreates its H2 database and
+    # re-imports the realm on every start, so the IdP is always reproducible - but any
+    # change made in the admin console by hand is lost on restart. Edit realm-ngb.json
+    # instead if you need it to stick.
+    ports:
+      - "8081:8081"
+    networks:
+      ngb:
+        aliases: [idp.dev.local]
+
+  # ------------------------------------------------------------ idp-metadata --
+  # NGB reads IdP metadata from a *file* (FilesystemMetadataProvider), so the
+  # descriptor is pulled from Keycloak into the shared secrets directory.
+  idp-metadata:
+    <<: *toolbox
+    container_name: ngb-idp-metadata
+    profiles: [saml]
+    depends_on: [idp]
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -euo pipefail
+        url="http://idp.dev.local:8081/realms/ngb/protocol/saml/descriptor"
+        echo "Waiting for Keycloak realm descriptor at $$url ..."
+        for i in $$(seq 1 60); do
+          if curl -fsS "$$url" -o /secrets/idp-metadata.xml.tmp \
+             && grep -q "EntityDescriptor" /secrets/idp-metadata.xml.tmp; then
+            mv /secrets/idp-metadata.xml.tmp /secrets/idp-metadata.xml
+            echo "IdP metadata written to /secrets/idp-metadata.xml"
+            exit 0
+          fi
+          sleep 3
+        done
+        echo "ERROR: could not fetch IdP metadata from $$url" >&2
+        exit 1
+    volumes:
+      - ./secrets:/secrets
+    networks: [ngb]
+
+  # --------------------------------------------------------------------- cli --
+  # ngb-cli for data registration and the e2e CLI test suite.
+  cli:
+    <<: *toolbox
+    container_name: ngb-cli
+    profiles: [cli]
+    working_dir: /workspace
+    entrypoint: ["/bin/bash", "/opt/cli/entrypoint.sh"]
+    command: ["sleep", "infinity"]
+    environment:
+      GRADLE_USER_HOME: /cache/gradle
+      npm_config_cache: /cache/npm
+      NGB_SERVER_URL: ${CLI_SERVER_URL:-http://ngb.dev.local:8080/catgenome}
+      NGB_TOKEN: ${CLI_TOKEN:-}
+    volumes:
+      - ../:/workspace
+      - ./cli:/opt/cli:ro
+      - ../dist:/dist:ro
+      - ./data/ngs:/ngs
+      - gradle-cache:/cache/gradle
+      - npm-cache:/cache/npm
+    networks: [ngb]
+
+networks:
+  ngb:
+    name: ngb-dev
+
+volumes:
+  gradle-cache:
+  npm-cache:
+  node-modules:
+  ngb-h2-contents:
+  ngb-h2-db:
+  ngb-pg-contents:
+  pg-data:

@@ -1,0 +1,181 @@
+{
+  "realm": "ngb",
+  "enabled": true,
+  "displayName": "NGB Dev IdP",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "accessTokenLifespan": 3600,
+  "ssoSessionIdleTimeout": 7200,
+  "ssoSessionMaxLifespan": 36000,
+
+  "groups": [
+    { "name": "NGB_ADMINS", "path": "/NGB_ADMINS" },
+    { "name": "NGB_USERS", "path": "/NGB_USERS" }
+  ],
+
+  "users": [
+    {
+      "username": "ngbadmin@ngb.dev.local",
+      "email": "ngbadmin@ngb.dev.local",
+      "firstName": "NGB",
+      "lastName": "Admin",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "credentials": [
+        { "type": "password", "value": "admin", "temporary": false }
+      ],
+      "groups": ["/NGB_ADMINS"]
+    },
+    {
+      "username": "ngbuser@ngb.dev.local",
+      "email": "ngbuser@ngb.dev.local",
+      "firstName": "NGB",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "requiredActions": [],
+      "credentials": [
+        { "type": "password", "value": "user", "temporary": false }
+      ],
+      "groups": ["/NGB_USERS"]
+    }
+  ],
+
+  "clients": [
+    {
+      "clientId": "https://ngb.dev.local:9443/catgenome",
+      "name": "NGB (H2)",
+      "description": "NGB dev instance on H2, https://ngb.dev.local:9443/catgenome",
+      "protocol": "saml",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "frontchannelLogout": true,
+      "fullScopeAllowed": true,
+      "baseUrl": "https://ngb.dev.local:9443/catgenome",
+      "adminUrl": "https://ngb.dev.local:9443/catgenome/saml/SSO",
+      "redirectUris": ["https://ngb.dev.local:9443/catgenome/*"],
+      "attributes": {
+        "saml_assertion_consumer_url_post": "https://ngb.dev.local:9443/catgenome/saml/SSO",
+        "saml_single_logout_service_url_post": "https://ngb.dev.local:9443/catgenome/saml/SingleLogout",
+        "saml_name_id_format": "email",
+        "saml_force_name_id_format": "true",
+        "saml.force.post.binding": "true",
+        "saml.authnstatement": "true",
+        "saml.server.signature": "true",
+        "saml.assertion.signature": "true",
+        "saml.client.signature": "false",
+        "saml.signature.algorithm": "RSA_SHA256",
+        "saml_signature_canonicalization_method": "http://www.w3.org/2001/10/xml-exc-c14n#"
+      },
+      "protocolMappers": [
+        {
+          "name": "email",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "email",
+            "friendly.name": "email",
+            "attribute.name": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+            "attribute.nameformat": "URI Reference"
+          }
+        },
+        {
+          "name": "name",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "username",
+            "friendly.name": "name",
+            "attribute.name": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+            "attribute.nameformat": "URI Reference"
+          }
+        },
+        {
+          "name": "groups",
+          "protocol": "saml",
+          "protocolMapper": "saml-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "attribute.name": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/tokenGroups",
+            "attribute.nameformat": "URI Reference",
+            "single": "false",
+            "full.path": "false"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "https://ngb-pg.dev.local:8493/catgenome",
+      "name": "NGB (PostgreSQL)",
+      "description": "NGB dev instance on PostgreSQL, https://ngb-pg.dev.local:8493/catgenome",
+      "protocol": "saml",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "frontchannelLogout": true,
+      "fullScopeAllowed": true,
+      "baseUrl": "https://ngb-pg.dev.local:8493/catgenome",
+      "adminUrl": "https://ngb-pg.dev.local:8493/catgenome/saml/SSO",
+      "redirectUris": ["https://ngb-pg.dev.local:8493/catgenome/*"],
+      "attributes": {
+        "saml_assertion_consumer_url_post": "https://ngb-pg.dev.local:8493/catgenome/saml/SSO",
+        "saml_single_logout_service_url_post": "https://ngb-pg.dev.local:8493/catgenome/saml/SingleLogout",
+        "saml_name_id_format": "email",
+        "saml_force_name_id_format": "true",
+        "saml.force.post.binding": "true",
+        "saml.authnstatement": "true",
+        "saml.server.signature": "true",
+        "saml.assertion.signature": "true",
+        "saml.client.signature": "false",
+        "saml.signature.algorithm": "RSA_SHA256",
+        "saml_signature_canonicalization_method": "http://www.w3.org/2001/10/xml-exc-c14n#"
+      },
+      "protocolMappers": [
+        {
+          "name": "email",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "email",
+            "friendly.name": "email",
+            "attribute.name": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+            "attribute.nameformat": "URI Reference"
+          }
+        },
+        {
+          "name": "name",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "username",
+            "friendly.name": "name",
+            "attribute.name": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+            "attribute.nameformat": "URI Reference"
+          }
+        },
+        {
+          "name": "groups",
+          "protocol": "saml",
+          "protocolMapper": "saml-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "attribute.name": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/tokenGroups",
+            "attribute.nameformat": "URI Reference",
+            "single": "false",
+            "full.path": "false"
+          }
+        }
+      ]
+    }
+  ]
+}

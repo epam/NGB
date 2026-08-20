@@ -1,3 +1,27 @@
 /dist
 /docs/site
 /.gradle
+
+# build outputs the gradle build writes into the source tree, not into build/:
+# `ui` drops webpack bundles into the server's static resources, `templates` writes
+# export/, and the test task creates contents/ plus directories literally named after
+# unresolved ${...} properties.
+/contents/
+/server/catgenome/${*
+/server/catgenome/src/main/resources/export/
+/server/catgenome/src/main/resources/static/docs/
+/server/catgenome/src/main/resources/static/static/
+/server/catgenome/src/main/resources/static/*.bundle.*.js
+/server/catgenome/src/main/resources/static/app.*.css
+/server/catgenome/src/main/resources/static/vendors.*.css
+/server/catgenome/src/main/resources/static/error-401.html
+/server/catgenome/src/main/resources/static/ngb-logo.png
+
+# containerised dev environment (.devenv): local state, never committed
+/.devenv/.env
+/.devenv/secrets/
+/.devenv/data/*
+!/.devenv/data/ngs/
+/.devenv/data/ngs/*
+!/.devenv/data/ngs/.gitkeep
+/.devenv/ngb/override.properties
