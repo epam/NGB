@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.externaldb;
 import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneManager;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchRequest;
+import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
@@ -49,6 +50,9 @@ public class HomologeneManagerTest extends TestCase {
     private HomologeneManager homologeneManager;
 
     @Autowired
+    private TaxonomyManager taxonomyManager;
+
+    @Autowired
     private ApplicationContext context;
 
     private String fileName;
@@ -57,6 +61,12 @@ public class HomologeneManagerTest extends TestCase {
     public void setUp() throws IOException, ParseException {
         this.fileName = context.getResource("classpath:homologene//homologene.xml").getFile().getPath();
         homologeneManager.importHomologeneDatabase(fileName);
+        // searchHomologenes resolves species names through the taxonomy Lucene index, which lives in
+        // a directory shared by the whole suite and is not shipped with the repo. Without this the
+        // test only passed when TaxonomyManagerTest happened to have run first (or when a previous
+        // run left the directory behind) and otherwise died on IndexNotFoundException.
+        taxonomyManager.writeLuceneTaxonomyIndex(
+                context.getResource("classpath:taxonomy//names.dmp").getFile().getPath());
     }
 
     @Test

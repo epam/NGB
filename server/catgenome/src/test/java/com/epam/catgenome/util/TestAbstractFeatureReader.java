@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 
 import org.junit.Before;
 
@@ -61,6 +62,7 @@ public class TestAbstractFeatureReader  {
     private static final String CANTON_VCF = "classpath:templates/CantonS.vcf.gz";
     private String vcf;
     private String vcfGz;
+    private String indexedVcf;
 
     @Before
     public void setup() throws IOException {
@@ -68,6 +70,30 @@ public class TestAbstractFeatureReader  {
         assertNotNull(indexCache);
         vcf = context.getResource(FELIS_CATUS_VCF).getFile().getAbsolutePath();
         vcfGz = context.getResource(CANTON_VCF).getFile().getAbsolutePath();
+        indexedVcf = createIndexedCopy(new File(vcf));
+    }
+
+    /**
+     * Copies a VCF to a private temporary directory and builds a Tribble index next to it.
+     *
+     * The index used to be committed as {@code templates/Felis_catus.vcf.idx}, but it recorded a
+     * source size of 5,898 bytes for a 5,995-byte file, so htsjdk seeked to a stale offset and read
+     * a partial line - five {@code VcfManagerTest} cases failed on it. Building it here keeps
+     * {@code requireIndex = true} satisfiable without a stale fixture, and keeps the generated index
+     * out of the shared templates directory, where it would be auto-discovered by other tests.
+     */
+    private static String createIndexedCopy(final File source) throws IOException {
+        final File dir = Files.createTempDirectory("ngb-tribble-").toFile();
+        dir.deleteOnExit();
+        final File copy = new File(dir, source.getName());
+        Files.copy(source.toPath(), copy.toPath());
+        copy.deleteOnExit();
+
+        final Index index = IndexFactory.createIntervalIndex(copy, new VCFCodec());
+        final File indexFile = new File(Tribble.indexFile(copy.getAbsolutePath()));
+        IndexFactory.writeIndex(index, indexFile);
+        indexFile.deleteOnExit();
+        return copy.getAbsolutePath();
     }
 
     /**
@@ -213,11 +239,11 @@ public class TestAbstractFeatureReader  {
 
     @Test
     public void testTribbleConstructors() throws IOException {
-        TribbleIndexedFeatureReader tribbleFeatureReader = new TribbleIndexedFeatureReader(vcf, new VCFCodec(),
+        TribbleIndexedFeatureReader tribbleFeatureReader = new TribbleIndexedFeatureReader(indexedVcf, new VCFCodec(),
                 true, indexCache);
         assertNotNull(tribbleFeatureReader);
 
-        TribbleIndexedFeatureReader tribbleFeatureReaderNullIndex = new TribbleIndexedFeatureReader(vcf, null,
+        TribbleIndexedFeatureReader tribbleFeatureReaderNullIndex = new TribbleIndexedFeatureReader(indexedVcf, null,
                         new VCFCodec(), true, indexCache);
         assertNotNull(tribbleFeatureReaderNullIndex);
         assertTrue(tribbleFeatureReaderNullIndex.hasIndex());

@@ -25,8 +25,6 @@ package com.epam.catgenome.manager.target;
 
 import com.epam.catgenome.entity.target.*;
 import com.epam.catgenome.exception.TargetUpdateException;
-import com.epam.catgenome.util.db.Page;
-import com.epam.catgenome.util.db.PagingInfo;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Test;
@@ -72,16 +70,20 @@ public class TargetManagerTest extends TestCase {
         assertEquals(updatedTarget.getTargetName(), "New Target");
     }
 
+    /**
+     * The manager returns every matching target, unpaged. Commit cdb4b2bb moved paging out of
+     * {@link TargetManager#load(TargetQueryParams)} into {@code TargetController.loadTargets},
+     * so that a page is cut from the ACL-filtered list rather than from the raw query - this test
+     * kept asserting the old, manager-level paging and had failed ever since.
+     */
     @Test
     public void loadTargetsTest() throws IOException {
         createTarget(TARGET);
         createTarget(TARGET_1);
         createTarget(TARGET_2);
-        final TargetQueryParams targetQueryParams = TargetQueryParams.builder()
-                .pagingInfo(PagingInfo.builder().pageSize(2).pageNum(1).build())
-                .build();
+        final TargetQueryParams targetQueryParams = TargetQueryParams.builder().build();
         final List<Target> targets = targetManager.load(targetQueryParams);
-        assertEquals(2, targets.size());
+        assertEquals(3, targets.size());
     }
 
     @Test

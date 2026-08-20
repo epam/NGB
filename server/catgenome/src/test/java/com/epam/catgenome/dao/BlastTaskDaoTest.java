@@ -204,6 +204,9 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
     private BlastTask getBlastTask(final long id, final String title) {
         BlastTask blastTask = new BlastTask();
         blastTask.setId(id);
+        // TASK.BLAST_TASK_ID is NOT NULL since v2024.03.21_19.00__blast_task_id.sql, which
+        // backfilled existing rows with BLAST_TASK_ID = TASK_ID; mirror that here.
+        blastTask.setBlastTaskId(id);
         blastTask.setTitle(title);
         blastTask.setStatus(BlastTaskStatus.CREATED);
         blastTask.setOwner(authManager.getAuthorizedUser());
