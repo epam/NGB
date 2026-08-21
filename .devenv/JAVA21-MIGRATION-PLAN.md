@@ -3830,6 +3830,62 @@ warnings in 14 files, and `verify-tracks.sh` green — `signed s3 vcf`, `signed 
 vcf` and `cram` all byte-identical to their local equivalents, which is the check that matters
 since all three rewritten subclasses are on that path.
 
+#### POI 3.16 → 5.5.1 (commit 3)
+
+Latest is 5.5.1, resolved rather than guessed (`poi:5.+` through `dependencyInsight`, then pinned).
+The API break is the one the table predicted and no more: `Cell.getCellTypeEnum()` — the interim
+name POI 3.15 gave the typed getter while `getCellType()` still returned an `int` — was removed in
+POI 4 and its behaviour returned to `getCellType()`. Two call sites, both in `TargetGeneManager`
+(the numeric-Tax-ID assertion at 776 and the `getCellValue` switch at 844). `ExcelExportUtils` and
+`TargetExportXLSManager` needed no change at all: `createSheet`, `createRow`, `createCell`,
+`setCellValue`, `createCellStyle`, `XSSFWorkbook.createFont`, `setBold`, `autoSizeColumn` and
+`Workbook.write` are all unchanged.
+
+**A pin that had to move with it: commons-collections4.** POI 5.5.1 requests 4.5.0; the build
+declared 4.1 (2015). Gradle's default highest-wins would have taken 4.5.0, but the
+`io.spring.dependency-management` plugin resolves the Maven way, so a version declared in the build
+script beats a newer transitive request — POI would have run against a library four minor versions
+older than it was compiled against, with no build-time signal. Bumped to 4.6.0 (latest) in this
+commit rather than in the version-backlog commit. NGB only uses
+`CollectionUtils`/`ListUtils`/`MapUtils`/`SetUtils` from it, all unchanged. The same mechanism is
+worth remembering for the Azure commit: it is why the explicit `reactor-core:3.5.3` line
+*downgrades* reactor from 3.7.19.
+
+Other transitive movement: `poi-ooxml-schemas:3.16` + `xmlbeans:2.6.0` (2011) → `poi-ooxml-lite`
++ `xmlbeans:5.3.0`; `commons-compress` rises 1.26.0 → 1.28.0 (POI asks for a newer one than htsjdk
+does), which asks for commons-io 2.20.0 and so is covered by commit 2's 2.22.0; `curvesapi` 1.04 →
+1.08; `SparseBitSet`, `commons-codec` and `log4j-api` join. `commons-codec` resolves to 1.18.0
+rather than the 1.20.0 POI asks for, because Spring Boot's BOM manages it — a managed version, not
+an accident.
+
+**Verified by hand, because these paths have no test coverage at all** (no xlsx fixture exists and
+no test mentions XSSF or the import endpoint). Both POI surfaces were exercised through REST
+against the running server, before the bump and after, on identical inputs:
+
+- *Write:* `GET /target/report?targetId=…&genesOfInterest=ENSG00000012048&translationalGenes=ENSG00000139618`
+  on a target holding BRCA1/BRCA2. Both builds returned a valid 12-sheet workbook (~30 KB) that
+  openpyxl reads. Comparing sheet names, dimensions, header text, header boldness and sampled data
+  rows — including all 353 rows of live RCSB structure data in "Structures (PDB)" — the two are
+  identical, down to POI still silently truncating "Associated Diseases(Open Targets)" to the
+  31-character sheet-name limit rather than throwing.
+- *The one visible difference:* `autoSizeColumn` widths come out uniformly narrower under POI 5, by
+  a constant factor of 6/7 (e.g. 8.008 → 6.867 characters) — POI's default character width, which
+  autofit divides by, changed. Cosmetic, and never environment-independent anyway since autofit
+  measures with AWT font metrics against whatever fonts the container has.
+- *Read:* `POST /target/genes/import/4` with an xlsx built by openpyxl — deliberately a foreign
+  producer, not POI — with cells covering every branch of `getCellValue` (STRING, NUMERIC, BOOLEAN,
+  blank), an `AG 10090` additional-genes column and a numeric metadata column. POI 5 produced
+  byte-for-byte the same imported records as POI 3.16: same gene IDs, `taxId` 9606, priorities
+  HIGH/LOW, `additionalGenes {ENSMUSG00000059552: 10090}`, metadata `NumericMeta`/`BoolMeta`. A
+  second fixture with a text Tax ID still fails with "Tax ID should be numeric", so the rewritten
+  assertion was checked from both directions.
+  (Aside, not a POI matter: metadata `42` reads back as `"42.0"` because a metadata field whose
+  `TargetGeneField.filterType` is RANGE is stored in Lucene as a `FloatPoint`/`StoredField` float.
+  Same before and after.)
+
+`FileFormat` is only CSV and TSV, so `/target/export/{geneId}` is not an Excel path — the report
+endpoint and the gene import are the whole of NGB's POI surface, and both are now verified.
+
 ---
 
 ### Phase 9 — Packaging, CI, docs, release

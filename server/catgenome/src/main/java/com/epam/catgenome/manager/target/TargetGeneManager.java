@@ -773,7 +773,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
             Cell taxIdCell = row.getCell(header.getTaxIdIndex());
             Assert.notNull(taxIdCell, "Tax ID column not found");
-            Assert.isTrue(taxIdCell.getCellTypeEnum() == NUMERIC, "Tax ID should be numeric");
+            Assert.isTrue(taxIdCell.getCellType() == NUMERIC, "Tax ID should be numeric");
 
             Cell speciesNameCell = row.getCell(header.getSpeciesNameIndex());
             Assert.notNull(speciesNameCell, "Species name column not found");
@@ -841,7 +841,7 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
 
     private static String getCellValue(final Cell cell) {
         String cellValue = "";
-        switch (cell.getCellTypeEnum()) {
+        switch (cell.getCellType()) {
             case STRING:
                 cellValue = cell.getStringCellValue().trim();
                 break;

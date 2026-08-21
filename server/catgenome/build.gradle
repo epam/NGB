@@ -200,7 +200,9 @@ dependencies {
     // org.apache.commons.io.input.CountingInputStream. Phase 8 removed that usage - the counting
     // moved into FeatureSeekableStream itself, see its javadoc - so the pin is free to move again.
     // It still has to stay at or above what commons-compress asks for, or commons-compress hits
-    // NoClassDefFoundError on the CRAM bzip2/lzma paths.
+    // NoClassDefFoundError on the CRAM bzip2/lzma paths. (commons-compress itself resolves to 1.28.0
+    // since the POI bump below - POI asks for a newer one than htsjdk does - and 1.28.0 wants
+    // commons-io 2.20.0, so 2.22.0 clears it.)
     implementation group: "commons-io", name: "commons-io", version: "2.22.0"
     // commons-lang3 carried an explicit `version: "3.0"` (2011) until Phase 3; the BOM manages it, so
     // the pin is gone. It also had to go: 12 files imported commons-lang **2** (`org.apache.commons.lang`),
@@ -211,7 +213,13 @@ dependencies {
     // ThreadLocalRandom in the two tests that used it, and `org.bouncycastle.util.Strings.toLowerCase`
     // - another accidental transitive, from OpenSAML - became Locale.ROOT lowercasing in GenePredUtils.
     implementation group: "org.apache.commons", name: "commons-lang3"
-    implementation group: "org.apache.commons", name: "commons-collections4", version: "4.1"
+    // 4.1 (2015) until Phase 8. Bumped with POI rather than with the rest of the version backlog
+    // because POI 5.5.1 asks for 4.5.0, and the io.spring.dependency-management plugin resolves like
+    // Maven - a version declared here wins over a transitive request even when the transitive one is
+    // newer - so leaving 4.1 in place would have quietly run POI against a library four minor
+    // versions older than it was built against. Only CollectionUtils/ListUtils/MapUtils/SetUtils are
+    // used here, all unchanged.
+    implementation group: "org.apache.commons", name: "commons-collections4", version: "4.6.0"
     implementation group: "commons-validator", name: "commons-validator", version: "1.5.0"
     implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     // Logging.
@@ -364,8 +372,14 @@ dependencies {
     implementation group: 'com.google.http-client', name: 'google-http-client-jackson2', version: '1.44.1'
 
     //Excel
-    implementation group: "org.apache.poi", name: "poi", version: "3.16"
-    implementation group: "org.apache.poi", name: "poi-ooxml", version: "3.16"
+    // 3.16 (2017) until Phase 8. POI 4 removed Cell.getCellTypeEnum() - the interim name POI 3.15 gave
+    // the typed getter while getCellType() still returned an int - and renamed it back to
+    // getCellType(); those two call sites in TargetGeneManager were the only API break in NGB.
+    // Transitives change more than the API does: poi-ooxml-schemas 3.16 + xmlbeans 2.6.0 (2011) give
+    // way to poi-ooxml-lite 5.5.1 + xmlbeans 5.3.0, and commons-collections4 (see the pin above),
+    // commons-compress, commons-codec, curvesapi, SparseBitSet and log4j-api come along.
+    implementation group: "org.apache.poi", name: "poi", version: "5.5.1"
+    implementation group: "org.apache.poi", name: "poi-ooxml", version: "5.5.1"
 
 //    CSV
     implementation group: "com.opencsv", name: "opencsv", version: "5.8"
