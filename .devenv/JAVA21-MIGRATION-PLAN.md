@@ -4856,6 +4856,75 @@ google-http-client-jackson2 1.22.0, commons-io 2.5, commons-lang3 3.5, slf4j 1.7
 Handled in the order the handover asked for: `make cli-test` first, the bump second. See the
 `make cli-test` findings below.
 
+#### Task 1, the Docker images: what the rebuild found
+
+The two Dockerfiles were the smallest part of this phase on paper and produced the phase's only
+functional bug reports. Both images were rebuilt and **run**, and the run is what found them.
+
+`docker/core/Dockerfile` is now `eclipse-temurin:21-jre-jammy` with **no `apt-get` layer at all** —
+the base already carries tar, gzip, curl and wget, which is everything the old
+`apt-get install wget openjdk-8-jre nginx` line was actually used for besides the JRE and the nginx
+that Decision B drops. Verified in the running container: Temurin 21.0.12+8, `java` is PID 1,
+`docker stop` returns in 0.19 s (so `CMD exec …` really does deliver SIGTERM rather than being killed
+after the 10 s timeout), and `/proc/1/cmdline` is
+`java -Xmx2G --enable-native-access=ALL-UNNAMED -jar catgenome.jar` with **zero**
+"restricted method … java.lang.foreign" warnings in the log — the flag is checked positively, not by
+the absence of a symptom.
+
+**Defect A — `ngs.data.root.path` was baked in at build time, and it gates registration, not just
+browsing.** `UrlValidatorService` (added 5fff3448, Apr 2025; hardened 6b8db3c2, May 2025) runs
+*every locally registered path* through `validateLocalPath`, so the image's build-time
+`ngs.data.root.path=/ngs` silently refused any file mounted anywhere else — `-e NGS_DATA_DIR=/data`
+looked like it worked and did nothing, and there was no way to change the root short of rebuilding.
+Note also that setting it to `/` does not mean "allow everything": `validateLocalPath` throws
+*"Server file system browsing is not allowed"* when the root is `/`, so there is no permissive value.
+Fixed by moving the generation of `catgenome.properties` out of a `RUN` layer into
+`docker/core/entrypoint.sh`, which writes it from `NGS_DATA_DIR` at every start **unless a file is
+already there** — so mounting your own `catgenome.properties`, or the whole `/opt/ngb/config`, still
+wins. `docker/README.md` documents both.
+
+**Defect B — the published demo image could not register its own data.** Same cause, worse effect:
+`docker/demo/Dockerfile` baked the references into `/reference` and unpacked the demo tarball into
+`/` (giving `/ngb_demo_data`), while `start-demo.sh` registers `/opt/data/ngb_demo_data/...`. Three
+different path conventions, none of them under `/ngs`, so `ngb reg_ref` answered
+*"Parameter path doesn't fall into 'ngs.data.root.path': /ngs"* — reproduced here before the fix, on
+the image as it stood. This is not migration fallout; it has been broken since Apr 2025 and the same
+applies to `start-demo.sh` run against the core image. Fixed by putting everything under the
+configured root — `/ngs/reference/<ref>/` and `/ngs/ngb_demo_data/` — in the demo image *and* in
+`start-demo.sh`'s mounts and registration commands, so one set of paths works either way.
+`start-demo.sh` also gained a readiness poll: it went straight from `docker run -d` to `ngb reg_ref`
+against a server that needs the better part of a minute to answer.
+
+Two other changes to the demo image. The `wget http://ngb.opensource.epam.com/distr/data/...` URLs
+were repointed at `https://ngb-oss-builds.s3.amazonaws.com/public/data/` — the host in the Dockerfile
+is NXDOMAIN, the bucket is what `start-demo.sh` has been using, and all 11 objects were HEAD-checked
+(200; ~3.4 GB compressed, ~13 GB unpacked). And the `ngb-demo-index-cache.tar.gz` download is gone
+per **D10**: it was built against NGB 2.6.0, the EhCache-backed `EhCacheBasedIndexCache` it warmed no
+longer exists, and Lucene 9 would have rejected 2.6.0 index files anyway. `ARG DATA_URL`,
+`ARG REFERENCES` and `ARG DEMO_DATA` were added so the image can be built small enough to test; the
+defaults reproduce today's artifact exactly.
+
+Both images were then verified by *using* them, not by reading them:
+
+| | core | demo (`REFERENCES=dm6`) |
+|---|---|---|
+| `docker build` | 791 MB | 2.52 GB |
+| server answers `/restapi/version` | yes | yes |
+| client index page | HTTP 200 | HTTP 200 |
+| bundled `ngb` CLI on `PATH`, talking to its own server | yes | yes |
+| `reg_ref` (FASTA indexed at registration) | `A3.fa` | `dmel-all-chromosome-r6.06.fasta` |
+| track read back over REST | BED: 20 blocks, first `35459-35461 ENSFCAG00000011704`; reference: `NCCAGCAGAACCCAACCCC…` | BAM: 416 reads, first `12584770 EJE9S:00489:00515`; VCF: 81 variations, first `12585001 DEL` |
+| `reg_dataset` / `add_dataset` | — | `Fruitfly`, 2 items (1 BAM, 1 VCF) |
+
+The full four-reference demo image was **not** built: 3.4 GB of downloads for data whose only
+difference from the dm6 build is which files are present. What was verified is the Dockerfile logic
+and that a baked-in reference and demo BAM/VCF register and render.
+
+One thing found and left for the docs commit: `docs/md/installation/docker.md` tells operators to
+mount `/opt/catgenome/H2` and `/opt/catgenome/contents`. The image's working directory is `/opt/ngb`,
+so those two lines have never persisted anything. There is also a stray un-fenced
+`-v /host/ngs:/ngs -v /host/H2:/opt/catgenome/H2 …` line left over from an edit.
+
 ---
 
 ## 4. Cross-cutting risk register
