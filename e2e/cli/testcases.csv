@@ -50,7 +50,8 @@
 #FAILS [negative] Registration of a dataset {with parent wrong reference},rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref;rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref2;rd ref parent,rd ref2 child --parent parent -j,dd child;dd parent;dr ref;dr ref2,,
 
 [negative] Registration of a dataset {wrong reference},,rd ref dataset1,,,.*Failed to find a file by name.*
-[negative] Registration of a dataset with file by path {file does not exist},rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref,rd ref dataset1 $resourcePath/does_not_exist.bed,dd dataset1;dr ref,,.*most likely the file doesn't exist.*
+@ See the note above 'Adding to dataset by wrong path' for why this expectation changed.
+[negative] Registration of a dataset with file by path {file does not exist},rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref,rd ref dataset1 $resourcePath/does_not_exist.bed,dd dataset1;dr ref,,.*Failed to register files.*does_not_exist.bed.*
 #FAILS [negative] Registration of a dataset with file by name {wrong file name},rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref,rd ref dataset1 bed,dr ref,,WRONG ERROR MESSAGE
 [negative] Registration of a dataset {already exist},rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref;rd ref dataset1,rd ref dataset1,dd dataset1;dr ref,,.*Project 'dataset1' already exists.*
 
@@ -69,9 +70,19 @@
 [positive] Adding to dataset by path,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref;rd ref dataset1, add dataset1 $resourcePath/CantonS.09-28.trim_X_2L.bed -j,rmd dataset1 CantonS.09-28.trim_X_2L.bed;dd dataset1;df CantonS.09-28.trim_X_2L.bed;dr ref,.+name":"dataset1".+"items":.+name":"ref".+"format":"REFERENCE".+name":"CantonS.09-28.trim_X_2L.bed".+"type":"FILE".+"format":"BED".*,
 [positive] Adding to dataset by relative path,rr $resourceRelativePath/dmel-all-chromosome-r6.06.cutted.fa -n ref;rd ref dataset1, add dataset1 $resourcePath/CantonS.09-28.trim_X_2L.bed -j,rmd dataset1 CantonS.09-28.trim_X_2L.bed;dd dataset1;df CantonS.09-28.trim_X_2L.bed;dr ref,.+name":"dataset1".+"items":.+name":"ref".+"format":"REFERENCE".+name":"CantonS.09-28.trim_X_2L.bed".+"type":"FILE".+"format":"BED".*,
 [positive] Adding to dataset by name,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref;rf ref $resourcePath/CantonS.09-28.trim_X_2L.bed -n bed;rd ref dataset1, add dataset1 bed -j,rmd dataset1 bed;dd dataset1;df bed;dr ref,.+name":"dataset1".+"items":.+name":"ref".+"format":"REFERENCE".+name":"bed".+"type":"FILE".+"format":"BED".*,
-[negative] Adding to dataset by wrong path,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref;rd ref dataset1, add dataset1 $resourcePath/wrong_path.bed -j,dd dataset1;dr ref,,.*Unable to open the input file.*most likely the file doesn't exist.*
+@ A missing file has not produced FeatureIterator's 'most likely the file doesn't exist' since
+@ c8fa91a6 (2019-01-15), which routed BED and GTF indexing through IndexUtils$FeatureIterator
+@ and IOHelper.openStream; what surfaces is whatever the open failed with - FileNotFoundException
+@ under htsjdk 2, NoSuchFileException under htsjdk 5, since ParsingUtils now opens local paths
+@ through NIO. These two rows assert the CLI's own refusal instead, which is stable and is what
+@ they are really about: the registration does not happen.
+[negative] Adding to dataset by wrong path,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref;rd ref dataset1, add dataset1 $resourcePath/wrong_path.bed -j,dd dataset1;dr ref,,.*Failed to register files.*wrong_path.bed.*
 #FAILS [negative] Adding to dataset by wrong name,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref;rd ref dataset1,add dataset1 bed -j,dd dataset1;dr ref,,WRONG ERROR MESSAGE
-[negative] Adding to dataset by path with wrong format,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref;rd ref dataset1,add dataset1 $resourcePath/bad_file_format.txt -j,dd dataset1;dr ref,,.*Unsupported file format.*txt.*
+@ '.txt' stopped being an unsupported extension in 9cfbda67 (2021-07-09, featureCounts support)
+@ - the CLI now maps it to GENE and the server refuses it later, with a different message. The
+@ fixture is a .dat instead, so that the row still tests what it was written to test: the CLI's
+@ own extension check. prepare_test_data.sh generates it.
+[negative] Adding to dataset by path with wrong format,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref;rd ref dataset1,add dataset1 $resourcePath/bad_file_format.dat -j,dd dataset1;dr ref,,.*Unsupported file format.*dat.*
 [negative] Adding to dataset {already exist},rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref;rf ref $resourcePath/CantonS.09-28.trim_X_2L.bed -n bed;rd ref dataset1;add dataset1 bed,add dataset1 bed -j,rmd dataset1 bed;df bed;dd dataset1;dr ref,.+name":"dataset1".+"items":.+name":"ref".+"format":"REFERENCE".+"name":"bed".+"type":"FILE".+"format":"BED".*"itemsCount":2.*,
 
 @Remove from dataset
@@ -143,13 +154,27 @@
 [negative] Create Index — file not found,,if -j no.gtf,,,.+Failed to find a file by name.+
 
 @ URL comand
-[positive] URL vcf,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile;rd  testfasta dataset vcffile,url dataset vcffile,dd dataset;df vcffile;dr testfasta,.+\/catgenome\/#\/testfasta\?tracks=\[\{"b":"vcffile"."p":"dataset"\}\],
-[positive] URL vcf —loc chr,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile ;rd  testfasta dataset vcffile,url dataset vcffile -loc X,dd dataset;df vcffile;dr testfasta,.+\/catgenome\/#\/testfasta\/X\?tracks=\[\{"b":"vcffile"."p":"dataset"\}\],
-[positive] URL vcf —loc chr:region,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile ;rd  testfasta dataset vcffile,url dataset vcffile -loc X:12585001-1258912,dd dataset;df vcffile;dr testfasta,.+\/catgenome\/#\/testfasta\/X\/12585001\/1258912\?tracks=\[\{"b":"vcffile"."p":"dataset"\}\],
-[positive] URL vcf gtf,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile;rf testfasta $resourcePath/dmel-all-r6.06.sorted.cutted.gtf -n gtffile;rd  testfasta dataset vcffile gtffile;,url dataset vcffile gtffile,dd dataset;df vcffile;df gtffile;dr testfasta,.+\/catgenome\/#\/testfasta\?tracks=\[\{"b":"vcffile"."p":"dataset"\}.\{"b":"gtffile"."p":"dataset"\}\],
-[positive] URL vcf gtf —loc chr,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile;rf testfasta $resourcePath/dmel-all-r6.06.sorted.cutted.gtf -n gtffile;rd  testfasta dataset vcffile gtffile;,url dataset vcffile gtffile -loc X,dd dataset;df vcffile;df gtffile;dr testfasta,.+\/catgenome\/#\/testfasta\/X\?tracks=\[\{"b":"vcffile"."p":"dataset"\}.\{"b":"gtffile"."p":"dataset"\}\],
-[positive] URL vcf —loc chr:region,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile;rf testfasta $resourcePath/dmel-all-r6.06.sorted.cutted.gtf -n gtffile;rd  testfasta dataset vcffile gtffile;,url dataset vcffile gtffile -loc X:12585001-1258912,dd dataset;df vcffile;df gtffile;dr testfasta,.+\/catgenome\/#\/testfasta\/X\/12585001\/1258912\?tracks=\[\{"b":"vcffile"."p":"dataset"\}.\{"b":"gtffile"."p":"dataset"\}\],
-[negative] URL vcf wrong dataset,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile;rd  testfasta dataset vcffile,url wrongDataset vcffile,dd dataset;df vcffile;dr testfasta,,.+Project with id wrongDataset not found
+@ Ten rows in this file - the seven below plus the three noted above - needed their expected
+@ output changed when the suite was made runnable again in migration Phase 9, for reasons that
+@ all predate that migration: the file was last edited in December 2018 (a7d81db9), the fixtures
+@ it needs were hosted on ngb.opensource.epam.com, and once that domain stopped resolving nobody
+@ could run the suite to notice develop moving under it. Each changed expectation names the
+@ commit that changed the behaviour.
+@
+@ The six URL rows: c32a95f0 (2022-04-29 'Always add reference to generated urls') made
+@ BiologicalDataItemManager.generateUrl append the dataset's reference to the track list, so
+@ every URL carries one more track than the command asked for. The two-file rows accept either
+@ order for the two named tracks, because loadBiologicalDataItemsByNamesStrictQuery has no
+@ ORDER BY - only the appended reference is reliably last.
+@ 'URL vcf wrong dataset': 330bdca7 (2022-04-04) made a non-numeric dataset resolve by name, so
+@ error.project.name.not.found is now the right message; the id one needs a numeric argument.
+[positive] URL vcf,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile;rd  testfasta dataset vcffile,url dataset vcffile,dd dataset;df vcffile;dr testfasta,.+\/catgenome\/#\/testfasta\?tracks=\[\{"b":"vcffile"."p":"dataset"\}.\{"b":"testfasta"."p":"dataset"\}\],
+[positive] URL vcf —loc chr,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile ;rd  testfasta dataset vcffile,url dataset vcffile -loc X,dd dataset;df vcffile;dr testfasta,.+\/catgenome\/#\/testfasta\/X\?tracks=\[\{"b":"vcffile"."p":"dataset"\}.\{"b":"testfasta"."p":"dataset"\}\],
+[positive] URL vcf —loc chr:region,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile ;rd  testfasta dataset vcffile,url dataset vcffile -loc X:12585001-1258912,dd dataset;df vcffile;dr testfasta,.+\/catgenome\/#\/testfasta\/X\/12585001\/1258912\?tracks=\[\{"b":"vcffile"."p":"dataset"\}.\{"b":"testfasta"."p":"dataset"\}\],
+[positive] URL vcf gtf,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile;rf testfasta $resourcePath/dmel-all-r6.06.sorted.cutted.gtf -n gtffile;rd  testfasta dataset vcffile gtffile;,url dataset vcffile gtffile,dd dataset;df vcffile;df gtffile;dr testfasta,.+\/catgenome\/#\/testfasta\?tracks=\[\{"b":"(vcffile|gtffile)"."p":"dataset"\}.\{"b":"(vcffile|gtffile)"."p":"dataset"\}.\{"b":"testfasta"."p":"dataset"\}\],
+[positive] URL vcf gtf —loc chr,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile;rf testfasta $resourcePath/dmel-all-r6.06.sorted.cutted.gtf -n gtffile;rd  testfasta dataset vcffile gtffile;,url dataset vcffile gtffile -loc X,dd dataset;df vcffile;df gtffile;dr testfasta,.+\/catgenome\/#\/testfasta\/X\?tracks=\[\{"b":"(vcffile|gtffile)"."p":"dataset"\}.\{"b":"(vcffile|gtffile)"."p":"dataset"\}.\{"b":"testfasta"."p":"dataset"\}\],
+[positive] URL vcf —loc chr:region,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile;rf testfasta $resourcePath/dmel-all-r6.06.sorted.cutted.gtf -n gtffile;rd  testfasta dataset vcffile gtffile;,url dataset vcffile gtffile -loc X:12585001-1258912,dd dataset;df vcffile;df gtffile;dr testfasta,.+\/catgenome\/#\/testfasta\/X\/12585001\/1258912\?tracks=\[\{"b":"(vcffile|gtffile)"."p":"dataset"\}.\{"b":"(vcffile|gtffile)"."p":"dataset"\}.\{"b":"testfasta"."p":"dataset"\}\],
+[negative] URL vcf wrong dataset,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile;rd  testfasta dataset vcffile,url wrongDataset vcffile,dd dataset;df vcffile;dr testfasta,,.+Project with name 'wrongDataset' not found
 [negative] URL vcf — file does not exist in dataset,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile;rd  testfasta dataset,url dataset vcffile,dd dataset;df vcffile;dr testfasta,,.+File vcffile is not present in the dataset.+
 [negative] URL vcf — file does not exist at all,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rd  testfasta dataset,url dataset vcffile,dd dataset;dr testfasta,,.+File with name vcffile not found
 [negative] URL – wrong chromosome,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -n vcffile ;rd  testfasta dataset vcffile,url dataset vcffile -loc A:1-2,dd dataset;df vcffile;dr testfasta,,.+Chromosome with name A is not found in the reference genome.

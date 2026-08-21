@@ -133,14 +133,21 @@ lint: builder ## checkstyle + pmd on the server module
 	$(EXEC_BUILD) $(GRADLE_H2) $(SERVER) checkstyleMain pmdMain
 
 .PHONY: cli-test
-cli-test: builder ## CLI/server integration tests (BROKEN: test-data host is gone)
-	# e2e/integration_tests.sh wgets its fixtures from http://ngb.opensource.epam.com/, which no
-	# longer resolves (NXDOMAIN as of migration Phase 2 - the parent domain does resolve, the ngb
-	# host does not), so this target cannot pass until the data is hosted somewhere again. See
-	# TEST-BASELINE.md. with-java21 is still correct and needed: from Phase 3 the server jar is
-	# built by a JDK 21 toolchain and the script runs `java -jar` directly. (The CLI it drives is
-	# still a 17 toolchain, but 17 bytecode runs on 21.)
-	$(EXEC_BUILD) with-java21 bash e2e/integration_tests.sh
+cli-test: builder ## CLI<->server integration suite: every row of e2e/cli/testcases.csv
+	# Needs dist/catgenome-h2.jar and dist/ngb-cli.tar.gz - `make jar cli-build`. The script
+	# starts its own server on port 8080 (three rows have that URL written into them), so stop
+	# any running instance first: `make stop`.
+	#
+	# Until now this target could not pass at all: the fixtures were wget'd from
+	# http://ngb.opensource.epam.com/, which stopped resolving. e2e/cli/prepare_test_data.sh
+	# generates them from the server module's own test resources instead, so the suite needs no
+	# network.
+	#
+	# NGB_E2E_JAR is named explicitly rather than left at the script's default of
+	# dist/catgenome.jar, which is whichever flavour was built last. with-java21 because the
+	# script runs `java -jar` directly and from Phase 3 the jar is Java 21 bytecode.
+	$(COMPOSE) exec -T -e NGB_E2E_JAR=/workspace/dist/catgenome-h2.jar builder \
+		with-java21 bash e2e/integration_tests.sh
 
 # --------------------------------------------------------------------- run --
 

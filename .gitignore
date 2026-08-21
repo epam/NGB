@@ -10,6 +10,10 @@
 # export/, and the test task creates contents/ plus directories literally named after
 # unresolved ${...} properties.
 /contents/
+# a server started from the repository root - `java -jar dist/catgenome.jar`, or the CLI
+# integration suite - writes its log4j2 output beside itself, since the `jar` profile's
+# log4j2.xml names ./logs/ relative to the working directory
+/logs/
 /server/catgenome/${*
 /server/catgenome/src/main/resources/export/
 /server/catgenome/src/main/resources/static/docs/
@@ -19,6 +23,10 @@
 /server/catgenome/src/main/resources/static/vendors.*.css
 /server/catgenome/src/main/resources/static/error-401.html
 /server/catgenome/src/main/resources/static/ngb-logo.png
+
+# fixtures the CLI integration suite stages before it runs and deletes afterwards
+# (e2e/cli/prepare_test_data.sh generates them from the server module's test resources)
+/e2e/cli/test_data/
 
 # containerised dev environment (.devenv): local state, never committed
 /.devenv/.env
