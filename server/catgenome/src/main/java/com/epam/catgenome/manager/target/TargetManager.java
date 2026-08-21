@@ -185,6 +185,12 @@ public class TargetManager implements SecuredEntityManager {
                 .ascending(true)
                 .build();
         final List<Target> targets = targetDao.loadTargets(clause, Collections.singletonList(sortInfo));
+        if (targets.isEmpty()) {
+            // Both enrichment queries below build an `IN (...)` list out of targetIds, and an empty
+            // list renders as `target_id IN ()`, which no database accepts - PostgreSQL rejects it
+            // outright. Nothing to enrich anyway when the filter matched no targets.
+            return targets;
+        }
         final Set<Long> targetIds = targets.stream().map(Target::getId).collect(Collectors.toSet());
         final List<TargetGene> targetGenes = targetGeneDao.loadTargetGenes(targetIds);
         final List<TargetIdentification> identifications = getIdentifications(targetIds);
