@@ -50,6 +50,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
@@ -101,6 +102,16 @@ public class BlatSearchManagerTest {
 
     @Before
     public void setUp() throws Exception {
+        // Without this the @InjectMocks below never reaches the bean under test, and both tests
+        // silently became live calls to UCSC: spring-boot-test's MockitoTestExecutionListener
+        // creates the @Mock at order 1950, before DependencyInjectionTestExecutionListener (2000)
+        // has populated blatSearchManager, so Mockito injected the mock into an instance it
+        // constructed itself and DI then overwrote the field with the Spring bean - which still
+        // held the real HttpDataManager. The class has a fixture (blat/data/testResponse.html) and
+        // an EXPECTED record built from it precisely so that it would not need the network. Same
+        // pattern, and the same reason, as VcfManagerTest.setup().
+        MockitoAnnotations.openMocks(this);
+
         Resource resource = context.getResource("classpath:templates");
         File fastaFile = new File(resource.getFile().getAbsolutePath() + TEST_REF_NAME);
 
