@@ -14,11 +14,12 @@ SHELL := /bin/bash
 # Prefer the compose plugin, fall back to the standalone binary.
 COMPOSE ?= $(shell docker compose version >/dev/null 2>&1 && echo "docker compose" || echo "docker-compose")
 
-# Gradle 8.14 and Checkstyle 11 both need a JDK newer than the image default of 8, and since
-# migration Phase 3 the server declares a Java 21 toolchain. `with-java21` is the toolbox's JDK
-# switcher. `server/ngb-cli` still declares a 17 toolchain; Gradle provisions that itself from
-# the JDKs in the image, so one launcher JDK covers both modules.
-GRADLE_H2  := with-java21 ./gradlew --no-daemon
+# The toolbox's default JDK is 21, which is what Gradle 8.14.5 and the server module's toolchain
+# need, so nothing here has to select a JDK any more; until migration Phase 9 the image defaulted
+# to 8 and every line below was prefixed with `with-java21`. `server/ngb-cli` still declares a 17
+# toolchain, and Gradle finds that JDK itself among the image's installations, so one launcher JDK
+# covers both modules.
+GRADLE     := ./gradlew --no-daemon
 EXEC_BUILD := $(COMPOSE) exec -T builder
 SERVER     := -p server/catgenome
 
@@ -57,7 +58,7 @@ hosts: ## Print the /etc/hosts entries this environment needs
 	@echo "  sudo sh -c 'echo \"127.0.0.1 ngb.dev.local ngb-pg.dev.local idp.dev.local\" >> /etc/hosts'"
 
 .PHONY: image
-image: ## Build the toolbox image (JDK 8 + 17 + 21 + Node 14 + mkdocs)
+image: ## Build the toolbox image (JDK 21 + 17 + Node 14 + mkdocs)
 	# Plain `docker build` with the legacy builder: this host has no buildx plugin,
 	# and compose's build path trips over multi-arch manifests without it.
 	DOCKER_BUILDKIT=0 docker build -t ngb-dev-toolbox:latest \
@@ -79,49 +80,49 @@ certs-force: ## Throw away and regenerate all secrets
 
 .PHONY: jar
 jar: builder ## Full H2 jar: UI + docs + server -> dist/catgenome-h2.jar
-	$(EXEC_BUILD) $(GRADLE_H2) buildJar -PnoTest
+	$(EXEC_BUILD) $(GRADLE) buildJar -PnoTest
 	$(EXEC_BUILD) cp /workspace/dist/catgenome.jar /workspace/dist/catgenome-h2.jar
 	@echo "==> dist/catgenome-h2.jar"
 
 .PHONY: jar-pg
 jar-pg: builder ## PostgreSQL jar -> dist/catgenome-psql.jar
-	$(EXEC_BUILD) $(GRADLE_H2) buildJar -PnoTest -Pdatabase=postgres
+	$(EXEC_BUILD) $(GRADLE) buildJar -PnoTest -Pdatabase=postgres
 	$(EXEC_BUILD) cp /workspace/dist/catgenome.jar /workspace/dist/catgenome-psql.jar
 	@echo "==> dist/catgenome-psql.jar"
 
 .PHONY: jar-fast
 jar-fast: builder ## Server-only rebuild, skips UI and mkdocs (fast inner loop)
-	$(EXEC_BUILD) $(GRADLE_H2) $(SERVER) bootJar -Pprofile=jar -Pdatabase=h2 -x test
+	$(EXEC_BUILD) $(GRADLE) $(SERVER) bootJar -Pprofile=jar -Pdatabase=h2 -x test
 	$(EXEC_BUILD) cp /workspace/server/catgenome/build/libs/catgenome.jar /workspace/dist/catgenome-h2.jar
 	@echo "==> dist/catgenome-h2.jar (server only - UI and docs unchanged)"
 
 .PHONY: jar-pg-fast
 jar-pg-fast: builder ## Server-only PostgreSQL rebuild (fast inner loop)
-	$(EXEC_BUILD) $(GRADLE_H2) $(SERVER) bootJar -Pprofile=jar -Pdatabase=postgres -x test
+	$(EXEC_BUILD) $(GRADLE) $(SERVER) bootJar -Pprofile=jar -Pdatabase=postgres -x test
 	$(EXEC_BUILD) cp /workspace/server/catgenome/build/libs/catgenome.jar /workspace/dist/catgenome-psql.jar
 	@echo "==> dist/catgenome-psql.jar (server only - UI and docs unchanged)"
 
 .PHONY: ui
 ui: builder ## Rebuild only the AngularJS client into the server's static resources
-	$(EXEC_BUILD) $(GRADLE_H2) ui
+	$(EXEC_BUILD) $(GRADLE) ui
 
 .PHONY: cli-build
 cli-build: builder ## Build ngb-cli -> dist/ngb-cli.tar.gz
-	$(EXEC_BUILD) $(GRADLE_H2) buildCli -PnoTest
+	$(EXEC_BUILD) $(GRADLE) buildCli -PnoTest
 
 .PHONY: clean-build
 clean-build: builder ## Gradle clean of the server module
-	$(EXEC_BUILD) $(GRADLE_H2) $(SERVER) clean
+	$(EXEC_BUILD) $(GRADLE) $(SERVER) clean
 
 # -------------------------------------------------------------------- test --
 
 .PHONY: test
 test: builder ## Server unit tests on H2 (129 test classes)
-	$(EXEC_BUILD) $(GRADLE_H2) $(SERVER) test -Pdatabase=h2
+	$(EXEC_BUILD) $(GRADLE) $(SERVER) test -Pdatabase=h2
 
 .PHONY: test-one
 test-one: builder ## Single test class: make test-one T=VcfManagerTest
-	$(EXEC_BUILD) $(GRADLE_H2) $(SERVER) test -Pdatabase=h2 --tests "*$(T)*"
+	$(EXEC_BUILD) $(GRADLE) $(SERVER) test -Pdatabase=h2 --tests "*$(T)*"
 
 .PHONY: test-pg
 test-pg: ## Server unit tests against PostgreSQL (runs in the DB's netns)
@@ -130,7 +131,7 @@ test-pg: ## Server unit tests against PostgreSQL (runs in the DB's netns)
 
 .PHONY: lint
 lint: builder ## checkstyle + pmd on the server module
-	$(EXEC_BUILD) $(GRADLE_H2) $(SERVER) checkstyleMain pmdMain
+	$(EXEC_BUILD) $(GRADLE) $(SERVER) checkstyleMain pmdMain
 
 .PHONY: cli-test
 cli-test: builder ## CLI<->server integration suite: every row of e2e/cli/testcases.csv
@@ -138,16 +139,15 @@ cli-test: builder ## CLI<->server integration suite: every row of e2e/cli/testca
 	# starts its own server on port 8080 (three rows have that URL written into them), so stop
 	# any running instance first: `make stop`.
 	#
-	# Until now this target could not pass at all: the fixtures were wget'd from
+	# Until migration Phase 9 this target could not pass at all: the fixtures were wget'd from
 	# http://ngb.opensource.epam.com/, which stopped resolving. e2e/cli/prepare_test_data.sh
 	# generates them from the server module's own test resources instead, so the suite needs no
 	# network.
 	#
 	# NGB_E2E_JAR is named explicitly rather than left at the script's default of
-	# dist/catgenome.jar, which is whichever flavour was built last. with-java21 because the
-	# script runs `java -jar` directly and from Phase 3 the jar is Java 21 bytecode.
+	# dist/catgenome.jar, which is whichever flavour was built last.
 	$(COMPOSE) exec -T -e NGB_E2E_JAR=/workspace/dist/catgenome-h2.jar builder \
-		with-java21 bash e2e/integration_tests.sh
+		bash e2e/integration_tests.sh
 
 # --------------------------------------------------------------------- run --
 
@@ -210,6 +210,28 @@ up-cloud: certs cloud ## Run NGB with s3:// and sws:// pointed at MinIO
 	JAVA_EXTRA_OPTS="$(MINIO_JAVA_OPTS)" $(COMPOSE) up -d builder ngb-h2
 	@echo "==> http://ngb.dev.local:8080/catgenome, s3:// and sws:// -> MinIO"
 
+# ------------------------------------------------------------------ verify --
+#
+# Three checks that a green unit suite does not give you, because the suite never boots a server:
+# it drives the managers directly, with a Spring test context and a temporary contents directory.
+# Each one registers data over REST against a *running* instance and prints what came back. They
+# were written for migration Phases 6, 7 and 8 respectively, and they are kept: they are the only
+# thing that exercises the parsers, the Lucene indexes and the S3 client end to end.
+#
+# All three take the base URL as their first argument, so `bash scripts/verify-lucene.sh
+# http://localhost:8090/catgenome` points one at the PostgreSQL instance instead.
+
+.PHONY: verify-tracks
+verify-tracks: ## Load a track of every type (BED/GFF/VCF/BigWig/SEG/BAM/CRAM/tabix/remote)
+	# Needs the fixtures staged first: bash scripts/prepare-track-fixtures.sh
+	bash scripts/verify-tracks.sh
+
+.PHONY: verify-lucene
+verify-lucene: ## Exercise all 18 Lucene-backed read paths (search, targets, coverage, taxonomy)
+	# Needs the registered data described in fixtures/README.md; a missing prerequisite shows up
+	# as an empty result, so read the counts and not just the exit code.
+	bash scripts/verify-lucene.sh
+
 .PHONY: verify-cloud
 verify-cloud: ## Read tracks over s3:// and sws:// from MinIO and compare with a local read
 	bash scripts/verify-cloud.sh
@@ -220,7 +242,7 @@ cli: ## Shell with ngb-cli configured against the running server
 	$(COMPOSE) --profile cli exec cli bash
 
 .PHONY: shell
-shell: builder ## Shell in the builder (JDK 8 default; `use-java 17|21` to switch)
+shell: builder ## Shell in the builder (JDK 21 default; `use-java 17` for ngb-cli's toolchain)
 	$(COMPOSE) exec builder bash -l
 
 .PHONY: logs
@@ -270,24 +292,6 @@ saml-verify-signing: builder ## Check both signatures NGB produces: SP metadata,
 	@echo "==> AuthnRequest signature"
 	$(EXEC_BUILD) python3 /workspace/.devenv/scripts/saml-client-signature.py on
 	@$(MAKE) smoke-saml $(if $(U),U=$(U)) $(if $(P),P=$(P))
-
-# ---------------------------------------------------------------- migration --
-
-.PHONY: probe-java21
-probe-java21: builder ## Show what breaks today under JDK 21 (expected to fail)
-	@echo "=== JDK 21 present? ==="
-	-$(EXEC_BUILD) with-java21 java -version
-	@echo ""
-	@echo "=== Gradle 3.3 on JDK 21 (expected: unsupported class file / init failure) ==="
-	-$(EXEC_BUILD) with-java21 ./gradlew --no-daemon -v
-	@echo ""
-	@echo "=== lombok 1.16.16 under javac 21 (expected: ExceptionInInitializerError) ==="
-	# Compiles a one-line @Getter class with the exact lombok the build resolves, first on
-	# JDK 8 (works) then on JDK 21 (annotation processor dies on internal javac API).
-	-$(EXEC_BUILD) bash /workspace/.devenv/scripts/probe-lombok.sh
-	@echo ""
-	@echo "Interpretation: Gradle must go to 8.x before JDK 21 can compile anything;"
-	@echo "lombok must reach >= 1.18.30. See README 'Migration checkpoints'."
 
 # ------------------------------------------------------------------- teardown --
 

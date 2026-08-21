@@ -1,15 +1,16 @@
-# NGB dev toolbox: everything needed to build and run NGB, on JDK 8, 17 and 21.
+# NGB dev toolbox: everything needed to build and run NGB.
 #
-# Why three JDKs: the Gradle wrapper is pinned to Gradle 3.3, which only runs on JDK 8.
-# The Java 21 migration therefore has to keep the JDK 8 baseline buildable while the
-# new toolchain is introduced. JDK 17 is the Phase 2 waypoint - Spring Boot 2.7 does not
-# officially support Java 21, so the Gradle 7.6 + Boot 2.7 intermediate state is built and
-# run on 17. `with-java8` / `with-java17` / `with-java21` switch per command.
+# JDK 21 is the default and runs everything - Gradle 8.14.5, the server module's 21 toolchain,
+# the jar. JDK 17 is here for one reason: `server/ngb-cli` declares
+# `toolchain { languageVersion = 17 }`, so that the CLI keeps running on a 17 JRE, and
+# `org.gradle.java.installations.auto-download=false` in the root gradle.properties means Gradle
+# must *find* a 17 installation rather than fetch one. It discovers /opt/java/jdk17 as a "Common
+# Linux Location", so no configuration is needed beyond installing it. `with-java17` /
+# `with-java21` (or `use-java 17|21` in a shell) switch per command; the JDK 8 that used to be
+# here for the Gradle 3.3 wrapper went with migration Phase 9.
 #
 # The same image is used for the builder, the app runtime and the CLI, so a jar built
 # here runs on exactly the JDK you point at it, with no second image to keep in sync.
-
-FROM eclipse-temurin:8-jdk-jammy AS jdk8
 
 FROM eclipse-temurin:17-jdk-jammy AS jdk17
 
@@ -37,10 +38,8 @@ RUN apt-get update \
      || echo "WARNING: 'muscle' package unavailable for this architecture; sequence alignment features will be disabled") \
  && rm -rf /var/lib/apt/lists/*
 
-# --- JDK 8 and JDK 17 alongside the image's JDK 21 --------------------------
-COPY --from=jdk8 /opt/java/openjdk /opt/java/jdk8
+# --- JDK 17 alongside the image's JDK 21, for ngb-cli's toolchain -----------
 COPY --from=jdk17 /opt/java/openjdk /opt/java/jdk17
-ENV JAVA_HOME_8=/opt/java/jdk8
 ENV JAVA_HOME_17=/opt/java/jdk17
 ENV JAVA_HOME_21=/opt/java/openjdk
 
@@ -69,31 +68,40 @@ RUN python3 -m venv /opt/mkdocs \
  && mkdocs --version
 
 # --- JDK switching helpers -------------------------------------------------
+# with-java21 is a no-op now that 21 is the default; it stays so that a command can say which
+# JDK it means, and so that `with-java17 <cmd>` has a symmetrical partner.
 RUN set -eux; \
-    printf '#!/bin/sh\nexport JAVA_HOME="%s"\nexport PATH="$JAVA_HOME/bin:$PATH"\nexec "$@"\n' \
-      "$JAVA_HOME_8" > /usr/local/bin/with-java8; \
     printf '#!/bin/sh\nexport JAVA_HOME="%s"\nexport PATH="$JAVA_HOME/bin:$PATH"\nexec "$@"\n' \
       "$JAVA_HOME_17" > /usr/local/bin/with-java17; \
     printf '#!/bin/sh\nexport JAVA_HOME="%s"\nexport PATH="$JAVA_HOME/bin:$PATH"\nexec "$@"\n' \
       "$JAVA_HOME_21" > /usr/local/bin/with-java21; \
-    chmod +x /usr/local/bin/with-java8 /usr/local/bin/with-java17 /usr/local/bin/with-java21
+    chmod +x /usr/local/bin/with-java17 /usr/local/bin/with-java21
 
 # Interactive convenience: `use-java 17` inside a shell.
+#
+# The first two lines are not convenience but repair. Ubuntu's /etc/profile assigns PATH
+# unconditionally ("/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" for root),
+# throwing away what the image's ENV put there - so in a *login* shell (`make shell`, or any
+# `bash -lc`) neither java nor node was on the PATH, and only `use-java 21` brought them back.
 RUN printf '%s\n' \
+  'export JAVA_HOME="${JAVA_HOME:-'"$JAVA_HOME_21"'}"' \
+  'export PATH="$JAVA_HOME/bin:/opt/node/bin:$PATH"' \
+  '' \
   'use-java() {' \
   '  case "$1" in' \
-  '    8)  export JAVA_HOME="$JAVA_HOME_8" ;;' \
   '    17) export JAVA_HOME="$JAVA_HOME_17" ;;' \
   '    21) export JAVA_HOME="$JAVA_HOME_21" ;;' \
-  '    *)  echo "usage: use-java 8|17|21" >&2; return 1 ;;' \
+  '    *)  echo "usage: use-java 17|21" >&2; return 1 ;;' \
   '  esac' \
   '  export PATH="$JAVA_HOME/bin:/opt/node/bin:/usr/local/bin:/usr/bin:/bin"' \
   '  java -version' \
   '}' \
   > /etc/profile.d/ngb-java.sh
 
-# Default to JDK 8 so the existing Gradle 3.3 build works out of the box.
-ENV JAVA_HOME=/opt/java/jdk8
+# JDK 21 is the default: it is what Gradle 8.14.5 runs on, what the server module's toolchain
+# asks for and what the jar's class files need. Until migration Phase 9 this was JDK 8, which is
+# why every Gradle invocation in the Makefile had to be prefixed with `with-java21`.
+ENV JAVA_HOME=$JAVA_HOME_21
 ENV PATH=$JAVA_HOME/bin:$PATH
 
 ENV GRADLE_USER_HOME=/cache/gradle

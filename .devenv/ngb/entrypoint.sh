@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Starts an NGB server inside the dev environment.
 #
-#   JAVA_VERSION=8|17|21  which JDK to run the jar on (the whole point of this env). Since
-#                         migration Phase 3 the jar is Java 21 bytecode, so 8 and 17 no longer
-#                         run it; the switch stays because the image still carries all three.
+#   JAVA_VERSION=17|21    which JDK to run the jar on. Only 21 works: since migration Phase 3 the
+#                         jar is Java 21 bytecode. The switch survives Phase 9 (which dropped JDK 8
+#                         from the image) only so that "wrong JDK" fails with an explicit message
+#                         rather than an UnsupportedClassVersionError.
 #   AUTH_MODE=none|saml   no security, or Keycloak SAML SSO + JWT for the CLI.
 #
 # Config is rendered into /opt/ngb/config/catgenome.properties, which the app picks up
@@ -25,10 +26,9 @@ die() { echo "[ngb-entrypoint] ERROR: $*" >&2; exit 1; }
 
 # --- JDK selection ----------------------------------------------------------
 case "$JAVA_VERSION" in
-  8)  export JAVA_HOME="${JAVA_HOME_8}" ;;
   17) export JAVA_HOME="${JAVA_HOME_17}" ;;
   21) export JAVA_HOME="${JAVA_HOME_21}" ;;
-  *)  die "JAVA_VERSION must be 8, 17 or 21 (got '$JAVA_VERSION')" ;;
+  *)  die "JAVA_VERSION must be 17 or 21 (got '$JAVA_VERSION')" ;;
 esac
 export PATH="$JAVA_HOME/bin:$PATH"
 log "using JDK $JAVA_VERSION -> $JAVA_HOME"
@@ -51,8 +51,9 @@ java -version 2>&1 | sed 's/^/[ngb-entrypoint]   /'
 # the JVM print three WARNING lines on stderr at every start. The flag suppresses them and nothing
 # else - the access is intended, and refusing it is what a future JDK would do by default. It is
 # not the same as the manifest attribute (Enable-Native-Access), which only exists from JDK 24, so
-# on 21 it has to be on the command line. Phase 9 has to put it in docker/core/Dockerfile and in
-# the generated start scripts; this is the .devenv copy of the same decision.
+# on 21 it has to be on the command line. Phase 9 put the same flag in docker/core/Dockerfile and in
+# the generated start scripts; this is the .devenv copy of that decision. A launcher that loses it
+# still works, so check a start's output for those three warnings rather than its exit code.
 JAVA_REQUIRED_OPTS="--enable-native-access=ALL-UNNAMED"
 
 # --- the jar ----------------------------------------------------------------

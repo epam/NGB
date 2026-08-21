@@ -24,7 +24,11 @@ FORCE="${FORCE:-0}"
 # JKS (not PKCS12) because server.ssl.key-store-type=JKS in ngb/auth-saml.properties.tpl, which
 # SAMLSecurityConfiguration also reads to load the SAML signing and decryption keys. Either format
 # would work now that JKSKeyManager is gone; changing it means changing both places.
-KEYTOOL="${JAVA_HOME_8:-/opt/java/jdk8}/bin/keytool"
+#
+# The image's default JDK, which is 21 from migration Phase 9 (it was 8 before, and this line named
+# JDK 8 explicitly). Its keytool writes JKS perfectly well but prints one warning per invocation
+# recommending PKCS12 - that warning is expected, and is the only thing on stderr here.
+KEYTOOL="${JAVA_HOME:-/opt/java/openjdk}/bin/keytool"
 
 log() { echo "[certs] $*"; }
 

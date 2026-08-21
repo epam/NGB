@@ -145,12 +145,12 @@ services:
 
   # ---------------------------------------------------------------- postgres --
   # 16 since migration Phase 5 (Flyway 11.7.2 + driver 42.7.x); it was pinned to 9.6 because
-  # Flyway 3.2.1 refused to run against anything newer. The fallback below stays at 9.6 on
-  # purpose - it only applies when PG_VERSION is unset, i.e. to a .env predating Phase 5,
-  # and such a checkout wants the old server. Changing PG_VERSION needs `make reset-pg`:
-  # a 9.6 data directory is unreadable by 16.
+  # Flyway 3.2.1 refused to run against anything newer. Between Phases 5 and 9 the fallback below
+  # stayed at 9.6 so that a .env predating Phase 5 still got the server it was written for; now
+  # that the migration has landed, an unset PG_VERSION means 16 like everything else.
+  # Changing PG_VERSION needs `make reset-pg`: a 9.6 data directory is unreadable by 16.
   postgres:
-    image: postgres:${PG_VERSION:-9.6}
+    image: postgres:${PG_VERSION:-16}
     container_name: ngb-postgres
     profiles: [pg]
     environment:
@@ -186,7 +186,7 @@ services:
       GRADLE_USER_HOME: /cache/gradle
       npm_config_cache: /cache/npm
     command:
-      - "with-java21"
+      # No `with-java21` prefix: JDK 21 is the image default from migration Phase 9.
       - "./gradlew"
       - "-p"
       - "server/catgenome"

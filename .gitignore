@@ -39,5 +39,7 @@
 # jwt-token.py imports saml-login-test.py, and importing writes bytecode next to it
 /.devenv/scripts/__pycache__/
 # Captured pre-migration databases, used to exercise migration Phase 5's upgrade path.
-# Binary blobs of local state; the recipe for rebuilding them is in the directory's README.
-/.devenv/fixtures/
+# Binary blobs of local state - but the README is the recipe for rebuilding them, and
+# scripts/verify-lucene.sh points at it for the data it expects, so that one is committed.
+/.devenv/fixtures/*
+!/.devenv/fixtures/README.md

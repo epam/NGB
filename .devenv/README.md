@@ -1,9 +1,14 @@
 # NGB containerised dev environment
 
-A self-contained environment for working on NGB — in particular for the **Java 21
-migration** — with no JDK, Node, Gradle or Python installed on the host. Everything runs
-in containers: the build toolchain, the application, both database flavours, and a real
-SAML identity provider.
+A self-contained environment for working on NGB, with no JDK, Node, Gradle or Python
+installed on the host. Everything runs in containers: the build toolchain, the application,
+both database flavours, a real SAML identity provider and an S3-compatible object store.
+
+It was written for the **Java 21 migration**, which has now landed — Phases 0–9 are in
+`JAVA21-MIGRATION-PLAN.md` and `JAVA21-MIGRATION-EXECUTION.md`, kept as the record of what
+was changed and why. What is left here is a working environment, not migration scaffolding:
+the JDK-switching, the two database flavours, the SAML stack, the MinIO profile and the three
+`verify-*` scripts are all things the ordinary loop needs.
 
 ```
 cd .devenv
@@ -20,12 +25,13 @@ make up            # run it -> http://ngb.dev.local:8080/catgenome
 Three facts about the current codebase drive the whole design:
 
 1. **The build's JDK is not the host's JDK.** The wrapper was pinned to Gradle 3.3 on JDK 8
-   when this environment was written; since migration Phase 3 it is Gradle 8.14.5, the server
-   module builds on a **JDK 21** toolchain and `server/ngb-cli` on 17. The toolbox image
-   therefore still carries **three JDKs** (`with-java8` / `with-java17` / `with-java21`, or
-   `use-java 8|17|21` in a shell) and the app container still picks its JDK at runtime via
-   `NGB_JAVA_VERSION` — which now defaults to **21**, because the jar is Java 21 bytecode and
-   will not load on anything older. 8 and 17 are kept for bisecting against the earlier phases.
+   when this environment was written; it is now Gradle 8.14.5, the server module builds on a
+   **JDK 21** toolchain and `server/ngb-cli` on 17. The image's default is 21, so nothing has
+   to select a JDK for ordinary work; it carries **two** (`with-java17` / `with-java21`, or
+   `use-java 17|21` in a shell) because ngb-cli's toolchain is the older one. The app
+   container picks its JDK at runtime via `NGB_JAVA_VERSION`, which defaults to 21 — the jar
+   is Java 21 bytecode and will not load on anything older. The JDK 8 that used to be here as
+   well, and be the default, went with migration Phase 9.
 2. **The database flavour is chosen at build time**, not at runtime
    (`-Pdatabase=h2|postgres` swaps `applicationContext-flyway.xml`), so there are two
    jars and two app services.
@@ -37,7 +43,7 @@ Three facts about the current codebase drive the whole design:
 
 | Service | Profile | Purpose | Endpoint |
 |---|---|---|---|
-| `builder` | default | Toolbox: JDK 8 + 17 + 21, Node 14.17.5, mkdocs, muscle. All Gradle/npm work happens here | — |
+| `builder` | default | Toolbox: JDK 21 + 17, Node 14.17.5, mkdocs, muscle. All Gradle/npm work happens here | — |
 | `certs` | default | One-shot: JKS keystore (HTTPS + SAML signing) and the JWT RSA keypair | — |
 | `ngb-h2` | default | NGB on H2 | `:8080` http *or* `:8443` https |
 | `ngb-pg` | `pg` | NGB on PostgreSQL | `:8090` http *or* `:8493` https |
@@ -76,22 +82,53 @@ make test                    # all server unit tests on H2
 make test-one T=VcfManagerTest
 make test-pg                 # same suite against PostgreSQL
 make lint                    # checkstyle + pmd
-make cli-test                # CLI<->server integration suite (downloads test data)
+make cli-test                # CLI<->server integration suite, all 145 rows
 ```
 
+`make cli-test` needs `make jar cli-build` first and starts a server of its own on port 8080,
+so `make stop` before you run it. Its fixtures are generated from the server module's test
+resources by `e2e/cli/prepare_test_data.sh` — until migration Phase 9 they were downloaded
+from a host that had stopped resolving, which is why the suite had been unrunnable for years.
+
 **Read [`TEST-BASELINE.md`](TEST-BASELINE.md) before you trust a red run.** `make lint` is
-green; neither test suite quite is (3 failures on H2, 11 on PostgreSQL after migration
-Phase 3 — five of those are network tests). That file records each failure and why, so during
-the migration you can tell new breakage from old — and it lists the two preconditions the
-numbers depend on: `make test-pg` wants `make reset-pg` first, and `make test` wants an empty
-`../contents/`.
+green and so is `make cli-test`; the unit suite is 534 tests with **3 failures on each
+flavour**, all three of them reaching for the live internet (NCBI, UniProt, a PDB entry).
+That file records each one and why, so you can tell new breakage from old, and it lists the
+two preconditions the numbers depend on: `make test-pg` wants `make reset-pg` first, and
+`make test` wants an empty `../contents/`.
+
+**Three checks the unit suite cannot give you**
+
+The unit suite never boots a server: it drives the managers directly, against a Spring test
+context and a temporary contents directory. So there are three scripts that register data over
+REST against a **running** instance and print what came back. They were written for migration
+Phases 6, 7 and 8, and they are kept — they are the only thing that exercises the parsers, the
+Lucene indexes and the S3 client end to end.
+
+```bash
+make verify-tracks    # a track of every type: BED, GFF/GTF, GenePred, VCF, BedGraph, BigWig,
+                      # SEG, BAM, CRAM, tabix, and remote URLs including one whose HEAD is 403
+make verify-lucene    # all 18 Lucene-backed read paths: search, targets, coverage, taxonomy
+make verify-cloud     # s3:// and sws:// out of MinIO, diffed against a local read
+```
+
+Each takes a base URL as its first argument (`bash scripts/verify-lucene.sh
+http://localhost:8090/catgenome` points one at the PostgreSQL instance). `verify-tracks` wants
+`scripts/prepare-track-fixtures.sh` run once; `verify-lucene` wants the registered data
+described in [`fixtures/README.md`](fixtures/README.md), and a missing prerequisite shows up as
+an empty result — so read the counts, not just the exit code. Run all three after touching a
+parser, an index or a launcher.
 
 **Which JDK the server runs on**
 
 ```bash
-make up                       # JDK 21 — the default since migration Phase 3
-NGB_JAVA_VERSION=8 make up    # or 17: only useful against a jar built by that phase
+make up                        # JDK 21 — the only version that runs the jar
+NGB_JAVA_VERSION=17 make up    # UnsupportedClassVersionError: the jar is class file 65
 ```
+
+The switch is kept even though only one value works, because the image does carry a second
+JDK for `server/ngb-cli`, and because `JAVA_VERSION=8` now says so (`must be 17 or 21`)
+instead of pointing the launcher at a directory Phase 9 deleted.
 
 `JAVA_EXTRA_OPTS` in `.env` is **empty** and should stay that way. It used to carry four
 `--add-opens` for EhCache 2's reflective heap sizing; Phase 3 replaced EhCache with Caffeine and
@@ -213,8 +250,9 @@ docker-compose exec \
   cli bash -lc "ngb set_srv https://ngb.dev.local:8443/catgenome && ngb set_token $token && ngb list_ref"
 ```
 
-That round trip is the check for the JWT half of the security stack (`make cli-test` cannot be: its
-fixtures were hosted on `ngb.opensource.epam.com`, which no longer resolves).
+That round trip is the check for the JWT half of the security stack. `make cli-token` is
+permanent tooling, not a migration artefact — it is the only way to get a token here without
+a browser, and `make cli-test` cannot stand in for it: that suite runs with `AUTH_MODE=none`.
 
 **Cloud storage: reading tracks over `s3://` and `sws://`**
 
@@ -227,27 +265,35 @@ make up-cloud                       # MinIO + bucket + fixtures, NGB restarted p
 make verify-cloud                   # reads tracks out of it and diffs against a local read
 ```
 
-`make verify-cloud` covers registered `s3://` and `sws://` files (ranged `GetObject` through
-`S3SeekableStream`), `/dataitem/{id}/downloadUrl` (the pre-signer, checked for `GET` 200 and
-`HEAD` 403 — a pre-signed URL is signed for one method, and NGB's remote reader depends on
-tolerating that 403), and the non-registered `fileUrl=s3://…` path that pre-signs and reads over
-https. Every read is compared byte for byte with the same window read from disk.
+`make verify-cloud` covers five paths: registered `s3://` and `sws://` files (ranged
+`GetObject` through `S3SeekableStream`, virtual-host and path-style respectively),
+`/dataitem/{id}/downloadUrl` (the pre-signer, checked for `GET` 200 and `HEAD` 403 — a
+pre-signed URL is signed for one method, and NGB's remote reader depends on tolerating that
+403), the non-registered `fileUrl=s3://…` path that pre-signs and reads over https, and a
+bgzip'd VCF, which is the case that reads an object right to its last byte. Every read is
+compared byte for byte with the same window read from disk.
 
-Three things worth knowing before you extend it:
+Two things worth knowing before you extend it:
 
 - **Register with `"type":"S3","indexType":"S3"`.** The scheme in the path is not enough for a
   registration request; without the type NGB opens the path as a local file.
-- **The endpoint is `http://s3.amazonaws.com:9000`**, i.e. MinIO under a network alias that looks
-  like AWS. NGB decides whether to tolerate the 403 on `HEAD` by matching the hostname against
-  `.*s3.*\.amazonaws\.com`, so under the plain `minio` name every pre-signed read returns an empty
-  file. See "Finding 2" in the plan document.
-- **Registering a bgzip'd feature file (VCF/BED/GFF) from a cloud path fails**, with
-  `invalid uncompressedLength: -1`. That is a pre-existing defect in `FeatureInputStream`, not a
-  MinIO artifact; `verify-cloud.sh` asserts it still fails in exactly that way rather than skipping
-  it. See "Finding 1" in the plan document.
+- **NGB is pointed at MinIO under the honest name `minio`.** Phase 8 had to alias it as
+  `s3.amazonaws.com` instead, because `EnhancedUrlHelper` decided whether to tolerate the 403 on
+  `HEAD` by matching the hostname against `.*s3.*\.amazonaws\.com` — so under any other name every
+  pre-signed read came back empty. Phase 9 keyed that tolerance to the URL's own SigV4 signature;
+  path 4 above passing under the name `minio` is what proves it. `verify-tracks.sh` still stages a
+  fake `s3.amazonaws.com` in a container of its own, to exercise the hostname clause that is
+  deliberately kept for real AWS.
 
-Azure has no equivalent: `AzureBlobClient` hard-codes `https://<account>.blob.core.windows.net`, so
-Azurite cannot be pointed at without changing NGB code, and `az://` is unverified.
+The two defects this profile exposed in Phase 8 — that pre-signed read returning an empty file,
+and every bgzip'd feature file in cloud storage failing to register with
+`invalid uncompressedLength: -1` — are fixed (`16e00527`); see "Finding 1" and "Finding 2" in
+the plan document for what they were.
+
+Azure has no equivalent and `az://` is **unverified**: `AzureBlobClient` hard-codes
+`https://<account>.blob.core.windows.net`, so Azurite cannot be pointed at it without changing
+NGB code, and there is no Azure account here. The code went through the same SDK-agnostic
+changes as the S3 paths, but nothing has read a byte over `az://`. See TEST-BASELINE.md.
 
 ## Auth modes
 
@@ -273,57 +319,47 @@ baked into the jar, so it wins.
 For ad-hoc tweaks without touching the templates, create **`ngb/override.properties`** —
 it is appended last. Restart the container to apply.
 
-## Two source fixes were needed to boot at all
+## The schema bugs this environment found
 
-Bringing this environment up on empty databases exposed two real migration bugs. Neither
-is caused by the container setup — any fresh install hits them.
+Kept because they are the reason two migration scripts and three PostgreSQL forward
+migrations look the way they do, and because one of the findings is still open.
 
-### 1. `v2024.03.21_19.00__blast_task_id.sql` (both flavours)
+Bringing the environment up on **empty** databases — which no CI job and no developer with an
+existing `catgenome.h2.db` had done for a while — turned out to be the check nothing else was
+doing. Two committed migrations could not run:
 
-```sql
-ALTER SEQUENCE CATGENOME.S_TASK RESTART WITH (SELECT MAX(TASK_ID) + 1 FROM CATGENOME.TASK);
-```
+1. `v2024.03.21_19.00__blast_task_id.sql` did
+   `ALTER SEQUENCE CATGENOME.S_TASK RESTART WITH (SELECT MAX(TASK_ID) + 1 FROM CATGENOME.TASK)`.
+   On a fresh H2 install `TASK` is empty, so the restart value is `NULL` and Flyway aborts;
+   on PostgreSQL it is worse, because a subquery in `RESTART WITH` is a syntax error on any
+   database, empty or not. Now `COALESCE(MAX(TASK_ID), 0)` on H2 and `setval(...)` on
+   PostgreSQL.
+2. `v2024.02.19_18.00__acl_target_manager_role.sql` inserted `ROLE_TARGET_MANAGER` at a
+   hardcoded `id = 10`, which is free on H2 and taken by `ROLE_SEG_MANAGER` on PostgreSQL — so
+   **no PostgreSQL database could migrate past 2024.02.19 at all.** Now
+   `(SELECT MAX(id) + 1 FROM catgenome.role)`; `DefaultRoles.ROLE_TARGET_MANAGER` carries a
+   `null` id, so no Java code depends on the number.
 
-- **H2**: on a fresh install `TASK` is empty, `MAX(TASK_ID)` is `NULL`, and H2 1.3.176
-  rejects the restart value — Flyway aborts and the app never starts. Fixed with
-  `COALESCE(MAX(TASK_ID), 0)`.
-- **PostgreSQL**: worse — PostgreSQL doesn't accept a subquery in `RESTART WITH` at all,
-  so this is a syntax error on *any* database, empty or not. Replaced with
-  `SELECT setval('CATGENOME.S_TASK', COALESCE((SELECT MAX(TASK_ID) FROM CATGENOME.TASK), 0) + 1, false);`
+The second one was a symptom: the two flavours' script sets had silently diverged in three
+places — the seeded predefined roles, `VCF.MULTI_SAMPLE`'s nullability and
+`TASK_ORGANISM.ORGANISM`'s type. Phase 5 converged them on the H2 shape with forward
+migrations on the PostgreSQL side (`v2026.08.21_12.*`), H2 being the reference because
+`DefaultRoles`, `docs/md/user-guide/um-overview.md` and the DAO code all agree with it. So
+`MAX(id) + 1` resolves to 10 on both flavours now, and all 59 migrations apply cleanly on both.
 
-Both replacements were verified against H2 1.3.176 and PostgreSQL 9.6.
+**Still open, and wider than persistence:** one of those divergences was a production bug, not
+a test artefact — PostgreSQL never seeded `ROLE_WIG_MANAGER`, so on a PostgreSQL install
+nothing but an administrator could satisfy `WigSecurityService`'s `@PreAuthorize`. Phase 5
+fixed that role. It did not fix the rest of the pattern:
+`NGBMethodSecurityExpressionRoot.hasSpecificRole` also names MAF/BUCKET/PROJECT/BOOKMARK
+manager roles and `DefaultRoles` names `ROLE_HEATMAP_MANAGER`, none of which either flavour
+seeds, so those `@PreAuthorize` checks are unsatisfiable for everyone but an admin on every
+install. That is an authorisation question rather than a migration one, and it was left alone
+deliberately.
 
-### 2. `v2024.02.19_18.00__acl_target_manager_role.sql` (PostgreSQL only)
-
-```sql
-INSERT INTO catgenome.role (id, name, predefined) VALUES (10, 'ROLE_TARGET_MANAGER', true);
-```
-
-The two flavours seed different predefined roles: h2 has `ROLE_WIG_MANAGER` at 8 and
-`ROLE_SEG_MANAGER` at 9, PostgreSQL has `ROLE_MAF_MANAGER` at 9 and `ROLE_SEG_MANAGER`
-at **10**. So the hardcoded `id = 10` works on h2 and violates `role_pkey` on
-PostgreSQL — meaning no PostgreSQL database could migrate past 2024.02.19 at all. Now
-`(SELECT MAX(id) + 1 FROM catgenome.role)`; `DefaultRoles.ROLE_TARGET_MANAGER` carries a
-`null` id, so no Java code depends on the number. Only the PostgreSQL file was touched,
-so h2 checksums are untouched. All 59 migrations now apply cleanly on both flavours.
-
-Note that editing an already-applied migration makes Flyway 3.2.1 fail validation with a
-checksum mismatch on databases where the old version ran — irrelevant for fresh dev
-databases, but it needs a `flyway repair` (or a fresh schema) anywhere the broken
-version somehow got recorded. That divergence in the seeded role IDs is also worth
-keeping in mind for the Flyway upgrade: the two flavours' schemas are not identical.
-
-**Settled in migration Phase 5.** The three places the two script sets had diverged —
-the seeded roles, `VCF.MULTI_SAMPLE`'s nullability and `TASK_ORGANISM.ORGANISM`'s type —
-are now converged on the h2 shape by forward migrations on the PostgreSQL side
-(`v2026.08.21_12.*`), so `MAX(id) + 1` above resolves to 10 on both flavours. h2 was the
-reference because `DefaultRoles`, `docs/md/user-guide/um-overview.md` and the DAO code all
-agree with it. One of those divergences was a real production bug rather than a test
-artefact: PostgreSQL never seeded `ROLE_WIG_MANAGER`, so on a PostgreSQL install nothing
-but an administrator could satisfy `WigSecurityService`'s `@PreAuthorize`. Still open and
-wider than persistence: `NGBMethodSecurityExpressionRoot.hasSpecificRole` also names
-MAF/BUCKET/PROJECT/BOOKMARK manager roles, and `DefaultRoles` names
-`ROLE_HEATMAP_MANAGER`, none of which either flavour seeds.
+One procedural note that outlives the migration: editing an already-applied migration makes
+Flyway fail validation with a checksum mismatch wherever the old version ran. Fresh dev
+databases do not care; anywhere else needs a `flyway repair` or a new schema.
 
 ## Notes and gotchas
 
@@ -357,7 +393,10 @@ MAF/BUCKET/PROJECT/BOOKMARK manager roles, and `DefaultRoles` names
   npm dependency tree and mkdocs into named volumes; later builds reuse them. `make reset`
   throws those away too.
 
-## Migration checkpoints this environment is built to verify
+## Migration checkpoints this environment was built to verify
+
+All five are done. Kept as an index: each one names the phase that closed it, what the version
+ended up being, and the target that re-checks it — which is the part still worth having.
 
 1. ☑ Gradle 3.3 → 8.x (wrapper, `compile`→`implementation`, `bootRepackage`→`bootJar`),
    lombok → ≥ 1.18.30. Nothing compiled on JDK 21 before this, and the two were
@@ -377,22 +416,26 @@ MAF/BUCKET/PROJECT/BOOKMARK manager roles, and `DefaultRoles` names
    upgrade of an existing database is not automatic on the H2/PostgreSQL side — see
    `docs/md/installation/database-upgrade.md`. The Flyway schema history *is* converted
    automatically, by `FlywayMigrator`.*
-5. ☐ Lucene 6.6 → 9.x, htsjdk, POI 3.16. Verify with `make test` and by clicking through
-   tracks in the UI. *Phases 6–8. The `mangofactory` Swagger half of this one is done —
-   Phase 3 replaced it with springdoc, at `/swagger-ui/index.html` and `/v3/api-docs`.*
-   *Lucene is done: Phase 6, now 9.12.3. Every index NGB wrote before it has to be rebuilt —
-   the server refuses to start otherwise and says which directories and what rebuilds each,
-   see `docs/md/installation/lucene-reindex.md`. `.devenv/scripts/verify-lucene.sh` checks all
-   18 Lucene read paths against a running server, and `.devenv/fixtures/pre-migration/lucene6/`
-   holds the last Lucene 6 index that will ever exist, for testing the upgrade against.*
-   *htsjdk is done: Phase 7, now 5.0.0, with the forked reader package and the index cache
-   deleted. `.devenv/scripts/verify-tracks.sh` loads a track of every type — BED, GFF/GTF,
-   GenePred, VCF, BedGraph, BigWig, SEG, BAM, CRAM, tabix, and remote URLs including one whose
-   `HEAD` is refused — through a running server and prints what came back;
-   `.devenv/scripts/prepare-track-fixtures.sh` stages the fixtures it needs. Two consequences
-   worth knowing: a feature file on `s3://`/`sws://`/`az://` must now be bgzip+tabix, and
-   remote index reads are no longer cached (see the D10 note above). POI is Phase 8.*
+5. ☑ Lucene 6.6 → 9.x, htsjdk, POI 3.16, and the Swagger annotations. *Phases 3 and 6–8,
+   four separate pieces:*
+   - *Swagger: Phase 3 replaced `mangofactory` with springdoc, at `/swagger-ui/index.html`
+     and `/v3/api-docs`; Phase 8 rewrote the 1.3-era `@ApiOperation`/`@ApiResponses`
+     annotations as OpenAPI 3 and dropped the last `com.wordnik` jar.*
+   - *Lucene: Phase 6, now 9.12.3. Every index NGB wrote before it has to be rebuilt — the
+     server refuses to start otherwise and says which directories and what rebuilds each, see
+     `docs/md/installation/lucene-reindex.md`. `make verify-lucene` checks all 18 read paths,
+     and `fixtures/pre-migration/lucene6/` holds the last Lucene 6 index that will ever exist,
+     for testing the upgrade against.*
+   - *htsjdk: Phase 7, now 5.0.0, with the forked reader package and the index cache deleted.
+     `make verify-tracks` loads a track of every type. Two consequences worth knowing: a
+     feature file on `s3://`/`sws://`/`az://` must now be bgzip+tabix, and remote index reads
+     are no longer cached (see the D10 note above).*
+   - *POI: Phase 8, 3.16 → 5.5.1, along with the AWS SDK v1 → v2 move that `make verify-cloud`
+     exists to check.*
 
-`make probe-java21` demonstrated the first checkpoint's two walls by running Gradle 3.3 and
-lombok 1.16.16 under JDK 21 and failing. Both are gone, so the target no longer measures
-anything; Phase 9 removes it.
+Phase 9 closed the migration off the checkpoint list: Docker images and the JRE-bundled
+distributions on Temurin 21, AppVeyor replaced by GitHub Actions, the docs brought forward, and
+the version set to 3.0.0. This environment's own migration scaffolding went with it — the JDK 8
+in the image, and `make probe-java21`, which demonstrated the first checkpoint's two walls by
+running Gradle 3.3 and lombok 1.16.16 under JDK 21 and failing. Both walls are gone, so the
+target measured nothing.
