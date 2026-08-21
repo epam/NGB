@@ -4551,6 +4551,73 @@ crossed checkstyle's 120-char limit purely from the renames (`notes`→`descript
 `code`→`responseCode` +10) and were wrapped after `summary =` / `description =` at the surrounding
 continuation indent.
 
+**The three security controllers had to be checked separately.** `PermissionController`,
+`RoleController` and `UserController` are `@ConditionalOnProperty("security.acl.enable")`, so they
+are absent from the document the dev configuration serves and the measurements above say nothing
+about them. Checked under `make up-saml`: 268 paths / 308 operations / 302 summaries, with
+`Permissions`, `Role` and `user` among the tags and their operations carrying the translated text
+(`/restapi/grant` → "Loads all permissions for an object.", `/restapi/role/{id}`, `/restapi/user/{id}`
+→ "Loads a user by a ID."). `make cli-token` still issues an RS512 JWT through the SAML login, that
+token still authenticates `/restapi/user/current` and `/restapi/reference/loadAll` (200), and an
+unauthenticated call is still `401` rather than a 302 to the SAML entry point.
+
+#### The two rows that were verification, not a bump
+
+- **Jackson.** Boot 3.5.16's BOM resolves the whole family to **2.21.4** — `jackson-databind`,
+  `jackson-core`, `jackson-dataformat-xml` and `jackson-datatype-jsr310` all at one version, with
+  five different transitive requests (2.14.2 through 2.22.0, the AWS SDK's included) losing to it.
+  Both converters were exercised against the running server: `controller/JsonMapper` still writes
+  `java.util.Date` as `FMT_ISO_LOCAL_DATE` (`"createdDate":"2026-08-21"`) and still carries its
+  `JavaTimeModule` with the `LocalDateTime` (de)serializer pair, and `Accept: application/xml` still
+  returns `200 application/xml;charset=UTF-8` with a `<Result><payload>…` document. Note while
+  passing that the XML converter is Spring's auto-registered
+  `MappingJackson2XmlHttpMessageConverter`, not NGB's mapper, so the same field comes back as
+  `2026-08-21T00:47:47.966+00:00` there — a pre-existing inconsistency, unchanged by this phase and
+  not introduced by it.
+- **`org.jetbrains.bio:big`.** The row asks for "current". **0.9.1 is the only version Maven Central
+  has** (`maven-metadata.xml` lists exactly one), so it is already current and stays. Its htsjdk
+  exclusion stays with it — `dependencies` shows one htsjdk line — and the BigWig read path is green
+  in `verify-tracks.sh` (5001 blocks, values to 958.0). What did move around it is Kotlin: `big` was
+  compiled against `kotlin-stdlib:1.4.21` and okhttp 4.12.0 asks for 2.1.21, and Boot's BOM resolves
+  both to **1.9.25** — see commit 8.
+
+#### Phase 8 exit criteria: what was run
+
+| Criterion | Result |
+|---|---|
+| `./gradlew dependencies` — no `com.amazonaws`, `com.wordnik`, `com.mangofactory`, `net.sf.ehcache`, `c3p0`, hadoop, `spring-security-oauth2`, `spring-security-saml2-core` | **all zero** on `runtimeClasspath` of both modules |
+| no duplicate htsjdk | one line: `com.github.samtools:htsjdk:5.0.0` |
+| the `reactor-core:3.5.3` pin gone | no declaration; resolves to **3.7.19** (Boot BOM), one version |
+| `make test` (H2) | **534 tests, 4 failed, 21 skipped** — the documented three plus `PdbDataManagerTest.testParse` (RCSB chain order, `expected:<B> but was:<A>`) |
+| `make test-pg` (after `make reset-pg`) | **534 tests, 3 failed, 21 skipped** — the documented three; the RCSB test passed at this recording |
+| `make lint` | 14 files, **37 warnings, 0 errors**, pmd clean |
+| `verify-tracks.sh` | green: every track type answered with data, 1 skipped (MAF, which has no REST surface). CRAM ≡ BAM, and the http / signed-s3 remote reads ≡ the local read |
+| `verify-lucene.sh` | green: all 18 Lucene read paths, including the target-identification aggregate |
+| `verify-cloud.sh` | green: see commit 11 |
+| Excel export by hand | commit 3 — the target-identification report (`GET /target/report`) and the gene import, both compared against POI 3.16 output |
+| protein/PDB by hand | `PdbEntriesManager`/`PdbDataManager` over jettison 1.5.7, live RCSB, six live-service tests (commit 9); *not* a biojava path — see divergence 1. Genbank and GenePred are, and are byte-compared in commit 4 |
+| Azure `az://` track loading | **not verified.** No credentials, and `AzureBlobClient` hard-codes `https://%s.blob.core.windows.net`, so Azurite cannot stand in — commit 5 |
+| LLM target summaries | **not verified.** No API keys; every path in `manager/llm` needs a live one — commit 6 |
+
+So the failure counts are unchanged from Phase 7 on both flavours, and the two criteria that went
+unverified are unverifiable in this environment rather than skipped.
+
+#### Three things for the next phase to decide, not decided here
+
+1. **Finding 1** (above): the `FeatureInputStream` EOF sentinel that makes a bgzip'd feature file
+   unregisterable from `s3://`, `sws://` or `az://`. Pre-existing, small, and needs a test that reads
+   an object to its exact end. **Recommendation: fix in Phase 9.**
+2. **Finding 2** (above): the `.*s3.*\.amazonaws\.com` host gate on the 403 tolerance, which denies
+   every S3-compatible store the pre-signed read path. **Recommendation: fix in Phase 9**, by keying
+   the tolerance to how the URL was produced.
+3. **Rewriting `s3://` to a pre-signed `https://` URL at reader-open time** — the alternative Phase 7
+   rejected for want of a presigner, which commit 1 now provides. It would make finding 1 moot by
+   routing cloud reads through `UrlSeekableStream`, and commit 11 shows that path reads the same
+   bgzip VCF byte-identically to disk. **Recommendation: do not.** It replaces one ranged `GetObject`
+   per chunk with a signed URL whose lifetime has to outlive the reader, moves the credential
+   boundary, and would be a redesign of the cloud read path rather than a fix. Fixing finding 1 costs
+   a few lines.
+
 ---
 
 ### Phase 9 — Packaging, CI, docs, release

@@ -1,12 +1,13 @@
 # Test baseline for the Java 21 migration
 
 First recorded on 2026-08-20 at the end of **migration Phase 0**; re-measured at the end of
-**Phase 1**, of **Phase 2**, of **Phase 3**, of **Phase 4**, of **Phase 5**, of **Phase 6** and of
-**Phase 7**,
+**Phase 1**, of **Phase 2**, of **Phase 3**, of **Phase 4**, of **Phase 5**, of **Phase 6**, of
+**Phase 7** and of **Phase 8**,
 inside this environment. The first two recordings were on JDK 8 / Gradle 3.3 / Boot 1.5, the third
 on JDK 17 / Gradle 7.6 / Boot 2.7.18, the next two on H2 1.3.176 / PostgreSQL 9.6; **the numbers
-below are Phase 7's, on JDK 21 / Gradle 8.14.5 / Boot 3.5.16 / Spring Security 6.5.11 / Flyway
-11.7.2 / Lucene 9.12.3 / htsjdk 5.0.0, against H2 2.3.232 and PostgreSQL 16.15** (aarch64/colima).
+below are Phase 8's, on JDK 21 / Gradle 8.14.5 / Boot 3.5.16 / Spring Security 6.5.11 / Flyway
+11.7.2 / Lucene 9.12.3 / htsjdk 5.0.0 / AWS SDK v2 2.54.1 / POI 5.5.1 / biojava 7.2.6, against
+H2 2.3.232 and PostgreSQL 16.15** (aarch64/colima).
 **These tests still fail on the current code.** From here on this list is the reference: a run that
 is green except for this list is a pass. Anything else is your own breakage.
 
@@ -43,7 +44,9 @@ none, and took PostgreSQL from 11 failures to 4 by fixing the causes — see
 Lucene version guard and changed no failure count — see
 ["What Phase 6 changed"](#what-phase-6-changed). Phase 7 removed 6 tests with the index cache
 (540 → 534), fixed two Phase 6 assertions that had never held, and changed no failure count — see
-["What Phase 7 changed"](#what-phase-7-changed).
+["What Phase 7 changed"](#what-phase-7-changed). Phase 8 replaced eleven libraries — AWS SDK v1 → v2,
+POI 3 → 5, biojava 4 → 7 among them — added and removed no tests, and changed no failure count on
+either flavour; see ["What Phase 8 changed"](#what-phase-8-changed).
 
 **Two conditions the numbers depend on.** Get either wrong and you will see extra failures
 that are not yours:
@@ -544,6 +547,52 @@ comparisons a parser regression cannot survive. Two coverage notes: the CRAM fix
 **created** (`.devenv/scripts/BamToCram.java` → `p7_agnX1.cram`, 45,237 records; there is none in the
 repo), and **MAF cannot be verified through the server at all** — `MafController` was deleted in
 `562b6a6d` (Dec 2018), so `MafManagerTest.testRegisterMaf` is the whole of its coverage.
+
+## What Phase 8 changed
+
+The rest of the dependency backlog, in twelve commits — AWS SDK v1 1.12.797 → **v2 2.54.1**, POI
+3.16 → **5.5.1**, biojava 4.2.0 → **7.2.6** (and `biojava-structure` deleted), azure-storage-blob
+12.14.0 → 12.35.0, azure-ai-openai beta.2 → beta.16, commons-io 2.15.1 → 2.22.0, commons-collections
+3 → collections4, retrofit converter-jackson 2.7.2 → 3.0.0 (OkHttp 3 → 4), jettison 1.1 → 1.5.7,
+opencsv 5.8 → 5.12.0, fast-classpath-scanner → ClassGraph, and the Swagger 1.3 annotations →
+OpenAPI 3 in 41 files. The findings are in `JAVA21-MIGRATION-PLAN.md` ("Phase 8 execution findings").
+
+| Suite | Phase 7 | Phase 8 |
+|---|---|---|
+| H2 | 534 / 3 failed / 21 skipped | **534 / 4 / 21** — the documented three plus `PdbDataManagerTest.testParse` (`expected:<B> but was:<A>`, RCSB chain order); it flaps, so 3 is also a pass |
+| PostgreSQL | 534 / 3 / 21 | **534 / 3 / 21** — the RCSB test passed at this recording |
+| `make lint` | 37 warnings in 14 files, pmd clean | **37 warnings in 14 files, pmd clean** |
+
+**No test file was touched: `git diff 89a0210f..HEAD -- '*/src/test'` is empty.** Not one test was
+added, removed or adjusted, so the counts above are the same tests on eleven different libraries.
+Which is the point worth taking from this phase: the suite is nearly blind to it. There is no xlsx
+fixture and no test mentions XSSF; the two S3 tests stub the client away; nothing imports
+`org.biojava.nbio.structure`; and `GffManagerTest.testRegisterGbk` asserts only that Genbank
+registration produced a file, not what is in it. A green suite here means "nothing that was covered
+broke", and most of what changed was not covered.
+
+So the verification that carried the phase was done by hand, and where it was repeatable it was
+scripted. All of these are committed:
+
+```bash
+.devenv/scripts/prepare-track-fixtures.sh && .devenv/scripts/verify-tracks.sh   # every track type
+.devenv/scripts/verify-lucene.sh                                               # 18 Lucene read paths
+make up-cloud && make verify-cloud                                             # s3:// and sws://
+make cli-token                                                                 # SAML login -> JWT
+```
+
+`verify-tracks.sh` and `verify-lucene.sh` came back green (1 skipped: MAF, which has no REST
+surface). `verify-cloud.sh` is new this phase: it stands **MinIO** up as a `cloud` compose profile
+and reads registered `s3://` / `sws://` tracks, `fileUrl=` tracks and pre-signed download URLs
+against it, diffing every result byte-for-byte against a local read — which is what establishes that
+v2's `S3Presigner` produces URLs the reader cannot tell from v1's. The one-off comparisons are in the
+plan: POI 5 against POI 3.16 on the same target report and the same gene import, and biojava 7.2.6
+against 4.2.0 on the same Genbank fixture (GFF, FASTA and a full parse dump, all three identical).
+
+**Two exit criteria could not be met in this environment**, and are recorded rather than dropped:
+`az://` track loading (no Azure credentials, and `AzureBlobClient` hard-codes
+`https://%s.blob.core.windows.net`, so Azurite cannot be pointed at) and the LLM target summaries
+(no API keys). Both are called out in the plan with what *was* verified offline in their place.
 
 ## Reproducing
 
