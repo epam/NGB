@@ -25,7 +25,6 @@ package com.epam.catgenome.manager.bam;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.bam.BamCoverageDao;
-import com.epam.catgenome.dao.index.field.SortedStringField;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.bam.BamCoverage;
 import com.epam.catgenome.entity.bam.BamFile;
@@ -38,6 +37,7 @@ import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.PagingInfo;
 import com.epam.catgenome.util.db.SortInfo;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
@@ -52,10 +52,10 @@ import org.apache.lucene.document.FloatDocValuesField;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.NumericDocValuesField;
+import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexNotFoundException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -70,7 +70,7 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -80,7 +80,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -147,6 +146,64 @@ public class BamCoverageManager {
         }
     }
 
+    /**
+     * Recomputes the coverage Lucene index from the BAM files it was built from - one registered
+     * coverage track, or all of them when {@code coverageId} is null.
+     *
+     * <p>Until Phase 6 of the Java 21 migration this index had no rebuild path: intervals are
+     * written only by {@link #create}, so the only way to recreate them was to delete the coverage
+     * track and add it again, which changes its id. The Lucene upgrade makes one full reindex
+     * mandatory, so the gap had to be closed - see
+     * {@code docs/md/installation/lucene-reindex.md}.
+     *
+     * <p>This is the expensive one of the two rebuilds this release adds: the intervals are not
+     * stored anywhere but in the index, so they have to be recomputed by walking every locus of
+     * every BAM again, exactly as registering the track did. Expect it to take as long as the
+     * original {@code POST /restapi/bam/coverage} did.
+     *
+     * <p>Rebuilding everything clears the index first, which also discards an index this Lucene
+     * cannot read - the whole content is about to be rewritten. Rebuilding a single track cannot do
+     * that (it would throw away the other tracks), so on a pre-upgrade index the single-track form
+     * reports the version failure and the operator either deletes the directory, as the startup
+     * guard tells them to, or rebuilds everything.
+     *
+     * <p>The average coverage stored on the database row is deliberately not rewritten: it is
+     * recomputed here from the same BAM, so it comes out the same, and this call is meant to touch
+     * nothing but the index.
+     *
+     * @return how many coverage tracks were rebuilt
+     */
+    public int reindexCoverage(final Long coverageId) throws IOException {
+        final List<BamCoverage> coverages = bamCoverageDao.loadAll().stream()
+                .filter(coverage -> coverageId == null || coverageId.equals(coverage.getCoverageId()))
+                .collect(Collectors.toList());
+        Assert.notEmpty(coverages, coverageId == null
+                ? getMessage("No BAM coverage tracks are registered, so there is nothing to reindex")
+                : getMessage("No BAM coverage track with id " + coverageId + " is registered"));
+
+        if (coverageId == null) {
+            clearIndex();
+        } else {
+            deleteIndexDocument(IndexField.COVERAGE_ID.getFieldName(), coverageId,
+                    bamCoverageIndexDirectory);
+        }
+
+        for (final BamCoverage coverage : coverages) {
+            final BamFile bamFile = bamFileManager.load(coverage.getBamId());
+            Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_BAM_FILE_NOT_FOUND,
+                    coverage.getBamId()));
+            final Map<String, Chromosome> chromosomeMap = referenceGenomeManager
+                    .loadChromosomes(bamFile.getReferenceId()).stream()
+                    .collect(Collectors.toMap(BaseEntity::getName, c -> c));
+            log.info("Reindexing BAM coverage {} (BAM {}, step {})", coverage.getCoverageId(),
+                    coverage.getBamId(), coverage.getStep());
+            writeCoverageIntervals(coverage, bamFile, chromosomeMap);
+        }
+        log.info("Rebuilt the BAM coverage index in {} for {} coverage track(s).",
+                bamCoverageIndexDirectory, coverages.size());
+        return coverages.size();
+    }
+
     public List<BamCoverage> loadAll() {
         return bamCoverageDao.loadAll();
     }
@@ -164,11 +221,11 @@ public class BamCoverageManager {
         final List<CoverageInterval> items = new LinkedList<>();
         int totalCount = 0;
 
-        try (Directory index = new SimpleFSDirectory(Paths.get(bamCoverageIndexDirectory));
-             IndexReader reader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(bamCoverageIndexDirectory);
+             IndexReader reader = LuceneIndexUtils.openReader(index)) {
             final IndexSearcher searcher = new IndexSearcher(reader);
-            TopDocs topDocs = searcher.search(query, coverageTopHits);
-            totalCount = topDocs.totalHits;
+            TopDocs topDocs = LuceneIndexUtils.search(searcher, query, coverageTopHits);
+            totalCount = LuceneIndexUtils.totalHits(topDocs);
 
             if (totalCount > 0) {
                 final int pageNum = pagingInfo == null ? 1 : pagingInfo.getPageNum() > 0 ? pagingInfo.getPageNum() : 1;
@@ -227,9 +284,23 @@ public class BamCoverageManager {
         return new Sort(new SortField(IndexField.COVERAGE.getFieldName(), SortField.Type.INT, true));
     }
 
+    /**
+     * Empties the coverage index, so that {@link #reindexCoverage} can refill it. Uses the rebuild
+     * variant of the writer because the directory it is asked to empty may hold an index written by
+     * a Lucene too old to open at all.
+     */
+    private void clearIndex() throws IOException {
+        try (Directory index = LuceneIndexUtils.openDirectory(bamCoverageIndexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriterForRebuild(index,
+                     new IndexWriterConfig(new StandardAnalyzer())
+                             .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
+            writer.deleteAll();
+        }
+    }
+
     private void write(final List<CoverageInterval> intervals) throws IOException {
-        try (Directory index = new SimpleFSDirectory(Paths.get(bamCoverageIndexDirectory));
-             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(new StandardAnalyzer())
+        try (Directory index = LuceneIndexUtils.openDirectory(bamCoverageIndexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriter(index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             for (CoverageInterval interval: intervals) {
                 Document doc = new Document();
@@ -237,7 +308,16 @@ public class BamCoverageManager {
                         String.valueOf(interval.getCoverageId()), Field.Store.YES));
 
                 doc.add(new TextField(IndexField.CHR.getFieldName(), interval.getChr(), Field.Store.YES));
-                doc.add(new SortedStringField(IndexField.CHR.getFieldName(), interval.getChr(), true));
+                // The doc values are what the sort on `chr` needs; they used to arrive as a
+                // SortedStringField, which also indexes a term - with DOCS, while the TextField
+                // above indexes DOCS_AND_FREQS_AND_POSITIONS. Lucene 6 tolerated the two
+                // disagreeing about the index options of one field; Lucene 9 refuses the first
+                // document with "Inconsistency of field data structures across documents for
+                // field [chr]", so no coverage index could be written at all. Nothing read that
+                // second term - the chromosome filter goes through the QueryParser and matches
+                // the analysed TextField - so only the doc values are kept.
+                doc.add(new SortedDocValuesField(IndexField.CHR.getFieldName(),
+                        new BytesRef(interval.getChr())));
                 doc.add(new StoredField(IndexField.CHR.getFieldName(), interval.getChr()));
 
                 doc.add(new IntPoint(IndexField.START.getFieldName(), interval.getStart()));

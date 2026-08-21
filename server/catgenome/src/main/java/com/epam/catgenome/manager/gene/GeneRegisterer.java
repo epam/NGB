@@ -69,6 +69,7 @@ import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.index.tabix.TabixFormat;
@@ -222,7 +223,7 @@ public class GeneRegisterer {
         // and transcript
         try (StandardAnalyzer analyzer = new StandardAnalyzer();
              Directory index = fileManager.createIndexForFile(geneFile);
-             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
+             IndexWriter writer = LuceneIndexUtils.openWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
                         IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
 
             while (iterator.hasNext()) {

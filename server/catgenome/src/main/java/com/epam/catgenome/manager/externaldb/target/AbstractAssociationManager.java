@@ -28,9 +28,9 @@ import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.manager.index.SearchRequest;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import lombok.Getter;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanClause;
@@ -40,10 +40,8 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -75,10 +73,10 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
                 : request.getPageSize();
         final int hits = page * pageSize;
 
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, hits, getSort(request.getOrderInfos()));
+            TopDocs topDocs = LuceneIndexUtils.search(searcher, query, hits, getSort(request.getOrderInfos()));
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
             final int from = (page - 1) * pageSize;
@@ -89,7 +87,7 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
                 entries.add(entry);
             }
             searchResult.setItems(entries);
-            searchResult.setTotalCount(topDocs.totalHits);
+            searchResult.setTotalCount(LuceneIndexUtils.totalHits(topDocs));
         }
         return searchResult;
     }
@@ -98,8 +96,8 @@ public abstract class AbstractAssociationManager<T extends Association> extends 
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
         mainBuilder.add(getByTermQuery(diseaseId, IndexCommonFields.DISEASE_ID.name()), BooleanClause.Occur.MUST);
         final List<T> entries = new ArrayList<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(mainBuilder.build(), topHits, getDefaultSort());
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;

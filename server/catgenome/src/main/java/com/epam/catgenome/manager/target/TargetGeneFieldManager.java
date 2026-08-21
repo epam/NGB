@@ -28,6 +28,7 @@ import com.epam.catgenome.entity.index.SortType;
 import com.epam.catgenome.entity.target.TargetGeneField;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.CaseInsensitiveWhitespaceAnalyzer;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.lucene.document.*;
@@ -39,7 +40,6 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -86,8 +86,8 @@ public class TargetGeneFieldManager extends AbstractIndexManager<TargetGeneField
 
     public void create(final List<TargetGeneField> targetGeneFields)
             throws IOException, ParseException {
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexWriter writer = new IndexWriter(
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             for (TargetGeneField g : targetGeneFields) {

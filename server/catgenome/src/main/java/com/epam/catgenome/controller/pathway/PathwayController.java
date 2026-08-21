@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -137,6 +138,21 @@ public class PathwayController extends AbstractRESTController {
     public Result<Boolean> registerBioPAX(@RequestBody final BioPAXRegistrationRequest request) throws IOException {
         pathwaySecurityService.registerBioPAX(request);
         return Result.success(null);
+    }
+
+    @PutMapping(value = "/pathway/index")
+    @ApiOperation(
+            value = "Rebuilds the pathway Lucene index",
+            notes = "Rebuilds the pathway Lucene index for every registered pathway, from the "
+                    + "database and the pathway files. Needed after an NGB upgrade that changes the "
+                    + "Lucene index format - see the reindex procedure in the installation docs. "
+                    + "Returns the number of pathways indexed.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Integer> reindexPathways() throws IOException {
+        return Result.success(pathwaySecurityService.reindexPathways());
     }
 
     @DeleteMapping(value = "/pathway/{pathwayId}")

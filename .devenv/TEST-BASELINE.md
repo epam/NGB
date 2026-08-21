@@ -1,25 +1,25 @@
 # Test baseline for the Java 21 migration
 
 First recorded on 2026-08-20 at the end of **migration Phase 0**; re-measured at the end of
-**Phase 1**, of **Phase 2**, of **Phase 3**, of **Phase 4** and of **Phase 5**, inside this
-environment. The first two recordings were on JDK 8 / Gradle 3.3 / Boot 1.5, the third on JDK 17 /
-Gradle 7.6 / Boot 2.7.18, the next two on H2 1.3.176 / PostgreSQL 9.6; **the numbers below are
-Phase 5's, on JDK 21 / Gradle 8.14.5 / Boot 3.5.16 / Spring Security 6.5.11 / Flyway 11.7.2, against
-H2 2.3.232 and PostgreSQL 16.15** (aarch64/colima). **These tests still fail on the current code.**
-From here on this list is the reference: a run that is green except for this list is a pass. Anything
-else is your own breakage.
+**Phase 1**, of **Phase 2**, of **Phase 3**, of **Phase 4**, of **Phase 5** and of **Phase 6**,
+inside this environment. The first two recordings were on JDK 8 / Gradle 3.3 / Boot 1.5, the third
+on JDK 17 / Gradle 7.6 / Boot 2.7.18, the next two on H2 1.3.176 / PostgreSQL 9.6; **the numbers
+below are Phase 6's, on JDK 21 / Gradle 8.14.5 / Boot 3.5.16 / Spring Security 6.5.11 / Flyway
+11.7.2 / Lucene 9.12.3, against H2 2.3.232 and PostgreSQL 16.15** (aarch64/colima). **These tests
+still fail on the current code.** From here on this list is the reference: a run that is green
+except for this list is a pass. Anything else is your own breakage.
 
 | Suite | Command | Result |
 |---|---|---|
-| H2 | `make test` | 526 tests, **3 failed**, 21 skipped (~2.5 min) |
-| PostgreSQL | `make test-pg` | 526 tests, **4 failed**, 21 skipped (~3 min) |
+| H2 | `make test` | 540 tests, **3–4 failed**, 21 skipped (~3 min) |
+| PostgreSQL | `make test-pg` | 540 tests, **3–4 failed**, 21 skipped (~4 min of tests; ~15 min including `make reset-pg` and the jar) |
 | Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings / 0 errors (~30 s) |
 | CLI integration | `make cli-test` | **cannot run** — its fixture host no longer exists, see ["`make cli-test` is unrunnable"](#make-cli-test-is-unrunnable) |
 
 **Every remaining failure on both flavours is a network test.** Phase 5 cleared the last of the
 code-and-schema ones — see ["What Phase 5 changed"](#what-phase-5-changed) — so the two flavours now
-differ only by `PdbDataManagerTest.testParse`, which flaps: it failed on PostgreSQL and passed on H2
-at this recording, and has gone both ways at every previous one. The failures are
+differ only by `PdbDataManagerTest.testParse`, which flaps: at the two Phase 6 H2 runs it passed
+once and failed once, on the same code, minutes apart. The failures are
 `GffManagerTest.testLoadGenesTranscript` (live Ensembl), `BlatSearchManagerTest.testFind` /
 `testFindBlatReadSequence` (UCSC redirects HTTP to HTTPS, new since Phase 1) and that one. See
 ["Live-data failures"](#live-data-failures).
@@ -38,7 +38,9 @@ rather than re-baselined everything the upgrade broke — see
 bring back. Phase 4 brought back 7 of them (519 → 526) and changed no failure count on either
 flavour — see ["What Phase 4 changed"](#what-phase-4-changed). Phase 5 added no tests and removed
 none, and took PostgreSQL from 11 failures to 4 by fixing the causes — see
-["What Phase 5 changed"](#what-phase-5-changed).
+["What Phase 5 changed"](#what-phase-5-changed). Phase 6 **added** 14 tests (526 → 540) for the
+Lucene version guard and changed no failure count — see
+["What Phase 6 changed"](#what-phase-6-changed).
 
 **Two conditions the numbers depend on.** Get either wrong and you will see extra failures
 that are not yours:
@@ -52,16 +54,33 @@ that are not yours:
    `TargetManagerTest.filterTargetsByOwnerTest` was in this list and is not any more: Phase 5
    fixed the empty-`IN`-list bug that made it dirty-state-sensitive.
 2. **`make test` needs a clean `contents/`.** `/contents/` in the repo root is gitignored
-   scratch space (`files.base.directory.path`, plus the taxonomy and targets Lucene indexes).
-   Leftovers there used to make `HomologeneManagerTest.searchTest` pass and
-   `TargetManagerTest.loadTargetsTest` fail; both are now self-contained, but if you get an
-   inexplicable Lucene result, `rm -rf ../contents` and re-run.
+   scratch space (`files.base.directory.path`, plus every global Lucene index). Leftovers there
+   used to make `HomologeneManagerTest.searchTest` pass and `TargetManagerTest.loadTargetsTest`
+   fail; both are now self-contained, but if you get an inexplicable Lucene result,
+   `rm -rf ../contents` and re-run.
+
+   Since Phase 6 that command is actually sufficient, which it was not before: the two test
+   profiles omitted `pathway.index.directory`, `homologene.index.directory` and
+   `bam.coverage.index.directory`, and the test contexts resolve placeholders with
+   `ignore-unresolvable="true"`, so those three indexes were written to directories in the source
+   tree named literally `server/catgenome/${pathway.index.directory}` and so on — outside
+   `contents/`, gitignored (`.gitignore:13`), and never cleaned. `ncbi.index.directory` was
+   `./contents/ncbi/`, i.e. relative to the test JVM's working directory, which is
+   `server/catgenome/`, so it missed too. All four now point at `@rootDirPath@/contents/`.
+
+   **If you are coming from a tree that ran the suite before Phase 6, delete those directories
+   once**, or you will see nine `LuceneIndexVersionException` failures that are not yours —
+   they hold Lucene 6 indexes and Lucene 9 cannot read them:
+
+   ```bash
+   rm -rf ../contents ../server/catgenome/contents "../server/catgenome/\${"*
+   ```
 
 ## H2: 1 documented failure (+2 live-data)
 
 | Class | Cause | Survives the migration? |
 |---|---|---|
-| `GffManagerTest.testLoadGenesTranscript` | `expected:<protein_coding> but was:<protein_coding_CDS_not_defined>`. **Live external data, not a fixture problem** — see the note below. | Yes. Unaffected by every phase; only an Ensembl change or a decision about network tests will move it. |
+| `GffManagerTest.testLoadGenesTranscript` | `expected:<protein_coding> but was:<protein_coding_CDS_not_defined>`. **Live external data, not a fixture problem** — see the note below. At one Phase 6 run it failed instead with `NullPointerException: Cannot invoke "java.util.List.isEmpty()" because the return value of …`, i.e. Ensembl answered with a field missing; same test, same cause, different weather. | Yes. Unaffected by every phase; only an Ensembl change or a decision about network tests will move it. |
 | `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | `ExternalDbUnavailableException: Unexpected HTTP status: 302 Found`. UCSC redirects `http://genome.cse.ucsc.edu/cgi-bin/hgBlat` to HTTPS and `HttpURLConnection` will not follow a cross-protocol redirect — see ["Live-data failures"](#live-data-failures). | Yes, until `blat.search.url` is changed to `https`. |
 | `PdbDataManagerTest.testParse` | `expected:<B> but was:<A>`. Live RCSB PDB data — see ["Live-data failures"](#live-data-failures). Passed at the Phase 2 H2 recording and failed at the PostgreSQL one; passed on both at Phase 3's. Expect it either way. | Yes, until network tests are dealt with. |
 
@@ -119,7 +138,7 @@ if one comes back, a script set has drifted again.
 | Count | Class | Cause | Status |
 |---|---|---|---|
 | 1 | `GffManagerTest.testLoadGenesTranscript` | Same live-Ensembl failure as on H2. | **Still fails.** Yes, survives. |
-| 1 | `PdbDataManagerTest.testParse` | Same live-RCSB failure as on H2. Failed on PostgreSQL and passed on H2 at the Phase 5 recording; has gone both ways before. | **Flaps.** |
+| 1 | `PdbDataManagerTest.testParse` | Same live-RCSB failure as on H2. Failed on PostgreSQL and passed on H2 at the Phase 5 recording; at the Phase 6 recording it passed on PostgreSQL, which is why that suite came in at 3 rather than 4. | **Flaps.** |
 | 2 | `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | Same UCSC HTTP→HTTPS drift as on H2. | **Still fails.** Until `blat.search.url` is changed. |
 | 4 | `BookmarkDaoTest.testSaveLoadBookmark`, `testAllItemTypes`, `VcfFileDaoTest.testSaveLoadVcfFile`, `testSaveLoadSamples` | `catgenome.vcf.multi_sample` was `NOT NULL` in the PostgreSQL script set and nullable in the H2 one; `VcfFileDao` inserts `null`. | **Fixed in Phase 5** by `v2026.08.21_12.00__align_vcf_multi_sample_with_h2.sql`. |
 | 2 | `BlastTaskDaoTest.testDeleteOrganisms`, `testDeleteExclOrganisms` | `task_organism.organism` / `task_excl_organism.organism` were `character varying` on PostgreSQL and numeric on H2, while `BlastTaskDao.deleteOrganisms` emits `where organism = 1`. `ERROR: operator does not exist: character varying = integer`. | **Fixed in Phase 5** by `v2026.08.21_12.10__align_task_organism_with_h2.sql`. |
@@ -396,6 +415,56 @@ read a green suite as "the application boots":
 So: after this phase, `make test` and `make test-pg` being at baseline is necessary but not
 sufficient. `make up`, `make up-pg` and the upgrade procedure in
 `docs/md/installation/database-upgrade.md` are the rest of it.
+
+## What Phase 6 changed
+
+Lucene 6.6.0 → 9.12.3, plus the startup guard and reindex procedure decision D8 asks for — the
+findings are in `JAVA21-MIGRATION-PLAN.md` ("Phase 6 execution findings"). **526 → 540 tests**, all
+14 of them new, and the failure count is unchanged on both flavours. Nothing was re-baselined,
+nothing was `@Ignore`d, and no assertion was weakened.
+
+### The 14 new tests
+
+| Class | Tests | Covers |
+|---|---|---|
+| `app/LuceneIndexVersionCheckTest` | 7 | The startup half: the refusal text and directory count, the per-leaf rebuild call for a multi-index root, the argument-less endpoints — and the four states that must **not** stop startup (unconfigured, absent, present but index-free, written by this release) |
+| `util/LuceneIndexUtilsTest` | 7 | The lazy half: a stale feature index named with the exact `ngb`/REST call that rebuilds it, derived from the path for vcf/genes/bed; the fallback for a non-feature index; the writer refusing identically to the reader; the rebuild writer discarding only Lucene's own files; and that a search counts every match, not the first 1000 |
+
+They assert on message *text*, deliberately: on this phase the message is the deliverable. Neither
+class needs a Lucene index committed to the tree — `util/StaleLuceneIndex` writes a `segments_1`
+holding nothing but a codec header declaring format version 6, which every path into the guard
+rejects in the same place as a real 6.6.0 index. A committed fixture would have been invalidated by
+this very phase.
+
+### Two real defects the phase found, and one test-infrastructure trap
+
+| Fix | Effect |
+|---|---|
+| `BamCoverageManager` indexed `chr` as both a `TextField` and a `SortedStringField` in the same document | Not a test failure — the coverage index could not be **written** at all on Lucene 9, which requires every document to agree on a field's `IndexOptions`, not only on its `DocValuesType`. Lucene 6 accepted it and stored a mess. Found by reindexing the captured fixture, not by the suite |
+| `LuceneIndexUtils.openWriterForRebuild` opened a writer, caught the version failure, discarded the files and retried with the same `IndexWriterConfig` | Found by `LuceneIndexUtilsTest`: `IndexWriter`'s constructor claims the config before it reads the commit, so the retry could only ever fail with "do not share IndexWriterConfig instances across IndexWriters". It now probes the commit point first. Invisible to the documented procedure, which deletes the directory first — and exactly the path an operator takes when they do not |
+| The two test profiles omitted three `*.index.directory` properties, so the suite wrote Lucene indexes into source-tree directories named literally `${pathway.index.directory}` and never cleaned them | Nine failures on the first post-upgrade run (`PathwayManagerTest` ×6, `BamCoverageManagerTest` ×2, `HomologeneManagerTest.searchTest`) — all of them stale **Lucene 6** data from the runs of 2026-08-20, none of them the code's doing. See precondition 2 above; the properties now point into `contents/` and the directories were archived to `.devenv/fixtures/pre-migration/lucene6/test-tree-lucene6-dirs.tgz` and deleted |
+
+That last row is the one to read twice before blaming yourself for a red run on this branch: a
+Lucene upgrade turns "stale scratch index" from harmless into a hard failure, and this suite
+carried scratch indexes between runs for years.
+
+### `make test` being green still does not mean the server boots
+
+Third phase in a row, and this time in both directions. The suite cannot see that the guard's
+messages reach a terminal — every appender in the shipped log4j2 profiles filters at `ERROR`, so
+the check's `WARN`/`INFO` lines went nowhere until they were bound to the `WARN`-threshold console
+appender Phase 5 added — and it cannot see the `chr` defect either, because no test writes a
+coverage index. The checks that do:
+
+```bash
+make up && make smoke                        # and read the log: the check reports at startup
+.devenv/scripts/verify-lucene.sh             # all 18 Lucene read paths against a running server
+```
+
+`verify-lucene.sh` is Phase 6's, and its output against 9.12.3 after the documented reindex is
+byte-identical to the 6.6.0 recording taken before the upgrade — both are in
+`.devenv/fixtures/pre-migration/lucene6/`, which also holds the last Lucene 6 indexes that will
+ever exist here, for testing the upgrade path against.
 
 ## Reproducing
 

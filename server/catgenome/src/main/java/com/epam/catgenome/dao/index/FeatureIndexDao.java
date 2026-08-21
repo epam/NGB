@@ -58,6 +58,7 @@ import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -77,14 +78,15 @@ import org.apache.lucene.facet.sortedset.DefaultSortedSetDocValuesReaderState;
 import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetCounts;
 import org.apache.lucene.facet.sortedset.SortedSetDocValuesReaderState;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.Fields;
+import org.apache.lucene.index.FieldInfo;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.LeafReaderContext;
-import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.MultiReader;
+import org.apache.lucene.index.MultiTerms;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
@@ -103,7 +105,7 @@ import org.apache.lucene.search.SortedSetSortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -249,7 +251,7 @@ public class FeatureIndexDao {
         try (
             StandardAnalyzer analyzer = new StandardAnalyzer();
             Directory index = fileManager.createIndexForFile(featureFile);
-            IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
+            IndexWriter writer = LuceneIndexUtils.openWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
                 IndexWriterConfig.OpenMode.CREATE_OR_APPEND))
         ) {
             final AbstractDocumentBuilder creator = AbstractDocumentBuilder.createDocumentCreator(
@@ -333,7 +335,7 @@ public class FeatureIndexDao {
         if (indexedFiles.isEmpty()) {
             return IndexSearchResult.empty();
         }
-        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final FSDirectory[] indexes = fileManager.getIndexesForFiles(files);
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
@@ -403,7 +405,7 @@ public class FeatureIndexDao {
         int totalHits = 0;
         try (
             Directory index = fileManager.getIndexForProject(projectId);
-            IndexReader reader = DirectoryReader.open(index)
+            IndexReader reader = LuceneIndexUtils.openReader(index)
         ) {
             if (reader.numDocs() == 0) {
                 return IndexSearchResult.empty();
@@ -412,13 +414,9 @@ public class FeatureIndexDao {
             final IndexSearcher searcher = new IndexSearcher(reader);
             final TopDocs docs;
             final int resultsCount = maxResultsCount == null ? reader.numDocs() : maxResultsCount;
-            if (sort == null) {
-                docs = searcher.search(query, resultsCount);
-            } else {
-                docs = searcher.search(query, resultsCount, sort);
-            }
+            docs = LuceneIndexUtils.search(searcher, query, resultsCount, sort);
 
-            totalHits = docs.totalHits;
+            totalHits = LuceneIndexUtils.totalHits(docs);
             final ScoreDoc[] hits = docs.scoreDocs;
 
             final Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
@@ -459,14 +457,17 @@ public class FeatureIndexDao {
         final Set<String> availableFields = new HashSet<>();
         final Set<String> mainFields = Arrays.stream(FeatureIndexFields.values())
                 .map(FeatureIndexFields::getFieldName).collect(Collectors.toSet());
-        final SimpleFSDirectory[] indices = fileManager.getIndexesForFiles(files);
+        final FSDirectory[] indices = fileManager.getIndexesForFiles(files);
         try {
-            for (SimpleFSDirectory file : indices) {
-                try(DirectoryReader reader = DirectoryReader.open(file)) {
+            for (FSDirectory file : indices) {
+                try(DirectoryReader reader = LuceneIndexUtils.openReader(file)) {
                     for (LeafReaderContext subReader : reader.leaves()) {
-                        Fields fields = subReader.reader().fields();
-                        for (String field : fields) {
-                            if (!mainFields.contains(field)) {
+                        // Lucene 9 dropped LeafReader.fields(); FieldInfos filtered by index
+                        // options is the same set - the fields that actually have postings.
+                        for (FieldInfo fieldInfo : subReader.reader().getFieldInfos()) {
+                            final String field = fieldInfo.name;
+                            if (fieldInfo.getIndexOptions() != IndexOptions.NONE
+                                    && !mainFields.contains(field)) {
                                 availableFields.add(field);
                             }
                         }
@@ -486,10 +487,10 @@ public class FeatureIndexDao {
             throws IOException {
         final Set<String> termValues = new HashSet<>();
         int i = 0;
-        final SimpleFSDirectory[] indices = fileManager.getIndexesForFiles(files);
+        final FSDirectory[] indices = fileManager.getIndexesForFiles(files);
         try {
-            for (SimpleFSDirectory file : indices) {
-                try(DirectoryReader reader = DirectoryReader.open(file)) {
+            for (FSDirectory file : indices) {
+                try(DirectoryReader reader = LuceneIndexUtils.openReader(file)) {
                     for (LeafReaderContext subReader : reader.leaves()) {
                         Terms terms = subReader.reader().terms(fieldName);
                         TermsEnum termsEnum = terms.iterator();
@@ -531,7 +532,7 @@ public class FeatureIndexDao {
 
         final Map<Integer, FeatureIndexEntry> entryMap = new LinkedHashMap<>();
 
-        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final FSDirectory[] indexes = fileManager.getIndexesForFiles(files);
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
@@ -541,7 +542,7 @@ public class FeatureIndexDao {
             final IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
             final TopDocs docs = performSearch(searcher, query, reader, maxResultsCount, sort);
 
-            final int totalHits = docs.totalHits;
+            final int totalHits = LuceneIndexUtils.totalHits(docs);
             final ScoreDoc[] hits = docs.scoreDocs;
 
             final Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
@@ -568,7 +569,7 @@ public class FeatureIndexDao {
      */
     public GeneIndexEntry searchGeneFeatureByUid(final GeneFile featureFile, final String uid) throws IOException {
         final Term uidTerm = new Term(FeatureIndexFields.UID.getFieldName(), uid);
-        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
+        final FSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
                 return null;
@@ -599,11 +600,11 @@ public class FeatureIndexDao {
             throws IOException {
         final Term uidTerm = new Term(FeatureIndexFields.UID.getFieldName(), uid);
         final GeneHighLevel newGeneContent = prepareGeneContentForDocument(geneContent);
-        final SimpleFSDirectory index = fileManager.createIndexForFile(featureFile);
+        final FSDirectory index = fileManager.createIndexForFile(featureFile);
         final GeneIndexEntry oldEntry;
         try (StandardAnalyzer analyzer = new StandardAnalyzer();
-             MultiReader reader = openMultiReader(new SimpleFSDirectory[] {index});
-             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer)
+             MultiReader reader = openMultiReader(new FSDirectory[] {index});
+             IndexWriter writer = LuceneIndexUtils.openWriter(index, new IndexWriterConfig(analyzer)
                      .setOpenMode(IndexWriterConfig.OpenMode.APPEND))) {
             if (reader.numDocs() == 0) {
                 throw new IllegalStateException("Failed to find any documents");
@@ -642,7 +643,7 @@ public class FeatureIndexDao {
             return 0;
         }
 
-        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final FSDirectory[] indexes = fileManager.getIndexesForFiles(files);
         final long totalIndexSize = getTotalIndexSize(indexes);
         if (totalIndexSize > luceneIndexMaxSizeForGrouping) {
             closeIndices(indexes);
@@ -791,7 +792,7 @@ public class FeatureIndexDao {
             return Collections.emptyList();
         }
 
-        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final FSDirectory[] indexes = fileManager.getIndexesForFiles(files);
         final long totalIndexSize = getTotalIndexSize(indexes);
         if (totalIndexSize > luceneIndexMaxSizeForGrouping) {
             closeIndices(indexes);
@@ -824,9 +825,9 @@ public class FeatureIndexDao {
         return res;
     }
 
-    public long getTotalIndexSize(final SimpleFSDirectory[] indexes) throws IOException {
+    public long getTotalIndexSize(final FSDirectory[] indexes) throws IOException {
         long totalIndexSize = 0;
-        for (SimpleFSDirectory index : indexes) {
+        for (FSDirectory index : indexes) {
             totalIndexSize += getTotalIndexSize(index);
         }
         return totalIndexSize;
@@ -869,10 +870,10 @@ public class FeatureIndexDao {
         }
     }
 
-    public MultiReader openMultiReader(final SimpleFSDirectory[] indexes) throws IOException {
+    public MultiReader openMultiReader(final FSDirectory[] indexes) throws IOException {
         final IndexReader[] readers = new IndexReader[indexes.length];
         for (int i = 0; i < indexes.length; i++) {
-            readers[i] = DirectoryReader.open(indexes[i]);
+            readers[i] = LuceneIndexUtils.openReader(indexes[i]);
         }
         return new MultiReader(readers, true);
     }
@@ -880,15 +881,9 @@ public class FeatureIndexDao {
 
     public TopDocs performSearch(final IndexSearcher searcher, final Query query, final IndexReader reader,
             final Integer maxResultsCount, final Sort sort) throws IOException {
-        final TopDocs docs;
         final int resultsCount = maxResultsCount == null ? reader.numDocs() : maxResultsCount;
         final Query constantQuery = new ConstantScoreQuery(query);
-        if (sort == null) {
-            docs = searcher.search(constantQuery, resultsCount);
-        } else {
-            docs = searcher.search(constantQuery, resultsCount, sort, false, false);
-        }
-        return docs;
+        return LuceneIndexUtils.search(searcher, constantQuery, resultsCount, sort);
     }
 
 
@@ -937,7 +932,7 @@ public class FeatureIndexDao {
 
         final List<Long> chromosomeIds = new ArrayList<>();
 
-        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final FSDirectory[] indexes = fileManager.getIndexesForFiles(files);
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
@@ -969,8 +964,8 @@ public class FeatureIndexDao {
         return luceneIndexMaxSizeForGrouping;
     }
 
-    private void closeIndices(final SimpleFSDirectory[] indexes) {
-        for (SimpleFSDirectory index : indexes) {
+    private void closeIndices(final FSDirectory[] indexes) {
+        for (FSDirectory index : indexes) {
             IOUtils.closeQuietly(index);
         }
     }
@@ -995,16 +990,15 @@ public class FeatureIndexDao {
 
         Set<String> geneIds = new HashSet<>();
 
-        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(vcfFiles);
+        final FSDirectory[] indexes = fileManager.getIndexesForFiles(vcfFiles);
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
                 return Collections.emptySet();
             }
             if (StringUtils.isEmpty(gene)) {
-                final Fields fields = MultiFields.getFields(reader);
-                fetchTermValues(geneIds, fields, FeatureIndexFields.GENE_ID.getFieldName());
-                fetchTermValues(geneIds, fields, FeatureIndexFields.GENE_NAME.getFieldName());
+                fetchTermValues(geneIds, reader, FeatureIndexFields.GENE_ID.getFieldName());
+                fetchTermValues(geneIds, reader, FeatureIndexFields.GENE_NAME.getFieldName());
             } else {
                 final IndexSearcher searcher = new IndexSearcher(reader);
                 final TopDocs docs = searcher.search(query, reader.numDocs());
@@ -1022,9 +1016,10 @@ public class FeatureIndexDao {
         return geneIds;
     }
 
-    private void fetchTermValues(final Set<String> geneIds, final Fields fields, final String fieldName)
+    private void fetchTermValues(final Set<String> geneIds, final IndexReader reader, final String fieldName)
             throws IOException {
-        final Terms terms = fields.terms(fieldName);
+        // MultiFields is gone in Lucene 9; MultiTerms is the per-field replacement.
+        final Terms terms = MultiTerms.getTerms(reader, fieldName);
         if (terms != null) {
             final TermsEnum iterator = terms.iterator();
             BytesRef next = iterator.next();
@@ -1050,7 +1045,7 @@ public class FeatureIndexDao {
         try (
             StandardAnalyzer analyzer = new StandardAnalyzer();
             Directory index = fileManager.getIndexForProject(projectId);
-            IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
+            IndexWriter writer = LuceneIndexUtils.openWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
                                                                         IndexWriterConfig.OpenMode.CREATE_OR_APPEND))
         ) {
             if (fileManager.indexForProjectExists(projectId)) {
@@ -1075,7 +1070,7 @@ public class FeatureIndexDao {
     public IndexSearchResult<GeneIndexEntry> searchGeneFeaturesFully(final GeneFile featureFile, final String chrId,
                                                                      final GeneFilterForm filterForm, final Sort sort)
             throws IOException {
-        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
+        final FSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
                 return IndexSearchResult.empty();
@@ -1090,7 +1085,7 @@ public class FeatureIndexDao {
             }
 
             final ScoreDoc[] hits = docs.scoreDocs;
-            final int totalHits = docs.totalHits;
+            final int totalHits = LuceneIndexUtils.totalHits(docs);
             final List<GeneIndexEntry> values = Arrays.stream(hits)
                     .map(hit -> searchDocument(searcher, hit))
                     .map(document -> buildGeneIndexEntry(documentCreator, document))
@@ -1106,7 +1101,7 @@ public class FeatureIndexDao {
 
     public int countGenesInInterval(final GeneFile featureFile, final String chrId,
                                     final GeneFilterForm filterForm) throws IOException {
-        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
+        final FSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
                 return 0;
@@ -1261,8 +1256,6 @@ public class FeatureIndexDao {
     private TopDocs performSearchAfter(final IndexSearcher searcher, final Query query, final ScoreDoc pointer,
                                        final Integer pageSize, final Sort sort) throws IOException {
         final Query constantQuery = new ConstantScoreQuery(query);
-        return Objects.isNull(sort)
-                ? searcher.searchAfter(pointer, constantQuery, pageSize)
-                : searcher.searchAfter(pointer, constantQuery, pageSize, sort, false, false);
+        return LuceneIndexUtils.searchAfter(searcher, pointer, constantQuery, pageSize, sort);
     }
 }

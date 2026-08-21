@@ -2699,6 +2699,381 @@ bump. Record the choice.
 
 ---
 
+### Phase 6 execution findings
+
+Written as the phase ran. Where reality differed from the plan text above, this section wins.
+
+#### Decision: Lucene 9.12.3, not 10.x
+
+Taken at the start of the phase, as the plan asks. Latest available at the time were **9.12.3**
+(the terminal release of the 9 line) and **10.5.1**. Measured, not assumed — both jars pulled
+from Maven Central and inspected in the builder:
+
+| | 9.12.3 | 10.5.1 |
+|---|---|---|
+| `Version.MIN_SUPPORTED_MAJOR` | 8 | 9 |
+| Class file version | 55 (Java 11), multi-release jar | 65 (**Java 21**) |
+| `IndexReader.document(int)` | present (deprecated) + `storedFields()` | **removed** |
+
+Reasoning:
+
+1. **Neither can read Lucene 6**, so the operator cost — one full reindex — is identical. That
+   is what D8 already commits us to and it is not a differentiator.
+2. **10.x reads 9.x indexes** (`MIN_SUPPORTED_MAJOR = 9`). So 9.12.3 is not a dead end: a
+   later 9→10 bump needs no second reindex, no second customer-facing upgrade step, and no
+   second entry in the upgrade docs. Splitting the jump is therefore free in operator terms
+   and cheaper in review terms.
+3. The 6→9 delta is already three majors across 104 files. Lucene's own upgrade advice is one
+   major at a time; taking four at once, on top of a tree that has just moved to Spring Boot 3
+   and Java 21, spends risk budget for no user-visible gain.
+4. 10.x removes `IndexReader.document(int)` (22 call sites in 11 files here) and reworks the
+   `FacetsCollector` / `facet.sortedset` API that `FeatureIndexDao`'s grouping uses. All
+   mechanical, all avoidable this phase.
+
+The honest cost: 9.12.3 gets no further upstream fixes, since 9 is closed. Accepted — Lucene
+here is an embedded index library, not a network-facing parser, and the alternative being
+compared against is 6.6.0 from 2017.
+
+**Follow-up recorded:** bump to Lucene 10.x after the migration. It needs no reindex; it needs
+`storedFields()` at 22 sites, the facets rework, and Java 21 as a floor (which we have).
+
+#### VERIFY resolved: the Spring Boot 3.5.16 BOM does not manage Lucene
+
+`grep -i lucene spring-boot-dependencies-3.5.16.pom` → no matches. So `versionLucene` in
+`server/catgenome/build.gradle` stays an explicit pin; this is one of the libraries Boot does
+not know about.
+
+Also worth knowing: `lucene-queries` and `lucene-sandbox` arrive transitively today (they are
+not among the six declared artifacts) and are where `TermsQuery` and some facet internals
+live. Both moved in 7.x/9.x, so the transitive arrival has to become explicit or the
+call sites have to move to the core replacements.
+
+#### The Lucene 6 fixture (captured before anything was changed)
+
+`.devenv/fixtures/pre-migration/lucene6/` — the whole `/opt/ngb/contents` tree plus the
+matching `catgenome.mv.db`, written by 6.6.0 at `6be43c24`. **This is the only Lucene 6 index
+that will ever exist again**; Lucene 9 cannot write one. See `.devenv/fixtures/README.md` for
+what is in it, the recipe, and how to restore it. Second copy at
+`~/ngb-phase5-fixtures/lucene6-fixture-6be43c24.tar.gz`.
+
+All seven index types are present. Confirmed Lucene 6 without a JVM: `taxonomy/segments_1`
+declares `segments` format version 6, writer `06 06 00`, per-segment codec `Lucene62`.
+
+Two reusable scripts came out of it, both of which the reindex procedure needs:
+
+- `.devenv/scripts/build-global-indexes.sh` — stages the seven source dumps out of
+  `server/catgenome/src/test/resources/` into `.devenv/data/ngs/index-sources/` (the ngb-h2
+  container mounts only `./data/ngs:/ngs`, **not** `/workspace`) and issues the import calls.
+- `.devenv/scripts/verify-lucene.sh` — 18 probes, one per Lucene read path, `/version` through
+  `POST /target/identification`. All 18 green on 6.6.0; that run is saved as
+  `verify-lucene-6.6.0.txt` and is the baseline the post-reindex run has to match.
+
+#### VERIFY resolved: which rebuild paths exist today
+
+Read out of the controllers, not assumed.
+
+| Index | Rebuild trigger today |
+|---|---|
+| Feature index, VCF | `GET /vcf/{id}/index?createTabixIndex=` |
+| Feature index, GFF/GTF | `GET /gene/{id}/index?full=&createTabixIndex=` |
+| Feature index, BED | `GET /bed/{id}/index` |
+| Feature index, SEG / MAF / WIG | n/a — **not a gap**, see below |
+| Taxonomy | `PUT /taxonomy/upload?taxonomyFilePath=` |
+| Homologene | `PUT /homologene/import?databasePath=` |
+| NCBI | `PUT /externaldb/ncbi/genes/import?path=`, `.../genes/info/import?path=` |
+| Targets | `PUT /target/import/{opentargets,dgidb,pharmGKB,ttd}` |
+| Pathway | `POST /pathway` / `POST /biopax` — **registration, not reindex**: owns a database row |
+| BAM coverage | `POST /bam/coverage` — same problem, owns a database row |
+
+The CLI reaches the feature-index ones generically: `FileIndexingHandler` builds
+`/{format}/{id}/index` from `item.getFormat().toString().toLowerCase()`, so `ngb index_file`
+works for exactly the formats that have the endpoint.
+
+`HomologManager` (`PUT /homolog/import`) has **no** index directory — it is database-backed,
+despite sitting next to Homologene. It is not one of the seven.
+
+`targets/ttd.*` never got built in the fixture: the repo ships no TTD fixture data.
+
+**SEG / MAF / WIG have no feature index at all**, so the absent endpoint is not a gap. Only three
+`makeIndexFor*` paths exist — `FeatureIndexManager.makeIndexForVcfReader`,
+`makeIndexForBedReader` and `GeneRegisterer` — and `grep -rl 'lucene\|FeatureIndex' manager/seg
+manager/maf manager/wig` returns nothing. `FileManager.determineFilePathFormat` maps SEG/MAF/WIG
+to a directory only because `deleteFileFeatureIndex` and friends are written generically over
+`FeatureFile`.
+
+#### The two real gaps: pathway and BAM coverage
+
+Both write their Lucene document only as a side effect of *registering* a database row
+(`PathwayManager.createPathway` → `writeLucenePathwayIndex`, `BamCoverageManager.create` →
+`writeCoverageIntervals`), and both delete it only as a side effect of deleting the row. So there
+is no way to rebuild the index for rows that already exist: `DELETE` + `POST` loses the id, and
+for pathways it also loses the description and species links. Closed in this phase with two new
+endpoints, both idempotent and both able to run over every row or one:
+
+- `PUT /restapi/pathway/index?pathwayId=` — re-reads each registered pathway's SBGN/BioPAX file
+  from its stored `path`. Cheap.
+- `PUT /restapi/bam/coverage/index?coverageId=` — re-scans the BAM with `SamLocusIterator`, the
+  same work `POST /bam/coverage` does. **Long-running**; the fixture's single 100 bp-step coverage
+  index is 41 MB.
+
+#### The one index with no rebuild path, and why it stays that way
+
+`targets/genes` and `targets/gene.fields` (`TargetGeneManager`, `TargetGeneFieldManager`) are not
+an index over anything — they are the **only** copy of the gene table a user uploads with
+`POST /target/{id}/genes/import` (Excel/CSV, custom columns). `TargetGeneManager.importData` and
+`create` write Lucene documents and nothing else; `setIds` only draws ids from a database
+sequence, and `TargetGeneDao.saveTargetGenes` is called from `TargetManager` (targets created with
+inline genes) but never from `TargetGeneManager`. Losing the index loses the data.
+
+It is left as a documented limitation rather than closed, on two grounds:
+
+1. **No released version can be affected.** `TargetGeneManager` arrived in `fa54b6b8`
+   (2024-01-16, "Upload target from Excel with custom columns"); the newest tag is `v2.7.1`,
+   which predates it. `git tag --contains fa54b6b8` is empty. Only someone tracking `develop`
+   can have such an index.
+2. **Rescuing it would need a Lucene 6 reader**, i.e. a second artifact built against the old
+   jars in a separate classloader (same `org.apache.lucene.*` packages, so they cannot coexist
+   in one). That is disproportionate for an unreleased feature.
+
+The recovery step — re-upload the spreadsheet — is documented in `docs/md/installation/`
+alongside the rest of the procedure, and the guard names the directory like any other.
+
+#### Measured: nothing can rewrite a Lucene 6 directory in place
+
+The obvious hope was that a full rebuild could simply overwrite the stale directory, making the
+operator procedure one API call. It cannot. Probed against the fixture with lucene-core 9.12.3:
+
+| Operation on a Lucene 6 directory | Result |
+|---|---|
+| `SegmentInfos.readLatestCommit` | `IndexFormatTooOldException` |
+| `DirectoryReader.open` | `IndexFormatTooOldException` |
+| `new IndexWriter(d, cfg)` — `CREATE_OR_APPEND` | `IndexFormatTooOldException` |
+| `new IndexWriter(d, cfg)` — **`OpenMode.CREATE`** | `IndexFormatTooOldException` |
+
+Lucene 9's `IndexWriter` reads the existing commit even when told to create, so `OpenMode.CREATE`
+is no escape. `FSDirectory.open` resolves to `MMapDirectory` on this JVM; a *missing* directory
+gives `IndexNotFoundException` from the readers and succeeds for the writer.
+
+Consequences, and what the code does about them:
+
+- **Per-file feature indexes need no manual step.** All three reindex entry points already call
+  `fileManager.deleteFileFeatureIndex(file)` before rebuilding (`VcfManager.reindexVcfFile`,
+  `GffManager.reindexGeneFile`, `BedManager.reindexBedFile`), and that deletes the whole
+  `index.luc` directory. So `GET /vcf/{id}/index` works on a Lucene 6 index as-is.
+- **The global imports would have failed**, because every one of them opens the writer
+  `CREATE_OR_APPEND` and *then* calls `writer.deleteAll()` — the constructor throws first. Fixed
+  by routing exactly those five sites (`HomologeneManager:206`, `NCBIGeneInfoManager:102`,
+  `TTDDrugAssociationManager:76`, `TaxonomyManager:160`, `AbstractIndexManager.importData:152`)
+  through `LuceneIndexUtils.openWriterForRebuild`, which probes the commit point first and, if it
+  is unreadable, discards the unreadable Lucene files before opening the writer.
+
+  It has to probe rather than open-and-recover, which is how it was written first: an
+  `IndexWriterConfig` is single-use — `IndexWriter`'s constructor claims it on its first
+  statement, *before* it reads the commit — so a second attempt with the same config dies with
+  `IllegalStateException: do not share IndexWriterConfig instances across IndexWriters` whatever
+  the directory now looks like. The retry could never have worked. Nothing noticed during the
+  live reindex because the documented procedure deletes the stale directories first, so the
+  recovery path was never entered; `LuceneIndexUtilsTest` entered it and it failed immediately.
+  A reminder that "the endpoint returned OK" is not the same as "the error path works".
+
+  This is not a licence to delete data. A call site that says `open(CREATE_OR_APPEND)` followed
+  by `deleteAll()` has already declared everything in that directory disposable — the discard
+  throws away exactly what `deleteAll()` was about to. It only fires on
+  `IndexFormatTooOld/TooNew`, only for files matching Lucene's own naming (`segments*`,
+  `pending_segments*`, `_*`), never recursively, never on the directory itself, and it logs at
+  WARN through an appender that is not filtered to ERROR. Anything else in the directory
+  survives.
+
+#### The guard, as built
+
+Three new classes plus one message block, all named after what they do rather than after the
+migration, because they outlive it — the next Lucene bump needs them unchanged.
+
+| Where | What |
+|---|---|
+| `util/LuceneIndexUtils` | every `FSDirectory.open`, `DirectoryReader.open` and `new IndexWriter` in the tree now goes through here, so the version failure is translated in exactly one place |
+| `app/LuceneIndexVersionCheck` | `InitializingBean` that walks the six configured global roots and throws if any index is stale |
+| `app/LuceneIndexVersionFailureAnalyzer` | Spring Boot `FailureAnalyzer`, registered in `META-INF/spring.factories`, so the refusal prints as `APPLICATION FAILED TO START` + `Description:` with **no stack trace** |
+| `exception/LuceneIndexVersionException` | carries the directory, so `ExceptionHandlerAdvice` can report the per-file case through the API |
+
+Decisions inside it worth knowing:
+
+- **A root is walked, not probed.** `targets.index.directory` and `ncbi.index.directory` are
+  parents of 15 and 2 leaf indexes; the other four *are* the index. One walk to depth 2, treating
+  any directory holding a `segments*` file as an index, covers both shapes, skips the BioPAX and
+  per-target data directories that share those roots, and needs no edit when a leaf is added.
+- **`IndexNotFoundException` is deliberately not wrapped.** An absent or empty index directory is
+  a normal state that several managers already catch and turn into an empty result. Wrapping it
+  would turn a fresh installation into a startup failure.
+- **A directory that cannot be read at all** (permissions, broken mount) logs
+  `warn.lucene.index.check.failed` and does not stop startup. That is not the stale-index case,
+  and refusing to start over it would be a new failure mode rather than a guard.
+- **The check fails startup; the per-file case does not.** Six global roots can be checked in
+  milliseconds and a server whose taxonomy index cannot be opened is not serving anything useful
+  from it. Feature indexes are per registered file — thousands on a real installation — so they
+  are caught on first read instead, and the rest of NGB keeps working.
+- **The rebuild hint lives in one place** (`LuceneIndexVersionCheck.rebuildHint`,
+  `LuceneIndexUtils.featureIndexRebuildHint`) and says the same thing as the table in
+  `docs/md/installation/lucene-reindex.md`. The per-file hint is derived from the path —
+  `<base>/<ref>/<TYPE>/<id>/index.luc` — so it names the exact call, `GET /restapi/vcf/5/index`,
+  with no database lookup from a context that may not have one.
+
+`INFO` on the way through, because "nothing was printed" is not evidence a check ran:
+`info.lucene.index.check.passed` (n directories under these roots are readable),
+`info.lucene.index.check.empty` (the roots exist but hold no index — a new installation, **and the
+state between deleting a stale index and rebuilding it**) and `info.lucene.index.check.skipped`
+(nothing configured). The middle one was added after the first live run: the guard was reporting
+"no index directories are configured" straight after a deletion, which is both wrong and alarming.
+
+#### Log4j2: the appenders had to change, again
+
+Same trap Phase 5 hit. Every appender in `profiles/{jar,release,staging}/log4j2.xml` filters at
+ERROR, so the guard's INFO and WARN lines were invisible in the very situation they exist for.
+`migration-stdout` (added in Phase 5) now also carries `com.epam.catgenome.app.LuceneIndexVersionCheck`
+and `com.epam.catgenome.util.LuceneIndexUtils` at INFO. Without that the discard WARN — the one
+line that says data was thrown away — went nowhere.
+
+#### The defect the reindex found: `chr` was indexed twice, incompatibly
+
+`PUT /restapi/bam/coverage/index` failed on the first document with
+
+```
+Inconsistency of field data structures across documents for field [chr] of doc [0].
+index options: expected 'DOCS_AND_FREQS_AND_POSITIONS', but it has 'DOCS'.
+```
+
+`BamCoverageManager.write` added `chr` as a `TextField` *and* as a `SortedStringField`, and
+`SortedStringField` extends `StringField` — so the same field name arrived with two different
+`IndexOptions`. Lucene 6 merged them silently; Lucene 9 refuses the document. Fixed by keeping
+the `TextField` (which the chromosome filter's `QueryParser` matches) and replacing the
+`SortedStringField` with a plain `SortedDocValuesField` + `StoredField`, which is all the sort
+actually needed. Nothing read the second term.
+
+**This was not a reindex-only bug.** The same `write` runs from `POST /restapi/bam/coverage`, so
+on the bumped Lucene no coverage track could be registered at all — a fresh installation, no
+upgrade involved. It was invisible to `make test` (no test registers a coverage track) and to
+`make up` (no coverage track is registered at boot); it took reindexing the fixture to hit it.
+Third phase in a row where the real defect surfaced only under a real server against real data.
+
+The generalisation, for Phase 7 onwards: **Lucene 9 requires every document to agree on a field's
+`IndexOptions`, not just on its `DocValuesType` and point dimensions.** The audit for other
+instances came back clean — `BigVcfDocumentBuilder`, `VcfDocumentBuilder` and `TargetGeneManager`
+do switch field classes per runtime value type, but those pairs differ in `DocValuesType`, which
+Lucene 6 already rejected, so they cannot have been reachable.
+
+#### `--enable-native-access=ALL-UNNAMED`
+
+Lucene 9's `MMapDirectory` uses the `java.lang.foreign` FFM API, so on JDK 21 (where it is still
+a preview-adjacent restricted API) every start printed three `WARNING: A restricted method in
+java.lang.foreign.Linker has been called` lines. Added to `.devenv/ngb/entrypoint.sh`. The
+manifest attribute (`Enable-Native-Access: ALL-UNNAMED`) that would fix this without a flag only
+exists from JDK 24, so a flag it is.
+
+**Phase 9 must carry this into `docker/core/Dockerfile` and the generated start scripts**, or
+every shipped launcher prints the warnings. Recorded in the Phase 9 task list.
+
+`jdk.incubator.vector` was deliberately *not* added. It only accelerates vector search, which NGB
+does not use, and `--add-modules jdk.incubator.vector` prints its own incubator warning.
+
+#### Testing the guard without a checked-in fixture
+
+`src/test/java/com/epam/catgenome/util/StaleLuceneIndex.java` writes a `segments_1` containing
+nothing but a codec header declaring format version **6** — the value Lucene 6.6.0 wrote. Every
+path into the guard reaches the failure through `SegmentInfos`, which reads that header before
+anything else, so the synthetic directory fails in the same place, with the same exception, as
+the 21 MB fixture. Verified against the real thing afterwards (below).
+
+That keeps the promise the phase brief made: no binary Lucene index in the test tree. A committed
+one would have been invalidated by this very phase, and the next bump would leave a fixture
+nobody could regenerate.
+
+14 tests in two classes: `LuceneIndexVersionCheckTest` (7) on the startup half — refusal text,
+count, per-leaf rebuild call, and the four states that must *not* fail startup: unconfigured,
+absent, index-free, current — and `LuceneIndexUtilsTest` (7) on the lazy half plus the rebuild
+writer and the exact hit count. They assert on the message text, since the message is the
+deliverable.
+
+`HomologeneManagerTest` needed no change: Phase 3 already had it build the taxonomy index in
+`@Before`, which is the pattern the plan asked for.
+
+#### The suite carries Lucene indexes over from the previous run — including the previous *Lucene*
+
+The first full `make test` after the upgrade came back **540 / 13 / 21** against a baseline of 3.
+Nine of the ten extra failures were `LuceneIndexVersionException` caused by
+`IndexFormatTooOldException`, and none of them were the code's doing: the tests write their global
+Lucene indexes into the *working tree* and never clean up, so the directories written by the
+pre-upgrade runs of 2026-08-20 were still there, still Lucene 6.
+
+| Directory (relative to `server/catgenome/`) | Failures |
+|---|---|
+| `${pathway.index.directory}` | `PathwayManagerTest` ×6 |
+| `${bam.coverage.index.directory}` | `BamCoverageManagerTest.testCreateCoverage`, `testSearchCoverage` |
+| `contents/ncbi/gene.ids` | `HomologeneManagerTest.searchTest` |
+
+Yes, those directory names are literal. `profiles/{h2,postgres}/test-catgenome.properties` define
+`taxonomy`, `targets` and `ncbi` but not `pathway`, `homologene` or `bam.coverage` — the `jar`
+profile defines all six — and `applicationContext-test.xml` sets
+`ignore-unresolvable="true"` on its `<context:property-placeholder>`, so for the missing three the
+*unexpanded* string becomes the path. `ncbi` missed the scratch directory for a different reason:
+it was `./contents/ncbi/`, relative to the test JVM's working directory, which is
+`server/catgenome/`, while `taxonomy` and `targets` use `@rootDirPath@` (the Gradle root, i.e. the
+repo root). That predates this migration by years — the repo's `.gitignore:13` has carried
+`/server/catgenome/${*` for as long as the pattern has existed. What Phase 6 changes is the
+consequence: before the upgrade a stale index there was silently reusable, and now it is a hard
+failure.
+
+Fixed rather than only documented, because the phase's own exit criterion is a reproducible
+`make test`: all four properties now resolve under `@rootDirPath@/contents/`, so
+`rm -rf ../contents` is finally sufficient — which is what `TEST-BASELINE.md` has claimed for five
+phases. Verified by re-running both suites and checking that nothing appears in the source tree:
+six index roots under `contents/`, none beside it. Test resources only; the `jar`, `release`,
+`staging` and `dev` profiles are untouched.
+
+Deleting the stale directories is likewise fixing the cause, not re-baselining: they are gitignored
+scratch holding data written by a Lucene that no longer exists. Archived to
+`.devenv/fixtures/pre-migration/lucene6/test-tree-lucene6-dirs.tgz` first, since they are the
+test-side half of the last Lucene 6 indexes that will ever be written here, and recorded as a
+one-time cleanup step in `TEST-BASELINE.md` for anyone arriving with an older working tree.
+
+Two details worth keeping, because they show the guard behaving as designed rather than by luck.
+`${homologene.index.directory}` and `contents/ncbi/gene.ids` came out of that same run at format
+version **10** — Lucene 9 rewrote them, because those managers open their writer through
+`openWriterForRebuild`, which discarded the unreadable files and rebuilt. The pathway and coverage
+indexes stayed at 6 because those two are incremental writers, which must *not* discard. And
+`HomologeneManagerTest` failed on `gene.ids` in the same run that repaired it: test ordering — it
+read before `NCBIGeneIdsManagerTest` wrote.
+
+#### Exit criteria, as run
+
+| Criterion | Result |
+|---|---|
+| `make lint` | green — pmd clean, checkstyle **37 warnings in 15 files, 0 errors**, i.e. unchanged from Phase 5, and none of them in the new code. PMD did fail first, on 18 `UnnecessaryImport` violations left by the `LuceneIndexUtils` routing (`FSDirectory` / `Paths` no longer referenced in 13 managers); removed |
+| `make test` | 540 tests, **3 failed**, 21 skipped — the 14 new tests, and only the documented network failures. Run twice: once at 3 (`BlatSearchManagerTest` ×2, `GffManagerTest`) and once at 4, the extra being `PdbDataManagerTest.testParse`, which the baseline records as flapping either way |
+| `make reset-pg && make test-pg` | 540 tests, **3 failed**, 21 skipped — one *better* than the recorded baseline of 4, `PdbDataManagerTest` having flapped green. The two flavours now have the identical three failures, all network |
+| Guard message, global index | `APPLICATION FAILED TO START`, 14 directories listed with a rebuild call each, 0 stack-trace lines in the whole start |
+| Guard message, per-file index | `{"status":"ERROR"}` naming `/opt/ngb/contents/42/genes/1/index.luc` → `GET /restapi/gene/1/index?full=true`; server kept serving. Re-run on the committed tree for a VCF as well (`42/VCF/1/index.luc` → `GET /restapi/vcf/1/index`, `ngb index_file 1`), and that capture is the one in the documentation |
+| Documented reindex on the fixture | 3 per-file + 6 global imports + the 2 new endpoints, then `Lucene index version check passed: 14 …` |
+| Post-reindex behaviour | `verify-lucene.sh` **byte-identical** to the 6.6.0 baseline, saved as `verify-lucene-9.12.3-after-reindex.txt` |
+| Procedure documented | `docs/md/installation/lucene-reindex.md`, in `mkdocs.yml`, cross-linked from `database-upgrade.md` and `standalone.md` |
+
+Both guard messages ended in `Full procedure: https://epam.github.io/NGB/installation/lucene-reindex/`
+until the last review pass, which is a URL nobody has ever published: `docs/mkdocs.yml` sets
+`use_directory_urls: false`, so the built site has `.html` pages, and the only published-docs link
+in the repo (`README.md:24`) points at `ngb.opensource.epam.com`, the host that stopped resolving
+(see `TEST-BASELINE.md`, `make cli-test`). Now `Full procedure:
+docs/md/installation/lucene-reindex.md`, which is how Phase 5 refers to its own procedure from
+`FlywayMigrator:181`. Both transcripts in the documentation were re-captured from a running server
+afterwards rather than edited, and the sweep re-run: still byte-identical to the 6.6.0 baseline.
+
+One extra live check, after `openWriterForRebuild` was fixed: the **genuine** Lucene 6 taxonomy
+index was copied back over the running server's `contents/taxonomy`, read (guard message, no
+stack trace), then re-imported *without deleting anything* — `Discarded 4 unreadable Lucene
+file(s) … The directory itself and any non-Lucene file in it were left alone`, `{"status":"OK"}`,
+and the taxonomy read correctly afterwards. That is the recovery path the unit test exercises
+synthetically, confirmed against the real format.
+
+---
+
 ### Phase 7 — htsjdk: latest, no customisations
 
 **Goal:** stock htsjdk (latest 4.x). Delete the fork. Per D9/D10 the index cache goes with it.
@@ -2844,6 +3219,13 @@ other; do them as separate commits and verify each.
    toolchain support to produce a trimmed runtime image (smaller, and no download step).
    Update the `jre1.8.0` path substitutions in the start-script `doLast` blocks, and the
    `-Xms512m -Xmx2g` defaults if appropriate.
+   **Add `--enable-native-access=ALL-UNNAMED` to every launcher** — `docker/core/Dockerfile`,
+   `docker/demo/*`, the generated Windows and Linux start scripts, and the run commands in
+   `docs/md/installation/`. Phase 6 put it in `.devenv/ngb/entrypoint.sh`, which covers the dev
+   environment only. Lucene 9's `MMapDirectory` calls `java.lang.foreign`, so without the flag
+   every start prints three `WARNING: A restricted method in java.lang.foreign.Linker has been
+   called` lines. The manifest attribute that would remove the need for a flag
+   (`Enable-Native-Access: ALL-UNNAMED`) is JDK 24+, so it cannot be used here.
 3. **CI: AppVeyor → GitHub Actions (D7).** `.appveyor.yml` pins `Previous Ubuntu1604` and
    `jdk 8, python 3.9, node 14`. Write `.github/workflows/build.yml`:
    - JDK 21 (`actions/setup-java`, Temurin), Node 14 (per D12 — pin it explicitly and note

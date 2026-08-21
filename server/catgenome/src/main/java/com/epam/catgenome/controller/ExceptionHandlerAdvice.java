@@ -43,6 +43,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.epam.catgenome.component.MessageHelper;
+import com.epam.catgenome.exception.LuceneIndexVersionException;
 
 /**
  * Source:      ExceptionHandlerAdvice.java
@@ -60,6 +61,25 @@ import com.epam.catgenome.component.MessageHelper;
 public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExceptionHandlerAdvice.class);
+
+    /**
+     * A Lucene index this release cannot read is an operator's problem with a known fix, not a
+     * server defect: the message already names the directory and the call that rebuilds it (see
+     * {@code LuceneIndexUtils}, decision D8 of the Java 21 migration). It is handled separately
+     * from {@link #handleUncaughtException} so that the log carries that sentence rather than an
+     * {@code IndexFormatTooOldException} stack trace from whichever manager happened to touch the
+     * index first - the trace stays available at DEBUG. Per-file feature indexes reach the API
+     * this way; the global ones are caught at startup and never get here.
+     */
+    @ResponseBody
+    @ExceptionHandler(LuceneIndexVersionException.class)
+    public final ResponseEntity<Result<String>> handleLuceneIndexVersionException(
+            final LuceneIndexVersionException exception, final WebRequest request) {
+        LOG.error("{} {}", MessageHelper.getMessage("logger.error", request.getDescription(true)),
+                exception.getMessage());
+        LOG.debug("Lucene index version failure", exception);
+        return new ResponseEntity<>(Result.error(exception.getMessage()), HttpStatus.OK);
+    }
 
     @ResponseBody
     @Order(Ordered.HIGHEST_PRECEDENCE)

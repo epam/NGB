@@ -200,6 +200,13 @@ NGB will refuse to start rather than migrate a database it cannot reason about. 
 should not happen on a database only NGB has written; if it does, restore your backup and
 report it with the log.
 
+## The other upgrade step
+
+This release also changes the search-index format, which is a separate one-off procedure with its
+own page: [Rebuilding the Lucene indexes](lucene-reindex.md). Nothing on this page depends on it
+and it does not depend on anything here, but NGB will refuse to start until it is done, so do both
+in the same maintenance window.
+
 ## Verifying the upgrade
 
 Start NGB and check that the datasets and reference genomes you had before are all listed.

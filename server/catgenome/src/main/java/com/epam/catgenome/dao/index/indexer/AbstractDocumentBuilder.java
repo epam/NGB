@@ -37,6 +37,7 @@ import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -178,8 +179,8 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
     }
 
     public Integer findDocumentIdByUid(final IndexSearcher searcher, final Term uidTerm) throws IOException {
-        final TopDocs topDocs = searcher.search(new TermQuery(uidTerm), 1);
-        if (topDocs.totalHits != 1 || Objects.isNull(topDocs.scoreDocs)
+        final TopDocs topDocs = LuceneIndexUtils.search(searcher, new TermQuery(uidTerm), 1);
+        if (LuceneIndexUtils.totalHits(topDocs) != 1 || Objects.isNull(topDocs.scoreDocs)
                 || topDocs.scoreDocs.length != 1) {
             throw new IllegalStateException("Unexpected total hints count");
         }

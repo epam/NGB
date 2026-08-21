@@ -32,6 +32,7 @@ import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.index.OrderInfo;
 import com.epam.catgenome.manager.index.SearchRequest;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,7 +45,6 @@ import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -55,7 +55,6 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -103,8 +102,8 @@ public class DiseaseAssociationManager extends AbstractAssociationManager<Diseas
     private List<DiseaseAssociation> searchAll(final Query query)
             throws IOException {
         final List<DiseaseAssociation> entries = new ArrayList<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, topHits);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;

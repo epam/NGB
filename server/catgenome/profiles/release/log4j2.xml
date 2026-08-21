@@ -10,10 +10,11 @@
             <PatternLayout charset="UTF-8" pattern="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n"/>
         </Console>
 
-        <!-- See profiles/jar/log4j2.xml: carries FlywayMigrator's one-off database-upgrade notices,
-             which the ERROR-only console above would otherwise swallow. -->
+        <!-- See profiles/jar/log4j2.xml: carries FlywayMigrator's one-off database-upgrade
+             notices and the Lucene index version guard's, which the ERROR-only console above would
+             otherwise swallow. -->
         <Console name="migration-stdout" target="SYSTEM_OUT">
-            <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout charset="UTF-8" pattern="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n"/>
         </Console>
 
@@ -28,6 +29,23 @@
     </Appenders>
 
     <Loggers>
+        <!-- The Lucene index version guard (Phase 6 of the Java 21 migration). The check writes
+             one INFO line per start saying how many index directories it read and WARNs when it
+             cannot read one at all; LuceneIndexUtils WARNs once when a rebuild discards an
+             unreadable index. All of it is one-off upgrade information an operator has to be able
+             to see, and none of it would pass the ERROR-only console above.
+             A refusal to start is logged at ERROR by Spring Boot itself, through
+             LuceneIndexVersionFailureAnalyzer, so it needs no appender here. -->
+        <Logger name="com.epam.catgenome.app.LuceneIndexVersionCheck" level="INFO" additivity="false">
+            <AppenderRef ref="migration-stdout"/>
+            <AppenderRef ref="error-appender"/>
+        </Logger>
+
+        <Logger name="com.epam.catgenome.util.LuceneIndexUtils" level="WARN" additivity="false">
+            <AppenderRef ref="migration-stdout"/>
+            <AppenderRef ref="error-appender"/>
+        </Logger>
+
         <Logger name="com.epam.catgenome.dao.FlywayMigrator" level="WARN" additivity="false">
             <AppenderRef ref="migration-stdout"/>
             <AppenderRef ref="error-appender"/>

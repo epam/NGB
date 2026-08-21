@@ -96,6 +96,17 @@ public final class MessagesConstants {
     public static final String ERROR_INCORRECT_JSON_FORMAT = "error.incorrect.json.format";
 
     public static final String INFO_INDEX_NOT_FOUND = "info.index.not.found";
+
+    // Lucene index version guard - see decision D8 in .devenv/JAVA21-MIGRATION-PLAN.md
+    public static final String ERROR_LUCENE_INDEX_VERSION = "error.lucene.index.version";
+    public static final String ERROR_LUCENE_INDEX_VERSION_STARTUP = "error.lucene.index.version.startup";
+    public static final String INFO_LUCENE_INDEX_REBUILD_FILE = "info.lucene.index.rebuild.file";
+    public static final String INFO_LUCENE_INDEX_REBUILD_UNKNOWN = "info.lucene.index.rebuild.unknown";
+    public static final String INFO_LUCENE_INDEX_CHECK_SKIPPED = "info.lucene.index.check.skipped";
+    public static final String INFO_LUCENE_INDEX_CHECK_EMPTY = "info.lucene.index.check.empty";
+    public static final String INFO_LUCENE_INDEX_CHECK_PASSED = "info.lucene.index.check.passed";
+    public static final String WARN_LUCENE_INDEX_DISCARDED = "warn.lucene.index.discarded";
+    public static final String WARN_LUCENE_INDEX_CHECK_FAILED = "warn.lucene.index.check.failed";
     //Track validation errors
     public static final String ERROR_INVALID_PARAM_TRACK_INDEXES_BELOW_ZERO = "error.invalid.param.track.indexes." +
             "below.zero";

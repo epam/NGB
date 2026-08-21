@@ -15,6 +15,7 @@ nav:
         - Using standalone JAR: installation/standalone.md
         - Using Docker: installation/docker.md
         - Upgrading the database: installation/database-upgrade.md
+        - Rebuilding the Lucene indexes: installation/lucene-reindex.md
     - Command Line Interface guide:
         - Overview: cli/introduction.md
         - CLI Installation: cli/installation.md

@@ -1,0 +1,6 @@
+# Spring Boot looks up failure analyzers here, before there is an application context, so
+# LuceneIndexVersionFailureAnalyzer cannot be a @Component. It turns the Lucene index version
+# guard's refusal to start into a printed upgrade instruction instead of a stack trace - see
+# LuceneIndexVersionCheck and docs/md/installation/lucene-reindex.md.
+org.springframework.boot.diagnostics.FailureAnalyzer=\
+com.epam.catgenome.app.LuceneIndexVersionFailureAnalyzer

@@ -29,6 +29,7 @@ import com.epam.catgenome.entity.externaldb.target.opentargets.Disease;
 import com.epam.catgenome.entity.externaldb.target.UrlEntity;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,7 +41,6 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -50,7 +50,6 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -91,8 +90,8 @@ public class DiseaseManager extends AbstractIndexManager<Disease> {
 
     public List<BareDisease> search() throws IOException {
         final List<BareDisease> diseases = new ArrayList<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             int numDocs = indexReader.numDocs();
             for (int docId = 0; docId < numDocs; docId++) {
                 Document doc = indexReader.document(docId);
@@ -104,12 +103,12 @@ public class DiseaseManager extends AbstractIndexManager<Disease> {
     }
 
     public Disease searchById(final String diseaseId) throws IOException, ParseException {
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             Query query = getByTermQuery(diseaseId, IndexFields.DISEASE_ID.name());
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, 1);
-            if (topDocs.totalHits > 0) {
+            if (topDocs.scoreDocs.length > 0) {
                 ScoreDoc scoreDoc = topDocs.scoreDocs[0];
                 Document doc = searcher.doc(scoreDoc.doc);
                 return fullEntryFromDoc(doc);
@@ -121,8 +120,8 @@ public class DiseaseManager extends AbstractIndexManager<Disease> {
     public Map<String, String> search(final String name) throws IOException, ParseException {
         final Map<String, String> entries = new LinkedHashMap<>();
         final Query query = getByPhraseQuery(name, IndexFields.NAME.name());
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, topHits, getDefaultSort());
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;

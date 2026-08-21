@@ -42,6 +42,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -81,6 +82,25 @@ public class BamCoverageController extends AbstractRESTController {
         })
     public Result<BamCoverage> createCoverage(@RequestBody final BamCoverage coverage) throws IOException {
         return Result.success(securityService.createCoverage(coverage));
+    }
+
+    @ResponseBody
+    @PutMapping(value = "/bam/coverage/index")
+    @ApiOperation(
+        value = "Rebuilds the BAM coverage Lucene index",
+        notes = "Rebuilds the BAM coverage Lucene index by recomputing the coverage of one "
+                + "registered track, or of all of them when coverageId is omitted. Needed after an "
+                + "NGB upgrade that changes the Lucene index format - see the reindex procedure in "
+                + "the installation docs. Long-running: the intervals are recomputed from the BAM "
+                + "files, which takes as long as registering the tracks did. Returns the number of "
+                + "coverage tracks rebuilt.",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        })
+    public Result<Integer> reindexCoverage(@RequestParam(required = false) final Long coverageId)
+            throws IOException {
+        return Result.success(securityService.reindexCoverage(coverageId));
     }
 
     @ResponseBody

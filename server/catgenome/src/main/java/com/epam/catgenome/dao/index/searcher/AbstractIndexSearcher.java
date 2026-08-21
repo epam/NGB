@@ -38,7 +38,7 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -78,7 +78,7 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
-        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final FSDirectory[] indexes = fileManager.getIndexesForFiles(files);
         long indexSize = featureIndexDao.getTotalIndexSize(indexes);
         if (indexSize > featureIndexDao.getLuceneIndexMaxSizeForGrouping() && filterForm.filterEmpty()) {
             throw new IllegalArgumentException("Variations filter shall be specified");
@@ -99,7 +99,7 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
             }
             return searchResults;
         } finally {
-            for (SimpleFSDirectory index : indexes) {
+            for (FSDirectory index : indexes) {
                 IOUtils.closeQuietly(index);
             }
         }

@@ -24,6 +24,7 @@
 package com.epam.catgenome.manager.externaldb.taxonomy;
 
 import lombok.AllArgsConstructor;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,6 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -47,7 +47,6 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -86,8 +85,8 @@ public class TaxonomyManager {
 
     public List<Taxonomy> searchOrganisms(final String terms) throws IOException, ParseException {
         final List<Taxonomy> organisms = new ArrayList<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
-            IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(taxonomyIndexDirectory);
+            IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(buildTaxonomySearchQuery(terms), taxonomyTopHits);
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
@@ -110,8 +109,8 @@ public class TaxonomyManager {
         final StandardAnalyzer analyzer = new StandardAnalyzer();
         final Query query = new QueryParser(TaxonomyIndexFields.TAX_ID.getFieldName(), analyzer)
                 .parse(String.valueOf(taxId));
-        try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(taxonomyIndexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, 1);
             ScoreDoc scoreDoc = topDocs.scoreDocs.length > 0 ? topDocs.scoreDocs[0] : null;
@@ -133,8 +132,8 @@ public class TaxonomyManager {
         queryParser.setDefaultOperator(QueryParser.Operator.OR);
         Query query = queryParser.parse(join(taxIds, TAXONOMY_TERM_SPLIT_TOKEN));
 
-        try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(taxonomyIndexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, taxIds.size());
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
@@ -153,8 +152,8 @@ public class TaxonomyManager {
     }
 
     public void writeLuceneTaxonomyIndex(final String taxonomyFilePath) throws IOException, ParseException {
-        try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
-             IndexWriter writer = new IndexWriter(
+        try (Directory index = LuceneIndexUtils.openDirectory(taxonomyIndexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriterForRebuild(
                      index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();

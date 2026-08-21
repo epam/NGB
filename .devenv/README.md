@@ -339,6 +339,11 @@ MAF/BUCKET/PROJECT/BOOKMARK manager roles, and `DefaultRoles` names
 5. ☐ Lucene 6.6 → 9.x, htsjdk, POI 3.16. Verify with `make test` and by clicking through
    tracks in the UI. *Phases 6–8. The `mangofactory` Swagger half of this one is done —
    Phase 3 replaced it with springdoc, at `/swagger-ui/index.html` and `/v3/api-docs`.*
+   *Lucene is done: Phase 6, now 9.12.3. Every index NGB wrote before it has to be rebuilt —
+   the server refuses to start otherwise and says which directories and what rebuilds each,
+   see `docs/md/installation/lucene-reindex.md`. `.devenv/scripts/verify-lucene.sh` checks all
+   18 Lucene read paths against a running server, and `.devenv/fixtures/pre-migration/lucene6/`
+   holds the last Lucene 6 index that will ever exist, for testing the upgrade against.*
 
 `make probe-java21` demonstrated the first checkpoint's two walls by running Gradle 3.3 and
 lombok 1.16.16 under JDK 21 and failing. Both are gone, so the target no longer measures

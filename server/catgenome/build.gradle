@@ -67,7 +67,12 @@ test {
 ext {
     versionJayWayJsonPath = "2.7.0"
     versionUnitils = "3.4.2"
-    versionLucene = "6.6.0"
+    // 9.12.3, not 10.x. Both refuse a Lucene 6 index (Version.MIN_SUPPORTED_MAJOR is 8 and 9
+    // respectively), so both cost the operator exactly one full reindex — but 10.x can read a 9.x
+    // index, so bumping 9 -> 10 later is free. See "Phase 6 execution findings" in
+    // .devenv/JAVA21-MIGRATION-PLAN.md. The Boot 3.5.16 BOM does not manage Lucene, so this pin
+    // is ours to keep.
+    versionLucene = "9.12.3"
     // 1.16.16 cannot run on any JDK past 8 (it reaches into com.sun.tools.javac internals that
     // JEP 396 closed). Lombok is a compile-time-only dependency, so the version is ours to pick
     // rather than the Boot BOM's.
@@ -263,13 +268,17 @@ dependencies {
     // app/AclSecurityConfiguration and util/feature/reader/EhCacheBasedIndexCache - and
     // conf/catgenome/ehcache.xml is deleted with it.
     implementation group: "com.github.ben-manes.caffeine", name: "caffeine"
-    // Lucene
+    // Lucene. Four artifacts, down from six:
+    //   lucene-analyzers-common was renamed lucene-analysis-common in 9.0;
+    //   lucene-grouping was never imported (`lucene.index.max.size.grouping` is NGB's own
+    //     batching knob, not Lucene's GroupingSearch);
+    //   lucene-backward-codecs is deliberately absent - it lets 9.x read an 8.x index, which
+    //     nothing here has, and we *want* the older formats to be rejected so the D8 guard
+    //     fires instead of a silent half-read. See app/LuceneIndexVersionCheck.
     implementation group: "org.apache.lucene", name:"lucene-core", version: versionLucene
     implementation group: "org.apache.lucene", name:"lucene-queryparser", version: versionLucene
-    implementation group: "org.apache.lucene", name:"lucene-analyzers-common", version: versionLucene
-    implementation group: "org.apache.lucene", name:"lucene-grouping", version: versionLucene
+    implementation group: "org.apache.lucene", name:"lucene-analysis-common", version: versionLucene
     implementation group: "org.apache.lucene", name:"lucene-facet", version: versionLucene
-    implementation group: "org.apache.lucene", name:"lucene-backward-codecs", version: versionLucene
 
     // Was com.auth0:java-jwt:3.1.0 (2016) until Phase 3 took the JWT stack out of the build; used by
     // security/jwt/{JwtTokenGenerator,JwtTokenVerifier} only. 4.x is a compatible upgrade for

@@ -31,7 +31,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -89,7 +88,6 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -522,8 +520,8 @@ public final class IndexUtils {
 
     public static void deleteIndexDocument(final String field, final long value, final String indexDirectory)
             throws IOException {
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(new StandardAnalyzer())
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriter(index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             final Term term = new Term(field, String.valueOf(value));
             writer.deleteDocuments(term);

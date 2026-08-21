@@ -50,6 +50,7 @@ import com.epam.catgenome.manager.GeneInfo;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.manager.vcf.reader.VcfFileReader;
 import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
@@ -86,7 +87,7 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
         super(filterInfo, vcfHeader, featureIndexManager);
         this.analyzer = new StandardAnalyzer();
         final Directory index = fileManager.createIndexForFile(featureFile);
-        this.writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
+        this.writer = LuceneIndexUtils.openWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
                 IndexWriterConfig.OpenMode.CREATE_OR_APPEND).setRAMBufferSizeMB(indexBufferSize));
         this.geneFiles = geneFiles;
         this.creator = new BigVcfDocumentBuilder();

@@ -71,6 +71,11 @@ public class PathwaySecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_PATHWAY_MANAGER)
+    public int reindexPathways() throws IOException {
+        return pathwayManager.reindexPathways();
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PATHWAY_MANAGER)
     public void deletePathway(final long pathwayId) throws IOException {
         pathwayManager.deletePathway(pathwayId);
     }

@@ -34,12 +34,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queries.TermsQuery;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.FieldValueQuery;
+import org.apache.lucene.search.FieldExistsQuery;
 import org.apache.lucene.search.PrefixQuery;
+import org.apache.lucene.search.TermInSetQuery;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.util.BytesRef;
 import org.springframework.util.Assert;
 
 import java.util.List;
@@ -239,25 +240,26 @@ public class VcfFilterForm extends AbstractFilterForm {
             builder.add(genesBuilder.build(), BooleanClause.Occur.MUST);
         }
         if (Boolean.TRUE.equals(hasGene)) {
-            builder.add(new FieldValueQuery(FeatureIndexFields.GENE_NAMES.getFieldName()), BooleanClause.Occur.MUST);
+            builder.add(new FieldExistsQuery(FeatureIndexFields.GENE_NAMES.getFieldName()), BooleanClause.Occur.MUST);
         }
     }
 
     private void addChromosomeFilter(BooleanQuery.Builder builder) {
         if (CollectionUtils.isNotEmpty(chromosomeIds)) {
-            List<Term> chromosomeTerms = chromosomeIds.stream().map(id -> new Term(FeatureIndexFields.CHROMOSOME_ID
-                            .getFieldName(), id.toString())).collect(Collectors.toList());
-            builder.add(new TermsQuery(chromosomeTerms), BooleanClause.Occur.MUST);
+            List<BytesRef> chromosomeTerms = chromosomeIds.stream().map(id -> new BytesRef(id.toString()))
+                    .collect(Collectors.toList());
+            builder.add(new TermInSetQuery(FeatureIndexFields.CHROMOSOME_ID.getFieldName(), chromosomeTerms),
+                    BooleanClause.Occur.MUST);
         }
     }
 
     private void addVcfFileFilter(BooleanQuery.Builder builder) {
         if (vcfFileIdsByProject != null && !vcfFileIdsByProject.isEmpty()) {
-            List<Term> terms = vcfFileIdsByProject.values().stream().flatMap(List::stream)
-                    .map(vcfFileId -> new Term(FeatureIndexFields.FILE_ID.getFieldName(), vcfFileId.toString()))
+            List<BytesRef> terms = vcfFileIdsByProject.values().stream().flatMap(List::stream)
+                    .map(vcfFileId -> new BytesRef(vcfFileId.toString()))
                     .collect(Collectors.toList());
-            TermsQuery termsQuery = new TermsQuery(terms);
-            builder.add(termsQuery, BooleanClause.Occur.MUST);
+            builder.add(new TermInSetQuery(FeatureIndexFields.FILE_ID.getFieldName(), terms),
+                    BooleanClause.Occur.MUST);
         }
     }
 

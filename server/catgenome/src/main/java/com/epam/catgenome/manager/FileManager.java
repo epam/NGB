@@ -106,6 +106,7 @@ import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
@@ -129,7 +130,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.store.FSDirectory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.bio.CompressionType;
 import org.jetbrains.bio.big.BigWigFile;
@@ -891,29 +892,29 @@ public class FileManager {
     }
 
     /**
-     * Creates a {@code SimpleFSDirectory} object, representing existing Lucene index directory for feature index
+     * Creates a {@code FSDirectory} object, representing existing Lucene index directory for feature index
      * for desired project ID. Checks if that directory exists
      *
      * @param projectId     an ID of a project, which feature index directory to fetch
-     * @return an {@code SimpleFSDirectory} object, representing Lucene index directory for feature index
+     * @return an {@code FSDirectory} object, representing Lucene index directory for feature index
      * @throws IOException
      */
-    public SimpleFSDirectory getIndexForProject(final long projectId) throws IOException {
+    public FSDirectory getIndexForProject(final long projectId) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(PROJECT_ID.name(), projectId);
 
         File file = new File(toRealPath(substitute(PROJECT_FEATURE_INDEX_FILE, params)));
         Assert.isTrue(file.exists(), getMessage(MessagesConstants.ERROR_PROJECT_FEATURE_INDEX_NOT_FOUND, projectId));
 
-        return new SimpleFSDirectory(file.toPath());
+        return LuceneIndexUtils.openDirectory(file.toPath());
     }
 
-    public SimpleFSDirectory[] getIndexesForFiles(final List<? extends FeatureFile> featureFiles) throws IOException {
+    public FSDirectory[] getIndexesForFiles(final List<? extends FeatureFile> featureFiles) throws IOException {
         if (CollectionUtils.isEmpty(featureFiles)) {
             return null;
         }
 
-        List<SimpleFSDirectory> indexes = new ArrayList<>();
+        List<FSDirectory> indexes = new ArrayList<>();
         try {
             for (int i = 0; i < featureFiles.size(); i++) {
                 FeatureFile featureFile = featureFiles.get(i);
@@ -927,11 +928,11 @@ public class FileManager {
                 params.put(FEATURE_FILE_DIR.name(), substitute(format, params));
                 File file = new File(toRealPath(substitute(FEATURE_INDEX_DIR, params)));
                 if (file.exists()) {
-                    indexes.add(new SimpleFSDirectory(file.toPath()));
+                    indexes.add(LuceneIndexUtils.openDirectory(file.toPath()));
                 }
             }
         } catch (IOException e) {
-            for (SimpleFSDirectory index : indexes) {
+            for (FSDirectory index : indexes) {
                 if (index != null) {
                     IOUtils.closeQuietly(index);
                 }
@@ -945,33 +946,33 @@ public class FileManager {
                     featureFiles.stream().map(BaseEntity::getName).collect(Collectors.joining(", "))));
         }
 
-        return indexes.toArray(new SimpleFSDirectory[indexes.size()]);
+        return indexes.toArray(new FSDirectory[indexes.size()]);
     }
 
     /**
-     * Creates a {@code SimpleFSDirectory} object, representing a new Lucene index directory for feature index for
+     * Creates a {@code FSDirectory} object, representing a new Lucene index directory for feature index for
      * desired project ID
      *
      * @param projectId     an ID of a project, which feature index directory to fetch
-     * @return an {@code SimpleFSDirectory} object, representing Lucene index directory for feature index
+     * @return an {@code FSDirectory} object, representing Lucene index directory for feature index
      * @throws IOException if something is wrong with access to file system
      */
-    public SimpleFSDirectory createIndexForProject(final long projectId) throws IOException {
+    public FSDirectory createIndexForProject(final long projectId) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(PROJECT_ID.name(), projectId);
 
         File file = new File(toRealPath(substitute(PROJECT_FEATURE_INDEX_FILE, params)));
 
-        return new SimpleFSDirectory(file.toPath());
+        return LuceneIndexUtils.openDirectory(file.toPath());
     }
 
     /**
      * Creates index for a FeatureFile
      * @param featureFile a file to create index for
-     * @return an index, represented by {@code SimpleFSDirectory} object
+     * @return an index, represented by {@code FSDirectory} object
      * @throws IOException if something is wrong with access to file system
      */
-    public SimpleFSDirectory createIndexForFile(FeatureFile featureFile) throws IOException {
+    public FSDirectory createIndexForFile(FeatureFile featureFile) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         params.put(DIR_ID.name(), featureFile.getId());
@@ -981,7 +982,7 @@ public class FileManager {
         params.put(FEATURE_FILE_DIR.name(), substitute(format, params));
         File file = new File(toRealPath(substitute(FEATURE_INDEX_DIR, params)));
 
-        return new SimpleFSDirectory(file.toPath());
+        return LuceneIndexUtils.openDirectory(file.toPath());
     }
 
     /**

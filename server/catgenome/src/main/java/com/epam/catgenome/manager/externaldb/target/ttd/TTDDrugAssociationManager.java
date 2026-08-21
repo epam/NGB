@@ -29,6 +29,7 @@ import com.epam.catgenome.manager.externaldb.target.AbstractAssociationManager;
 import com.epam.catgenome.manager.index.CaseInsensitiveWhitespaceAnalyzer;
 import com.epam.catgenome.manager.index.Filter;
 import com.epam.catgenome.util.FileFormat;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -39,7 +40,6 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -69,8 +69,8 @@ public class TTDDrugAssociationManager extends AbstractAssociationManager<TTDDru
     public void importData(final String drugsPath, final String targetsPath) throws IOException, ParseException {
         final List<TTDDrugAssociation> entries = readEntries(targetsPath);
         processEntries(entries, drugsPath);
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexWriter writer = new IndexWriter(
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriterForRebuild(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();

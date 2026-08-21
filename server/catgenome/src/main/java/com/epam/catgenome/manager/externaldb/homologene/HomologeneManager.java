@@ -37,6 +37,7 @@ import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneIdsManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import com.epam.catgenome.manager.externaldb.taxonomy.Taxonomy;
 import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -48,7 +49,6 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -62,7 +62,6 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -73,7 +72,6 @@ import javax.xml.stream.XMLStreamReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -119,8 +117,8 @@ public class HomologeneManager {
             throws IOException, ParseException {
         final List<HomologeneEntry> entries = new ArrayList<>();
         final SearchResult<HomologeneEntry> searchResult = new SearchResult<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
 
             final int page = (query.getPage() == null || query.getPage() <= 0) ? 1 : query.getPage();
             final int pageSize = (query.getPageSize() == null || query.getPage() <= 0) ? DEFAULT_PAGE_SIZE
@@ -128,7 +126,8 @@ public class HomologeneManager {
             final int hits = page * pageSize;
 
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(buildSearchQuery(query.getQuery() == null ? "" : query.getQuery()), hits);
+            TopDocs topDocs = LuceneIndexUtils.search(searcher,
+                    buildSearchQuery(query.getQuery() == null ? "" : query.getQuery()), hits);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
             final int from = (page - 1) * pageSize;
@@ -150,7 +149,7 @@ public class HomologeneManager {
             setGeneSpeciesNames(entries);
             setEnsemblIds(entries);
             searchResult.setItems(entries);
-            searchResult.setTotalCount(topDocs.totalHits);
+            searchResult.setTotalCount(LuceneIndexUtils.totalHits(topDocs));
         }
         return searchResult;
     }
@@ -159,8 +158,8 @@ public class HomologeneManager {
             throws IOException, ParseException {
         final List<GeneId> ncbiGeneIds = geneIdsManager.getNcbiGeneIds(geneIds);
         final Map<String, List<HomologeneEntry>> result = new HashMap<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             final IndexSearcher searcher = new IndexSearcher(indexReader);
             for (GeneId geneId: ncbiGeneIds) {
                 List<HomologeneEntry> entries = new ArrayList<>();
@@ -179,7 +178,7 @@ public class HomologeneManager {
                                     .build()
                     );
                 }
-                if (topDocs.totalHits > 0) {
+                if (topDocs.scoreDocs.length > 0) {
                     result.put(geneId.getEnsemblId(), entries);
                 }
             }
@@ -199,8 +198,8 @@ public class HomologeneManager {
     public void importHomologeneDatabase(final String databasePath) throws IOException, ParseException {
         getFile(databasePath);
         List<Gene> genes = new ArrayList<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexWriter writer = new IndexWriter(
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriterForRebuild(
                      index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();

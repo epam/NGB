@@ -42,6 +42,7 @@ import com.epam.catgenome.manager.externaldb.taxonomy.TaxonomyManager;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.db.Page;
 import com.epam.catgenome.util.db.SortInfo;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,7 +73,6 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.biopax.paxtools.controller.Cloner;
 import org.biopax.paxtools.controller.Completer;
@@ -202,6 +202,39 @@ public class PathwayManager {
         return pathwayDao.loadPathway(pathwayId);
     }
 
+    /**
+     * Rebuilds the whole pathway Lucene index from the database and the registered pathway files.
+     *
+     * <p>Until Phase 6 of the Java 21 migration this index had no rebuild path at all: it is
+     * written a document at a time by {@link #createPathway}, so the only way to recreate it was to
+     * delete and re-register every pathway. That became a gap worth closing when the Lucene upgrade
+     * made one full reindex mandatory - see {@code docs/md/installation/lucene-reindex.md}.
+     *
+     * <p>Everything the index holds is either in the database ({@code pathway} joined with
+     * {@code pathway_organism}) or in the pathway file on disk, which is why this needs no
+     * arguments. Nothing outside the index directory is touched: no row is written and no file is
+     * read except the pathway files themselves.
+     *
+     * @return how many pathways were indexed
+     */
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
+    public int reindexPathways() throws IOException {
+        final List<NGBPathway> pathways = pathwayDao.loadAllPathways(null);
+        try (Directory index = LuceneIndexUtils.openDirectory(pathwayIndexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriterForRebuild(index,
+                     new IndexWriterConfig(new StandardAnalyzer())
+                             .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
+            writer.deleteAll();
+            for (final NGBPathway pathway : pathways) {
+                addDoc(writer, pathway, pathway.getOrganisms(),
+                        readPathway(getFile(pathway.getPath()), pathway.getDatabaseSource()));
+            }
+        }
+        log.info("Rebuilt the pathway index in {} from {} registered pathway(s).",
+                pathwayIndexDirectory, pathways.size());
+        return pathways.size();
+    }
+
     public byte[] loadPathwayContent(final Long pathwayId) throws IOException {
         final NGBPathway pathway = getPathway(pathwayId);
         final String path = pathway.getPath();
@@ -213,12 +246,12 @@ public class PathwayManager {
         final Page<NGBPathway> page = new Page<>();
         final List<NGBPathway> items = new ArrayList<>();
         int totalCount = 0;
-        try (Directory index = new SimpleFSDirectory(Paths.get(pathwayIndexDirectory));
-             IndexReader reader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(pathwayIndexDirectory);
+             IndexReader reader = LuceneIndexUtils.openReader(index)) {
             final IndexSearcher searcher = new IndexSearcher(reader);
             final Query query = buildPathwaySearchQuery(params);
-            TopDocs topDocs = searcher.search(query, pathwayTopHits);
-            totalCount = topDocs.totalHits;
+            TopDocs topDocs = LuceneIndexUtils.search(searcher, query, pathwayTopHits);
+            totalCount = LuceneIndexUtils.totalHits(topDocs);
 
             if (totalCount > 0) {
                 final Sort sort = getSortBySortInfo(params.getSortInfo());
@@ -307,16 +340,16 @@ public class PathwayManager {
     private void writeLucenePathwayIndex(final NGBPathway pathway,
                                          final List<PathwayOrganism> species,
                                          final String content) throws IOException {
-        try (Directory index = new SimpleFSDirectory(Paths.get(pathwayIndexDirectory));
-             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(new StandardAnalyzer())
+        try (Directory index = LuceneIndexUtils.openDirectory(pathwayIndexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriter(index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             addDoc(writer, pathway, species, content);
         }
     }
 
     private void deleteDocument(final long pathwayId) throws IOException {
-        try (Directory index = new SimpleFSDirectory(Paths.get(pathwayIndexDirectory));
-             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(new StandardAnalyzer())
+        try (Directory index = LuceneIndexUtils.openDirectory(pathwayIndexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriter(index, new IndexWriterConfig(new StandardAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             final Term term = new Term(PathwayIndexFields.PATHWAY_ID.getFieldName(), String.valueOf(pathwayId));
             writer.deleteDocuments(term);

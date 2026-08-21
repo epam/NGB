@@ -31,6 +31,7 @@ import com.epam.catgenome.entity.AbstractFilterForm;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.manager.FileManager;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import org.apache.lucene.index.MultiReader;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -64,7 +65,7 @@ public class PagingSearcher<T extends FeatureIndexEntry, R extends AbstractFilte
         final int numDocs = page == null ? reader.numDocs() : page * pageSize;
         final TopDocs docs = performSearch(searcher, query, reader, numDocs, sort);
 
-        final int totalHits = docs.totalHits;
+        final int totalHits = LuceneIndexUtils.totalHits(docs);
 
         final ScoreDoc[] hits = docs.scoreDocs;
         final List<T> entries = new ArrayList<>(pageSize);

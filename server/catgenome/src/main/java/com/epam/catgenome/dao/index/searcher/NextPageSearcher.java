@@ -30,6 +30,7 @@ import com.epam.catgenome.entity.AbstractFilterForm;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.manager.FileManager;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import org.apache.lucene.index.MultiReader;
 import org.apache.lucene.search.ConstantScoreQuery;
 import org.apache.lucene.search.IndexSearcher;
@@ -70,19 +71,12 @@ public class NextPageSearcher<T extends FeatureIndexEntry, R extends AbstractFil
         }
 
         final ScoreDoc lastEntry = hits.length == 0 ? null : hits[hits.length-1];
-        return new IndexSearchResult<>(entries, false, docs.totalHits, lastEntry);
+        return new IndexSearchResult<>(entries, false, LuceneIndexUtils.totalHits(docs), lastEntry);
     }
 
     private TopDocs getNextPage(final IndexSearcher searcher, final Query query, final ScoreDoc pointer,
                                 final Integer pageSize, final Sort sort) throws IOException {
-        final TopDocs docs;
         final Query constantQuery = new ConstantScoreQuery(query);
-        if (sort == null) {
-            docs = searcher.searchAfter(pointer, constantQuery, pageSize);
-        } else {
-
-            docs = searcher.searchAfter(pointer, constantQuery, pageSize, sort, false, false);
-        }
-        return docs;
+        return LuceneIndexUtils.searchAfter(searcher, pointer, constantQuery, pageSize, sort);
     }
 }

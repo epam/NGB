@@ -37,15 +37,23 @@ java -version 2>&1 | sed 's/^/[ngb-entrypoint]   /'
 # Flags the app cannot run without on this JDK. JAVA_EXTRA_OPTS stays the user's escape hatch
 # for experiments; anything the app genuinely needs belongs here instead.
 #
-# Empty since migration Phase 3. It used to carry
-# --add-opens=java.base/{java.util,java.util.concurrent,java.util.concurrent.atomic,java.io},
-# which EhCache 2.10.1 needed to size the `indexCache` entries (maxBytesLocalHeap="100M" in
-# conf/catgenome/ehcache.xml): it walked the object graph reflectively, which JDK 16+ refuses for
-# java.base fields, and every cache put threw InaccessibleObjectException. D11 replaced EhCache
-# with Caffeine, which bounds the cache by entry count and reflects into nothing, so the flags
-# went with it - here and in server/catgenome/build.gradle's test { jvmArgs }. Boot 3 on JDK 21
-# needs no --add-opens of its own; a new one appearing here would mean a stale dependency.
-JAVA_REQUIRED_OPTS=""
+# It used to carry --add-opens=java.base/{java.util,java.util.concurrent,
+# java.util.concurrent.atomic,java.io}, which EhCache 2.10.1 needed to size the `indexCache`
+# entries (maxBytesLocalHeap="100M" in conf/catgenome/ehcache.xml): it walked the object graph
+# reflectively, which JDK 16+ refuses for java.base fields, and every cache put threw
+# InaccessibleObjectException. D11 (Phase 3) replaced EhCache with Caffeine, which bounds the cache
+# by entry count and reflects into nothing, so the flags went with it - here and in
+# server/catgenome/build.gradle's test { jvmArgs }. Boot 3 on JDK 21 needs no --add-opens of its
+# own; a new one appearing here would mean a stale dependency.
+#
+# --enable-native-access=ALL-UNNAMED is Phase 6. Lucene 9's MMapDirectory reads segments through
+# java.lang.foreign.MemorySegment, and calling a restricted method from the unnamed module makes
+# the JVM print three WARNING lines on stderr at every start. The flag suppresses them and nothing
+# else - the access is intended, and refusing it is what a future JDK would do by default. It is
+# not the same as the manifest attribute (Enable-Native-Access), which only exists from JDK 24, so
+# on 21 it has to be on the command line. Phase 9 has to put it in docker/core/Dockerfile and in
+# the generated start scripts; this is the .devenv copy of the same decision.
+JAVA_REQUIRED_OPTS="--enable-native-access=ALL-UNNAMED"
 
 # --- the jar ----------------------------------------------------------------
 if [[ ! -f "$NGB_JAR" ]]; then

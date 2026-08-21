@@ -36,6 +36,7 @@ import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.index.*;
 import com.epam.catgenome.util.FileFormat;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
@@ -49,7 +50,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -65,7 +65,6 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -140,8 +139,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         final List<TargetGene> entries = readEntries(inputStream, extension);
         final Map<String, TargetGeneField> targetGeneFields = processMetadata(entries, targetId);
         setIds(targetId, entries);
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexWriter writer = new IndexWriter(
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             for (TargetGene entry: entries) {
@@ -208,8 +207,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
         }
         final Set<String> values = new LinkedHashSet<>();
         final Query query = getByTermQuery(targetId.toString(), IndexField.TARGET_ID.getValue());
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
             final OrderInfo orderInfo = OrderInfo.builder()
                     .orderBy(field)
@@ -250,8 +249,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
             throws IOException, ParseException, TargetGenesException {
         final Map<String, TargetGeneField> targetGeneFields = processMetadata(targetGenes, targetId);
         setIds(targetId, targetGenes);
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexWriter writer = new IndexWriter(
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             for (TargetGene g : targetGenes) {
@@ -263,8 +262,8 @@ public class TargetGeneManager extends AbstractIndexManager<TargetGene> {
     public void update(final List<TargetGene> targetGenes) throws IOException, ParseException, TargetGenesException {
         final Map<String, TargetGeneField> targetGeneFields = processMetadata(targetGenes,
                 targetGenes.get(0).getTargetId());
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexWriter writer = new IndexWriter(
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             for (TargetGene g : targetGenes) {

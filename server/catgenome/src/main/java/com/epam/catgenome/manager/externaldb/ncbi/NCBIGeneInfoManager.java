@@ -29,6 +29,7 @@ import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.index.AbstractIndexManager;
 import com.epam.catgenome.manager.index.CaseInsensitiveWhitespaceAnalyzer;
 import com.epam.catgenome.util.FileFormat;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.document.Document;
@@ -44,7 +45,6 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -95,8 +95,8 @@ public class NCBIGeneInfoManager extends AbstractIndexManager<GeneInfo> {
         String line;
         try (Reader reader = new FileReader(path);
              BufferedReader bufferedReader = new BufferedReader(reader);
-             Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexWriter writer = new IndexWriter(
+             Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriterForRebuild(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();

@@ -27,6 +27,7 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.Interval;
 import com.epam.catgenome.entity.index.FilterType;
 import com.epam.catgenome.manager.externaldb.SearchResult;
+import com.epam.catgenome.util.LuceneIndexUtils;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -38,10 +39,8 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -78,10 +77,11 @@ public abstract class AbstractIndexManager<T> {
                 : request.getPageSize();
         final int hits = page * pageSize;
 
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = sort != null ? searcher.search(query, hits, sort) : searcher.search(query, topHits);
+            TopDocs topDocs = sort != null ? LuceneIndexUtils.search(searcher, query, hits, sort)
+                    : LuceneIndexUtils.search(searcher, query, topHits);
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
             final int from = (page - 1) * pageSize;
@@ -92,7 +92,7 @@ public abstract class AbstractIndexManager<T> {
                 entries.add(entry);
             }
             searchResult.setItems(entries);
-            searchResult.setTotalCount(topDocs.totalHits);
+            searchResult.setTotalCount(LuceneIndexUtils.totalHits(topDocs));
         } catch (IndexNotFoundException e) {
             log.info(getMessage(MessagesConstants.INFO_INDEX_NOT_FOUND, indexDirectory));
         }
@@ -101,8 +101,8 @@ public abstract class AbstractIndexManager<T> {
 
     public List<T> search(final Query query, final Sort sort) throws IOException, ParseException {
         final List<T> entries = new ArrayList<>();
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexReader indexReader = DirectoryReader.open(index)) {
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = sort == null ? searcher.search(query, topHits) :
                     searcher.search(query, topHits, sort);
@@ -125,8 +125,8 @@ public abstract class AbstractIndexManager<T> {
         final List<List<String>> subSets = Lists.partition(ids, BATCH_SIZE);
         for (List<String> subIds : subSets) {
             Query query = getByTermsQuery(subIds, fieldName);
-            try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-                 IndexReader indexReader = DirectoryReader.open(index)) {
+            try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+                 IndexReader indexReader = LuceneIndexUtils.openReader(index)) {
                 IndexSearcher searcher = new IndexSearcher(indexReader);
                 TopDocs topDocs = searcher.search(query, topHits);
                 for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
@@ -145,8 +145,8 @@ public abstract class AbstractIndexManager<T> {
     public void importData(final String path) throws IOException, ParseException {
         final List<T> entries = readEntries(path);
         final List<T> processedEntries = processEntries(entries);
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexWriter writer = new IndexWriter(
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriterForRebuild(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
@@ -157,8 +157,8 @@ public abstract class AbstractIndexManager<T> {
     }
 
     public void delete(final Query query) throws IOException, ParseException {
-        try (Directory index = new SimpleFSDirectory(Paths.get(indexDirectory));
-             IndexWriter writer = new IndexWriter(
+        try (Directory index = LuceneIndexUtils.openDirectory(indexDirectory);
+             IndexWriter writer = LuceneIndexUtils.openWriter(
                      index, new IndexWriterConfig(new CaseInsensitiveWhitespaceAnalyzer())
                      .setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteDocuments(query);

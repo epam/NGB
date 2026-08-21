@@ -66,6 +66,11 @@ public class BamCoverageSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_BAM_MANAGER)
+    public int reindexCoverage(final Long coverageId) throws IOException {
+        return coverageManager.reindexCoverage(coverageId);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BAM_MANAGER)
     public void deleteCoverage(final Long bamId, final Integer step) throws IOException, ParseException {
         coverageManager.delete(bamId, step);
     }
