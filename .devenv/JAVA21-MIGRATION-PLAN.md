@@ -4016,6 +4016,98 @@ What can be verified without an Azure account:
 `PdbDataManagerTest.testParse` passed this run, which confirms the fourth failure in commit 4 was
 the RCSB flap. `make lint`: 14 files, 37 warnings, pmd clean.
 
+#### azure-ai-openai 1.0.0-beta.2 → 1.0.0-beta.16 (commit 6)
+
+**This is not an optional companion to commit 5, it is a consequence of it.** beta.2 (June 2023) was
+built against azure-core 1.40.0; the `azure-sdk-bom` import moves azure-core to 1.58.1 underneath it.
+Leaving the LLM client on beta.2 would be an untested 18-minor-version skew inside one SDK — exactly
+the `NoSuchMethodError` shape the BOM was imported to avoid.
+
+**There is no GA to move to.** The version list on Central runs beta.1 (2023-05-22) … beta.16
+(2025-03-26) and stops; Microsoft has not shipped a 1.0.0 and has not published anything since. So
+the pin stays explicit and outside the BOM, which carries GA artifacts only, and this library is the
+one place in NGB where "latest" means "latest beta". It has to be bumped by hand whenever the storage
+bump moves azure-core again.
+
+`manager/llm/OpenAIClient` is the only file in the repo that imports `com.azure.ai.openai.*`
+(`CustomLLMApiClient` and `CustomOpenAILLMClient` go through it, or through retrofit). Two API breaks,
+both landing in that file, both introduced in **beta.6**:
+
+- **A chat request message went from one class to a class per role.** beta.2 had
+  `new ChatMessage(ChatRole.fromString(role)).setContent(text)`; from beta.6 there is a
+  `ChatRequestMessage` interface with `ChatRequestUserMessage`, `ChatRequestSystemMessage`,
+  `ChatRequestAssistantMessage`, `ChatRequestDeveloperMessage`, `ChatRequestToolMessage` and
+  `ChatRequestFunctionMessage` under it, each taking the content in its constructor. `LLMRole` has
+  exactly three values (`USER`, `SYSTEM`, `ASSISTANT`) and the old code fed
+  `name().toLowerCase(ROOT)` to `ChatRole.fromString`, so a three-arm `switch` in a private
+  `toRequestMessage` reproduces the previous mapping exactly, with `user` as the default arm.
+- **`NonAzureOpenAIKeyCredential` is gone**, folded into azure-core's `KeyCredential`. Both
+  constructors used it, and both now pass `new KeyCredential(key)`. That is the only replacement
+  available — but it is not a like-for-like one, and the difference is worth spelling out, because it
+  changes what one of NGB's two constructors does. See below.
+
+##### The `NonAzureOpenAIKeyCredential` → `KeyCredential` swap changes `llm.custom.type=openai`
+
+In beta.2, supplying a `NonAzureOpenAIKeyCredential` selected a whole separate client: `buildClient()`
+branched on that field and returned an `OpenAIClient` wrapping `NonAzureOpenAIClientImpl(pipeline,
+serializer)` — note the absent endpoint argument. That impl has a `public static final String
+OPEN_AI_ENDPOINT` and stamps `https://api.openai.com/v1` into every request. **So under beta.2 the
+`.endpoint(endpoint)` call in NGB's two-argument constructor was dead code**: `CustomOpenAILLMClient`,
+i.e. `llm.custom.type=openai` with `llm.custom.url=…`, ignored the configured URL and talked to
+api.openai.com, with `Authorization: Bearer <llm.custom.token>`. The URL was, in effect, only an
+on/off switch for the feature.
+
+beta.16 has one client impl, so the endpoint is honoured, and the auth header is chosen by a private
+`useNonAzureOpenAIService()` — `endpoint == null || endpoint.startsWith("https://api.openai.com/v1")`
+— rather than by the credential class:
+
+| | endpoint honoured? | auth header |
+|---|---|---|
+| beta.2, `OpenAIClient(key)` | n/a | `Authorization: Bearer` |
+| beta.2, `OpenAIClient(key, url)` | **no**, hard-coded api.openai.com | `Authorization: Bearer` |
+| beta.16, `OpenAIClient(key)` | n/a, defaults to api.openai.com | `Authorization: Bearer` |
+| beta.16, `OpenAIClient(key, url)` | **yes** | `api-key` (Azure convention) |
+
+The one-argument constructor — `OpenAIChatGPT35`, `OpenAIChatGPT40`, the paths that actually get used
+— is unchanged in both columns. The two-argument one changes twice over, and both changes come from
+the SDK, not from a choice made here: there is no beta.16 API that both takes an endpoint and keeps
+the non-Azure auth shape.
+
+This is left as the SDK does it, deliberately, and flagged rather than papered over. Restoring beta.2's
+behaviour would mean re-implementing a bug (accept a URL, then ignore it), and beta.16's behaviour is
+the one the configuration plainly intends for an Azure OpenAI resource. But it does mean a deployment
+that set `llm.custom.type=openai` with a self-hosted OpenAI-compatible URL was silently being served
+by api.openai.com and will now get Azure-shaped requests (`/openai/deployments/{model}/chat/
+completions?api-version=…`, `api-key`) against its own host. **That configuration should move to
+`llm.custom.type=custom`**, which is NGB's own retrofit `CustomLLMApiClient` and is the OpenAI-
+compatible-proxy path. A release note, not a code change; the alternative is a rewrite of
+`CustomOpenAILLMClient` and its `LLMProvider` wiring, which is outside this phase.
+
+Untouched while in there: the two-argument constructor also adds `new Header("bearer", key)` through
+`clientOptions`, i.e. a header literally named `bearer` carrying the raw key. It is pre-existing, it
+is almost certainly a mangled attempt at `Authorization: Bearer`, and it is additive to whatever the
+credential policy sets, under both versions.
+
+One further rename: `ChatCompletions.getCreated()` → `getCreatedAt()` (`OffsetDateTime` now, not a
+Unix second count). It appears only inside a `log.debug` placeholder. `setMaxTokens(Integer)`,
+`setTemperature(Double)`, `setN(Integer)` and `ChatChoice.getMessage().getContent()` are unchanged and
+none of them is deprecated in beta.16 — checked with `javap -v`, since `max_tokens` is deprecated in
+the OpenAI REST API itself and a Java deprecation would have been worth following.
+
+Resolved after the bump: azure-ai-openai's own `azure-core:1.55.3 → 1.58.1` and
+`azure-core-http-netty:1.15.11 → 1.16.5`, i.e. it now shares one azure-core with storage and identity,
+which was the point.
+
+**Not verified, and cannot be here: that a chat completion actually comes back.** There are no LLM
+keys in this environment, and every path into this class needs a live key —
+`OpenAIChatGPT35`/`OpenAIChatGPT40` reach `api.openai.com`, `CustomOpenAILLMClient` an operator's own
+endpoint. The compile-time surface is fully covered and the credential/endpoint wiring is verified in
+bytecode as above, but the request/response round trip is not, and "LLM target summaries" therefore
+goes on the unverified list with the cloud items. See "Cloud verification" below.
+
+`make test`: 534 tests, 3 failed, 21 skipped — the documented three. `make lint`: 14 files,
+37 warnings, pmd clean.
+
 ---
 
 ### Phase 9 — Packaging, CI, docs, release

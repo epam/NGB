@@ -27,9 +27,11 @@ package com.epam.catgenome.manager.llm;
 import com.azure.ai.openai.OpenAIClientBuilder;
 import com.azure.ai.openai.models.ChatCompletions;
 import com.azure.ai.openai.models.ChatCompletionsOptions;
-import com.azure.ai.openai.models.ChatMessage;
-import com.azure.ai.openai.models.ChatRole;
-import com.azure.ai.openai.models.NonAzureOpenAIKeyCredential;
+import com.azure.ai.openai.models.ChatRequestAssistantMessage;
+import com.azure.ai.openai.models.ChatRequestMessage;
+import com.azure.ai.openai.models.ChatRequestSystemMessage;
+import com.azure.ai.openai.models.ChatRequestUserMessage;
+import com.azure.core.credential.KeyCredential;
 import com.azure.core.util.Header;
 import com.azure.core.util.HttpClientOptions;
 import com.epam.catgenome.entity.llm.LLMMessage;
@@ -50,7 +52,7 @@ public class OpenAIClient {
 
     public OpenAIClient(final String openAIKey) {
         this.client =  new OpenAIClientBuilder()
-                .credential(new NonAzureOpenAIKeyCredential(openAIKey))
+                .credential(new KeyCredential(openAIKey))
                 .buildClient();
     }
 
@@ -58,7 +60,7 @@ public class OpenAIClient {
                         final String endpoint) {
         final List<Header> headers = Collections.singletonList(new Header("bearer", openAIKey));
         this.client =  new OpenAIClientBuilder()
-                .credential(new NonAzureOpenAIKeyCredential(openAIKey))
+                .credential(new KeyCredential(openAIKey))
                 .endpoint(endpoint)
                 .clientOptions(new HttpClientOptions().setHeaders(headers))
                 .buildClient();
@@ -81,17 +83,35 @@ public class OpenAIClient {
         log.debug("Starting request processing {}", LocalDateTime.now());
 
         final ChatCompletionsOptions options = new ChatCompletionsOptions(messages.stream()
-                .map(m -> new ChatMessage(ChatRole.fromString(m.getRole().getRole())).setContent(m.getContent()))
+                .map(OpenAIClient::toRequestMessage)
                 .collect(Collectors.toList()))
                 .setMaxTokens(maxSize)
                 .setTemperature(temperature)
                 .setN(1);
         final ChatCompletions completions = client.getChatCompletions(model, options);
         LocalDateTime end = LocalDateTime.now();
-        log.debug("Model ID={} is created at {}", completions.getId(), completions.getCreated());
+        log.debug("Model ID={} is created at {}", completions.getId(), completions.getCreatedAt());
         log.debug("Time to process request {}", Duration.between(start, end).getSeconds());
         return ListUtils.emptyIfNull(completions.getChoices()).stream().findFirst()
                 .map(c -> c.getMessage().getContent())
                 .orElseThrow(() -> new IllegalArgumentException("Failed to receive result from LLM"));
+    }
+
+    /**
+     * Until azure-ai-openai 1.0.0-beta.6 a request message was one class, {@code ChatMessage}, with
+     * the role as a settable {@code ChatRole}; from beta.6 on it is a class per role. NGB's
+     * {@link LLMRole} has exactly three values, so this covers all of them, with `user` as the
+     * fallback - the role a chat message has when nothing says otherwise.
+     */
+    private static ChatRequestMessage toRequestMessage(final LLMMessage message) {
+        final String content = message.getContent();
+        switch (message.getRole()) {
+            case SYSTEM:
+                return new ChatRequestSystemMessage(content);
+            case ASSISTANT:
+                return new ChatRequestAssistantMessage(content);
+            default:
+                return new ChatRequestUserMessage(content);
+        }
     }
 }

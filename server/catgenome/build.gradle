@@ -400,7 +400,19 @@ dependencies {
     implementation group: "pathwaycommons", name: "chilay-sbgn", version: "3.0.0"
 
     //LLM
-    implementation group: "com.azure", name: "azure-ai-openai", version: "1.0.0-beta.2"
+    // 1.0.0-beta.2 (2023) until Phase 8, now 1.0.0-beta.16 - the latest, and still a beta: this
+    // library has never had a GA release and the last one was published in March 2025, so the pin is
+    // explicit rather than coming from the azure-sdk-bom above (which carries GA libraries only).
+    // The bump has to happen with the storage one, not after it: beta.2 was built against azure-core
+    // 1.40.0, and the BOM moves azure-core to 1.58.1 under it.
+    // The API changed shape in beta.6: a chat request message went from one settable-role
+    // ChatMessage class to a class per role, and NonAzureOpenAIKeyCredential (api.openai.com rather
+    // than an Azure deployment) was folded into azure-core's KeyCredential. Both land in
+    // manager/llm/OpenAIClient, which is the only file that touches this SDK. The second of the two
+    // does change behaviour for llm.custom.type=openai - beta.2 ignored the configured URL, beta.16
+    // honours it and switches to the api-key header - see the Phase 8 findings in
+    // .devenv/JAVA21-MIGRATION-PLAN.md.
+    implementation group: "com.azure", name: "azure-ai-openai", version: "1.0.0-beta.16"
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.10.1'
 
     implementation group: 'com.google.apis', name: 'google-api-services-customsearch', version: 'v1-rev20240103-2.0.0'
