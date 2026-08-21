@@ -2195,6 +2195,448 @@ a green test suite before touching 116 SQL migration scripts.
 
 ---
 
+### Phase 5 execution findings
+
+Written as they were established, before implementation. Everything below was measured, not
+inferred — the harness that produced it is `.devenv/fixtures/probe/` (gitignored scratch;
+see `.devenv/fixtures/README.md`).
+
+#### Versions the Boot 3.5.16 BOM manages (resolved)
+
+Read out of `spring-boot-dependencies-3.5.16.pom`:
+
+| Artifact | Pinned at (pre-Phase-5) | BOM-managed |
+|---|---|---|
+| `org.flywaydb:flyway-core` | 3.2.1 | **11.7.2** |
+| `com.h2database:h2` | 1.3.176 | **2.3.232** |
+| `org.postgresql:postgresql` | 9.4-1206-jdbc4 | **42.7.11** |
+| `com.zaxxer:HikariCP` | (already BOM) | 6.3.3 — done in Phase 3, not this phase |
+
+**Flyway 11.7.2, not a pinned 10.x.** Nothing in the upgrade needs 10.x semantics, and taking
+the BOM version means `spring.flyway.*` and the Boot auto-configuration agree with each other
+by construction. `flyway-database-postgresql:11.7.2` is in the BOM and must be added
+explicitly. **There is no `flyway-database-h2`** — H2 support is still inside `flyway-core`,
+so the "same check for H2" in task 2 resolves to "nothing to add".
+
+#### VERIFY (task 3): does Flyway 11 parse the legacy version format identically? — **Yes**
+
+This was the item that could have invalidated the whole phase, so it was settled first, two
+ways, and against a database migrated by the *old* code rather than a fresh one.
+
+1. **Parser-to-parser.** `old/ParseOld.java` calls Flyway 3.2.1's own
+   `MigrationInfoHelper.extractVersionAndDescription(name, "v", "__", ".sql")`;
+   `new/ParseNew.java` calls Flyway 11.7.2's own
+   `new ResourceNameParser(new FluentConfiguration().sqlMigrationPrefix("v")).parse(name)`.
+   Output is `<filename>|<version>|<description>`. For all **118** scripts (59 h2 + 59
+   postgres) the two runs are **byte-identical**.
+   `v2016.11.21_17.58__Database_create_script.sql` → version `2016.11.21.17.58`, description
+   `Database create script` — matching the rows actually present in both real databases.
+2. **Against real old-code databases.** Flyway 11.7.2 `info` reports **60 entries,
+   applied=60, notApplied=0** on both the restored PostgreSQL 9.6 dump and the
+   export/imported H2 1.3 file. So applied-migration history does **not** break, and
+   `validateMigrationNaming`/`MigrationVersion` need no special handling.
+
+**Conclusion: the phase's approach is valid.** No need to stop.
+
+#### Two things that *do* break on an existing database (both proven, both fixable)
+
+**(a) Every checksum changed between Flyway 3.2.1 and 11.7.2.** `validate` fails with **51 of
+59** mismatches on PostgreSQL and the same on H2 — the checksum algorithm changed, the
+scripts did not. `flyway.repair()` realigns every row on the Flyway-3-shaped table, after
+which `validate` returns `validationSuccessful=true, invalid=0` and `migrate` reports
+`migrationsExecuted=0`. So **repair is unavoidable on every existing database**, whatever
+else Phase 5 does. This matters for decision 1 below.
+
+**(b) The Flyway 3 schema-history table cannot be written to by Flyway 11, and `repair` does
+not fix that.** Flyway 3 created `schema_version` with `version_rank INTEGER NOT NULL` (no
+default) and the primary key on `version`; Flyway 4+ dropped `version_rank`, moved the PK to
+`installed_rank` and made `version` nullable. `repair` only touches checksums. Adding one
+synthetic new migration therefore dies in
+`JdbcTableSchemaHistory.doAddAppliedMigration`:
+
+```
+PostgreSQL: ERROR: null value in column "version_rank" of relation "schema_version"
+            violates not-null constraint
+H2 2.3.232: NULL not allowed for column "version_rank"  [23502-232]
+```
+
+Both engines fail on the *first* new migration, so an operator sees it immediately rather
+than silently — but the failure modes differ and the H2 one is worse:
+
+- **PostgreSQL** rolls the whole migration back. History stays at 60 rows, no orphan objects.
+- **H2** leaves the migration's DDL committed with **no history row for it**. Measured: the
+  synthetic migration's `PROBE_NEW_MIGRATION` table survived in the schema after the insert
+  failed. An operator who retries without cleaning up hits "object already exists".
+
+⇒ **A one-time legacy schema-history conversion is required**, run before `migrate`. Design
+adopted: a Boot `FlywayMigrationStrategy` bean that (i) detects the legacy shape by looking
+for a `version_rank` column, (ii) if found, logs loudly, converts the table to the Flyway
+10/11 shape and calls `flyway.repair()`, (iii) then calls `flyway.migrate()`. Conditional,
+not unconditional — an unconditional `repair()` on every startup would permanently disable
+the checksum safety net that is the reason to run Flyway at all.
+
+#### H2 2.3.232: what the existing scripts and data actually need
+
+**Reserved words — three, and no script edits needed.** H2 2.x promoted `USER`, `VALUE` and
+`END` to reserved words, and the schema uses all three: table `CATGENOME.USER`, column
+`VALUE` (`catgenome.metadata`), column `END` (`catgenome.session`). Renaming them would ripple
+into the 42 `dao/*-dao.xml` files and the `.sql` history alike. Instead the JDBC URL carries
+`NON_KEYWORDS=END,USER,VALUE`, which restores 1.x behaviour for exactly those three
+identifiers and nothing else. That string has to appear everywhere an H2 URL does
+(`.devenv/docker-compose.yml`, the three `profiles/h2/test-*.properties`, packaged defaults,
+docs).
+
+**The 1.3 → 2.x export/import works, with that one setting.** `SCRIPT TO` under 1.3.176
+produced a 58,896-byte script; `RUNSCRIPT FROM` under 2.3.232 rejected it at
+`CREATE CACHED TABLE CATGENOME.USER(` and then imported it **clean** once `NON_KEYWORDS` was
+set — 59 CATGENOME tables and all 60 `schema_version` rows preserved.
+
+**The 59 h2 scripts do *not* run on 2.x unedited.** A fresh-install run died on migration 1.
+Iterating to green found **three classes of purely syntactic breakage, 10 occurrences in 4
+files** — and nothing else:
+
+| # | What 1.3 tolerated | 2.x requires | Where |
+|---|---|---|---|
+| 1 | trailing `,` before the closing `)` of `CREATE TABLE` | remove it | `v2016.11.21_17.58__Database_create_script.sql` (×2), `v2017.07.04_11.20__EPMCMBI-1810_short_url.sql`, `v2021.08.27_16.00__issue_534_session_sharing.sql` |
+| 2 | `SEQ.nextVal` attribute form | `nextval('seq')` (function form, already used elsewhere in the same file set) or `NEXT VALUE FOR` | `v2017.02.16_18.00__EPMCMBI-1553_Create_ref_index.sql`, `v2018.12.03_12.00__default_admin.sql` |
+| 3 | `CREATE SEQUENCE … START 1 INCREMENT 1` | `START WITH 1 INCREMENT BY 1` | `v2018.09.17_11.03__ACL_tables.sql` (×4) |
+
+Notably **not** a problem, despite the plan's list: `IDENTITY` semantics, `MERGE` syntax,
+implicit conversions, `information_schema` casing, and the `nextval('schema.seq')` *function*
+form (which 2.x still supports). With those 10 edits, `migrate` from empty reports
+`migrationsExecuted=59`.
+
+**The edited fresh install and the export/imported upgrade produce the same schema.** This is
+the safety check that makes editing the scripts defensible, so it was run: a full
+`information_schema.columns` dump (table, ordinal, name, type, length, nullability, default)
+of both databases diffs to **zero differences across all 58 application tables**. The only
+lines that differ are the `schema_version` table's own shape (finding (b), expected) and the
+synthetic probe table. So the three edits are semantics-preserving in fact, not just in
+intention.
+
+#### PostgreSQL 16.15: the operator gotcha
+
+Restoring a 9.6 `pg_dumpall` into PostgreSQL 16 succeeds, and then **every connection fails**:
+
+```
+FATAL: password authentication failed for user "catgenome"
+```
+
+The dump carries md5 password hashes; PostgreSQL 16 ships `scram-sha-256` in the default
+`pg_hba.conf` and will not authenticate an md5-hashed role against it. Fix is one statement
+per role after restore (`ALTER ROLE catgenome WITH PASSWORD '…'`). This belongs in the
+release note, not just here — it looks like a credentials bug and is not one.
+
+#### Decision 1 — H2 2.x script strategy: **edit the 59 scripts. Not a squashed baseline.**
+
+This **diverges from the plan's recommendation** (task 4 says "(b) is cleaner given the file
+format already forces an export/import"), so the reasoning is recorded in full.
+
+The plan's argument rests on the export/import making checksum breakage free. Measurement
+shows the premise is true but the conclusion does not follow, for three reasons:
+
+1. **"Editing breaks checksums" is no longer a cost.** Finding (a): all 59 checksums are
+   already invalid on every existing database purely because the algorithm changed between
+   Flyway 3 and 11, so `repair` runs regardless. Editing 4 of the 59 scripts adds *nothing*
+   to the upgrade procedure. The main argument for the baseline evaporates.
+2. **A squashed baseline makes validation permanently worse.** An existing database has 59
+   applied rows. Replace the 59 scripts with one baseline and every one of those rows becomes
+   a *missing* migration, so `validate` fails forever unless `ignoreMigrationPatterns` is
+   loosened to `*:missing` in production config. Trading a working checksum check for a
+   permanently muted one is the wrong direction for the phase with the highest data-loss
+   risk.
+3. **The edits are 10 lines of syntax; a baseline is ~700 lines of new, unreviewed DDL.** And
+   it would need to be *two* baselines, because the flavours have diverged — and hand-writing
+   the PostgreSQL one is pure downside, since PostgreSQL has no on-disk format change and no
+   forced export/import to piggyback on. Any transcription error in a generated baseline is
+   silent until a customer hits it. The 10 edits, by contrast, are verified equivalent by the
+   schema diff above.
+
+Secondary but real: keeping the 59 files keeps `git log` on the schema, and keeps the two
+flavours diffable file-by-file — which is exactly what decision 2 needs.
+
+#### Decision 2 — diverged-schema failures: **fixing all seven**
+
+All seven PostgreSQL failures that `TEST-BASELINE.md` attributes to the two script sets
+having drifted are fixed in this phase, none deferred:
+
+| Divergence | Failures | Fix |
+|---|---|---|
+| `vcf.multi_sample` nullable in postgres, `NOT NULL DEFAULT FALSE` in h2 | 4 (`BookmarkDaoTest`, `VcfFileDaoTest`) | new postgres migration bringing it to the h2 definition |
+| `task_organism.organism` typed differently | 2 (`BlastTaskDaoTest`) | new postgres migration aligning the type to h2 |
+| predefined-role rows differ (ids/count) | 1 (`RoleDaoTest.testLoadRolesWithUsers`) | new migration aligning the postgres seed rows to h2 |
+
+Done as **forward migrations on the postgres side**, not by editing applied scripts: h2 is
+taken as the reference because the DAO layer and the Java entities were written against it,
+and a new migration is the only form of fix that reaches databases that already exist. The
+three syntactic H2 edits above are the sole exception to "do not edit applied scripts", and
+they are justified by the schema-diff equivalence proof, not by convenience.
+
+`TargetManagerTest.filterTargetsByOwnerTest` is out of this table — it is a genuine DAO bug
+(`WHERE target_id IN ()` when the id list is empty), unrelated to persistence versions. If
+fixed, it is a separate sub-commit.
+
+#### Fixtures captured before anything destructive (and one corrected premise)
+
+`.devenv/fixtures/pre-migration/` (gitignored, plus a copy outside the repo at
+`~/ngb-phase5-fixtures/`) holds the two pre-migration databases the exit criteria need, taken
+at `5680365b` with the containers cleanly stopped first:
+
+- `h2/catgenome.h2.db` — H2 1.3.176, cleanly shut down. Verified genuine: 59 CATGENOME
+  tables, `catgenome."schema_version"` with 60 rows and Flyway 3.2.1 checksums, and real
+  registered data (`test_ref`, `dm6`, `demo_bam`, `demo_vcf`, `demo_genes`, `demo_vcf_dm6`).
+- `pg/pg96-dumpall.sql` and `pg/pg96-datadir.tar.gz` — PostgreSQL 9.6.
+- the matching `/opt/ngb/contents` trees for both.
+
+**Correction to the prompt's premise:** the live `pg-data` volume did *not* contain a
+populated `ngb` database — `make up-pg` had never been run against it, so only `ngb_test`
+(left by `make test-pg`) had a Flyway history. The PostgreSQL fixture is therefore one that
+was *built*: `make jar-pg-fast` at HEAD (still Flyway 3.2.1), `make up-pg`, then registering
+`test_ref`, `dm6`, `demo_bam`, `demo_vcf_dm6` and dataset `demo_ds` through the CLI, then
+capturing. It is a real old-code database; it just is not the one that was sitting on disk.
+
+Incidental H2 facts worth not rediscovering: Flyway 3 created the history table as **quoted
+lowercase** `CATGENOME."schema_version"` with quoted lowercase columns, so
+`select version from catgenome.schema_version` does not resolve — it must be
+`select "version" from catgenome."schema_version"`. And the `user` table is uppercase `USER`.
+
+#### Phase 4's exit criteria, re-measured before starting
+
+All four actually run at `5680365b`, against a stashed (clean) tree for the SAML one:
+
+| Criterion | Baseline | Measured | |
+|---|---|---|---|
+| `make lint` | green | green | ✅ |
+| `make test` | 526 / 3 / 21 | 526 / **4** / 21 | ✅ extra is `PdbDataManagerTest.testParse` |
+| `make reset-pg && make test-pg` | 526 / 11 / 21 | 526 / **12** / 21 | ✅ same, all 9 documented PG failures present |
+| `make up-saml && make smoke-saml` | green, both users | admin recognised as admin, plain user plain, SLO both | ✅ |
+
+`PdbDataManagerTest.testParse` is the live-data flapper `TEST-BASELINE.md` already says to
+"expect either way", so both suites are at baseline. Two operating notes: `make up-saml`
+returns before the server has finished booting, so `smoke-saml` straight after it fails with
+`Connection refused` — wait for `Started Application` in the log; and the plain user needs
+`make smoke-saml U=ngbuser@ngb.dev.local P=user`, the target only does the admin by default.
+
+#### What the phase changed, file by file
+
+Java and configuration:
+
+- `server/catgenome/build.gradle` — the three pins deleted, so h2, postgresql and flyway-core
+  take the BOM's 2.3.232 / 42.7.11 / 11.7.2; `flyway-database-postgresql` added.
+- `dao/FlywayMigrator.java` (new) — replaces the `org.flywaydb.core.Flyway` bean, which Flyway
+  10 made unusable from XML by removing the setter API, and carries the one-time schema-history
+  conversion + `repair`, guarded on `version_rank` actually being present.
+- the four `profiles/{h2,postgres}/{,test-}applicationContext-flyway.xml` — repointed at it.
+- `conf/catgenome/applicationContext-database.xml` — Hikari `connectionInitSql` issuing
+  `SET NON_KEYWORDS END,USER,VALUE`, SpEL-gated on the JDBC URL starting `jdbc:h2:`.
+
+Migration scripts — 10 syntactic edits in 6 h2 files (not 4; the count in the H2-breakage
+table above is of distinct *problems*, and `ACL_tables` carries four occurrences of one):
+
+| File | Edit |
+|---|---|
+| `h2/v2016.11.21_17.58__Database_create_script.sql` | 2 trailing commas |
+| `h2/v2017.07.04_11.20__EPMCMBI-1810_short_url.sql` | 1 trailing comma |
+| `h2/v2021.08.27_16.00__issue_534_session_sharing.sql` | 1 trailing comma |
+| `h2/v2017.02.16_18.00__EPMCMBI-1553_Create_ref_index.sql` | `TABLE.nextVal` → `nextval('seq')` |
+| `h2/v2018.12.03_12.00__default_admin.sql` | `TABLE.nextval` → `nextval('seq')` |
+| `h2/v2018.09.17_11.03__ACL_tables.sql` | 4 × `START 1 INCREMENT 1` → `START WITH 1 INCREMENT BY 1` |
+
+The two test-only scripts (`src/test/resources/database/test/{h2,postgres}/`) were checked
+against all three problem classes and need nothing.
+
+Three new postgres-only convergence migrations, `v2026.08.21_12.{00,10,20}`, for
+`multi_sample`, `organism` and the roles. The role one is the substantial one: it drops
+`ROLE_CYTOBANDS_MANAGER` and `ROLE_MAF_MANAGER` with their grants, renumbers the survivors
+onto `DefaultRoles`' ids carrying `USER_ROLE` rows with them, and adds the missing
+`ROLE_WIG_MANAGER` at 8. Renumbering parks ids in a +1000 range first so no intermediate state
+collides with the primary key, and drops/re-adds `user_role_role_id_fkey` for the duration —
+all inside Flyway's transaction. Operator-created roles are untouched, `S_ROLE` starts at 100.
+Every step is a no-op when already aligned, so a fresh install (which still runs the original
+divergent seeding first) and an existing database converge to identical rows; that is why the
+already-applied seed script was left alone rather than corrected in place.
+
+Environment and documentation:
+
+- `.devenv/.env`, `.env.example`, `docker-compose.yml` — `PG_VERSION=16`. The compose
+  `${PG_VERSION:-9.6}` fallback stays 9.6 deliberately: it only fires for a `.env` predating
+  this phase, which wants the old server.
+- `.devenv/README.md` — services table, the "pinned to 9.6" gotcha, a new H2 2.x gotcha, the
+  role-divergence note marked settled, and checkpoint 4 ticked.
+- `docs/md/installation/database-upgrade.md` (new, in the mkdocs nav under Installation) — the
+  operator procedure, which is where the release-note-shaped content lives rather than only
+  here. Covers the H2 `Script`/`RunScript` round trip with `NON_KEYWORDS` on the *tool's* URL,
+  the PostgreSQL `pg_dumpall`/restore, the md5→scram `ALTER ROLE` step, what the automatic
+  schema-history conversion logs, and — the part with user-visible consequences — that
+  `ROLE_MAF_MANAGER` holders lose that role.
+- `docs/md/installation/standalone.md` — points at it.
+
+One PMD violation came out of the new class (`"ALTER TABLE "` four times, `AvoidDuplicateLiterals`),
+fixed with a constant. Checkstyle stays at its baseline 37 warnings.
+
+#### Two H2 2.x behaviour changes the migration scripts did not reveal
+
+The script-level work above was proved out by migrating and diffing schemas, which is why it
+looked complete. It was not: the first `make test` on H2 2.3.232 came back **526 / 12 / 21**
+against a baseline of 4, and the eight extra failures were two H2 behaviour changes in *query*
+and *column* semantics rather than in DDL syntax. Both are genuine data-correctness bugs on
+H2 2.x, neither is a test artefact, and neither would have been found by anything short of
+running the suite.
+
+**1. Row-value `IN` lists are mis-typed (5 failures).** `MetadataDao.getItems` builds
+
+```sql
+WHERE (entity_id, entity_class) IN ((1,'PROJECT'),(1,'GENE'))
+```
+
+H2 1.3.176 evaluated that correctly. H2 2.3.232 tries to convert `'PROJECT'` to the type of
+the *first* column and fails the whole query with `Data conversion error converting
+"PROJECT"` / `NumberFormatException` `[22018-232]`. Reproduced standalone on a two-column
+table, so it is H2's optimiser (`Expression.optimizeCondition`), not anything about NGB's
+schema. The fix is to spell the list as a `VALUES` subquery —
+`IN (VALUES (1,'PROJECT'),(1,'GENE'))` — which H2 2.x, and PostgreSQL, both read as intended.
+`metadata-dao.xml` holds the only row-value `IN` in the codebase; grep for
+`\([a-z_]+ *, *[a-z_]+ *\) +IN +\(` confirms it. The four `ProjectManagerTest` /
+`ProjectControllerTest` failures were this same query reached through the project tree.
+
+**2. Bare `DECIMAL` means scale 0 (1 failure, and silent data loss).** `HEATMAP.MIN_CELL_VALUE`
+and `MAX_CELL_VALUE` were declared `DECIMAL` with no precision or scale. H2 1.3 kept the
+inserted value's own scale; H2 2.x reads the declaration as `NUMERIC(100000, 0)` and rounds
+every value to a whole number — `HeatmapManagerTest.createHeatmapTest` got `0.0` where it
+wanted `0.001273579`. PostgreSQL's unconstrained `NUMERIC` keeps the scale, which is why the
+column had survived this long. `Heatmap.minCellValue` is a `Double` read with `rs.getDouble`,
+so `DOUBLE PRECISION` is both the honest type and the fix, applied to **both** flavours by
+`v2026.08.21_12.30`. `ALTER COLUMN ... SET DATA TYPE` is accepted by H2 2.x and PostgreSQL
+alike, verified on both.
+
+This one has a consequence for the upgrade path that no migration can fix: the 1.3 `SCRIPT`
+dump writes the column back out as bare `DECIMAL`, so `RUNSCRIPT` into 2.x rounds the stored
+values *at import time*, before NGB starts and before the migration runs. The operator
+document therefore has a `sed` step between export and import. Those are the only two
+`DECIMAL` columns in the h2 schema, so the substitution is exact.
+
+**A fourth script-set divergence, found while chasing the above** and not in
+`TEST-BASELINE.md`'s seven because no test catches it: `BAM_COVERAGE.COVERAGE` is `DOUBLE` on
+h2 and `NUMERIC` on postgres, against a `Float` field. Converged to h2 by
+`v2026.08.21_12.40`. Worth stating plainly: the seven test-visible divergences were the ones
+that had a test; this phase's schema diff is what found the eighth.
+
+#### Two things only a real server start caught
+
+Both test suites were at baseline before either of these was known. Neither is reachable from
+the unit tests, because those build plain Spring contexts from the XML and never go through
+Boot auto-configuration or the shipped logging profile.
+
+**1. Boot's `FlywayAutoConfiguration` collides with NGB's own bean.** `make reset-ngb-data &&
+make up` started the container and then failed the context:
+
+```
+The bean 'flyway', defined in class path resource [org/springframework/boot/autoconfigure/
+flyway/FlywayAutoConfiguration$FlywayConfiguration.class], could not be registered. A bean
+with that name has already been defined in class path resource
+[conf/catgenome/applicationContext-flyway.xml] and overriding is disabled.
+```
+
+The auto-configuration is `@ConditionalOnClass(Flyway.class)` and was inert against
+flyway-core 3.2.1; with flyway-core 11 it activates and contributes a bean named `flyway`,
+which is what `applicationContext-flyway.xml` calls NGB's `FlywayMigrator`. Fixed by adding
+`FlywayAutoConfiguration.class` to `Application.java`'s `@SpringBootApplication(exclude = …)`.
+
+Two fixes that look adequate and are not:
+
+- *Rename NGB's bean.* The guard is `@ConditionalOnMissingBean(Flyway.class)` and
+  `FlywayMigrator` is not a `Flyway`, so Boot would still build its own — with
+  `flyway_schema_history` as the table and `classpath:db/migration` as the location. It would
+  find no migrations and create a second, empty history table next to the real one.
+- *`spring.flyway.enabled=false`.* Works, but puts something the application cannot tolerate
+  being switched on into a property file an operator edits.
+
+**2. The shipped log configuration discards `WARN`, so the schema-history conversion was
+invisible.** `profiles/jar/log4j2.xml` and `profiles/release/log4j2.xml` put a
+`ThresholdFilter level="ERROR"` on every appender they have. `FlywayMigrator`'s two conversion
+notices are `WARN`, so on the first start after an upgrade they went nowhere — and this is a
+one-time, irreversible conversion of an operator's schema history, i.e. exactly the event that
+must leave a trace. `docs/md/installation/database-upgrade.md` told operators to look for lines
+that could never appear.
+
+Rather than weaken the document, the phase added a second console appender with a `WARN`
+threshold and bound *only* `com.epam.catgenome.dao.FlywayMigrator` to it (`additivity="false"`,
+plus the error appender so a future `ERROR` from it is still filed). Applied to the `jar`,
+`release` and `staging` profiles; `dev`'s console has no threshold and already showed them. The
+global ERROR-only policy is deliberate and is left alone. Verified against both flavours: the
+two lines now appear on stdout, verbatim as the document quotes them, and a second start prints
+nothing.
+
+#### The upgrade path, as actually exercised
+
+Both fixtures were run end-to-end against the built jar, following
+`docs/md/installation/database-upgrade.md` literally rather than a paraphrase of it. Each step
+of the document was executed as written; the results below are what corrected it.
+
+**H2 1.3.176 → 2.3.232**, from `fixtures/pre-migration/h2/catgenome.h2.db` (a real
+Flyway-3.2.1-migrated database with `dm6` and `test_ref` registered):
+
+- `org.h2.tools.Script` with the 1.3.176 jar produced an 851-line dump; the documented `sed`
+  matched exactly the 2 expected `_CELL_VALUE DECIMAL,` lines and nothing else.
+- `RUNSCRIPT` with `NON_KEYWORDS=END,USER,VALUE` imported it clean.
+- Before NGB started, the imported database was confirmed to still carry the genuine Flyway 3
+  layout — `version_rank` first, `version NOT NULL` — with 60 applied rows. This matters: it
+  is the conversion's actual input, not a reconstruction of it.
+- First start logged the two conversion notices and left `installed_rank` first, `version`
+  nullable, `version_rank` gone, **61 rows** (the 60 originals plus
+  `v2026.08.21_12.30`), 0 failures.
+- `reference/loadAll`, `project/loadMy`, `reference/3/loadChromosomes` and `dataitem/search`
+  all return the pre-upgrade data. A restart logs nothing further.
+
+**PostgreSQL 9.6.24 → 16.15**, from `fixtures/pre-migration/pg/pg96-dumpall.sql`:
+
+- `psql -f` into a virgin 16.15 cluster: one error, `role "catgenome" already exists`, from the
+  container having provisioned the role. Nothing else.
+- The md5-vs-scram trap in step 4 of the document is real and was confirmed, not assumed. The
+  dump's `ALTER ROLE … PASSWORD 'md5…'` overwrites the working password with a 9.6 md5 hash;
+  `pg_authid` then reads `md5a…`, and a connection from another container fails with
+  `password authentication failed for user "catgenome"` against the default
+  `host all all all scram-sha-256`. After `ALTER ROLE catgenome WITH PASSWORD …` the hash reads
+  `SCRAM-SHA-256$` and the connection succeeds. Local loopback keeps working throughout because
+  the container's `pg_hba.conf` trusts `127.0.0.1`, which is exactly what makes this easy to
+  miss.
+- First start: notices logged, history converted, **65 rows** (60 originals plus the five new
+  migrations), 0 failures; `reference/loadAll` and `project/loadMy` return the pre-upgrade data.
+
+**The role renumbering was tested against grants, not just against role rows.** The captured
+fixture only had `ROLE_ADMIN` and `ROLE_USER` granted, whose ids do not move, so the first run
+left the risky half of `v2026.08.21_12.20` unproven. The path was redone with three seeded
+users holding the roles that do move — `ROLE_SEG_MANAGER` (id 10), `ROLE_TARGET_MANAGER` (11)
+and `ROLE_MAF_MANAGER` (9). After the upgrade:
+
+| User held | Before | After |
+|---|---|---|
+| `ROLE_SEG_MANAGER` | 10 | 9 — grant followed |
+| `ROLE_TARGET_MANAGER` | 11 | 10 — grant followed |
+| `ROLE_MAF_MANAGER` | 9 | no roles — deleted with the role, as documented |
+
+`user_role_role_id_fkey` is back in place afterwards. The two-phase `+1000` renumber is what
+makes this work without violating the FK mid-statement.
+
+#### Carry-overs that turned out to be moot
+
+The three test JDBC URLs said to carry a stray trailing apostrophe do not. `profiles/h2/
+test-catgenome.properties` reads `jdbc:h2:mem:test_catgenome;DB_CLOSE_ON_EXIT=FALSE` with no
+apostrophe, and `src/test/resources/test-catgenome-acl.properties` and `-auth.properties` no
+longer declare a datasource at all — `[migration 0] Give the ACL/auth tests a flavour-matched
+datasource` moved it out. Nothing to fix; recorded so the next person does not go looking.
+
+#### One optional fix taken
+
+`TargetManagerTest.filterTargetsByOwnerTest`, the last non-network failure on PostgreSQL and a
+pre-existing bug unrelated to the migration. `TargetManager.load(TargetQueryParams)` enriches
+its results with two `IN (…)` queries built from the matched target ids; when the filter matches
+nothing, both render as `target_id IN ()`. PostgreSQL rejects it. Fixed with an early return
+when `targets` is empty — one guard covering both `targetGeneDao.loadTargetGenes` and
+`getIdentifications`, rather than a guard in each DAO. Committed separately.
+
+---
+
 ### Phase 6 — Lucene
 
 **Goal:** current Lucene, with a clear operator story for the mandatory reindex (D8).

@@ -27,12 +27,20 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <!-- Registers & configures Flyway, used for embedded database update purposes -->
-    <bean id="flyway" class="org.flywaydb.core.Flyway" depends-on="dataSource" init-method="migrate">
-        <property name="schemas" value="CATGENOME"/>
+    <!-- Registers & configures Flyway, used for embedded database update purposes.
+         Went through com.epam.catgenome.dao.FlywayMigrator in Phase 5 of the Java 21 migration:
+         Flyway 10 removed the setter API this used to configure org.flywaydb.core.Flyway with
+         directly, and an existing database also needs its Flyway 3 schema-history table converting
+         before the first migration can be recorded. The class javadoc has the detail. -->
+    <bean id="flyway" class="com.epam.catgenome.dao.FlywayMigrator" depends-on="dataSource">
+        <property name="schema" value="CATGENOME"/>
         <property name="dataSource" ref="dataSource"/>
         <property name="sqlMigrationPrefix" value="v"/>
-        <property name="locations" value="classpath:database/catgenome/h2"/>
+        <property name="locations">
+            <list>
+                <value>classpath:database/catgenome/h2</value>
+            </list>
+        </property>
         <property name="placeholders">
             <map>
                 <entry key="default.admin">

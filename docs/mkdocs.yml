@@ -14,6 +14,7 @@ nav:
         - Overview: installation/overview.md
         - Using standalone JAR: installation/standalone.md
         - Using Docker: installation/docker.md
+        - Upgrading the database: installation/database-upgrade.md
     - Command Line Interface guide:
         - Overview: cli/introduction.md
         - CLI Installation: cli/installation.md

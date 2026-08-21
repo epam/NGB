@@ -41,7 +41,7 @@ Three facts about the current codebase drive the whole design:
 | `certs` | default | One-shot: JKS keystore (HTTPS + SAML signing) and the JWT RSA keypair | — |
 | `ngb-h2` | default | NGB on H2 | `:8080` http *or* `:8443` https |
 | `ngb-pg` | `pg` | NGB on PostgreSQL | `:8090` http *or* `:8493` https |
-| `postgres` | `pg` | PostgreSQL 9.6 (see note below), DBs `ngb` + `ngb_test` | `:5432` |
+| `postgres` | `pg` | PostgreSQL 16 (`PG_VERSION`, see note below), DBs `ngb` + `ngb_test` | `:5432` |
 | `test-pg` | `pg` | Unit tests against PostgreSQL | — |
 | `idp` | `saml` | Keycloak 26 as SAML 2.0 IdP, realm `ngb` preloaded | `:8081` |
 | `idp-metadata` | `saml` | One-shot: pulls the IdP descriptor into `secrets/` | — |
@@ -278,11 +278,28 @@ databases, but it needs a `flyway repair` (or a fresh schema) anywhere the broke
 version somehow got recorded. That divergence in the seeded role IDs is also worth
 keeping in mind for the Flyway upgrade: the two flavours' schemas are not identical.
 
+**Settled in migration Phase 5.** The three places the two script sets had diverged —
+the seeded roles, `VCF.MULTI_SAMPLE`'s nullability and `TASK_ORGANISM.ORGANISM`'s type —
+are now converged on the h2 shape by forward migrations on the PostgreSQL side
+(`v2026.08.21_12.*`), so `MAX(id) + 1` above resolves to 10 on both flavours. h2 was the
+reference because `DefaultRoles`, `docs/md/user-guide/um-overview.md` and the DAO code all
+agree with it. One of those divergences was a real production bug rather than a test
+artefact: PostgreSQL never seeded `ROLE_WIG_MANAGER`, so on a PostgreSQL install nothing
+but an administrator could satisfy `WigSecurityService`'s `@PreAuthorize`. Still open and
+wider than persistence: `NGBMethodSecurityExpressionRoot.hasSpecificRole` also names
+MAF/BUCKET/PROJECT/BOOKMARK manager roles, and `DefaultRoles` names
+`ROLE_HEATMAP_MANAGER`, none of which either flavour seeds.
+
 ## Notes and gotchas
 
-- **PostgreSQL is pinned to 9.6.** Flyway 3.2.1 refuses to run against modern
-  PostgreSQL. Raising `PG_VERSION` is a *migration checkpoint*, not a config tweak —
-  run `make reset-pg` when you change it.
+- **PostgreSQL is 16 since migration Phase 5** (`PG_VERSION` in `.env`); it was pinned to
+  9.6 because Flyway 3.2.1 refused to run against anything newer. Changing `PG_VERSION`
+  still needs `make reset-pg` — a 9.6 data directory is unreadable by 16, and `reset-pg`
+  destroys the cluster rather than migrating it. For a real database the procedure is
+  `docs/md/installation/database-upgrade.md`.
+- **H2 is 2.3.232 since migration Phase 5**, and 2.x cannot open a 1.3.176 file: an
+  existing `catgenome.h2.db` needs the `SCRIPT TO` / `RUNSCRIPT FROM` round trip in the
+  same document. `make reset-ngb-data` sidesteps it by throwing the database away.
 - **Memory.** `server/catgenome/build.gradle` sets `-XX:MaxDirectMemorySize=7937m` for
   the test JVM, and the app defaults to a 2 GB heap. Your colima VM currently has
   ~12 GB / 6 CPU; if the test task gets killed, give colima more memory
@@ -313,8 +330,12 @@ keeping in mind for the Flyway upgrade: the two flavours' schemas are not identi
    for the JWT half. All four externally visible endpoints keep the OpenSAML 2 extension's
    URLs, so existing IdP registrations do not have to be re-pointed. `make up-saml` +
    `make smoke-saml`, and `make saml-verify-signing` for the signing path, are the checks.*
-4. ☐ Flyway 3.2.1 → 10.x and H2 1.3.176 → 2.x (schema/SQL differences), then
-   `PG_VERSION=16`. Verify with `make test-pg` on both flavours. *Phase 5.*
+4. ☑ Flyway 3.2.1 → 10.x and H2 1.3.176 → 2.x (schema/SQL differences), then
+   `PG_VERSION=16`. Verify with `make test-pg` on both flavours. *Phase 5; now Flyway
+   11.7.2 (+ `flyway-database-postgresql`), H2 2.3.232, driver 42.7.x, PostgreSQL 16. The
+   upgrade of an existing database is not automatic on the H2/PostgreSQL side — see
+   `docs/md/installation/database-upgrade.md`. The Flyway schema history *is* converted
+   automatically, by `FlywayMigrator`.*
 5. ☐ Lucene 6.6 → 9.x, htsjdk, POI 3.16. Verify with `make test` and by clicking through
    tracks in the UI. *Phases 6–8. The `mangofactory` Swagger half of this one is done —
    Phase 3 replaced it with springdoc, at `/swagger-ui/index.html` and `/v3/api-docs`.*

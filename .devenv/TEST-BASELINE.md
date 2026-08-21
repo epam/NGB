@@ -1,26 +1,31 @@
 # Test baseline for the Java 21 migration
 
 First recorded on 2026-08-20 at the end of **migration Phase 0**; re-measured at the end of
-**Phase 1**, of **Phase 2**, of **Phase 3** and of **Phase 4**, inside this environment
-(H2 1.3.176 / PostgreSQL 9.6, aarch64/colima). The first two recordings were on JDK 8 / Gradle 3.3 /
-Boot 1.5, the third on JDK 17 / Gradle 7.6 / Boot 2.7.18; **the numbers below are Phase 4's, on
-JDK 21 / Gradle 8.14.5 / Boot 3.5.16 / Spring Security 6.5.11**. **These tests still fail on the
-current code.** From here on this list is the reference: a run that is green except for this list is
-a pass. Anything else is your own breakage.
+**Phase 1**, of **Phase 2**, of **Phase 3**, of **Phase 4** and of **Phase 5**, inside this
+environment. The first two recordings were on JDK 8 / Gradle 3.3 / Boot 1.5, the third on JDK 17 /
+Gradle 7.6 / Boot 2.7.18, the next two on H2 1.3.176 / PostgreSQL 9.6; **the numbers below are
+Phase 5's, on JDK 21 / Gradle 8.14.5 / Boot 3.5.16 / Spring Security 6.5.11 / Flyway 11.7.2, against
+H2 2.3.232 and PostgreSQL 16.15** (aarch64/colima). **These tests still fail on the current code.**
+From here on this list is the reference: a run that is green except for this list is a pass. Anything
+else is your own breakage.
 
 | Suite | Command | Result |
 |---|---|---|
 | H2 | `make test` | 526 tests, **3 failed**, 21 skipped (~2.5 min) |
-| PostgreSQL | `make test-pg` | 526 tests, **11 failed**, 21 skipped (~2.5 min) |
+| PostgreSQL | `make test-pg` | 526 tests, **4 failed**, 21 skipped (~3 min) |
 | Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings / 0 errors (~30 s) |
 | CLI integration | `make cli-test` | **cannot run** — its fixture host no longer exists, see ["`make cli-test` is unrunnable"](#make-cli-test-is-unrunnable) |
 
-Of those, **1 (H2) / 9 (PostgreSQL)** are the pre-existing failures documented below. The rest
-are network tests that external services moved under: `BlatSearchManagerTest.testFind` /
-`testFindBlatReadSequence`, on both flavours, new since Phase 1 because UCSC now redirects HTTP to
-HTTPS, and `PdbDataManagerTest.testParse` (live RCSB data), which passed on **both** flavours at the
-Phase 3 and Phase 4 recordings and failed on both at Phase 2's — which is all you need to know about
-it. See ["Live-data failures"](#live-data-failures).
+**Every remaining failure on both flavours is a network test.** Phase 5 cleared the last of the
+code-and-schema ones — see ["What Phase 5 changed"](#what-phase-5-changed) — so the two flavours now
+differ only by `PdbDataManagerTest.testParse`, which flaps: it failed on PostgreSQL and passed on H2
+at this recording, and has gone both ways at every previous one. The failures are
+`GffManagerTest.testLoadGenesTranscript` (live Ensembl), `BlatSearchManagerTest.testFind` /
+`testFindBlatReadSequence` (UCSC redirects HTTP to HTTPS, new since Phase 1) and that one. See
+["Live-data failures"](#live-data-failures).
+
+Which means: **a non-network failure is now always a regression.** There is no longer a documented
+schema or DAO failure to hide behind on either flavour.
 
 Phase 0 took this from 19 H2 / 65 PostgreSQL / red lint. What it fixed is at the bottom.
 Phase 1 removed 9 tests along with the functionality they covered (GA4GH, HDFS, `person`),
@@ -31,18 +36,21 @@ Phase 3 removed 9 more tests with the security stack and EhCache (528 → 519) a
 rather than re-baselined everything the upgrade broke — see
 ["What Phase 3 changed"](#what-phase-3-changed), which also lists the test classes Phase 4 had to
 bring back. Phase 4 brought back 7 of them (519 → 526) and changed no failure count on either
-flavour — see ["What Phase 4 changed"](#what-phase-4-changed).
+flavour — see ["What Phase 4 changed"](#what-phase-4-changed). Phase 5 added no tests and removed
+none, and took PostgreSQL from 11 failures to 4 by fixing the causes — see
+["What Phase 5 changed"](#what-phase-5-changed).
 
 **Two conditions the numbers depend on.** Get either wrong and you will see extra failures
 that are not yours:
 
 1. **`make test-pg` needs a clean database.** `ngb_test` lives in the persistent `pg-data`
    volume and several tests do not clean up after themselves, so a second run on a dirty
-   volume shows 9 more failures than the count above — 6 in `HeatmapManagerTest` ("File with name
+   volume shows extra failures — 6 in `HeatmapManagerTest` ("File with name
    'loadHeatmapTest' already exists"), `UrlShorterManagerTest`
-   (`expected:<95d52dd9> but was:<alias>`), `TargetManagerTest.filterTargetsByOwnerTest`,
-   `RoleDaoTest`. Run `make reset-pg` first. Fixing that self-cleanup is worth doing but is
-   not in the migration's path.
+   (`expected:<95d52dd9> but was:<alias>`), and others. Run `make reset-pg` first. Fixing that
+   self-cleanup is worth doing but is not in the migration's path.
+   `TargetManagerTest.filterTargetsByOwnerTest` was in this list and is not any more: Phase 5
+   fixed the empty-`IN`-list bug that made it dirty-state-sensitive.
 2. **`make test` needs a clean `contents/`.** `/contents/` in the repo root is gitignored
    scratch space (`files.base.directory.path`, plus the taxonomy and targets Lucene indexes).
    Leftovers there used to make `HomologeneManagerTest.searchTest` pass and
@@ -101,22 +109,24 @@ keep flipping. Treat a failure there as external drift, not regression — and d
 loosening the assertion, for the same reason as `GffManagerTest.testLoadGenesTranscript`: the
 real question is whether network-dependent assertions belong in the unit suite.
 
-## PostgreSQL: 9 documented failures (+2 live-data, +1 that flaps)
+## PostgreSQL: 1 documented failure (+2 live-data, +1 that flaps)
 
-All 9 are pre-existing, and 7 of them are the **two Flyway script sets having diverged**.
-None are caused by the environment. See "Latent bugs found" in `JAVA21-MIGRATION-PLAN.md`.
+The same one as on H2, and it is a network test. **Phase 5 fixed the eight that were real**, so
+PostgreSQL and H2 now have identical documented failures. The eight are kept below rather than
+deleted, because they are the specification for what the convergence migrations must keep true —
+if one comes back, a script set has drifted again.
 
-| Count | Class | Cause | Survives the migration? |
+| Count | Class | Cause | Status |
 |---|---|---|---|
-| 4 | `BookmarkDaoTest.testSaveLoadBookmark`, `testAllItemTypes`, `VcfFileDaoTest.testSaveLoadVcfFile`, `testSaveLoadSamples` | `catgenome.vcf.multi_sample` is `NOT NULL` in the PostgreSQL script set and nullable in the H2 one; `VcfFileDao` inserts `null`. | Should be settled in **Phase 5** when the two script sets are reviewed. |
-| 2 | `BlastTaskDaoTest.testDeleteOrganisms`, `testDeleteExclOrganisms` | `task_organism.organism` / `task_excl_organism.organism` are `character varying` in the PostgreSQL script set and numeric in the H2 one, while `BlastTaskDao.deleteOrganisms` emits `where organism = 1`. `ERROR: operator does not exist: character varying = integer`. | Same — **Phase 5**. |
-| 1 | `RoleDaoTest.testLoadRolesWithUsers` | `expected:<11> but was:<12>` — the two script sets seed a different number of predefined roles (already documented in `README.md`). | Same — **Phase 5**. |
-| 1 | `TargetManagerTest.filterTargetsByOwnerTest` | `TargetGeneDao.loadTargetGenes` emits `WHERE target_id IN ()` for an empty id set. H2 1.3 accepts it, PostgreSQL does not. **Real production bug**: any target filter matching nothing fails on PostgreSQL. | Yes, until someone fixes the DAO. Nothing in the migration touches it. |
-| 1 | `GffManagerTest.testLoadGenesTranscript` | Same live-Ensembl failure as on H2. | Yes. |
-| 1 | `PdbDataManagerTest.testParse` | Same live-RCSB failure as on H2 — and it **passed** at the Phase 3 recording, which is the whole of the 12 → 11 change in the failure count. Not counted in the 9. | Yes, until network tests are dealt with. |
-| 2 | `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | Same UCSC HTTP→HTTPS drift as on H2. Not counted in the 9. | Yes, until `blat.search.url` is changed. |
+| 1 | `GffManagerTest.testLoadGenesTranscript` | Same live-Ensembl failure as on H2. | **Still fails.** Yes, survives. |
+| 1 | `PdbDataManagerTest.testParse` | Same live-RCSB failure as on H2. Failed on PostgreSQL and passed on H2 at the Phase 5 recording; has gone both ways before. | **Flaps.** |
+| 2 | `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | Same UCSC HTTP→HTTPS drift as on H2. | **Still fails.** Until `blat.search.url` is changed. |
+| 4 | `BookmarkDaoTest.testSaveLoadBookmark`, `testAllItemTypes`, `VcfFileDaoTest.testSaveLoadVcfFile`, `testSaveLoadSamples` | `catgenome.vcf.multi_sample` was `NOT NULL` in the PostgreSQL script set and nullable in the H2 one; `VcfFileDao` inserts `null`. | **Fixed in Phase 5** by `v2026.08.21_12.00__align_vcf_multi_sample_with_h2.sql`. |
+| 2 | `BlastTaskDaoTest.testDeleteOrganisms`, `testDeleteExclOrganisms` | `task_organism.organism` / `task_excl_organism.organism` were `character varying` on PostgreSQL and numeric on H2, while `BlastTaskDao.deleteOrganisms` emits `where organism = 1`. `ERROR: operator does not exist: character varying = integer`. | **Fixed in Phase 5** by `v2026.08.21_12.10__align_task_organism_with_h2.sql`. |
+| 1 | `RoleDaoTest.testLoadRolesWithUsers` | `expected:<11> but was:<12>` — the two script sets seeded a different number of predefined roles. | **Fixed in Phase 5** by `v2026.08.21_12.20__align_predefined_roles_with_h2.sql`. |
+| 1 | `TargetManagerTest.filterTargetsByOwnerTest` | `TargetManager.load` built `WHERE target_id IN ()` for an empty id set. H2 1.3 accepted it, PostgreSQL does not. **Was a real production bug**: any target filter matching nothing failed on PostgreSQL. | **Fixed in Phase 5**, as a separate commit — it was never the migration's doing. |
 
-`VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` was the tenth entry here until Phase 1 deleted
+`VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` was another entry here until Phase 1 deleted
 GA4GH.
 
 The PostgreSQL suite now exercises the ACL code, which it previously could not (see below). Treat a
@@ -328,6 +338,64 @@ make smoke-saml U=ngbuser@ngb.dev.local P=user
 make saml-verify-signing                                     # SP metadata + AuthnRequest signatures
 make cli-token                                               # a JWT, via the SAML session
 ```
+
+## What Phase 5 changed
+
+Flyway 3.2.1 → 11.7.2, H2 1.3.176 → 2.3.232, PostgreSQL 9.6 → 16.15, postgresql driver
+9.4-1206 → 42.7.x — the findings are in `JAVA21-MIGRATION-PLAN.md` ("Phase 5 execution findings").
+**No test was added, removed, `@Ignore`d or weakened; the count stays at 526 / 21 skipped.** H2
+holds at 3 failures and PostgreSQL goes **11 → 4**, entirely by fixing causes.
+
+### The eight non-network failures, fixed at the source
+
+Seven were the two Flyway script sets having diverged, and the eighth was a DAO bug. All were
+fixed forward, on the PostgreSQL side, with **H2 as the reference** — `DefaultRoles`,
+`docs/md/user-guide/um-overview.md` and the DAO code all agree with the H2 script set, so it is
+the one the application is actually written against.
+
+| Fix | Effect |
+|---|---|
+| `v2026.08.21_12.00__align_vcf_multi_sample_with_h2.sql` — `VCF.MULTI_SAMPLE` loses `NOT NULL` and its default | −4 (`BookmarkDaoTest` ×2, `VcfFileDaoTest` ×2) |
+| `v2026.08.21_12.10__align_task_organism_with_h2.sql` — `TASK_ORGANISM.ORGANISM` and `TASK_EXCL_ORGANISM.ORGANISM` `VARCHAR(250)` → `BIGINT` | −2 (`BlastTaskDaoTest`) |
+| `v2026.08.21_12.20__align_predefined_roles_with_h2.sql` — deletes `ROLE_CYTOBANDS_MANAGER` / `ROLE_MAF_MANAGER`, adds the **missing** `ROLE_WIG_MANAGER`, renumbers the rest to match H2's 1–10 and remaps `user_role` | −1 (`RoleDaoTest.testLoadRolesWithUsers`) |
+| `TargetManager.load(TargetQueryParams)` returns early when the filter matched nothing | −1 (`TargetManagerTest.filterTargetsByOwnerTest`). Separate commit; a pre-existing bug, not the migration's |
+
+`ROLE_WIG_MANAGER` being absent on PostgreSQL was **a real production defect**, not a test
+artefact: nothing but an administrator could manage WIG files there. Still open and *not* fixed
+here, because no test covers it and inventing role ids is not this phase's call:
+`NGBMethodSecurityExpressionRoot.hasSpecificRole` references MAF, BUCKET, PROJECT and BOOKMARK
+manager roles, and `DefaultRoles` a HEATMAP one, that **neither** flavour has ever seeded.
+
+### Two H2 2.x behaviour changes, caught only by running the suite
+
+The DDL work was proved out by migrating and diffing schemas, which is why it looked complete.
+The first `make test` on H2 2.3.232 came back **526 / 12 / 21** against a baseline of 4. Both
+causes are genuine data-correctness bugs on H2 2.x, not test artefacts:
+
+| Fix | Effect |
+|---|---|
+| `metadata-dao.xml`: `(entity_id, entity_class) IN (@ENTITIES@)` → `IN (VALUES @ENTITIES@)` | −7 (`MetadataDaoTest.shouldGetSeveralItems`, `ProjectManagerTest` ×4, `ProjectControllerTest` ×2). H2 2.x tries to convert `'PROJECT'` to the *first* column's type and fails the query with `Data conversion error` `[22018-232]`; 1.3.176 evaluated it correctly. Reproduced standalone, so it is H2's optimiser. `VALUES` reads correctly on both engines |
+| `v2026.08.21_12.30__heatmap_cell_value_double.sql`, on **both** flavours: `HEATMAP.MIN_CELL_VALUE` / `MAX_CELL_VALUE` bare `DECIMAL` → `DOUBLE PRECISION` | −1 (`HeatmapManagerTest.createHeatmapTest`, `expected:<0.001273579> but was:<0.0>`). H2 2.x reads bare `DECIMAL` as `NUMERIC(100000, 0)` — **scale zero** — and rounds every value. PostgreSQL's unconstrained `NUMERIC` kept the scale, which is why only H2 showed it |
+
+A ninth script-set divergence was found by the schema diff rather than by a test and converged
+anyway (`BAM_COVERAGE.COVERAGE`, `NUMERIC` → `DOUBLE PRECISION`, `v2026.08.21_12.40`). Nothing
+was re-baselined to get here.
+
+### Two things the suite cannot catch
+
+Both were found by starting a real server, and both are recorded here so the next phase does not
+read a green suite as "the application boots":
+
+- **Boot's `FlywayAutoConfiguration` collides with NGB's `flyway` bean** once flyway-core is 11
+  instead of 3.2.1 — a hard context failure. Excluded in `Application.java`. The unit suites
+  build plain Spring contexts from the XML and never go through auto-configuration.
+- **The shipped log configuration discards `WARN`**, so `FlywayMigrator`'s one-time
+  schema-history conversion notices went nowhere on a real upgrade. Fixed with a `WARN`-threshold
+  console appender bound only to that class, in the `jar`, `release` and `staging` profiles.
+
+So: after this phase, `make test` and `make test-pg` being at baseline is necessary but not
+sufficient. `make up`, `make up-pg` and the upgrade procedure in
+`docs/md/installation/database-upgrade.md` are the rest of it.
 
 ## Reproducing
 

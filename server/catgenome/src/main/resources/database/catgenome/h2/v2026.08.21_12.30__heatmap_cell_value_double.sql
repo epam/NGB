@@ -1,0 +1,21 @@
+-- Types CATGENOME.HEATMAP's cell-value bounds as what the application actually stores in
+-- them (Java 21 migration, phase 5).
+--
+-- v2021.09.14_12.00__heatmap.sql declared MIN_CELL_VALUE and MAX_CELL_VALUE as bare DECIMAL.
+-- Heatmap.minCellValue / .maxCellValue are Double and HeatmapDao reads them with
+-- rs.getDouble, so a decimal type was never the intent - and bare DECIMAL means different
+-- things to different engines. H2 1.3.176 kept whatever scale the inserted value had; H2
+-- 2.3.232 reads it as NUMERIC(100000, 0), i.e. **scale zero**, and silently rounds every
+-- value to an integer. That is HeatmapManagerTest.createHeatmapTest failing with
+-- expected:<0.001273579> but was:<0.0> on H2 2.x, and it is a data bug, not a test bug.
+-- PostgreSQL's unconstrained NUMERIC keeps the scale, which is why only H2 showed it.
+--
+-- DOUBLE PRECISION is spelled the same in both script sets and is what rs.getDouble wants.
+-- The cast of existing values is exact: they all came from a Java double.
+--
+-- Note for anyone upgrading an existing H2 file: the SCRIPT/RUNSCRIPT round trip needed to
+-- move from 1.3 to 2.x re-creates these columns from the dumped `DECIMAL` DDL, so the values
+-- are rounded at import time, before this migration can run.
+-- docs/md/installation/database-upgrade.md says to patch those two lines in the dump.
+ALTER TABLE CATGENOME.HEATMAP ALTER COLUMN MIN_CELL_VALUE SET DATA TYPE DOUBLE PRECISION;
+ALTER TABLE CATGENOME.HEATMAP ALTER COLUMN MAX_CELL_VALUE SET DATA TYPE DOUBLE PRECISION;

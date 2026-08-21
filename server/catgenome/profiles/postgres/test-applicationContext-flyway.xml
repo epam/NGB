@@ -27,9 +27,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <!-- Registers & configures Flyway, used for embedded database update purposes -->
-    <bean id="flyway" class="org.flywaydb.core.Flyway" depends-on="dataSource" init-method="migrate">
-        <property name="schemas" value="catgenome"/>
+    <!-- Registers & configures Flyway, used for embedded database update purposes.
+         See profiles/postgres/applicationContext-flyway.xml for why this is not
+         org.flywaydb.core.Flyway any more. -->
+    <bean id="flyway" class="com.epam.catgenome.dao.FlywayMigrator" depends-on="dataSource">
+        <property name="schema" value="catgenome"/>
         <property name="dataSource" ref="dataSource"/>
         <property name="sqlMigrationPrefix" value="v"/>
         <property name="locations">

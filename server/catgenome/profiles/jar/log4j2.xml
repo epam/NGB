@@ -8,6 +8,17 @@
             <PatternLayout charset="UTF-8" pattern="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n"/>
         </Console>
 
+        <!-- The console above only passes ERROR, which is right for steady-state running but hides
+             the one-off database-upgrade notices FlywayMigrator writes at WARN (Phase 5 of the Java
+             21 migration). Converting a Flyway 3 schema history is irreversible and happens exactly
+             once, on the first start after the upgrade, so an operator has to be able to see that it
+             happened - docs/md/installation/database-upgrade.md tells them to look for it. This
+             appender exists only to carry those lines, hence the narrow logger below. -->
+        <Console name="migration-stdout" target="SYSTEM_OUT">
+            <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout charset="UTF-8" pattern="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n"/>
+        </Console>
+
         <RollingFile name="error-appender" fileName="./logs/catgenome-error.log"
                      filePattern="./logs/catgenome-error.log.%d{yyyy-MM-dd}">
             <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
@@ -31,6 +42,13 @@
     <Loggers>
         <Logger name="com.epam.catgenome.app.CustomRequestLoggingFilter" additivity="false">
             <AppenderRef ref="requests-debug-appender"/>
+        </Logger>
+
+        <!-- additivity="false" keeps its WARNs off the ERROR-only appenders (which would drop them
+             anyway); error-appender is listed so that anything it ever logs at ERROR is still filed. -->
+        <Logger name="com.epam.catgenome.dao.FlywayMigrator" level="WARN" additivity="false">
+            <AppenderRef ref="migration-stdout"/>
+            <AppenderRef ref="error-appender"/>
         </Logger>
 
         <Logger name="org.springframework.aop.framework.CglibAopProxy" level="ERROR"/>

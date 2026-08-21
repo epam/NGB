@@ -44,10 +44,10 @@ CREATE SEQUENCE catgenome.S_USER START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE catgenome.S_SECURITY_GROUP START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE catgenome.S_ROLE START WITH 100 INCREMENT BY 1;
 
-CREATE SEQUENCE catgenome.acl_sid_id_seq START 1 INCREMENT 1;
-CREATE SEQUENCE catgenome.acl_class_id_seq START 1 INCREMENT 1;
-CREATE SEQUENCE catgenome.acl_entry_id_seq START 1 INCREMENT 1;
-CREATE SEQUENCE catgenome.acl_object_identity_id_seq START 1 INCREMENT 1;
+CREATE SEQUENCE catgenome.acl_sid_id_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE catgenome.acl_class_id_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE catgenome.acl_entry_id_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE catgenome.acl_object_identity_id_seq START WITH 1 INCREMENT BY 1;
 
 CREATE TABLE catgenome.acl_sid (
     id BIGINT not null default nextval('catgenome.acl_sid_id_seq') primary key,

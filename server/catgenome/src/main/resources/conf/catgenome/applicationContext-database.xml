@@ -33,6 +33,18 @@
         <property name="driverClassName" value="${database.driver.class}"/>
         <property name="maximumPoolSize" value="${database.max.pool.size}"/>
         <property name="minimumIdle" value="${database.initial.pool.size}"/>
+        <!-- H2 2.x (Phase 5 of the Java 21 migration) promoted USER, VALUE and END to reserved
+             words, and this schema uses all three: the table CATGENOME.USER, catgenome.metadata's
+             VALUE column and catgenome.session's END column. `SET NON_KEYWORDS` restores 1.x
+             behaviour for exactly those three identifiers and nothing else, which is far less
+             invasive than renaming them across 59 migration scripts and 42 DAO definitions.
+
+             Driven off the JDBC URL rather than a property so that operators do not have to add
+             anything to an existing catgenome.properties on upgrade, and so PostgreSQL - which
+             needs none of this - is unaffected. Hikari runs it on every physical connection, Flyway
+             included, since it is session scoped. -->
+        <property name="connectionInitSql"
+                  value="#{'${database.jdbc.url}'.startsWith('jdbc:h2:') ? 'SET NON_KEYWORDS END,USER,VALUE' : null}"/>
     </bean>
 
     <!-- Enables the annotations-based configuration for transactional behavior  -->

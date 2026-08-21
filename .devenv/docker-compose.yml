@@ -143,9 +143,11 @@ services:
         aliases: [ngb-pg.dev.local]
 
   # ---------------------------------------------------------------- postgres --
-  # Pinned to 9.6 by default: Flyway 3.2.1 (server/catgenome/build.gradle) refuses
-  # to run against modern PostgreSQL. Set PG_VERSION=16 once Flyway is upgraded -
-  # that pairing is itself one of the migration checkpoints.
+  # 16 since migration Phase 5 (Flyway 11.7.2 + driver 42.7.x); it was pinned to 9.6 because
+  # Flyway 3.2.1 refused to run against anything newer. The fallback below stays at 9.6 on
+  # purpose - it only applies when PG_VERSION is unset, i.e. to a .env predating Phase 5,
+  # and such a checkout wants the old server. Changing PG_VERSION needs `make reset-pg`:
+  # a 9.6 data directory is unreadable by 16.
   postgres:
     image: postgres:${PG_VERSION:-9.6}
     container_name: ngb-postgres

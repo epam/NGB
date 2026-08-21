@@ -23,7 +23,7 @@ session to know where it is.
 | 2 | Gradle 7.6 + Spring Boot 2.7.18 + Lombok on JDK 17 | `cd2ab292`..`4eacb473` | ☑ |
 | 3 | Spring Boot 3.5 + jakarta + Gradle 8 on JDK 21, security reduced to anonymous | `1dd9546b`..`ccd1a812` | ☑ |
 | 4 | SAML2 + JWT on Spring Security 6 | `8a9a7fa3` | ☑ |
-| 5 | Flyway 10/11, H2 2.x, PostgreSQL 16, HikariCP | | ☐ |
+| 5 | Flyway 11.7.2, H2 2.3.232, PostgreSQL 16.15 (HikariCP was already done in Phase 3) | | ☐ |
 | 6 | Lucene + reindex procedure + startup guard | | ☐ |
 | 7 | htsjdk latest, fork deleted, index cache dropped | | ☐ |
 | 8 | Remaining libraries and API polish | | ☐ |
@@ -305,6 +305,34 @@ The plan asks you to choose between making the 58 H2 scripts H2-2.x
 compatible and introducing a squashed baseline. Recommend one, tell me
 which you chose and why, and record the decision in the plan document.
 ```
+
+**How the VERIFY item resolved.** Flyway 11.7.2 parses the existing version format identically
+to 3.2.1 — parser-to-parser byte-identical for all 118 scripts, and 60/60 entries matched as
+applied on **both** real pre-migration databases, not just on a fresh one. The phase's approach
+is valid; nothing had to be worked around. What *did* change is the history table's shape
+(Flyway 4 dropped `version_rank` and moved the primary key to `installed_rank`) and the checksum
+algorithm. `com.epam.catgenome.dao.FlywayMigrator` converts the one and `repair`s the other on
+first start, so no operator runs a Flyway command.
+
+**How the script-strategy decision resolved: edit the scripts, against the plan's
+recommendation.** The plan preferred a squashed baseline on the grounds that the on-disk format
+change already forces an export/import. Measured, that reasoning does not hold: 51 of 59
+checksums mismatch between Flyway 3 and 11 regardless of which route is taken, so `repair` is
+unavoidable either way and "breaks checksums" is not a cost of editing. A baseline, by contrast,
+turns 59 applied rows into permanently "missing" migrations — `ignoreMigrationPatterns=*:missing`
+forever — and would need *two* baselines, one per flavour. The edit is 10 syntactic lines against
+~700 lines of new, unreviewed DDL, and it was proved semantics-preserving by a zero-difference
+`information_schema.columns` diff across all 58 application tables. Full reasoning in the plan.
+
+**The second decision — all seven diverged-schema failures fixed, plus two more.** Both are in
+the plan; the short version is in `TEST-BASELINE.md`'s "What Phase 5 changed". PostgreSQL went
+from 11 failures to 4 and every remaining failure on either flavour is now a network test.
+
+**Two failure modes that no unit test can reach**, found by starting real servers and worth
+knowing before Phase 6 reads a green suite as "it boots": Boot's `FlywayAutoConfiguration`
+activates once flyway-core is 11 and collides with NGB's own `flyway` bean, and the shipped
+log4j2 profiles discard `WARN`, which silently hid the one-time schema-history conversion notice
+that `docs/md/installation/database-upgrade.md` tells operators to look for. Both fixed.
 
 ### Phase 6
 

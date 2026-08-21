@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
@@ -61,10 +62,24 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 // again. Letting Boot order the chain properly is the fix; nothing else in this auto-configuration
 // contributes a bean (the registration is @ConditionalOnBean(name = "springSecurityFilterChain"),
 // so with AUTH_MODE=none it still does nothing).
+//
+// FlywayAutoConfiguration is new to this list, and it is Phase 5 of the Java 21 migration that
+// made it necessary: it is @ConditionalOnClass(Flyway.class) but the class it looks for moved
+// package after Flyway 3, so against the old flyway-core 3.2.1 the auto-configuration was inert
+// and nobody had to think about it. With flyway-core 11 it activates, and its bean is named
+// "flyway" - the same name profiles/*/applicationContext-flyway.xml gives to NGB's own
+// FlywayMigrator - which is a hard startup failure now that bean overriding is off. Renaming
+// either bean would be the wrong fix: the auto-configuration guard is
+// @ConditionalOnMissingBean(Flyway.class) and FlywayMigrator is not a Flyway, so Boot would go
+// on to build a second, default-configured Flyway that would look for migrations in
+// classpath:db/migration and keep its history in flyway_schema_history. Excluding it outright is
+// what NGB means. spring.flyway.enabled=false would work too, but a property an operator can
+// unset is the wrong place for something the application cannot tolerate being on.
 @SpringBootApplication(exclude = {
         SecurityAutoConfiguration.class,
         UserDetailsServiceAutoConfiguration.class,
-        TransactionAutoConfiguration.class})
+        TransactionAutoConfiguration.class,
+        FlywayAutoConfiguration.class})
 @Slf4j
 public class Application extends SpringBootServletInitializer {
 

@@ -72,6 +72,11 @@ You can provide an external file **catgenome.properties** to specify data locati
 * **database.max.pool.size=25** NGB database connection pool configuration
 * **database.initial.pool.size=5** NGB database connection pool configuration
 
+The bundled H2 is 2.3.232 and the supported PostgreSQL range is 9.6 to 17. None of these
+property values changed in this release, but an H2 or PostgreSQL database created by an
+earlier NGB release needs a one-time conversion before this version can open it — see
+[Upgrading the NGB database](database-upgrade.md).
+
 If you want to enable browsing NGS files directly from server's file system, add the following properties:
 
 * **file.browsing.allowed=true** - enables file browsing from file system
