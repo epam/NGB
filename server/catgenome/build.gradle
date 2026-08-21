@@ -174,7 +174,13 @@ dependencies {
     implementation group: "com.fasterxml.jackson.core", name: "jackson-databind"
     implementation group: "com.fasterxml.jackson.core", name: "jackson-annotations"
     implementation group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-xml"
-    implementation group: "com.squareup.retrofit2", name: "converter-jackson", version: "2.7.2"
+    // Retrofit is declared only through its Jackson converter; the core artifact and OkHttp come with
+    // it. 2.7.2 (2020) until Phase 8, now 3.0.0, which is what moves OkHttp - the reason for the bump.
+    // 2.7.2 pins okhttp 3.14.7 and okio 1.17.2, i.e. CVE-2021-0341 (hostname verification) and
+    // CVE-2023-3635 (okio GzipSource); 3.0.0 asks for okhttp 4.12.0 and okio 3.x, which fix both.
+    // Retrofit's own surface is unchanged for NGB - retrofit2.Call/Response, the retrofit2.http
+    // annotations, Retrofit.Builder and JacksonConverterFactory.create are all as they were.
+    implementation group: "com.squareup.retrofit2", name: "converter-jackson", version: "3.0.0"
 
     // JAXB left the JDK in Java 11, and ~288 imports here depend on it. Phase 2 stayed on the
     // `javax.xml.bind` package names because jakarta.xml.bind-api 2.3.x still *was* that package;

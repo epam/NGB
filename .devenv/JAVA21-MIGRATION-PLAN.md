@@ -4159,6 +4159,46 @@ Worth generalising: `:server:ngb-cli:build` passing means nothing about whether 
 tests exercise handlers directly and never go through `Application.main`, so the one command that
 catches this class of breakage is `ngb version` off `installDist`.
 
+#### retrofit converter-jackson 2.7.2 → 3.0.0, and with it OkHttp 3 → 4 (commit 8)
+
+Retrofit is declared only through `com.squareup.retrofit2:converter-jackson`; the core artifact and
+OkHttp arrive with it. **OkHttp is the reason to bump**, not Retrofit: 2.7.2 pins okhttp 3.14.7 and
+okio 1.17.2, and 3.0.0 asks for okhttp 4.12.0, which brings okio 3.6.0. Resolved after the change:
+retrofit 3.0.0, okhttp 4.12.0, okio 3.6.0 (+ `okio-jvm`).
+
+Retrofit's own API is unchanged for NGB — `retrofit2.Call`/`Response`, the `retrofit2.http`
+annotations, `Retrofit.Builder.baseUrl/addConverterFactory/client/build/create` and
+`JacksonConverterFactory.create(ObjectMapper)` all as they were — and so is OkHttp's Java-facing one:
+`OkHttpClient.Builder` (`readTimeout`, `connectTimeout`, `hostnameVerifier`, `sslSocketFactory`,
+`addInterceptor`), `Interceptor`/`Interceptor.Chain`, `Request.newBuilder`, `ResponseBody`. Ten files
+use okhttp directly and none needed an edit. No new deprecation warnings either, which is the thing to
+watch when a library goes Kotlin: OkHttp 4 keeps `@JvmName`d accessors for the Java call sites NGB has.
+
+**Kotlin arrives on the compile classpath and is then held back.** retrofit 3.0.0 declares
+`kotlin-stdlib:2.1.21`; Boot manages kotlin at 1.9.25, and `io.spring.dependency-management` resolves
+Maven-style, so 1.9.25 wins — retrofit's Kotlin code running against a stdlib two minors older than it
+was compiled against. Left that way on purpose: the only Kotlin in the retrofit jar is
+`retrofit2.KotlinExtensions` (the `suspend` `Call.await()` helpers, ten classes, checked by listing the
+jar), NGB is Java and never reaches them, and kotlin-stdlib 1.9.25 already runs
+`org.jetbrains.bio:big` (compiled against 1.4.21) and okhttp 4.12.0 (against 1.8.21) on this
+classpath. Overriding Boot's `kotlin.version` for one unreachable file would be the larger risk.
+
+Verified live, not just at compile time: `PdbDataManagerTest` drives `PdbDataManager` →
+`RCSBApiBuilder` → retrofit → okhttp → `https://www.rcsb.org` and deserializes the reply through
+`JacksonConverterFactory`. Both of its tests make real requests; `testParseMapPdp` passes and
+`testParse` fails only on the known chain-ID data comparison (`expected:<B> but was:<A>`), which means
+the request/TLS/decode path itself works end to end on okhttp 4. `make test`: 534 tests, 4 failed,
+21 skipped — the documented three plus that flap. `make lint`: 14 files, 37 warnings, pmd clean.
+
+**One caveat on the security argument, stated because it would be easy to overclaim.** okhttp 3.14.7
+carries CVE-2021-0341 (hostname verification) and okio 1.17.2 carries CVE-2023-3635 (`GzipSource`
+signed-overflow). The okio one is a real gain. The hostname one is not, for these three clients:
+`RCSBApiBuilder`, `BlastApiBuilder` and `CloudPipelineApiBuilder` each set
+`hostnameVerifier((h, s) -> true)`, and the latter two also install a trust-everything
+`X509TrustManager`. So NGB opts out of the check the CVE is about. Left alone here — it is pre-existing,
+out of this phase's scope, and presumably there for self-signed BLAST/CloudPipeline deployments — but
+it is a security follow-up worth its own decision, not something the SDK bump fixed.
+
 **Related, and deliberately not done here: ngb-cli's own dependency backlog.** That module pins
 `jackson-*:2.7.5`, `httpclient/httpmime:4.5.2`, `google-http-client-jackson2:1.22.0`,
 `commons-io:2.5`, `commons-lang3:3.5`, `slf4j-api:1.7.21` and `log4j2:2.17.1` — all 2016–2021, and
