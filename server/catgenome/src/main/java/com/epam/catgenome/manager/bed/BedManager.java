@@ -45,8 +45,6 @@ import com.epam.catgenome.entity.bed.FileExtensionMapping;
 import com.epam.catgenome.manager.UrlValidatorService;
 import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
 import com.epam.catgenome.manager.bed.parser.NggbMultiFormatBedCodec;
-import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import htsjdk.samtools.util.Tuple;
@@ -91,7 +89,7 @@ import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.CloseableIterator;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.readers.LineIterator;
 
@@ -126,9 +124,6 @@ public class BedManager {
 
     @Autowired
     private FeatureIndexManager featureIndexManager;
-
-    @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
 
     @Autowired
     private UrlValidatorService urlValidatorService;
@@ -620,8 +615,8 @@ public class BedManager {
         try {
             fileManager.deleteFileFeatureIndex(bedFile);
             try (AbstractFeatureReader<NggbBedFeature, LineIterator> reader =
-                    AbstractEnhancedFeatureReader
-                                 .getFeatureReader(bedFile.getPath(), getCodec(bedFile), false, indexCache)) {
+                    AbstractFeatureReader
+                                 .getFeatureReader(bedFile.getPath(), getCodec(bedFile), false)) {
                 featureIndexManager.makeIndexForBedReader(bedFile, reader, chromosomeMap);
             }
         } catch (IOException e) {

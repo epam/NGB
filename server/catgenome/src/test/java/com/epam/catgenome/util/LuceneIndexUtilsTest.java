@@ -108,7 +108,7 @@ public class LuceneIndexUtilsTest {
         assertMentions(failure, "GET /restapi/vcf/5/index");
         assertMentions(failure, "delete nothing by hand");
         assertMentions(failure, "NGB CLI: ngb index_file 5");
-        assertMentions(failure, "installation/lucene-reindex/");
+        assertMentions(failure, "docs/md/installation/lucene-reindex.md");
     }
 
     @Test

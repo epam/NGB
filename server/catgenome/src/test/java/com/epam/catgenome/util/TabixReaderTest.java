@@ -1,7 +1,7 @@
 package com.epam.catgenome.util;
 
-import com.epam.catgenome.util.feature.reader.TabixIteratorLineReader;
-import com.epam.catgenome.util.feature.reader.TabixReader;
+import htsjdk.tribble.readers.TabixIteratorLineReader;
+import htsjdk.tribble.readers.TabixReader;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.Before;

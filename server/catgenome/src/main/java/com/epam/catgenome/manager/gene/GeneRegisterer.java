@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.util.IndexUtils;
-import com.epam.catgenome.util.PositionalOutputStream;
 import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
@@ -71,6 +70,7 @@ import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.LuceneIndexUtils;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
+import htsjdk.samtools.util.PositionalOutputStream;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.index.tabix.TabixIndex;

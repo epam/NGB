@@ -32,7 +32,7 @@ import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.gene.writer.Gff3FeatureImpl;
 import com.epam.catgenome.manager.gene.writer.Gff3Writer;
 import com.epam.catgenome.manager.tools.ToolsManager;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.samtools.util.CloseableIterator;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
@@ -82,7 +82,7 @@ public class GenePredManager {
         final UCSCGeneTableCodec codec = new UCSCGeneTableCodec(UCSCGeneTableCodec.Type.GENEPRED, null);
         List<BasicFeature> basicFeatures;
         try (AbstractFeatureReader<BasicFeature, ?> reader = AbstractFeatureReader.getFeatureReader(genePredFile,
-                codec, false, null)) {
+                codec, false)) {
             final CloseableIterator<BasicFeature> iterator = reader.iterator();
             Assert.isTrue(iterator.hasNext(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
             basicFeatures = iterator.toList();

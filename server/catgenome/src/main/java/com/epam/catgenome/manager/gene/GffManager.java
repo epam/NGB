@@ -77,9 +77,7 @@ import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
 import com.epam.catgenome.util.Utils;
-import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalTree;
@@ -160,9 +158,6 @@ public class GffManager {
 
     @Autowired
     private TaskExecutorService taskExecutorService;
-
-    @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
 
     @Autowired
     private GenbankManager genbankManager;
@@ -366,8 +361,8 @@ public class GffManager {
         GffCodec.GffType gffType = GffCodec.GffType.forExt(extension);
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
 
-        try (FeatureReader<GeneFeature> reader = AbstractEnhancedFeatureReader.getFeatureReader(request.getPath(),
-                request.getIndexPath(), codec, true, indexCache)) {
+        try (FeatureReader<GeneFeature> reader = AbstractFeatureReader.getFeatureReader(request.getPath(),
+                request.getIndexPath(), codec, true)) {
             geneFile = createGeneFile(request);
             boolean hasGenes = false;
             for (Map.Entry<String, Chromosome> chrEntry : chromosomeMap.entrySet()) {

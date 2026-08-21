@@ -92,9 +92,6 @@ If you want to configure default options for tracks visualization on a client si
 If you want to specify max number of VcfIndexEntries keeping in memory during vcf loading, add the following property. For files, which produce more entries then the number, extra entries will be spilled to disk (temp directory).
 * **files.vcf.max.entries.in.memory=1000000** - 1000000 entries take about 3Gb in the heap
 
-If you want to disable cache for headers and indexes of VCF, GTF, BED files, change the following property. By default it is true:
-* **server.index.cache.enabled=false** - disables caching for headers and indexes
-
 If you want to secure NGB we provide several options:
 #### 1. JWT Authentication 
 With this option user can be authenticated using third-party JWT tokens. To enable this authentication, set the following properties:
@@ -217,6 +214,14 @@ Where:
 > **Note**: Do not forget to replace values of *AWS_ACCESS_KEY_ID* and *AWS_SECRET_ACCESS_KEY* variables with your own AWS access key and AWS secret key. And replace value of *AWS_DEFAULT_REGION* variable, if needed.
 
 After that you may run **catgenome.jar** file to start NGB instance as usually.
+
+> **Note**: a feature file (VCF, BED, GFF/GTF, SEG, BED GRAPH) kept in a cloud storage must be
+> **bgzipped and tabix-indexed** - e.g. `s3://ngb-s3/human/sample1.vcf.gz` together with
+> `s3://ngb-s3/human/sample1.vcf.gz.tbi`. A plain, uncompressed feature file addressed by `s3://`,
+> `sws://` or `az://` cannot be read and fails with `No FileSystemProvider available to handle
+> path: s3://...`; a file on the local filesystem or behind an `http(s)://` URL is unaffected, and
+> so are BAM and CRAM files anywhere. NGB CLI's **sort** command, or `bgzip` and `tabix` from
+> [htslib](http://www.htslib.org/), produce the required form.
 
 ### Configure access to Blob Containers in a Microsoft Azure storage account
 

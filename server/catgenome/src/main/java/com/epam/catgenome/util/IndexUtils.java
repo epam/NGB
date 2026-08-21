@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,6 +49,7 @@ import htsjdk.samtools.util.AbstractIterator;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedStreamConstants;
 import htsjdk.samtools.util.CloserUtil;
+import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.LocationAware;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.samtools.util.Tuple;
@@ -60,7 +60,6 @@ import htsjdk.variant.vcf.VCFCodec;
 import org.apache.commons.io.IOUtils;
 
 import com.epam.catgenome.exception.IndexException;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.CloseableTribbleIterator;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
@@ -236,7 +235,7 @@ public final class IndexUtils {
             this.codec = codec;
             this.inputFile = null;
             InputStream headerStream;
-            if (AbstractFeatureReader.hasBlockCompressedExtension(featureFilePath)) {
+            if (IOUtil.hasBlockCompressedExtension(featureFilePath)) {
                 headerStream = new BlockCompressedInputStream(IOHelper.openStream(featureFilePath));
             } else {
                 headerStream = IOHelper.openStream(featureFilePath);
@@ -274,7 +273,7 @@ public final class IndexUtils {
                 InputStream is;
                 // if this looks like a block compressed file and it in fact is, we will use it
                 // otherwise we will use the file as is
-                if (AbstractFeatureReader.hasBlockCompressedExtension(inputFile)) {
+                if (IOUtil.hasBlockCompressedExtension(inputFile)) {
                     // make a buffered stream to test that this is in fact a valid block compressed file
                     final int bufferSize = BlockCompressedStreamConstants.MAX_COMPRESSED_BLOCK_SIZE;
                     final BufferedInputStream bufferedStream =
@@ -502,19 +501,17 @@ public final class IndexUtils {
      *
      * @param indexResource from which to load the index
      */
-    @SuppressWarnings("all")
     public static Index loadIndex(final String indexResource) {
         // Must be buffered, because getIndexType uses mark and reset
         try (BufferedInputStream bufferedInputStream = new BufferedInputStream(
                 indexFileInputStream(IOHelper.openStream(indexResource), Utils.getFileExtension(indexResource)),
                 Defaults.NON_ZERO_BUFFER_SIZE)){
-            final Class<Index> indexClass = IndexFactory.IndexType.getIndexType(bufferedInputStream).getIndexType();
-            final Constructor<Index> ctor = indexClass.getConstructor(InputStream.class);
-            return ctor.newInstance(bufferedInputStream);
+            // htsjdk 4 removed IndexType.getIndexType() (the Class<Index> accessor this used to
+            // reflect over) in favour of a factory method on the enum constant itself, so the
+            // reflection - and the catch-all it needed - are gone.
+            return IndexFactory.IndexType.getIndexType(bufferedInputStream).createIndex(bufferedInputStream);
         } catch (final IOException ex) {
             throw new TribbleException.UnableToReadIndexFile("Unable to read index file", indexResource, ex);
-        } catch (final Exception ex) {
-            throw new RuntimeException(ex);
         }
     }
 

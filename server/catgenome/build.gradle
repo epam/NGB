@@ -182,7 +182,13 @@ dependencies {
     implementation group: "org.codehaus.jettison", name: "jettison", version: "1.1"
 
     // Apache Commons
-    implementation group: "commons-io", name: "commons-io", version: "2.4"
+    // 2.4 (2012) until Phase 7. htsjdk 5.0.0 brings commons-compress 1.26.0, which is the first
+    // commons-compress release to declare a hard (compile-scope, non-optional) dependency on
+    // commons-io - 2.15.1 - and the explicit pin here was silently downgrading it, which would have
+    // meant NoClassDefFoundError inside commons-compress on the CRAM bzip2/lzma paths. Pinned at
+    // exactly what commons-compress asks for: 2.16.0 deprecates
+    // org.apache.commons.io.input.CountingInputStream, which FeatureSeekableStream uses.
+    implementation group: "commons-io", name: "commons-io", version: "2.15.1"
     // commons-lang3 carried an explicit `version: "3.0"` (2011) until Phase 3; the BOM manages it, so
     // the pin is gone. It also had to go: 12 files imported commons-lang **2** (`org.apache.commons.lang`),
     // which was never declared here at all - it arrived transitively through the mangofactory Swagger
@@ -203,9 +209,13 @@ dependencies {
     // Consequence: the five log4j-1-format `log4j.xml` files were rewritten as log4j2.xml.
     implementation("org.springframework.boot:spring-boot-starter-log4j2")
     implementation group: "org.slf4j", name: "slf4j-api"
-    // Samtools
-    implementation group: "com.github.samtools", name: "htsjdk", version: "2.2.4"
-    implementation "org.xerial.snappy:snappy-java:1.0.3-rc3"
+    // Samtools. 5.0.0 (was 2.2.4, 2016) - migration Phase 7, which also deleted the fork of four
+    // htsjdk reader classes that used to live in util/feature/reader. 5.0.0 needs Java 17+ (class
+    // file 61) and drops SRA support, which is the only thing it removes that 4.x had; NGB imports
+    // none of it, and dropping it takes ngs-java and nashorn-core off the classpath with it.
+    // snappy-java is no longer pinned here: the 1.0.3-rc3 pin was from 2011 and had no arm64
+    // native. htsjdk manages 1.1.10.5, which does.
+    implementation group: "com.github.samtools", name: "htsjdk", version: "5.0.0"
     // API docs. springdoc replaces com.mangofactory:swagger-springmvc:1.0.2 (Swagger 1.x, dead since
     // 2015, and broken outright by Boot 2.6's PathPatternParser - see the Phase 2 findings) and the
     // org.webjars:swagger-ui:2.0.24 webjar, whose UI was also committed under src/main/resources and

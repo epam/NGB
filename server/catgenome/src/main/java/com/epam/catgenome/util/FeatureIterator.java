@@ -45,8 +45,8 @@ import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedStreamConstants;
+import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.LocationAware;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.CloseableTribbleIterator;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
@@ -216,7 +216,7 @@ public class FeatureIterator<T extends Feature, S> implements CloseableTribbleIt
     private InputStream createStream(final FileInputStream fileStream) throws IOException {
         // if this looks like a block compressed file and it in fact is, we will use it
         // otherwise we will use the file as is
-        if (!AbstractFeatureReader.hasBlockCompressedExtension(inputFile)) {
+        if (!IOUtil.hasBlockCompressedExtension(inputFile)) {
             return fileStream;
         }
 

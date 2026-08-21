@@ -27,9 +27,11 @@ package com.epam.catgenome.util.feature.reader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.regex.Pattern;
 
+import com.epam.catgenome.util.IOHelper;
 import htsjdk.tribble.util.FTPHelper;
 import htsjdk.tribble.util.HTTPHelper;
 import htsjdk.tribble.util.URLHelper;
@@ -45,7 +47,7 @@ public class EnhancedUrlHelper implements URLHelper {
 
     public EnhancedUrlHelper(URL url) {
         String protocol = url.getProtocol().toLowerCase();
-        if (S3_PATTERN.matcher(url.getHost()).matches()) {
+        if (isSignedS3Url(url)) {
             this.wrappedHelper = new S3Helper(url);
         } else if (protocol.startsWith("http")) {
             this.wrappedHelper = new HTTPHelper(url);
@@ -69,14 +71,41 @@ public class EnhancedUrlHelper implements URLHelper {
         return this.wrappedHelper.openInputStream();
     }
 
-    @Override
-    @Deprecated public InputStream openInputStreamForRange(long start, long end)
+    // Deprecated in htsjdk 2.x, un-deprecated in 5.0.0 - it is how a URLHelper reads a byte range,
+    // and UrlSeekableStream reads through it.
+    @Override public InputStream openInputStreamForRange(long start, long end)
             throws IOException {
         return this.wrappedHelper.openInputStreamForRange(start, end);
     }
 
     @Override public boolean exists() throws IOException {
         return this.wrappedHelper.exists();
+    }
+
+    /**
+     * True for the URLs whose HEAD request may be refused with a 403 - that is, the ones this
+     * class hands to {@link S3Helper}.
+     *
+     * <p>Exposed because the same URLs need the same tolerance outside the {@code URLHelper} SPI:
+     * htsjdk's {@code SeekableHTTPStream} measures a resource with its own HEAD request and does
+     * not consult a {@code URLHelper} at all, so {@code NgbSeekableStreamFactory} has to recognise
+     * them and route them elsewhere.
+     */
+    public static boolean isSignedS3Url(final URL url) {
+        return S3_PATTERN.matcher(url.getHost()).matches();
+    }
+
+    /**
+     * As {@link #isSignedS3Url(URL)}, for a path that is not necessarily a URL at all: anything
+     * that does not parse as one - a local file path, an {@code s3://} or {@code az://} URI - is
+     * not a signed S3 URL either.
+     */
+    public static boolean isSignedS3Url(final String path) {
+        try {
+            return isSignedS3Url(new URL(path));
+        } catch (MalformedURLException e) {
+            return false;
+        }
     }
 
     /**
@@ -91,6 +120,16 @@ public class EnhancedUrlHelper implements URLHelper {
 
         @Override public boolean exists() throws IOException {
             return urlExists();
+        }
+
+        /**
+         * The inherited implementation measures the resource with a HEAD request and reports -1
+         * when it is answered with anything but 200 - so for a URL signed for GET only it reports
+         * no length, and a reader that trusts it sees an empty file. A GET probe is what htsjdk
+         * itself used before 3.0.
+         */
+        @Override public long getContentLength() throws IOException {
+            return IOHelper.getContentLength(getUrl());
         }
 
         private boolean urlExists() {

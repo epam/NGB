@@ -1,19 +1,20 @@
 # Test baseline for the Java 21 migration
 
 First recorded on 2026-08-20 at the end of **migration Phase 0**; re-measured at the end of
-**Phase 1**, of **Phase 2**, of **Phase 3**, of **Phase 4**, of **Phase 5** and of **Phase 6**,
+**Phase 1**, of **Phase 2**, of **Phase 3**, of **Phase 4**, of **Phase 5**, of **Phase 6** and of
+**Phase 7**,
 inside this environment. The first two recordings were on JDK 8 / Gradle 3.3 / Boot 1.5, the third
 on JDK 17 / Gradle 7.6 / Boot 2.7.18, the next two on H2 1.3.176 / PostgreSQL 9.6; **the numbers
-below are Phase 6's, on JDK 21 / Gradle 8.14.5 / Boot 3.5.16 / Spring Security 6.5.11 / Flyway
-11.7.2 / Lucene 9.12.3, against H2 2.3.232 and PostgreSQL 16.15** (aarch64/colima). **These tests
-still fail on the current code.** From here on this list is the reference: a run that is green
-except for this list is a pass. Anything else is your own breakage.
+below are Phase 7's, on JDK 21 / Gradle 8.14.5 / Boot 3.5.16 / Spring Security 6.5.11 / Flyway
+11.7.2 / Lucene 9.12.3 / htsjdk 5.0.0, against H2 2.3.232 and PostgreSQL 16.15** (aarch64/colima).
+**These tests still fail on the current code.** From here on this list is the reference: a run that
+is green except for this list is a pass. Anything else is your own breakage.
 
 | Suite | Command | Result |
 |---|---|---|
-| H2 | `make test` | 540 tests, **3–4 failed**, 21 skipped (~3 min) |
-| PostgreSQL | `make test-pg` | 540 tests, **3–4 failed**, 21 skipped (~4 min of tests; ~15 min including `make reset-pg` and the jar) |
-| Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings / 0 errors (~30 s) |
+| H2 | `make test` | 534 tests, **3–4 failed**, 21 skipped (~2.5 min) |
+| PostgreSQL | `make test-pg` | 534 tests, **3–4 failed**, 21 skipped (~4 min of tests; ~15 min including `make reset-pg` and the jar) |
+| Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings in 14 files / 0 errors (~30 s) |
 | CLI integration | `make cli-test` | **cannot run** — its fixture host no longer exists, see ["`make cli-test` is unrunnable"](#make-cli-test-is-unrunnable) |
 
 **Every remaining failure on both flavours is a network test.** Phase 5 cleared the last of the
@@ -40,7 +41,9 @@ flavour — see ["What Phase 4 changed"](#what-phase-4-changed). Phase 5 added n
 none, and took PostgreSQL from 11 failures to 4 by fixing the causes — see
 ["What Phase 5 changed"](#what-phase-5-changed). Phase 6 **added** 14 tests (526 → 540) for the
 Lucene version guard and changed no failure count — see
-["What Phase 6 changed"](#what-phase-6-changed).
+["What Phase 6 changed"](#what-phase-6-changed). Phase 7 removed 6 tests with the index cache
+(540 → 534), fixed two Phase 6 assertions that had never held, and changed no failure count — see
+["What Phase 7 changed"](#what-phase-7-changed).
 
 **Two conditions the numbers depend on.** Get either wrong and you will see extra failures
 that are not yours:
@@ -164,7 +167,7 @@ that carry-over: **PMD 7.26.0**, on Gradle 8.14.5.
 
 | Module | Command | Checkstyle | PMD |
 |---|---|---|---|
-| `server/catgenome` | `make lint` | 37 warnings in 15 files, **0 errors** | clean |
+| `server/catgenome` | `make lint` | 37 warnings in 14 files, **0 errors** | clean |
 | `server/catgenome`, tests too | `./gradlew -p server/catgenome checkstyleMain checkstyleTest pmdMain pmdTest` | +11 warnings in 3 test files, **0 errors** | clean |
 | `server/ngb-cli` | `./gradlew -p server/ngb-cli checkstyleMain checkstyleTest pmdMain pmdTest` | 6 warnings main + 1 test, **0 errors** | clean |
 
@@ -465,6 +468,82 @@ make up && make smoke                        # and read the log: the check repor
 byte-identical to the 6.6.0 recording taken before the upgrade — both are in
 `.devenv/fixtures/pre-migration/lucene6/`, which also holds the last Lucene 6 indexes that will
 ever exist here, for testing the upgrade path against.
+
+## What Phase 7 changed
+
+htsjdk 2.2.4 → **5.0.0**, the forked reader package deleted, and the index cache deleted with it
+(decisions D9 and D10) — the findings are in `JAVA21-MIGRATION-PLAN.md` ("Phase 7 execution
+findings"). 117 files touch htsjdk; the failure count is unchanged on both flavours.
+
+| Suite | Phase 6 | Phase 7 |
+|---|---|---|
+| H2 | 540 / 3 failed / 21 skipped | **534 / 3 / 21** |
+| PostgreSQL | 540 / 3 / 21 | **534 / 3 / 21** — `PdbDataManagerTest.testParse` passed at this recording; it flaps, so 4 is also a pass |
+| `make lint` | 37 warnings in 15 files, pmd clean | **37 warnings in 14 files, pmd clean** |
+
+### The six removed tests
+
+All of them existed only to test the cache D10 removes, so they went with it:
+
+| Class | Tests | What it asserted |
+|---|---|---|
+| `util/EhCacheTest` | 3 | the `server.index.cache.enabled` property, put/evict, clear |
+| `util/IndexHeaderCacheTest` | 2 | that a Tribble and a Tabix index header came back from the cache |
+| `util/EhCacheDisabledIndexCacheTest` | 1 | that the property being `false` produced no cache |
+
+`src/test/resources/test-catgenome-cache-disable.properties` existed only for the third and went
+too. No other test lost coverage: the cache was a memoisation layer, and every reader path it sat
+in front of is still covered by the manager tests.
+
+### Two Phase 6 assertions that had never held
+
+The first `make test` of this phase showed **five** failures, not three.
+`LuceneIndexVersionCheckTest.refusesToStartOnAnIndexAnEarlierReleaseWrote` and
+`LuceneIndexUtilsTest.readingAStaleFeatureIndexNamesTheFileAndTheCallThatRebuildsIt` both expected
+the refusal message to mention `installation/lucene-reindex/` — the mkdocs URL form — against a
+message that says `docs/md/installation/lucene-reindex.md`. Both halves were committed together in
+`c76ff2ee`, so the assertion never passed; Phase 6's numbers were taken before the message text was
+settled and the suite was not re-run afterwards. Neither file is touched by this phase and the
+assertion is a deterministic `String.contains`, so it is not a Phase 7 regression.
+
+Fixed on the test side, which is not a re-baselining: the assertion's intent is "the message points
+at the reindex procedure", the pointer that exists is the repo path (three javadocs cite the same
+form, and `mkdocs.yml` has no `site_url` for the URL form to resolve against), and both assertions
+now expect the **full** path — stricter than before, not weaker.
+
+### `GffManagerTest.testLoadGenesTranscript` did not move, and its failure shape is evidence
+
+The plan expected this phase to change it; it could not, and Phase 0 had already established why
+(see ["Why `GffManagerTest.testLoadGenesTranscript` is not a fixture
+bug"](#why-gffmanagertesttestloadgenestranscript-is-not-a-fixture-bug)). It failed here in its other
+documented shape, the NPE at `GffManagerTest.java:455` — and that shape is positive evidence for the
+new parser: the assertions before it passed, so stock htsjdk parsed all 75,207 records of
+`Homo_sapiens.GRCh38.83.sorted.chr21-22.gtf` into `Gene`s exactly as the fork did. What failed is
+`GeneTrackManager.loadGenesTranscript` line 197, where `getTranscriptFromDB` threw
+`ExternalDbUnavailableException` and the `catch` left `gene.transcripts` null. Strictly downstream of
+the parser, strictly the network.
+
+### A green suite is even weaker evidence here than usual
+
+Fourth phase in a row. The suite reads the same fixtures through the managers with a Spring test
+context; it never boots the server, so it cannot tell you an instance still parses a BAM — and it
+verified nothing at all about the one regression this phase actually contained (htsjdk's length
+probe becoming a `HEAD` request, which turns a pre-signed S3 URL into a silently empty file). That
+was found by loading tracks through a running server, and the script that does it is committed:
+
+```bash
+.devenv/scripts/prepare-track-fixtures.sh    # stage the fixtures into /ngs/tracks
+make up && make smoke
+.devenv/scripts/verify-tracks.sh             # every track type, with the data it returned
+```
+
+It covers BED, GFF/GTF, GenePred, VCF, BedGraph, BigWig, SEG, BAM, CRAM, plain and bgzip+tabix, and
+three remote variants including one whose `HEAD` is answered with 403; it compares CRAM against the
+BAM it was made from and each remote read against the same file on disk, because those are the
+comparisons a parser regression cannot survive. Two coverage notes: the CRAM fixture had to be
+**created** (`.devenv/scripts/BamToCram.java` → `p7_agnX1.cram`, 45,237 records; there is none in the
+repo), and **MAF cannot be verified through the server at all** — `MafController` was deleted in
+`562b6a6d` (Dec 2018), so `MafManagerTest.testRegisterMaf` is the whole of its coverage.
 
 ## Reproducing
 

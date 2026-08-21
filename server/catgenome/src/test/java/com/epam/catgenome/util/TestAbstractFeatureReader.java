@@ -1,9 +1,5 @@
 package com.epam.catgenome.util;
 
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
-import com.epam.catgenome.util.feature.reader.*;
-import com.epam.catgenome.util.feature.reader.TabixFeatureReader;
-import com.epam.catgenome.util.feature.reader.TribbleIndexedFeatureReader;
 import htsjdk.samtools.seekablestream.SeekableFileStream;
 import htsjdk.tribble.*;
 import htsjdk.tribble.bed.BEDCodec;
@@ -12,6 +8,7 @@ import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.readers.PositionalBufferedStream;
+import htsjdk.tribble.readers.TabixReader;
 import htsjdk.tribble.util.TabixUtils;
 import htsjdk.variant.bcf2.BCF2Codec;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -37,6 +34,13 @@ import static org.junit.Assert.*;
 
 /**
  * Copied from HTSJDK library and added tests for cases of load indexes and constructors.
+ *
+ * <p>Until Java 21 migration Phase 7 this exercised NGB's fork of the reader classes in
+ * {@code util.feature.reader}, with an {@code EhCacheBasedIndexCache} threaded through every call.
+ * The fork and the cache are both gone (decisions D9 and D10), so it now exercises stock
+ * {@code htsjdk.tribble} - which is the point: every constructor and factory overload the fork used
+ * to provide has a stock equivalent, and this is where that is checked.
+ *
  * @author jacob
  * @date 2013-Apr-10
  */
@@ -48,9 +52,6 @@ public class TestAbstractFeatureReader  {
 
     @Autowired
     private ApplicationContext context;
-
-    @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
 
     private static final String LOCAL_MIRROR_HTTP_INDEXED_VCF_PATH = "classpath:templates/ex2.vcf";
     private static final String HTTP_INDEXED_VCF_PATH = "https://personal.broadinstitute.org/picard/testdata/ex2.vcf";
@@ -67,7 +68,6 @@ public class TestAbstractFeatureReader  {
     @Before
     public void setup() throws IOException {
         assertNotNull(context);
-        assertNotNull(indexCache);
         vcf = context.getResource(FELIS_CATUS_VCF).getFile().getAbsolutePath();
         vcfGz = context.getResource(CANTON_VCF).getFile().getAbsolutePath();
         indexedVcf = createIndexedCopy(new File(vcf));
@@ -75,6 +75,10 @@ public class TestAbstractFeatureReader  {
 
     /**
      * Copies a VCF to a private temporary directory and builds a Tribble index next to it.
+     *
+     * htsjdk only auto-builds a missing index on the managed {@code FileManager} path, not in
+     * {@code TribbleIndexedFeatureReader(..., requireIndex = true, ...)}, so the index has to exist
+     * before {@code testTribbleConstructors} runs.
      *
      * The index used to be committed as {@code templates/Felis_catus.vcf.idx}, but it recorded a
      * source size of 5,898 bytes for a 5,995-byte file, so htsjdk seeked to a stale offset and read
@@ -105,11 +109,11 @@ public class TestAbstractFeatureReader  {
         final VCFCodec codec = new VCFCodec();
         final AbstractFeatureReader<VariantContext, LineIterator> featureReaderHttp =
                 AbstractFeatureReader.getFeatureReader(HTTP_INDEXED_VCF_PATH, HTTP_INDEXED_VCF_IDX_PATH,
-                        codec, true, indexCache);
+                        codec, true);
 
         String resource = context.getResource(LOCAL_MIRROR_HTTP_INDEXED_VCF_PATH).getFile().getAbsolutePath();
         final AbstractFeatureReader<VariantContext, LineIterator> featureReaderLocal =
-                AbstractFeatureReader.getFeatureReader(resource, codec, false, indexCache);
+                AbstractFeatureReader.getFeatureReader(resource, codec, false);
         final CloseableTribbleIterator<VariantContext> localIterator = featureReaderLocal.iterator();
         for (final Feature feat : featureReaderHttp.iterator()) {
             assertEquals(feat.toString(), localIterator.next().toString());
@@ -118,7 +122,7 @@ public class TestAbstractFeatureReader  {
 
         Index index = IndexFactory.loadIndex(HTTP_INDEXED_VCF_IDX_PATH);
         final AbstractFeatureReader<VariantContext, LineIterator> featureReaderLocalIndex =
-                AbstractFeatureReader.getFeatureReader(resource, codec, index, indexCache);
+                AbstractFeatureReader.getFeatureReader(resource, codec, index);
         assertNotNull(featureReaderLocalIndex);
     }
 
@@ -128,7 +132,7 @@ public class TestAbstractFeatureReader  {
         final VCFCodec codec = new VCFCodec();
         final AbstractFeatureReader<VariantContext, LineIterator> featureReaderHttp =
                 AbstractFeatureReader.getFeatureReader(HTTP_INDEXED_VCF_PATH_WITH_QUESTIONS, HTTP_INDEXED_VCF_IDX_PATH,
-                        codec, true, indexCache);
+                        codec, true);
         assertNotNull(featureReaderHttp);
     }
 
@@ -138,7 +142,7 @@ public class TestAbstractFeatureReader  {
         final String path = "ftp://ftp.broadinstitute.org/distribution/igv/TEST/cpgIslands with spaces.hg18.bed";
         final BEDCodec codec = new BEDCodec();
         final AbstractFeatureReader<BEDFeature, LineIterator> bfs =
-                AbstractFeatureReader.getFeatureReader(path, codec, false, indexCache);
+                AbstractFeatureReader.getFeatureReader(path, codec, false);
         for (final Feature feat : bfs.iterator()) {
             assertNotNull(feat);
         }
@@ -149,7 +153,7 @@ public class TestAbstractFeatureReader  {
         final String path = "testzip.bedx";
         final BEDCodec codec = new BEDCodec();
         final AbstractFeatureReader<BEDFeature, LineIterator> bfs =
-                AbstractFeatureReader.getFeatureReader(path, codec, false, indexCache);
+                AbstractFeatureReader.getFeatureReader(path, codec, false);
         assertNull(bfs);
     }
 
@@ -179,7 +183,7 @@ public class TestAbstractFeatureReader  {
         String testPath = context.getResource(vcfPath).getFile().getAbsolutePath();
         VCFCodec codec = new VCFCodec();
         try (TribbleIndexedFeatureReader<VariantContext, LineIterator> featureReader =
-                     new TribbleIndexedFeatureReader<>(testPath, codec, false, indexCache)) {
+                     new TribbleIndexedFeatureReader<>(testPath, codec, false)) {
             final CloseableTribbleIterator<VariantContext> localIterator = featureReader.iterator();
             int count = 0;
             for (final Feature feature : featureReader.iterator()) {
@@ -196,14 +200,14 @@ public class TestAbstractFeatureReader  {
         final String vcf = "foo.vcf";
         final BCF2Codec codec = new BCF2Codec();
         final AbstractFeatureReader<VariantContext, PositionalBufferedStream> featureReader =
-                AbstractFeatureReader.getFeatureReader(vcf, codec, false, indexCache);
+                AbstractFeatureReader.getFeatureReader(vcf, codec, false);
         assertNull(featureReader);
     }
 
     @Test
     public void testAbstractFeatureConstructorWithoutIndex() {
         final VCFCodec codec = new VCFCodec();
-        final AbstractFeatureReader featureReader = AbstractFeatureReader.getFeatureReader(vcfGz, codec, indexCache);
+        final AbstractFeatureReader featureReader = AbstractFeatureReader.getFeatureReader(vcfGz, codec);
         assertNotNull(featureReader);
         assertTrue(featureReader.hasIndex());
     }
@@ -232,7 +236,7 @@ public class TestAbstractFeatureReader  {
         TabixFeatureReader tabixFeatureReader = new TabixFeatureReader(vcfGz, new VCFCodec());
         assertNotNull(tabixFeatureReader);
 
-        TabixReader tabixReader = new TabixReader(vcfGz, new SeekableFileStream(new File(vcfGz)), indexCache);
+        TabixReader tabixReader = new TabixReader(vcfGz, new SeekableFileStream(new File(vcfGz)));
         assertNotNull(tabixReader);
         assertNotNull(tabixReader.getSource());
     }
@@ -240,11 +244,11 @@ public class TestAbstractFeatureReader  {
     @Test
     public void testTribbleConstructors() throws IOException {
         TribbleIndexedFeatureReader tribbleFeatureReader = new TribbleIndexedFeatureReader(indexedVcf, new VCFCodec(),
-                true, indexCache);
+                true);
         assertNotNull(tribbleFeatureReader);
 
         TribbleIndexedFeatureReader tribbleFeatureReaderNullIndex = new TribbleIndexedFeatureReader(indexedVcf, null,
-                        new VCFCodec(), true, indexCache);
+                        new VCFCodec(), true);
         assertNotNull(tribbleFeatureReaderNullIndex);
         assertTrue(tribbleFeatureReaderNullIndex.hasIndex());
     }

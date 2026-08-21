@@ -106,7 +106,7 @@ public class LuceneIndexVersionCheckTest {
         assertMentions(refusal, index.toString());
         assertMentions(refusal, "to rebuild: PUT /restapi/taxonomy/upload?taxonomyFilePath=<NCBI names.dmp>");
         assertMentions(refusal, "To continue: stop NGB, delete or move the director(y/ies) listed above");
-        assertMentions(refusal, "installation/lucene-reindex/");
+        assertMentions(refusal, "docs/md/installation/lucene-reindex.md");
     }
 
     /**

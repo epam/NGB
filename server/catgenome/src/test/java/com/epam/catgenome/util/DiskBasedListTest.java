@@ -30,8 +30,7 @@ import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.VariationEffect;
 import com.epam.catgenome.entity.vcf.VariationImpact;
 import com.epam.catgenome.entity.vcf.VariationType;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
@@ -44,7 +43,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.testng.Assert;
+import org.junit.Assert;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,9 +61,6 @@ public class DiskBasedListTest {
     @Autowired
     private ApplicationContext context;
 
-    @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
-
     @Test
     public void serialisationTest() throws IOException, ClassNotFoundException {
         Resource resource = context.getResource("classpath:templates/samples.vcf");
@@ -72,7 +68,7 @@ public class DiskBasedListTest {
         List<VcfIndexEntry> diskBasedList = new DiskBasedList<VcfIndexEntry>(MAX_IN_MEMORY_ITEMS_COUNT).adaptToList();
 
         try (FeatureReader<VariantContext> reader = AbstractFeatureReader
-                .getFeatureReader(resource.getFile().getAbsolutePath(), new VCFCodec(), false, indexCache)
+                .getFeatureReader(resource.getFile().getAbsolutePath(), new VCFCodec(), false)
         ) {
 
             for (VariantContext variantContext : reader.iterator()) {
@@ -95,23 +91,23 @@ public class DiskBasedListTest {
         for (VcfIndexEntry fromDiskBasedList : diskBasedList) {
             VcfIndexEntry writtenEntry = writtenEntriesIterator.next();
 
-            Assert.assertEquals(fromDiskBasedList.getVariationType(), writtenEntry.getVariationType());
-            Assert.assertEquals(fromDiskBasedList.getGene(), writtenEntry.getGene());
-            Assert.assertEquals(fromDiskBasedList.getGeneIds(), writtenEntry.getGeneIds());
-            Assert.assertEquals(fromDiskBasedList.getGeneName(), writtenEntry.getGeneName());
-            Assert.assertEquals(fromDiskBasedList.getImpact(), writtenEntry.getImpact());
-            Assert.assertEquals(fromDiskBasedList.getEffect(), writtenEntry.getEffect());
+            Assert.assertEquals(writtenEntry.getVariationType(), fromDiskBasedList.getVariationType());
+            Assert.assertEquals(writtenEntry.getGene(), fromDiskBasedList.getGene());
+            Assert.assertEquals(writtenEntry.getGeneIds(), fromDiskBasedList.getGeneIds());
+            Assert.assertEquals(writtenEntry.getGeneName(), fromDiskBasedList.getGeneName());
+            Assert.assertEquals(writtenEntry.getImpact(), fromDiskBasedList.getImpact());
+            Assert.assertEquals(writtenEntry.getEffect(), fromDiskBasedList.getEffect());
 
             Assert.assertEquals(
-                    fromDiskBasedList.getInfo().get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName()),
-                    writtenEntry.getInfo().get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName()));
+                    writtenEntry.getInfo().get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName()),
+                    fromDiskBasedList.getInfo().get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName()));
 
             VariantContext deserializedVariantContext = fromDiskBasedList.getVariantContext();
             VariantContext writtenVariantContext = writtenEntry.getVariantContext();
 
-            Assert.assertEquals(deserializedVariantContext.getContig(), writtenVariantContext.getContig());
-            Assert.assertEquals(deserializedVariantContext.getAlleles(), writtenVariantContext.getAlleles());
-            Assert.assertEquals(deserializedVariantContext.getAlleles(), writtenVariantContext.getAlleles());
+            Assert.assertEquals(writtenVariantContext.getContig(), deserializedVariantContext.getContig());
+            Assert.assertEquals(writtenVariantContext.getAlleles(), deserializedVariantContext.getAlleles());
+            Assert.assertEquals(writtenVariantContext.getAlleles(), deserializedVariantContext.getAlleles());
         }
     }
 

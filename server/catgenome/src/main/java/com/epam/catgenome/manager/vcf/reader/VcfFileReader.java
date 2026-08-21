@@ -36,8 +36,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -62,6 +60,7 @@ import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
@@ -112,10 +111,10 @@ public class VcfFileReader extends AbstractVcfReader {
     @Override
     public Track<Variation> readVariations(final VcfFile vcfFile, final Track<Variation> track,
                                            final Chromosome chromosome, final Integer sampleIndex,
-                                           final boolean loadInfo, final boolean collapse,
-                                           final EhCacheBasedIndexCache indexCache) throws VcfReadingException {
-        try (FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(vcfFile.getPath(),
-                vcfFile.getIndex().getPath(), new VCFCodec(), true, indexCache)) {
+                                           final boolean loadInfo,
+                                           final boolean collapse) throws VcfReadingException {
+        try (FeatureReader<VariantContext> reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(),
+                vcfFile.getIndex().getPath(), new VCFCodec(), true)) {
             if (checkBounds(vcfFile, track, chromosome, loadInfo)) {
                 return track;
             }
@@ -132,14 +131,14 @@ public class VcfFileReader extends AbstractVcfReader {
 
     @Override
     public Variation getNextOrPreviousVariation(final int fromPosition, final VcfFile vcfFile,
-                                                final Integer sampleIndex, final Chromosome chromosome, boolean forward,
-                                                final EhCacheBasedIndexCache indexCache) throws VcfReadingException {
+                                                final Integer sampleIndex, final Chromosome chromosome,
+                                                boolean forward) throws VcfReadingException {
         final int end = forward ? chromosome.getSize() : 0;
         if (isOutOfBounds(fromPosition, forward, end)) { // no next features
             return null;
         }
-        try (FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(vcfFile.getPath(),
-                vcfFile.getIndex().getPath(), new VCFCodec(), true, indexCache)) {
+        try (FeatureReader<VariantContext> reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(),
+                vcfFile.getIndex().getPath(), new VCFCodec(), true)) {
             return readNextOrPreviousVariation(fromPosition, vcfFile, sampleIndex, chromosome,
                     forward, end, reader);
         } catch (IOException e) {

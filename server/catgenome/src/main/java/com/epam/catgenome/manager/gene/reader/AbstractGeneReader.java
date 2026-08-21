@@ -67,7 +67,7 @@ import htsjdk.samtools.SAMFormatException;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalTreeMap;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.readers.LineIterator;
 
 /**

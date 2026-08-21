@@ -39,7 +39,6 @@ import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.Utils;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.samtools.util.PeekableIterator;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
@@ -67,24 +66,24 @@ public class BedGraphProcessor extends AbstractWigProcessor {
 
     @Override
     protected Track<Wig> getWigFromFile(final WigFile wigFile, final Track<Wig> track,
-                                        final Chromosome chromosome, EhCacheBasedIndexCache indexCache)
+                                        final Chromosome chromosome)
             throws IOException {
         Assert.notNull(wigFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
         TrackHelper.fillBlocks(track, indexes -> new Wig(indexes.getLeft(), indexes.getRight()));
         String downsamplePath = fileManager.getDownsampledBedGraphFilePath(wigFile);
         if (dontNeedToUseDownsampling(track, chromosome)) {
             fillBlocksFromFile(wigFile.getPath(), wigFile.getIndex().getPath(),
-                    track, chromosome.getName(), indexCache);
+                    track, chromosome.getName());
         } else {
             if (downsamplePath == null) {
                 LOGGER.debug("Downsampled BedGraph for file {}:{} not found, using original", wigFile.getId(),
                         wigFile.getPath());
                 fillBlocksFromFile(wigFile.getPath(), wigFile.getIndex().getPath(),
-                        track, chromosome.getName(), indexCache);
+                        track, chromosome.getName());
             } else {
                 fillBlocksFromFile(
                         downsamplePath, getDownsampledBedGraphIndex(downsamplePath),
-                        track, chromosome.getName(), indexCache
+                        track, chromosome.getName()
                 );
             }
         }
@@ -101,13 +100,13 @@ public class BedGraphProcessor extends AbstractWigProcessor {
     }
 
     @Override
-    protected void splitByChromosome(WigFile wigFile, Map<String, Chromosome> chromosomeMap,
-                                     EhCacheBasedIndexCache indexCache) throws IOException {
+    protected void splitByChromosome(WigFile wigFile, Map<String, Chromosome> chromosomeMap)
+            throws IOException {
         List<BedGraphFeature> sectionList = new ArrayList<>();
         for (Chromosome chromosome : chromosomeMap.values()) {
             String realChrName = fetchRealChrName(wigFile.getIndex().getPath(), chromosome.getName());
             try (PeekableIterator<BedGraphFeature> query = new PeekableIterator<>(
-                    new BedGraphReader(wigFile.getPath(), wigFile.getIndex().getPath(), indexCache).query(
+                    new BedGraphReader(wigFile.getPath(), wigFile.getIndex().getPath()).query(
                             realChrName, 1, chromosome.getSize() - 1))) {
                 int start = 0;
                 int stop = chromosome.getSize();
@@ -136,10 +135,10 @@ public class BedGraphProcessor extends AbstractWigProcessor {
     }
 
     private void fillBlocksFromFile(String bedGraphPath, String bedGraphIndexPath, Track<Wig> track,
-                                    String chromosomeName, EhCacheBasedIndexCache indexCache) throws IOException {
+                                    String chromosomeName) throws IOException {
         String realChrName = fetchRealChrName(bedGraphIndexPath, chromosomeName);
         try (PeekableIterator<BedGraphFeature> bedGraphFeatureIterator = new PeekableIterator<>(
-                new BedGraphReader(bedGraphPath, bedGraphIndexPath, indexCache)
+                new BedGraphReader(bedGraphPath, bedGraphIndexPath)
                         .query(realChrName, track.getStartIndex(), track.getEndIndex())
         )) {
             for (Wig trackBlock : track.getBlocks()) {

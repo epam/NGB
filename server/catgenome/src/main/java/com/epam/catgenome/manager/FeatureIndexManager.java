@@ -67,7 +67,7 @@ import com.epam.catgenome.manager.vcf.VcfFileManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
 import com.epam.catgenome.util.Utils;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.Interval;
 import htsjdk.tribble.Feature;

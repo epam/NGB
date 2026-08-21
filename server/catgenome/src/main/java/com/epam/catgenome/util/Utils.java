@@ -46,7 +46,7 @@ import com.epam.catgenome.util.db.PagingInfo;
 import com.epam.catgenome.util.db.QueryParameters;
 import com.epam.catgenome.util.db.SortInfo;
 import htsjdk.samtools.util.CloseableIterator;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.TribbleException;

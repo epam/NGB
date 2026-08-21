@@ -79,6 +79,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -343,7 +344,7 @@ public class BamCoverageManager {
         List<CoverageInterval> coverageAreas = new ArrayList<>();
         try (SamReader reader = SamReaderFactory.makeDefault()
                 .validationStringency(ValidationStringency.LENIENT)
-                .referenceSequence(null)
+                .referenceSequence((File) null)
                 .enable(SamReaderFactory.Option.INCLUDE_SOURCE_IN_RECORDS)
                 .open(bamHelper.loadFile(file))) {
             final SamLocusIterator samLocusIterator = new SamLocusIterator(reader);

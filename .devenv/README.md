@@ -304,9 +304,15 @@ MAF/BUCKET/PROJECT/BOOKMARK manager roles, and `DefaultRoles` names
   the test JVM, and the app defaults to a 2 GB heap. Your colima VM currently has
   ~12 GB / 6 CPU; if the test task gets killed, give colima more memory
   (`colima stop && colima start --memory 16`) or lower `NGB_HEAP`.
-- **arm64.** All base images are multi-arch, but some dependencies aren't
-  (`snappy-java 1.0.3-rc3`, external BLAST binaries). If one
-  misbehaves, add `platform: linux/amd64` to that single service.
+- **arm64.** All base images are multi-arch, but external BLAST binaries aren't. If one
+  misbehaves, add `platform: linux/amd64` to that single service. The `snappy-java 1.0.3-rc3`
+  pin that used to be the other example of this is gone since migration Phase 7 — htsjdk 5
+  manages snappy 1.1.10.5, which ships `native/Linux/aarch64`.
+- **Remote tracks re-read their index on every request** since migration Phase 7, which
+  dropped the index cache (decision D10). Measured: an 88 kB `.bai` behind an `http://` URL
+  costs 263 kB of index traffic *per* `bam/track/get`, and a local-vs-remote VCF track is
+  0.01 s vs 0.24 s. It scales with index size, not window size. See the Phase 7 findings in
+  `JAVA21-MIGRATION-PLAN.md` if you are deciding whether to reintroduce a cache.
 - **`muscle`** is installed if the distro has it for your architecture; target-
   identification alignment needs it.
 - **BLAST / LLM / NCBI** integrations point at external services (`blast.server.url`,
@@ -344,6 +350,13 @@ MAF/BUCKET/PROJECT/BOOKMARK manager roles, and `DefaultRoles` names
    see `docs/md/installation/lucene-reindex.md`. `.devenv/scripts/verify-lucene.sh` checks all
    18 Lucene read paths against a running server, and `.devenv/fixtures/pre-migration/lucene6/`
    holds the last Lucene 6 index that will ever exist, for testing the upgrade against.*
+   *htsjdk is done: Phase 7, now 5.0.0, with the forked reader package and the index cache
+   deleted. `.devenv/scripts/verify-tracks.sh` loads a track of every type — BED, GFF/GTF,
+   GenePred, VCF, BedGraph, BigWig, SEG, BAM, CRAM, tabix, and remote URLs including one whose
+   `HEAD` is refused — through a running server and prints what came back;
+   `.devenv/scripts/prepare-track-fixtures.sh` stages the fixtures it needs. Two consequences
+   worth knowing: a feature file on `s3://`/`sws://`/`az://` must now be bgzip+tabix, and
+   remote index reads are no longer cached (see the D10 note above). POI is Phase 8.*
 
 `make probe-java21` demonstrated the first checkpoint's two walls by running Gradle 3.3 and
 lombok 1.16.16 under JDK 21 and failing. Both are gone, so the target no longer measures

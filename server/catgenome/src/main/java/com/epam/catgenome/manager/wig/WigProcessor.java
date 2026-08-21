@@ -9,7 +9,6 @@ import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.util.Utils;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import gnu.trove.list.TFloatList;
 import gnu.trove.list.array.TFloatArrayList;
 import kotlin.Pair;
@@ -41,8 +40,7 @@ public class WigProcessor extends AbstractWigProcessor {
     }
 
     @Override
-    protected Track<Wig> getWigFromFile(final WigFile wigFile, final Track<Wig> track, final Chromosome chromosome,
-                                        EhCacheBasedIndexCache indexCache)
+    protected Track<Wig> getWigFromFile(final WigFile wigFile, final Track<Wig> track, final Chromosome chromosome)
             throws IOException {
         Assert.notNull(wigFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
         TrackHelper.fillBlocks(track, indexes -> new Wig(indexes.getLeft(), indexes.getRight()));
@@ -66,8 +64,7 @@ public class WigProcessor extends AbstractWigProcessor {
         Assert.isTrue(parseWig(requestPath), getMessage(MessagesConstants.WRONG_WIG_FILE));
     }
 
-    void splitByChromosome(final WigFile wigFile, final Map<String, Chromosome> chromosomeMap,
-                           EhCacheBasedIndexCache indexCache)
+    void splitByChromosome(final WigFile wigFile, final Map<String, Chromosome> chromosomeMap)
             throws IOException {
         try (BigWigFile bigWigFile = readWig(wigFile.getPath())) {
             for (Object o : bigWigFile.getChromosomes().values()) {

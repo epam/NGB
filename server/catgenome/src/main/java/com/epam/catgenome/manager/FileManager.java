@@ -101,16 +101,14 @@ import com.epam.catgenome.util.BlockCompressedDataInputStream;
 import com.epam.catgenome.util.BlockCompressedDataOutputStream;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.NgbFileUtils;
-import com.epam.catgenome.util.PositionalOutputStream;
 import com.epam.catgenome.util.Utils;
-import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import htsjdk.tribble.AbstractFeatureReader;
 import com.epam.catgenome.util.LuceneIndexUtils;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
+import htsjdk.samtools.util.PositionalOutputStream;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
@@ -175,8 +173,6 @@ public class FileManager {
 
     private static final String ROOT_DIR_NAME = "42";
 
-    @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
     /**
      * Provides paths' patterns that have to be used to construct real relative paths
      * for file resources of any types.
@@ -748,14 +744,14 @@ public class FileManager {
             Assert.isTrue(indexFile.exists(), getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND,
                                                          vcfFile.getIndex().getPath()));
             time1 = Utils.getSystemTimeMilliseconds();
-            reader = AbstractEnhancedFeatureReader
+            reader = AbstractFeatureReader
                     .getFeatureReader(vcfFile.getPath(), vcfFile.getIndex().getPath(),
-                                                            new VCFCodec(), true, indexCache);
+                                                            new VCFCodec(), true);
             time2 = Utils.getSystemTimeMilliseconds();
         } else {
             time1 = Utils.getSystemTimeMilliseconds();
-            reader = AbstractEnhancedFeatureReader
-                    .getFeatureReader(vcfFile.getPath(), new VCFCodec(), false,  indexCache);
+            reader = AbstractFeatureReader
+                    .getFeatureReader(vcfFile.getPath(), new VCFCodec(), false);
             time2 = Utils.getSystemTimeMilliseconds();
         }
         LOGGER.debug(getMessage(MessagesConstants.DEBUG_FILE_OPENING, vcfFile.getPath(), time2 - time1));
@@ -1233,7 +1229,7 @@ public class FileManager {
         Assert.notNull(extension, getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_EXTENSION));
 
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(GffCodec.GffType.forExt(extension));
-        return AbstractEnhancedFeatureReader.getFeatureReader(path, index, codec, useIndex, indexCache);
+        return AbstractFeatureReader.getFeatureReader(path, index, codec, useIndex);
     }
 
     /**
@@ -1617,15 +1613,16 @@ public class FileManager {
     public AbstractFeatureReader<NggbBedFeature, LineIterator> makeBedReader(
             final BedFile bedFile,
             final AsciiFeatureCodec<NggbBedFeature> nggbBedCodec) {
-        return AbstractEnhancedFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
-                nggbBedCodec, true, indexCache);
+        return AbstractFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
+                nggbBedCodec, true);
     }
 
     /**
      * Creates an index for a specified BedFile
      * @param bedFile BedFile to create index for
      */
-    public void makeBedIndex(final BedFile bedFile, final AsciiFeatureCodec<NggbBedFeature> nggbBedCodec) {
+    public void makeBedIndex(final BedFile bedFile, final AsciiFeatureCodec<NggbBedFeature> nggbBedCodec)
+            throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), bedFile.getId());
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
@@ -1654,11 +1651,11 @@ public class FileManager {
     public AbstractFeatureReader<SegFeature, LineIterator> makeSegReader(final SegFile segFile) {
         SegCodec segCodec = new SegCodec();
         if (segFile.getIndex() != null) {
-            return AbstractEnhancedFeatureReader
+            return AbstractFeatureReader
                     .getFeatureReader(segFile.getPath(), segFile.getIndex().getPath(), segCodec,
-                    true, indexCache);
+                    true);
         } else {
-            return AbstractEnhancedFeatureReader.getFeatureReader(segFile.getPath(), segCodec, false, indexCache);
+            return AbstractFeatureReader.getFeatureReader(segFile.getPath(), segCodec, false);
         }
     }
 
@@ -1666,7 +1663,7 @@ public class FileManager {
      * Creates an index for a specified SegFile
      * @param segFile SegFile to create index for
      */
-    public void makeSegIndex(final SegFile segFile) {
+    public void makeSegIndex(final SegFile segFile) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), segFile.getId());
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
@@ -1756,11 +1753,11 @@ public class FileManager {
     public AbstractFeatureReader<MafFeature, LineIterator> makeMafReader(final MafFile mafFile) {
         MafCodec mafCodec = new MafCodec(mafFile.getPath());
         if (mafFile.getIndex() != null) {
-            return AbstractEnhancedFeatureReader
+            return AbstractFeatureReader
                     .getFeatureReader(mafFile.getPath(), mafFile.getIndex().getPath(), mafCodec,
-                    true, indexCache);
+                    true);
         } else {
-            return AbstractEnhancedFeatureReader.getFeatureReader(mafFile.getPath(), mafCodec, false, indexCache);
+            return AbstractFeatureReader.getFeatureReader(mafFile.getPath(), mafCodec, false);
         }
     }
 

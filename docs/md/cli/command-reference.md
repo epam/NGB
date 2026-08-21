@@ -401,9 +401,11 @@ BGZipped files are also accepted in a format `<FILE_NAME>.<FILE_EXT>.gz`, e.g.: 
 BAM file path must be followed by a `?` symbol and a path to an index file (.BAI) (if a folder with BAM file also contains index for this BAM with the same name, CLI will find this index automatically. It also works well for VCF, BED and gene files).  
 If and only if CLI located on the same filesystem with NGB server relative path can be used.
 
-To register files from the external cloud data storages (e.g. AWS S3), file path must be in the full view (starting from `s3://`, then the bucket name, folder name and so on slash-separated, ending with `<FILE_NAME>.<FILE_EXT>`), e.g.: `s3://ngb-s3/fruitfly/agnX1.09-28.trim.dm606.realign.vcf`. In case with AWS S3 storages, path to the files with indexes (BAM, VCF, BED, genes files) must be strongly followed by a `?` symbol and a path to their index files. CLI will not find such indexes automatically.
+To register files from the external cloud data storages (e.g. AWS S3), file path must be in the full view (starting from `s3://`, then the bucket name, folder name and so on slash-separated, ending with `<FILE_NAME>.<FILE_EXT>`), e.g.: `s3://ngb-s3/fruitfly/agnX1.09-28.trim.dm606.realign.vcf.gz`. In case with AWS S3 storages, path to the files with indexes (BAM, VCF, BED, genes files) must be strongly followed by a `?` symbol and a path to their index files. CLI will not find such indexes automatically.
 
 > **Note**: for ability to work with files from AWS S3, do not forget to configure your NGB instance before start (see *"Configure for working with AWS S3"* paragraph [here](../installation/standalone.md)).
+
+> **Note**: a feature file (VCF, GFF, GTF, BED, SEG, BED GRAPH) kept in a cloud storage must be bgzipped and tabix-indexed - a plain, uncompressed one addressed by `s3://`, `sws://` or `az://` cannot be read. BAM and CRAM files, and files on the local filesystem or behind an `http(s)://` URL, are unaffected. Use the [**sort**](#sort-feature-file) command, or `bgzip` and `tabix` from [htslib](http://www.htslib.org/), to produce the required form.
 
 *Example*
 
@@ -423,8 +425,8 @@ $ ngb reg_file grch38 /opt/tracks/sample.bam
 # Register file with relative path
 $ ngb reg_file hg19 ../tracks/sample.vcf
 
-# Register file from AWS S3, use "sample1" as a name
-$ ngb reg_file grch38 s3://ngb-s3/human/grch38_tracks/sample1.vcf -n sample1
+# Register file from AWS S3, use "sample1" as a name (a cloud feature file must be bgzip+tabix)
+$ ngb reg_file grch38 s3://ngb-s3/human/grch38_tracks/sample1.vcf.gz?s3://ngb-s3/human/grch38_tracks/sample1.vcf.gz.tbi -n sample1
 
 # Register indexed file from AWS S3, use "sample1.bam" as a name
 $ ngb reg_file grch38 s3://ngb-s3/human/grch38_tracks/sample1.bam?s3://ngb-s3/human/grch38_tracks/sample1.bam.bai --name sample1.bam

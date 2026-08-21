@@ -25,7 +25,7 @@
 package com.epam.catgenome.util;
 
 import htsjdk.samtools.seekablestream.SeekableStream;
-import org.apache.commons.compress.utils.CountingInputStream;
+import org.apache.commons.io.input.CountingInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,7 +48,7 @@ public abstract class FeatureSeekableStream extends SeekableStream {
 
     @Override
     public long position() throws IOException {
-        return offset + currentDataStream.getBytesRead();
+        return offset + currentDataStream.getByteCount();
     }
 
     @Override
@@ -78,17 +78,18 @@ public abstract class FeatureSeekableStream extends SeekableStream {
 
     /**
      * We should count data skipped because we want to count all data loaded.
+     *
+     * <p>Until Java 21 migration Phase 7 the counting came from
+     * {@code org.apache.commons.compress.utils.CountingInputStream}, which counted reads but not
+     * skips, so this subclass added the skip accounting. That class was removed in commons-compress
+     * 1.26 (the version htsjdk 5 brings), and its commons-io replacement counts skipped bytes
+     * itself - so nothing is left to override. The subclass survives only because
+     * {@code util/aws/S3SeekableStream} and {@code util/azure/AzureBlobSeekableStream} construct it
+     * by name; it can collapse into its parent when those are next touched.
      */
     public static class CountingWithSkipInputStream extends CountingInputStream {
         public CountingWithSkipInputStream(InputStream in) {
             super(in);
-        }
-
-        @Override
-        public long skip(long n) throws IOException {
-            long bytesSkipped = in.skip(n);
-            count(bytesSkipped);
-            return bytesSkipped;
         }
     }
 }

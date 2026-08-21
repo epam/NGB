@@ -258,6 +258,8 @@ existing kind.
    - `GffManagerTest.testLoadGenesTranscript` (`protein_coding` vs
      `protein_coding_CDS_not_defined`) — fixture vs parser expectation; likely to move again
      in Phase 7 when htsjdk changes. Decide now whether to fix the fixture or the assertion.
+     **Answered by Phase 0 itself — see note 3 below: it is neither, it is live Ensembl data.
+     Phase 7 confirmed it did not move.**
    - `HomologeneManagerTest.searchTest` — needs a prebuilt Lucene taxonomy index the repo
      does not ship. Either ship a fixture index or mark the test as requiring one. **Note:
      any committed Lucene fixture index will become unreadable in Phase 6** (D8) — prefer
@@ -3157,14 +3159,473 @@ synthetically, confirmed against the real format.
   AbstractEnhancedFeatureReader, TabixFeatureReader, TribbleIndexedFeatureReader, TabixReader,
   TabixIteratorLineReader, IndexCache, EhCacheBasedIndexCache}` — the package should contain
   only `EnhancedUrlHelper`.
-- `make test`, `make test-pg` at or better than the Phase 6 baseline. **Expect
-  `GffManagerTest.testLoadGenesTranscript` to move here** — the `protein_coding` vs
-  `protein_coding_CDS_not_defined` expectation is exactly the kind of thing a parser
-  upgrade changes. Decide which side is right and fix it, do not just re-baseline.
+- `make test`, `make test-pg` at or better than the Phase 6 baseline. ~~Expect
+  `GffManagerTest.testLoadGenesTranscript` to move here~~ — **this was wrong, corrected during
+  execution.** The `protein_coding` vs `protein_coding_CDS_not_defined` expectation looks like a
+  parser-upgrade casualty and is not one: Phase 0 note 3 established that the value comes from the
+  live Ensembl REST response, and htsjdk cannot move it. Leave it red. If the *shape* of its
+  failure changes in a way that implicates the parser, that is a finding — see the execution
+  findings below, where the shape it did fail in turned out to be evidence the parser is fine.
 - End-to-end, in the UI: BAM alignments (including a `.cram` if available), VCF, BED,
   BedGraph, WIG, GFF/GTF genes, GenePred, SEG, MAF, and a Tabix-indexed file. This phase can
   break file parsing in ways unit tests miss.
 - A remote (S3 or HTTP URL) track still loads.
+
+### Phase 7 execution findings
+
+#### Decision: htsjdk **5.0.0**, not "latest 4.x"
+
+The plan's table says "latest 4.x (requires Java 17+) — VERIFY latest at Phase 7". Measured
+against `maven-metadata.xml` (not the Maven Central search API, which was stale and still
+showed 4.3.0 as latest): the latest release is **5.0.0**, `lastUpdated 20260501201626`.
+
+5.0.0 was taken. What it changes relative to 4.3.0, measured by diffing the two artifacts
+against the 95 htsjdk types NGB imports:
+
+- **Removed:** SRA support only — `htsjdk.samtools.SRA*`, `htsjdk.samtools.sra.*`, and the
+  internal CRAM `rans` classes moved. NGB imports **none** of them.
+- **Dependencies dropped:** `ngs-java` and `nashorn-core` (the latter is a supply-chain win —
+  it was there for SRA). Added: `com.fulcrumgenomics:jlibdeflate:0.1.0`.
+- Both 4.3.0 and 5.0.0 are class-file major 61, i.e. a Java 17 floor. Fine on 21.
+
+**arm64 is clean either way**, which substantiates task 7 (drop the `snappy-java:1.0.3-rc3`
+pin): jlibdeflate 0.1.0 ships `native/linux-aarch64` and `native/osx-aarch64`, and
+snappy-java 1.1.10.5 — the version htsjdk 5 manages — ships `native/Linux/aarch64`. The
+README's arm64 caveat about snappy can go.
+
+Fallback if 5.0.0 misbehaves: 4.3.0, same API for everything NGB uses.
+
+#### VERIFY resolved: the `URLHelper` SPI survives, but its **registration API is gone**
+
+The plan (and the phase prompt) asked whether `URLHelper`/`HTTPHelper`/`FTPHelper` and
+`ParsingUtils.registerHelperClass` survive, or were replaced by NIO filesystem providers.
+Measured against the 5.0.0 sources:
+
+- `htsjdk.tribble.util.URLHelper`, `HTTPHelper`, `FTPHelper` — **all still present**, not
+  deprecated. So `EnhancedUrlHelper` and its 403-tolerant `S3Helper` compile and behave
+  unchanged. The pre-signed-S3-URL path is safe.
+- `ParsingUtils.registerHelperClass(Class)` — **removed.** It is replaced by
+  `ParsingUtils.setURLHelperFactory(URLHelperFactory)`, where `URLHelperFactory` is a
+  one-method interface `URLHelper getHelper(URL)`. The stock default is
+  `RemoteURLHelper::new`.
+
+Consequence: the registration must be reimplemented as a `URLHelperFactory`, and it has to
+move — today the only `registerHelperClass` call is inside
+`AbstractEnhancedFeatureReader.getFeatureReader` (line 92), a file this phase deletes, and it
+re-registers on *every* reader open.
+
+#### VERIFY resolved: `ISeekableStreamFactory` survives, and the new method is a `default`
+
+`htsjdk.samtools.seekablestream.ISeekableStreamFactory` and
+`SeekableStreamFactory.setInstance` both still exist. 5.0.0 adds a fifth method,
+`getStreamFor(String path, Function<SeekableByteChannel, SeekableByteChannel> wrapper)`, but
+it is a **`default`** method that delegates to `getStreamFor(String)` when the wrapper is
+null and throws otherwise. NGB never passes a wrapper, so `NgbSeekableStreamFactory` compiles
+and behaves unchanged and keeps routing `s3://`, `sws://` and `az://` to
+`S3SeekableStreamFactory` / `AzureSeekableStreamFactory`.
+
+#### What the fork actually customised (diffed against stock htsjdk 2.2.4 sources)
+
+Seven things, only the first of which the plan anticipated:
+
+1. The `EhCacheBasedIndexCache indexCache` parameter threaded through all four
+   `getFeatureReader` overloads and both reader constructors, plus a `TribbleIndexCache` inner
+   holder (index + `FeatureCodecHeader` + codec), `retrieveIndex(...)` and a cached
+   `readHeader()`. This is D10's cache; it goes.
+2. **`ParsingUtils.openInputStream` → `com.epam.catgenome.util.IOHelper.openStream` and
+   `ParsingUtils.resourceExists` → `IOHelper.resourceExists`.** Not cache plumbing — see the
+   next section.
+3. **`IndexFactory.loadIndex` → `com.epam.catgenome.util.IndexUtils.loadIndex`.** Same
+   reason.
+4. Generic parameter renamed `SOURCE` → `S`; `codec` made non-final.
+5. Magic numbers extracted to constants (`BUFFERED_STREAM_SIZE=512000`,
+   `POSITIONAL_BUFFERED_STREAM_SIZE=1000`, `MAX_BUFFER_SIZE=100000000`,
+   `MIN_BUFFER_SIZE=2000000`). The `advanceBlock()` expression is semantically identical to
+   stock; no behaviour change.
+6. `catch (Exception)` narrowed to `catch (IOException)` in places.
+7. **`TribbleIndexedFeatureReader` imports `org.testng.Assert`** and carries a dead
+   tautology in `WFIterator` — `long skippedBytes = pbs.skip(header.getHeaderEnd()); if
+   (skippedBytes == 0) { Assert.assertEquals(skippedBytes, 0); }`. A test library leaking into
+   main source since 2016. It goes with the fork.
+
+#### The plan's assumption was wrong: the fork also carries **cloud-scheme** support
+
+The plan's delete list assumes the fork's only customisation is the index cache, so the eight
+files can be replaced by stock types. That is not so. Items 2 and 3 above exist because
+`IOHelper` and `IndexUtils` understand three schemes htsjdk does not:
+
+```java
+// IOHelper.openStream / resourceExists
+if (S3Client.isS3Source(path))          -> S3Client        (s3://, sws://)
+else if (AzureBlobClient.isAzSource(path)) -> AzureBlobClient (az://)
+else                                     -> ParsingUtils
+```
+
+These are first-class NGB resource types (`BiologicalDataItemResourceType.S3` / `.AZ`),
+reachable from the BED, VCF and GFF managers, and `BedManager` explicitly supports
+auto-indexing and histogram building for them.
+
+What happens on stock htsjdk 5, path by path:
+
+| Read path | Stock 5.0.0 uses | Cloud schemes? |
+|---|---|---|
+| `TabixFeatureReader` (data + header) | `SeekableStreamFactory` | **works** — hooked by `NgbSeekableStreamFactory` |
+| `TabixReader` (tabix index + data) | `SeekableStreamFactory` only | **works** |
+| `TribbleIndexedFeatureReader.query(...)` | `SeekableStreamFactory` | **works** |
+| `AbstractFeatureReader.isTabix(...)` | `ParsingUtils.resourceExists` | fixable — `setComponentMethods` hook |
+| `TribbleIndexedFeatureReader.readHeader()` | `ParsingUtils.openInputStream` | **breaks** |
+| `TribbleIndexedFeatureReader.WFIterator` | `ParsingUtils.openInputStream` | **breaks** |
+| `TribbleIndexedFeatureReader.loadIndex()` | `ParsingUtils.resourceExists` + `IndexFactory.loadIndex` | **breaks** (auto-discovered index only) |
+
+`ParsingUtils.openInputStream` in htsjdk ≥ 4 is no longer scheme-agnostic:
+
+```java
+final IOPath path = new HtsPath(uri);
+if (path.hasFileSystemProvider()) { ...NIO... }
+else if (SeekableStreamFactory.canBeHandledByLegacyUrlSupport(uri)) { ...URLHelper... }
+else throw new IOException("No FileSystemProvider available to handle path: " + ...);
+```
+
+and `canBeHandledByLegacyUrlSupport` is gated on a hardcoded, private
+`Set.of("http", "https", "ftp")`. So the only extension point for a new scheme is an
+installed `java.nio.file.spi.FileSystemProvider`.
+
+**NGB cannot install one.** `FileSystemProvider.installedProviders()` loads services from
+`ClassLoader.getSystemClassLoader()`. NGB ships as a Spring Boot fat jar, whose classes live
+in `BOOT-INF/` and are loaded by `LaunchedClassLoader`, which the system class loader cannot
+see; there is also no public API to add a provider at runtime. A `META-INF/services` entry in
+NGB's own jar would simply never be read.
+
+**Resolution taken** — stated here rather than chosen quietly, because it narrows a shipped
+capability:
+
+- Delete all eight fork files, as the exit criterion requires.
+- Preserve everything htsjdk still offers a hook for:
+  - `ParsingUtils.setURLHelperFactory(...)` for `EnhancedUrlHelper` (403 tolerance on
+    pre-signed S3 URLs), registered **once** at startup instead of per reader open.
+  - `AbstractFeatureReader.setComponentMethods(...)` — a public, non-deprecated static hook —
+    with an NGB `ComponentMethods` whose `isTabix` uses `IOHelper.resourceExists`, so tabix
+    detection still works for `s3://` / `sws://` / `az://`.
+  - `SeekableStreamFactory.setInstance(NgbSeekableStreamFactory)`, unchanged.
+  - ~~Pre-load cloud indexes with NGB's own `IndexUtils.loadIndex` and hand htsjdk the
+    `Index` object where a call site can, rather than letting `IndexFactory` open the path.~~
+    **Dropped — it buys nothing.** Measured on the 5.0.0 bytecode:
+    `TribbleIndexedFeatureReader(String, FeatureCodec, Index)` delegates to the
+    `(String, FeatureCodec, boolean)` constructor, which calls `readHeader()` before the caller's
+    `Index` is even assigned — and `readHeader()` is one of the two `ParsingUtils.openInputStream`
+    call sites. A plain cloud feature file therefore fails in the constructor whatever route the
+    index took, so handing over a pre-loaded `Index` would add a code path that changes no
+    outcome. The narrowing below is the whole of the answer.
+- **Accept and document one narrowing:** a feature file on `s3://`, `sws://` or `az://` must
+  now be **block-compressed and tabix-indexed**. A plain (non-bgzip) cloud feature file fails
+  with `No FileSystemProvider available to handle path: s3://...` wrapped in
+  `TribbleException.MalformedFeatureFile` — loud, not silent. Cloud bgzip+tabix files are
+  fully supported, and are the only sensible way to serve a track from object storage anyway:
+  the old path called `S3Client.loadFully`, i.e. it downloaded the **entire object** for every
+  header read and every whole-file scan.
+  Documented for operators in `docs/md/installation/standalone.md` (the AWS S3 section) and in
+  `docs/md/cli/command-reference.md`, whose `reg_file` example registered a plain `.vcf` from
+  `s3://` and no longer does. **Not exercised against real object storage** — there are no AWS or
+  Azure credentials in this environment, so both the narrowing and the `s3://` bgzip+tabix path
+  that still works are read off the 5.0.0 sources and bytecode, not measured. The `http` half of
+  the same question *is* measured, against a staged 403 (below).
+
+Three alternatives were considered and rejected; if this narrowing turns out to matter, they
+are the options:
+
+1. **An NIO `FileSystemProvider` for the cloud schemes** — the route htsjdk intends. Blocked
+   by the fat-jar class-loading problem above unless NGB's launcher changes, and it is
+   ~400 lines of new AWS/Azure-adjacent code, which Phase 8 fences off.
+2. **Rewrite `s3://` to a pre-signed `https://` URL at reader-open time.** NGB already has
+   `S3Client.generatePresignedUrl`, and `EnhancedUrlHelper.S3Helper` exists precisely to make
+   such URLs work — so this would restore the capability in ~15 lines *and* replace whole-object
+   downloads with ranged GETs. Rejected here because it changes how bytes are authenticated
+   and fetched, has no Azure equivalent, and is a design decision, not a mechanical migration.
+3. **Keep one minimal reader** — stock 5.0.0's `TribbleIndexedFeatureReader` with two lines
+   swapped. Rejected: it re-forks, against D9, and against this phase's exit criterion that
+   the package hold only `EnhancedUrlHelper`.
+
+#### Task 6 resolved: IGV brings no htsjdk, and its codec still fits
+
+`com.github.igvteam:igv:v2.6.3` was the phase's main dependency risk. Measured, not assumed:
+
+- The published pom declares **zero dependencies**, and `igv-v2.6.3.jar` contains **zero
+  `htsjdk/` entries**. There is no duplicate or shaded htsjdk to reconcile — no exclusion is
+  needed, and reimplementing `UCSCGeneTableCodec` locally is off the table.
+- `UCSCGeneTableCodec` → `UCSCCodec<T extends htsjdk.tribble.Feature> extends
+  htsjdk.tribble.AsciiFeatureCodec<T>`, so it compiles against whatever htsjdk NGB resolves.
+  Diffing `FeatureCodec`, `AbstractFeatureCodec` and `AsciiFeatureCodec` between 2.2.4 and
+  5.0.0: the only changes are a type-parameter rename and two **`default`** methods
+  (`getTabixFormat()`, `getPathToDataFile(String)`). A 2016-compiled subclass still satisfies
+  the 5.0.0 interface, at compile time and at link time.
+- Two side observations, neither blocking: the igv jar ships `log4j2.xml`, `log4j2_all.xml`
+  and `log4j2_debug.xml` **at its root** (a possible log-config clash if anything ever
+  classpath-scans for them), and `BasicFeature` holds a `private static
+  org.apache.log4j.Logger` — log4j **1.x**. `log4j:log4j:1.2.17` is on the runtime classpath
+  transitively today, so it resolves; the GenePred track verification confirms it at runtime.
+
+The `org.jetbrains.bio:big` htsjdk exclusion still holds and is still needed — that one *does*
+declare htsjdk, and the exclusion is what keeps a second version off the classpath.
+
+#### Dependency graph after the bump, as resolved
+
+`./gradlew :catgenome:dependencies` in the builder, runtime classpath:
+
+- `com.github.samtools:htsjdk:5.0.0` — resolved once, no conflict arrows.
+- `com.fulcrumgenomics:jlibdeflate:0.1.0` (new, htsjdk's), `org.xerial.snappy:snappy-java:1.1.10.5`
+  (htsjdk-managed — the explicit `1.0.3-rc3` pin is **gone**), `org.apache.commons:commons-jexl:2.1.1`.
+- `ngs-java` and `nashorn-core` are **off** the classpath: they came with SRA support, which
+  5.0.0 dropped.
+- `org.iq80.snappy:snappy:0.4` still appears from an unrelated branch of the tree (not htsjdk's).
+
+Both new natives ship arm64 builds (`jlibdeflate`: `native/linux-aarch64`, `native/osx-aarch64`;
+`snappy-java 1.1.10.5`: `native/Linux/aarch64`), which is what lets the `.devenv/README.md`
+arm64 caveat about `snappy-java 1.0.3-rc3` go away.
+
+#### Where the three SPI hooks ended up: `util/HtsjdkSpi`
+
+The fork re-registered `EnhancedUrlHelper` on **every reader open**, from inside
+`AbstractEnhancedFeatureReader.getFeatureReader` — a file this phase deletes. All three hooks now
+install once, from a new `com.epam.catgenome.util.HtsjdkSpi`:
+
+- `ParsingUtils.setURLHelperFactory(EnhancedUrlHelper::new)` — the 403 tolerance for pre-signed
+  S3 URLs, unchanged in behaviour.
+- `AbstractFeatureReader.setComponentMethods(new NgbComponentMethods())` — `isTabix` over
+  `IOHelper.resourceExists`, so `s3://` / `sws://` / `az://` tabix detection survives. It differs
+  from stock in that one call and nothing else: stock `IOUtil.hasBlockCompressedExtension(String)`
+  already strips an http query string, so the fork's extra `?`-handling was redundant by 5.0.0.
+- `SeekableStreamFactory.setInstance(NgbSeekableStreamFactory.getInstance())`.
+
+Two placement details, both load-bearing:
+
+- `install()` is **static and idempotent**, called from a `@PostConstruct`. The hooks are global
+  JVM state, and several tests build more than one Spring context in a run.
+- The class sits in `com.epam.catgenome.util`, not next to `Application`. `applicationContext-test.xml`
+  scans `com.epam.catgenome.util` but not the `app` package, so a component declared beside
+  `Application` would install the hooks in production and silently not in the unit suite — the
+  worst of the two failure modes, because it makes the suite green on a path production does not
+  take.
+
+#### htsjdk 5.0.0 API deltas that surfaced while repointing the call sites
+
+None of these are in the plan's list of "APIs that have moved"; they are what the compiler
+actually objected to, after `javap` on the 5.0.0 jar in each case:
+
+| Break | Fix |
+|---|---|
+| `IndexFactory.IndexType.getIndexType()` (the accessor for the index class) is gone | `IndexUtils.loadIndex` now calls `IndexType.getIndexType(stream).createIndex(stream)` and drops its reflection entirely — the new API is what the reflection was emulating |
+| `IntervalTreeMap.{containsOverlapping, getOverlapping, containsContained, getContained}` widened their parameter from `Interval` to `Locatable`, so four `NggbIntervalTreeMap` methods stopped overriding anything | widened the four overrides to `Locatable` |
+| `Index.write(File)` is now a `default` method that `throws IOException` | `FileManager.makeBedIndex` / `makeSegIndex` declare `throws IOException` |
+| `SamReaderFactory.referenceSequence` has both `File` and `Path` overloads, so a bare `null` is ambiguous | `BamCoverageManager` passes `(File) null` |
+| `org.testng` is no longer on the test classpath — it was a **transitive of htsjdk 2.2.4**, which is also how `org.testng.Assert` leaked into the fork's main source (finding 7 above) | `DiskBasedListTest` moved to `org.junit.Assert`, with all ten argument pairs swapped: TestNG is `(actual, expected)`, JUnit is `(expected, actual)` |
+| `org.apache.commons.compress.utils.CountingInputStream` is gone | see below |
+
+The commons-compress one was the only non-mechanical fix. htsjdk 5.0.0 brings
+commons-compress **1.26.0**, which (a) removed that class and (b) is the first release to declare
+a hard, compile-scope dependency on **commons-io 2.15.1** — which the explicit `commons-io:2.4`
+pin in `build.gradle` was silently downgrading (`2.15.1 -> 2.4`, "selected by rule"). Left alone
+that is a `NoClassDefFoundError` inside commons-compress on the CRAM bzip2/lzma paths, at runtime,
+on a code path no unit test reaches. The pin is now **exactly 2.15.1**: 2.16.0 deprecates
+`org.apache.commons.io.input.CountingInputStream`, which is what `FeatureSeekableStream` moved to.
+
+`htsjdk.samtools.cram.io.CountingInputStream` was the obvious in-house replacement and was
+rejected on inspection: it increments the counter *before* the `read()`, so EOF is counted as a
+byte — which `FeatureSeekableStream.position()`/`eof()` are built on — and it wraps `IOException`
+in `RuntimeIOException`.
+
+Side effect worth knowing: commons-io's counter counts **skipped** bytes itself, so
+`FeatureSeekableStream.CountingWithSkipInputStream` has nothing left to override. It survives as a
+bare subclass only because `util/aws/S3SeekableStream` and `util/azure/AzureBlobSeekableStream`
+construct it by name, and those are Phase 8's. It can collapse into its parent when they are next
+touched.
+
+#### Task 5 resolved: one more verbatim copy of htsjdk, `util/PositionalOutputStream`
+
+The six utilities the plan lists, checked one at a time:
+
+| File | Verdict |
+|---|---|
+| `util/PositionalOutputStream` | **a verbatim copy** — its own javadoc said "Copied from HTSJDK". Deleted; `GeneRegisterer` and `FileManager` now import `htsjdk.samtools.util.PositionalOutputStream`, which is API-identical (and `final`, which costs nothing — nothing subclassed it) |
+| `util/BlockCompressedDataInputStream`, `util/BlockCompressedDataOutputStream` | genuinely *extend* htsjdk classes rather than copy them — keep |
+| `util/FeatureSeekableStream` | NGB-specific (progress accounting over a seekable stream) — keep, with the commons-io change above |
+| `util/FeatureInputStream` | NGB-specific — keep |
+| `util/sort/**`, `util/motif/**` | public htsjdk API only, no internals duplicated — keep |
+
+#### The index cache also backed **BAM indexes**, and its removal exposed a latent bug
+
+D10 is written as if the cache held only Tribble/Tabix feature-file indexes. It did not:
+`BamHelper` cached the raw index **byte arrays** for S3 and Azure BAMs, via a `BamIndex implements
+IndexCache` inner class. That is the concrete shape of D10's performance risk — for a remote BAM
+the index is now fetched on every request — and it is recorded in the fetchers' comments so the
+cost is visible at the place that pays it.
+
+Removing it surfaced a bug that the cache had been hiding: the **uncached** branch of the Azure
+fetcher passed the `az://` path to `S3Client`, so it could only ever have failed. Any Azure BAM
+whose index missed the cache — the first request after a restart, or any request with the cache
+disabled — hit it. `fetchAZBamIndex` now uses `azureBlobClient.loadFully`. This is the second
+time in this migration that a cache has been found masking a broken slow path.
+
+#### The upgrade's one real regression: htsjdk's length probe became a `HEAD` request
+
+Found by the live verification, not by the suite — exactly the failure mode the phase prompt
+predicted. A VCF served from a URL whose `HEAD` is answered with 403 (i.e. a pre-signed S3 URL)
+was refused with `TribbleException.MalformedFeatureFile: We never saw the required CHROM header
+line`, and the server's request log showed **four `HEAD` → 403 and not one `GET`**.
+
+The cause, from the 2.2.4 and 5.0.0 bytecode:
+
+- `htsjdk.samtools.util.HttpUtils.getHeaderField` never set a request method in 2.2.4, so the
+  default `GET` applied. Since 3.0 it sets `HEAD`.
+- `SeekableHTTPStream`'s constructor measures the resource with it and, on any failure,
+  records `contentLength = 0` without complaining. `read()` returns -1 as soon as
+  `position >= contentLength`. So a 403 on `HEAD` is indistinguishable from an empty file: no
+  request is ever issued for the data, and the codec reports the file as malformed.
+
+`EnhancedUrlHelper` was **not** the problem — the file is byte-identical to before the upgrade
+and still compiles. Its 403 tolerance only ever covered `exists()`; the data reads and the
+length probe bypass the `URLHelper` SPI entirely and go straight to `SeekableHTTPStream`. Under
+htsjdk 2.2.4 that did not matter, because the probe was a `GET`. Restoring parity therefore
+needed more than keeping the helper:
+
+| Site | Fix |
+|---|---|
+| the length probe itself | new `IOHelper.getContentLength(URL)` — a `GET`, disconnected as soon as the status line and headers are in hand, so no body is read |
+| `EnhancedUrlHelper.S3Helper` | overrides `getContentLength()` to use it. Stock `HTTPHelper.getContentLength()` is HEAD-based and returns -1 on any non-200 |
+| the seekable stream | new `util/UrlSeekableStream`, a `FeatureSeekableStream` over a `URLHelper`, reading through `openInputStreamForRange` (a ranged `GET`; **un-deprecated in 5.0.0**, it is how a `URLHelper` reads bytes). `SeekableHTTPStream.contentLength` is private and `HttpUtils.getHeaderField` is static with a hardcoded `HEAD`, so the stream had to be replaced rather than patched, and htsjdk 5 ships no alternative HTTP seekable stream |
+| the routing | `NgbSeekableStreamFactory` sends URLs matching `EnhancedUrlHelper.isSignedS3Url` to `UrlSeekableStream`. **Every other `http(s)` URL stays on stock htsjdk** — the narrowest change that restores the behaviour |
+| `manager/reference/io/FastaUtils` | second site of the same bug, and it would have been silent: it called `HttpUtils.getHeaderField` directly, and `FastaSequenceFile` clamps `endByte` to the length it reports, so a reference registered from a pre-signed URL would have returned `new byte[0]` for every sequence read. Now `IOHelper.getContentLength` |
+
+Verified against a staged 403 (`.devenv/scripts/fake-remote-files.py`): the track now returns
+the identical first variation as the same file read from disk, and the server log reads
+`HEAD → 403`, then `GET → 200` for the length, then ranged `206`s for the data.
+
+Noticed while tracing the call sites, and **left alone** because fixing it is a behaviour change
+outside this phase: `NgbFileUtils.isRemotePath` (line 175) tests
+`startsWith("http:") || startsWith("https:") || startsWith("ftsp:")` — `ftsp`, not `ftp`. So an
+`ftp://` path has always been treated as a local file by every caller of that method, including
+`FastaUtils.getContentLength(String)` and `FastaUtils.openBufferedReader`. One character, and it
+means FTP references have never worked the way the docs imply.
+
+#### D10's cost, measured
+
+Task 4 asked for numbers. Measured on the running H2 dev server against a container serving
+`.devenv/data/ngs` over HTTP on the `ngb-dev` network (`/tmp` script, not committed; the fake
+server logs every request, which is where the byte counts come from).
+
+Five identical `vcf/track/get` calls for the same 15 kb window of `CantonS.vcf.gz`
+(141-byte `.tbi`), once over `http://` and once from local disk:
+
+| | per request | index bytes per request |
+|---|---|---|
+| local file | 0.01–0.02 s | 0 (page cache) |
+| remote `http://` | 0.23–0.26 s | 141 — the whole `.tbi`, re-fetched every time |
+
+Three identical `bam/track/get` calls for a 100 bp window of the 24 MB test BAM
+(87,824-byte `.bai`) over a URL whose `HEAD` is refused:
+
+- the `.bai` is read **3 times per track load**, in full: **263,472 bytes per request**,
+  every request, for ever. With the cache it was fetched once and then served from memory.
+- the BAM itself: 2 ranged requests per load, ~4.2 MB actually delivered for a 100 bp window,
+  because `UrlSeekableStream` (like `S3SeekableStream` before it) opens a range from the
+  current offset to EOF and the reader closes it early. That is pre-existing NGB behaviour,
+  not a D10 effect.
+
+So the shape of the risk is: **the index cost is now linear in the number of track requests**,
+and it is paid in full for `s3://` / `az://` too, where `BamHelper` used to cache the index
+byte array (see the section above). 263 kB per request for an 88 kB index scales with index
+size, not window size — a human WGS `.bai` is 5–10 MB, so the same panning session that cost
+one index download now costs one per pan. Numbers recorded so a decision to reintroduce a
+cache has a basis; nothing here is regressive relative to the *first* request, which is what
+a cold cache always paid.
+
+Task 4 also asked for a release-notes entry. `docs/md/release-notes/` holds one directory per
+*released* version, the newest being 2.8.0, and there is no unreleased file to add to — inventing
+a version number is not this phase's call. The operator-visible facts went where an operator will
+actually look instead: the `server.index.cache.enabled` property is gone from
+`docs/md/installation/standalone.md` (and from all six property files), the cloud bgzip+tabix
+requirement is documented there and in the CLI reference, and the cost above is in
+`.devenv/README.md`. Whoever cuts the next release should fold this and Phases 0–6 into its notes.
+
+#### Live verification: every track type, through a running server
+
+The suite exercises the managers with a Spring test context and never boots the server, so it
+is not evidence that an instance still parses a BAM. `.devenv/scripts/verify-tracks.sh` is the
+second pass, and is committed so it can be re-run: it registers each fixture over REST, asks
+for a window, prints a real record from the response, and compares the pairs where a parser
+regression would hide. `prepare-track-fixtures.sh` stages the fixtures into `/ngs/tracks`.
+
+All eleven types answered with real data (`OK: every track type answered with data`):
+
+| Track | What came back |
+|---|---|
+| BED, plain and bgzip+tabix | 20 blocks, first 35459–35461 `ENSFCAG00000011704` |
+| GFF/GTF, plain and bgzip+tabix | 1 gene `ENSFCAG00000011704` 35459–46532, 2 transcripts |
+| GenePred | 13 genes, first `ND3` 10351–10698 (also proves the IGV codec and its log4j 1.x logger still resolve at runtime) |
+| VCF (bgzip+tabix) | 115 variations |
+| WIG — BedGraph | 1001 blocks, values to 1.0 |
+| WIG — BigWig | 5001 blocks, values to 958.0 |
+| SEG | `GenomeWideSNP_416532`, 3 segments |
+| BAM | 416 reads, first `15M1I216M` with its `differentBase` list |
+| CRAM | 416 reads, **identical to the BAM**, `differentBase` included |
+| remote plain `http://` VCF | identical to the local VCF |
+| remote 403-on-`HEAD` VCF and BAM | identical to the local VCF and BAM |
+
+Two notes on coverage:
+
+- **There was no CRAM fixture in the repo**, so one was made rather than skipped:
+  `.devenv/scripts/BamToCram.java` converts `agnX1.09-28.trim.dm606.realign.bam` against
+  `dm606.X.fa` with htsjdk itself, giving `p7_agnX1.cram` (2,419,002 bytes, 45,237 records)
+  and a 120-byte `.crai`. It lives in `.devenv/data/ngs`, not in `src/test/resources` — see
+  Phase 0 note 1: a generated index under `templates/` gets auto-discovered by other tests.
+  The CRAM-vs-BAM comparison is the strongest single check in the script, because
+  `differentBase` is computed against NGB's own registered reference, so agreement means
+  reference-compressed decoding is intact end to end.
+- **MAF has no REST surface to verify through.** `MafController` and `MafSecurityService` were
+  deleted in `562b6a6d` (Dec 2018); `MafManager` is reachable only from Java, and
+  `MafManagerTest.testRegisterMaf` is the whole of its coverage. Stated rather than dropped
+  from the list.
+
+#### `GffManagerTest.testLoadGenesTranscript`: this phase's own exit criterion was wrong
+
+The exit criteria above said "**Expect `GffManagerTest.testLoadGenesTranscript` to move here**".
+It did not, and it could not — Phase 0 note 3 had already settled that (`setBioType` is fed only
+from the Ensembl REST response). Corrected in place, in both this section's criteria and the
+execution doc's canned Phase 7 block, so the next reader is not sent looking for a parser bug.
+
+It failed in this phase's runs in its *other* documented shape, the NPE — and that shape is
+positive evidence for the parser rather than against it. `NullPointerException: ...
+Gene.getTranscripts() is null` at `GffManagerTest.java:455` means the assertions **before** it
+passed: `featureList.getBlocks()` was non-empty and `getBlocks().get(0)` was a `Gene`. So stock
+htsjdk parsed 75,207 records of `Homo_sapiens.GRCh38.83.sorted.chr21-22.gtf` into genes exactly as
+the fork did; what failed is `GeneTrackManager.loadGenesTranscript` line 197, where
+`getTranscriptFromDB` threw `ExternalDbUnavailableException`, the `catch` added a
+`GeneTranscript(gene, message)` and left `gene.transcripts` null. Strictly downstream of the
+parser, strictly the network.
+
+Worth recording for whoever eventually deals with the network tests: the mocking in that test
+cannot work as written. `httpDataManager` is a `@Mock` injected into local `@Spy` instances of
+`PdbDataManager` / `EnsemblDataManager` / `UniprotDataManager`, but the call under test goes
+through the `@Autowired` Spring `geneTrackManager`, which holds the **real** beans. The fixtures
+`ensembl_id_ENSG00000177663.json` and `uniprot_id_ENST00000319363.xml` are loaded and then never
+consulted.
+
+#### Two Phase 6 tests were already red when this phase started
+
+`make test` found five failures where the baseline documents three. The two extra were
+`LuceneIndexVersionCheckTest.refusesToStartOnAnIndexAnEarlierReleaseWrote` and
+`LuceneIndexUtilsTest.readingAStaleFeatureIndexNamesTheFileAndTheCallThatRebuildsIt`, both
+asserting that the refusal message mentions `installation/lucene-reindex/` — the mkdocs URL form —
+against a message that says `docs/md/installation/lucene-reindex.md`. Both halves were committed
+together in `c76ff2ee`, so the assertion has never held; Phase 6's numbers were recorded before the
+message text was settled and the suite was not re-run after. Not a Phase 7 regression: neither file
+is touched by this phase, and the assertion is a deterministic `String.contains`.
+
+Fixed on the test side, deliberately, and this is not a re-baselining: the assertion's intent is
+"the message points at the reindex procedure", and the pointer that exists is the repo path — the
+doc is at `docs/md/installation/lucene-reindex.md`, three javadocs (`LuceneIndexVersionCheck`,
+`BamCoverageManager`, `PathwayManager`) cite that same form, and there is no `site_url` in
+`mkdocs.yml` for the URL form to resolve against. Both assertions now expect the full repo path,
+which is stricter than what they asked for before.
 
 ---
 

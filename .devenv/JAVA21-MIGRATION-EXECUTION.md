@@ -358,9 +358,12 @@ it done, load each track type end-to-end through the UI: BAM (and CRAM
 if available), VCF, BED, BedGraph, WIG, GFF/GTF, GenePred, SEG, MAF, a
 Tabix-indexed file, and one remote (S3 or HTTP URL) track.
 
-GffManagerTest.testLoadGenesTranscript is expected to move in this
-phase. Decide which side is right — fixture or parser — and fix it.
-Do not re-baseline it.
+GffManagerTest.testLoadGenesTranscript is NOT expected to move in this
+phase — this block used to say it was, and that was wrong. Phase 0
+note 3 settled it: the biotype comes from the live Ensembl REST
+response, not from the GTF, so no parser change can touch it. Leave it
+red. If the shape of its failure changes in a way that implicates the
+parser rather than the network, that is a finding — say so.
 
 EnhancedUrlHelper's 403-tolerance exists so S3 pre-signed URLs work.
 That behaviour must survive even if the htsjdk SPI it hooks into has

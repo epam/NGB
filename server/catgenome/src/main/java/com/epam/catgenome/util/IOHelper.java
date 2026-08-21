@@ -28,11 +28,16 @@ package com.epam.catgenome.util;
 import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.azure.AzureBlobClient;
 import htsjdk.tribble.util.ParsingUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -48,6 +53,9 @@ import java.util.zip.GZIPInputStream;
  * </p>
  */
 public final class IOHelper {
+
+    private static final Logger LOG = LoggerFactory.getLogger(IOHelper.class);
+
     /**
      * {@code List} specifies collection of file extensions that indicates that a file
      * with one of these extensions can be considered as compressed resource.
@@ -108,6 +116,43 @@ public final class IOHelper {
             return AzureBlobClient.getClient().loadFully(path);
         } else {
             return ParsingUtils.openInputStream(path);
+        }
+    }
+
+    /**
+     * Returns the length of a resource behind a URL, asking for it with a GET request rather than
+     * with a HEAD.
+     *
+     * <p>The distinction matters for one URL flavour NGB is expected to read: a pre-signed S3 URL
+     * is signed for GET only, and S3 answers HEAD on it with 403. Every caller here treats an
+     * unknown length as an empty resource, so a HEAD probe turns such a URL into a silently empty
+     * file. htsjdk probed with GET until 2.x - {@code HttpUtils.getHeaderField} simply never set a
+     * request method, so the default GET applied - and started sending HEAD in 3.0, which is what
+     * made this method necessary. The response body is never read: the connection is disconnected
+     * as soon as the status line and headers are in hand.
+     *
+     * @param url resource to measure
+     * @return the length in bytes, or -1 if the server would not report one
+     * @throws IOException if the resource could not be reached at all
+     */
+    public static long getContentLength(final URL url) throws IOException {
+        final URLConnection connection = url.openConnection();
+        connection.setDefaultUseCaches(false);
+        connection.setUseCaches(false);
+        if (!(connection instanceof HttpURLConnection)) {
+            return connection.getContentLengthLong();
+        }
+        final HttpURLConnection httpConnection = (HttpURLConnection) connection;
+        try {
+            final int code = httpConnection.getResponseCode();
+            if (code != HttpURLConnection.HTTP_OK) {
+                LOG.error("Fetching the length of {} failed with {} {}", url, code,
+                        httpConnection.getResponseMessage());
+                return -1;
+            }
+            return httpConnection.getContentLengthLong();
+        } finally {
+            httpConnection.disconnect();
         }
     }
 }

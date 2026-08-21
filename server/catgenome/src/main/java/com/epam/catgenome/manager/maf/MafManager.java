@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -66,7 +65,7 @@ import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.comparator.FeatureComparator;
 import htsjdk.samtools.util.CloseableIterator;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.readers.LineIterator;
 
 /**
@@ -91,9 +90,6 @@ public class MafManager {
 
     @Autowired
     private DownloadFileManager downloadFileManager;
-
-    @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MafManager.class);
 
@@ -285,7 +281,7 @@ public class MafManager {
             MafCodec mafCodec = new MafCodec(f.getName());
 
             try (AbstractFeatureReader<MafFeature, LineIterator> reader = AbstractFeatureReader
-                    .getFeatureReader(f.getAbsolutePath(), indexFile.getAbsolutePath(), mafCodec, true, indexCache)) {
+                    .getFeatureReader(f.getAbsolutePath(), indexFile.getAbsolutePath(), mafCodec, true)) {
                 CloseableIterator<MafFeature> iterator = reader.query(chromosome.getName(), 1,
                         chromosome.getSize());
                 if (!iterator.hasNext()) {

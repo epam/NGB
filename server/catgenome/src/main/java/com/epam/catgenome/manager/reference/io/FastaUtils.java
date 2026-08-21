@@ -1,7 +1,5 @@
 package com.epam.catgenome.manager.reference.io;
 
-import static htsjdk.samtools.util.HttpUtils.getHeaderField;
-
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
@@ -10,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NgbFileUtils;
 import htsjdk.tribble.readers.AsciiLineReader;
 import org.slf4j.Logger;
@@ -79,12 +78,10 @@ public final class FastaUtils {
     }
 
     private static long getContentLength(URL url) throws IOException {
-        String contentLengthString = getHeaderField(url, "Content-Length");
-        if (contentLengthString == null) {
-            return -1;
-        } else {
-            return Long.parseLong(contentLengthString);
-        }
+        // Not htsjdk's HttpUtils.getHeaderField, which has sent a HEAD request since htsjdk 3.0:
+        // a reference registered from a pre-signed S3 URL would then have no length, and
+        // FastaSequenceFile clamps every read to it, so every sequence would come back empty.
+        return IOHelper.getContentLength(url);
     }
 
     /**

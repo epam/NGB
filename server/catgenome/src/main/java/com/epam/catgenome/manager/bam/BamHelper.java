@@ -58,8 +58,6 @@ import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
 import com.epam.catgenome.util.azure.AzureBlobClient;
 import com.epam.catgenome.util.azure.AzureBlobSeekableStream;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
-import com.epam.catgenome.util.feature.reader.IndexCache;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFlag;
 import htsjdk.samtools.SAMRecord;
@@ -143,9 +141,6 @@ public class BamHelper {
 
     @Value("#{catgenome['bam.regions.count'] ?: 20}")
     private int regionsCount;
-
-    @Autowired(required = false)
-    private EhCacheBasedIndexCache indexCache;
 
     @Autowired
     private AzureBlobClient azureBlobClient;
@@ -525,24 +520,13 @@ public class BamHelper {
     }
 
     private byte[] fetchAZBamIndex(BiologicalDataItem indexFile) throws IOException {
-        String indexPath = indexFile.getPath();
-        byte[] indexBuffer;
-        if (indexCache != null) {
-            if (indexCache.contains(indexPath)) {
-                LOG.debug("get from cache index: " + indexPath);
-                indexBuffer = ((BamIndex) indexCache.getFromCache(indexPath)).content;
-
-            } else {
-                long start = System.currentTimeMillis();
-                indexBuffer = IOUtils.toByteArray(azureBlobClient.loadFully(indexPath));
-                LOG.debug("put in cache index: " + indexPath);
-                indexCache.putInCache(new BamIndex(indexPath, indexBuffer), indexPath);
-                LOG.debug("download BAM index time: " + (System.currentTimeMillis() - start));
-            }
-        } else {
-            LOG.info("index cache isn't initialized");
-            indexBuffer = IOUtils.toByteArray(S3Client.getInstance().loadFully(indexPath));
-        }
+        // The index used to be cached in memory; Java 21 migration Phase 7 (decision D10) dropped
+        // the cache, so it is fetched on every request. The old uncached branch fetched an az://
+        // path through S3Client, which could only ever have failed.
+        final String indexPath = indexFile.getPath();
+        final long start = System.currentTimeMillis();
+        final byte[] indexBuffer = IOUtils.toByteArray(azureBlobClient.loadFully(indexPath));
+        LOG.debug("download BAM index time: " + (System.currentTimeMillis() - start));
         return indexBuffer;
     }
 
@@ -554,25 +538,14 @@ public class BamHelper {
     }
 
     private byte[] fetchS3BamIndex(BiologicalDataItem indexFile) throws IOException {
-        String indexPath = indexFile.getPath();
-        byte[] indexBuffer;
-        if (indexCache != null && indexCache.contains(indexPath)) {
-            LOG.debug("get from cache index: " + indexPath);
-            indexBuffer = ((BamIndex) indexCache.getFromCache(indexPath)).content;
-
-        } else {
-            try (InputStream indexStream = S3Client.getInstance().loadFully(indexPath)) {
-                long start = System.currentTimeMillis();
-                indexBuffer = IOUtils.toByteArray(indexStream);
-                LOG.debug("download BAM index time: " + (System.currentTimeMillis() - start));
-
-                if (indexCache != null) {
-                    LOG.debug("put in cache index: " + indexPath);
-                    indexCache.putInCache(new BamIndex(indexPath, indexBuffer), indexPath);
-                }
-            }
+        // Uncached since Phase 7 / decision D10 - see fetchAZBamIndex.
+        final String indexPath = indexFile.getPath();
+        try (InputStream indexStream = S3Client.getInstance().loadFully(indexPath)) {
+            final long start = System.currentTimeMillis();
+            final byte[] indexBuffer = IOUtils.toByteArray(indexStream);
+            LOG.debug("download BAM index time: " + (System.currentTimeMillis() - start));
+            return indexBuffer;
         }
-        return indexBuffer;
     }
 
     private SamInputResource getS3SamInputResource(BamFile bamFile) throws IOException {
@@ -610,22 +583,4 @@ public class BamHelper {
         Assert.notNull(iterator, "A SAM record iterator is required");
     }
 
-    static class BamIndex implements IndexCache {
-
-        private final String path;
-        private final byte[] content;
-
-        BamIndex(String path, byte[] content) {
-            this.path = path;
-            this.content = content;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public byte[] getContent() {
-            return content;
-        }
-    }
 }
