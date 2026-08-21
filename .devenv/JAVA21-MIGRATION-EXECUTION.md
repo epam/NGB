@@ -21,7 +21,7 @@ session to know where it is.
 | 0 | Baseline stabilisation + JDK 17 in the toolbox | `064a766e`..`2e21c3d2` | ☑ |
 | 1 | Remove dropped functionality (HDFS, GA4GH, desktop, WAR, `person`, OAuth2, PaLM 2, Singularity, Sonar) | `ce8542ae` | ☑ |
 | 2 | Gradle 7.6 + Spring Boot 2.7.18 + Lombok on JDK 17 | `cd2ab292`..`4eacb473` | ☑ |
-| 3 | Spring Boot 3.5 + jakarta + Gradle 8 on JDK 21, security reduced to anonymous | | ☐ |
+| 3 | Spring Boot 3.5 + jakarta + Gradle 8 on JDK 21, security reduced to anonymous | `1dd9546b`..`ccd1a812` | ☑ |
 | 4 | SAML2 + JWT on Spring Security 6 | | ☐ |
 | 5 | Flyway 10/11, H2 2.x, PostgreSQL 16, HikariCP | | ☐ |
 | 6 | Lucene + reindex procedure + startup guard | | ☐ |
