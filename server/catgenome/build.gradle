@@ -80,14 +80,23 @@ ext {
     // AWS SDK v2, migration Phase 8. The BOM is imported below rather than each artifact being
     // pinned: v2 is 477 co-released modules and mixing versions across them does not work.
     versionAwsSdk = "2.54.1"
+    // The Azure SDK's own "client library" BOM, migration Phase 8, for the same reason as the AWS
+    // one: azure-storage-blob and azure-identity share azure-core, azure-core-http-netty and
+    // azure-json, those are co-released, and mixing versions across them is how you get a
+    // NoSuchMethodError inside the SDK. 1.3.8 gives azure-storage-blob 12.35.0 (was 12.14.0, 2021)
+    // and azure-identity 1.18.4 (was 1.4.4). It contains only com.azure artifacts, and only GA ones
+    // - which is why azure-ai-openai, still beta-only, keeps its explicit version below.
+    versionAzureSdk = "1.3.8"
 }
 
-// The Boot BOM comes from the io.spring.dependency-management plugin; this adds a second one. The
-// AWS BOM manages nothing but its own 477 software.amazon.awssdk artifacts, so it cannot move
-// anything Boot manages (Jackson and slf4j in particular, which the SDK depends on).
+// The Boot BOM comes from the io.spring.dependency-management plugin; these add two more. Neither
+// manages anything outside its own vendor's coordinates - the AWS one is 477 software.amazon.awssdk
+// artifacts and the Azure one is 102 com.azure ones - so neither can move anything Boot manages
+// (Jackson, slf4j, Netty and reactor-core in particular, which both SDKs depend on).
 dependencyManagement {
     imports {
         mavenBom "software.amazon.awssdk:bom:$versionAwsSdk"
+        mavenBom "com.azure:azure-sdk-bom:$versionAzureSdk"
     }
 }
 
@@ -308,10 +317,19 @@ dependencies {
         exclude group: "software.amazon.awssdk", module: "netty-nio-client"
     }
 
-    // Azure Storage Blob
-    implementation group: "com.azure", name: "azure-storage-blob", version: "12.14.0"
-    implementation group: "com.azure", name: "azure-identity", version: "1.4.4"
-    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.5.3'
+    // Azure Storage Blob. Versions come from the azure-sdk-bom imported above, not from here.
+    // NGB's whole Azure surface is util/azure/AzureBlobClient and AzureBlobSeekableStream:
+    // BlobServiceClientBuilder with one of three credential shapes (shared key, client secret,
+    // DefaultAzureCredential), then getBlobClient().openInputStream(BlobRange, null), exists(),
+    // getProperties().getBlobSize() and generateSas(BlobServiceSasSignatureValues). All of it is
+    // unchanged between 12.14.0 and 12.35.0.
+    implementation group: "com.azure", name: "azure-storage-blob"
+    implementation group: "com.azure", name: "azure-identity"
+    // io.projectreactor:reactor-core is deliberately NOT declared here. It was pinned in 2021 (at
+    // 3.4.11, later 3.5.3) when the Azure SDK was moved from com.microsoft.azure to com.azure, to
+    // force a reactor newer than azure-core asked for. Since Phase 3 the Boot BOM manages reactor at
+    // 3.7.19, so the pin had inverted into a *downgrade*: this build script's declared version beats
+    // a newer transitive request, because io.spring.dependency-management resolves the Maven way.
 
     // Caching. EhCache 2.10.1 is gone (D11): Spring 6 removed org.springframework.cache.ehcache
     // outright, and EhCache 2's heap-size accounting needs --add-opens on java.base to reflect over

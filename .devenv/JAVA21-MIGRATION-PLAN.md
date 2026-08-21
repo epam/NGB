@@ -3965,6 +3965,57 @@ code): **all three files identical**, including `taxonomy=taxon:28344`, the 12 f
 i.e. RCSB returned 1JSP's chains in the other order. That test reaches the live RCSB API and imports
 no biojava. `make lint`: 14 files, 37 warnings, 0 errors, pmd clean.
 
+#### Azure Storage Blob 12.14.0 → 12.35.0, azure-identity 1.4.4 → 1.18.4 (commit 5)
+
+Done through **`com.azure:azure-sdk-bom:1.3.8`**, not two pins, for the reason the AWS commit gave:
+azure-storage-blob and azure-identity share `azure-core`, `azure-core-http-netty` and `azure-json`,
+those are co-released, and a mismatch across them surfaces as a `NoSuchMethodError` inside the SDK.
+The BOM holds 102 entries and every one of them is `com.azure`/`com.azure.resourcemanager` — checked,
+because a BOM that reached into Jackson or Netty would fight Boot's. It carries only GA libraries,
+which is why `azure-ai-openai` (beta-only) keeps an explicit version.
+
+Resolved after the import: azure-storage-blob 12.35.0, azure-identity 1.18.4, azure-core 1.58.1,
+azure-core-http-netty 1.16.5, azure-storage-common 12.34.0, azure-json 1.5.1. Netty stays at
+Boot's 4.1.135.Final throughout, and reactor-netty at 1.2.18.
+
+**The `reactor-core:3.5.3` line is deleted, and it was doing the opposite of what it looked like.**
+`git log -S` traces it to a962d051 (Oct 2021), the commit that moved NGB from
+`com.microsoft.azure:azure-storage-blob:10.4.0` to `com.azure:azure-storage-blob:12.14.0` to fix an
+OOM; it pinned reactor 3.4.11 to get something newer than azure-core then asked for. Boot has
+managed reactor since Phase 3, at 3.7.19 — so under `io.spring.dependency-management`'s Maven-style
+resolution the declared 3.5.3 was *downgrading* reactor by two minors. Removing the line moves
+reactor 3.5.3 → 3.7.19 and preserves the 2021 intent rather than reversing it.
+
+No NGB code changed: `BlobServiceClientBuilder.endpoint/credential/buildClient`,
+`StorageSharedKeyCredential`, `ClientSecretCredentialBuilder`, `DefaultAzureCredentialBuilder`
+(`.managedIdentityClientId`, `.tenantId`), `getBlobContainerClient`, `getBlobClient`,
+`openInputStream(BlobRange, null)`, `exists()`, `getProperties().getBlobSize()` and
+`generateSas(BlobServiceSasSignatureValues)` are all unchanged across 21 minor versions.
+`BamHelper.fetchAZBamIndex` stays on `azureBlobClient.loadFully`, and `AzureBlobSeekableStream` is
+untouched since commit 2.
+
+What can be verified without an Azure account:
+
+- The three existing tests (`ApplicationTest`, `CredentialConfigurerTest`,
+  `AzureCredentialConfigurationTest`) build a real `BlobServiceClient` through each of the three
+  credential shapes. They pass — so client construction, shared-key credential parsing and both
+  azure-identity builders still work under 1.18.4.
+- **The SAS download URL, which is the one Azure call that needs no network** (it is an HMAC over a
+  canonical string). A throwaway test, deleted after use, reflected into the private
+  `AzureBlobClient.buildBlobDownloadUrl` with Azurite's well-known development key and dumped the
+  URL under both versions. Identical apart from the service version: same host, container and blob
+  path, same `sr=b`, same `sp=r` (the `setAddPermission(false)`/`setWritePermission(false)` calls
+  contribute nothing, as before), same `se` at +1 day; `sv` moves `2020-10-02` → `2026-06-06`, which
+  is the bump doing its job.
+- What remains is the network half — `exists`, `getProperties`, `openInputStream` and therefore
+  `az://` track loading. See "Cloud verification" below for how far that got: note that
+  `AzureBlobClient` hard-codes `https://%s.blob.core.windows.net` with no endpoint override, so
+  Azurite cannot be pointed at without changing NGB code.
+
+`make test`: 534 tests, 3 failed, 21 skipped — exactly the documented three;
+`PdbDataManagerTest.testParse` passed this run, which confirms the fourth failure in commit 4 was
+the RCSB flap. `make lint`: 14 files, 37 warnings, pmd clean.
+
 ---
 
 ### Phase 9 — Packaging, CI, docs, release
