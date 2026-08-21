@@ -67,7 +67,12 @@
         <Logger name="org.springframework.aop.framework.CglibAopProxy" level="ERROR"/>
         <Logger name="org.apache.http.wire" level="ERROR"/>
         <Logger name="org.apache.http" level="ERROR"/>
-        <Logger name="com.amazonaws" level="ERROR"/>
+        <!-- was com.amazonaws until Phase 8 put the AWS SDK on v2 -->
+        <Logger name="software.amazon.awssdk" level="ERROR"/>
+        <!-- org.apache.hc is httpclient 5, which is what the v2 SDK's apache5-client transport
+             speaks. The org.apache.http muzzles above are still needed - NGB's own REST calls go
+             through httpclient 4.5 - but they no longer cover the SDK's wire logging. -->
+        <Logger name="org.apache.hc" level="ERROR"/>
         <Logger name="com.epam.gene.catgenome" level="DEBUG"/>
         <Logger name="org.apache.commons.beanutils" level="WARN"/>
         <Logger name="org.springframework.jndi" level="ERROR"/>

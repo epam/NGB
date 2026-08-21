@@ -28,11 +28,14 @@ import static org.junit.Assert.*;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Date;
 
-import com.amazonaws.services.s3.AmazonS3;
+import com.epam.catgenome.util.Utils;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 public class S3ManagerTest {
 
@@ -40,19 +43,31 @@ public class S3ManagerTest {
     private static final String TEST_SIGNED_URL =
             "https://bucket.s3.eu-central-1.amazonaws.com/file.bam?X-Amz-Algorithm";
 
+    /**
+     * On AWS SDK v1 this stubbed {@code AmazonS3.generatePresignedUrl(bucket, key, expiry)} and
+     * matched the bucket and the key in the call itself. v2 splits that into a presigner and a
+     * request object, so the same two values are asserted on the captured request instead - along
+     * with the lifetime, which v1 had no way to read back.
+     */
     @Test
     public void testGenerateUrl() throws MalformedURLException {
         S3Manager s3Manager = Mockito.spy(S3Manager.class);
-        AmazonS3 mockClient = Mockito.mock(AmazonS3.class);
-        Mockito.doReturn(new URL(TEST_SIGNED_URL))
-                .when(mockClient)
-                .generatePresignedUrl(
-                        Mockito.eq("bucket"),
-                        Mockito.eq("file.bam"),
-                        Mockito.any(Date.class));
-        Mockito.doReturn(mockClient).when(s3Manager).getClient();
+        S3Presigner mockPresigner = Mockito.mock(S3Presigner.class);
+        PresignedGetObjectRequest presigned = Mockito.mock(PresignedGetObjectRequest.class);
+        Mockito.doReturn(new URL(TEST_SIGNED_URL)).when(presigned).url();
+        Mockito.doReturn(presigned)
+                .when(mockPresigner)
+                .presignGetObject(Mockito.any(GetObjectPresignRequest.class));
+        Mockito.doReturn(mockPresigner).when(s3Manager).getClient();
+
         String result = s3Manager.generateSingedUrl(TEST_URL);
+
         assertEquals(TEST_SIGNED_URL, result);
+        ArgumentCaptor<GetObjectPresignRequest> captor = ArgumentCaptor.forClass(GetObjectPresignRequest.class);
+        Mockito.verify(mockPresigner).presignGetObject(captor.capture());
+        assertEquals("bucket", captor.getValue().getObjectRequest().bucket());
+        assertEquals("file.bam", captor.getValue().getObjectRequest().key());
+        assertEquals(Utils.getTimeForS3URL(), captor.getValue().signatureDuration());
     }
 
 

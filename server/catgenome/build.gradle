@@ -77,6 +77,18 @@ ext {
     // JEP 396 closed). Lombok is a compile-time-only dependency, so the version is ours to pick
     // rather than the Boot BOM's.
     versionLombok = "1.18.46"
+    // AWS SDK v2, migration Phase 8. The BOM is imported below rather than each artifact being
+    // pinned: v2 is 477 co-released modules and mixing versions across them does not work.
+    versionAwsSdk = "2.54.1"
+}
+
+// The Boot BOM comes from the io.spring.dependency-management plugin; this adds a second one. The
+// AWS BOM manages nothing but its own 477 software.amazon.awssdk artifacts, so it cannot move
+// anything Boot manages (Jackson and slf4j in particular, which the SDK depends on).
+dependencyManagement {
+    imports {
+        mavenBom "software.amazon.awssdk:bom:$versionAwsSdk"
+    }
 }
 
 // >>>>> repositories that should be used to find any external dependencies
@@ -256,15 +268,34 @@ dependencies {
     implementation group: "org.flywaydb", name: "flyway-core"
     implementation group: "org.flywaydb", name: "flyway-database-postgresql"
     //Amazon s3
-    // 1.11.704 (2020) cannot start under the Jackson that Boot 3.5 manages: EC2MetadataUtils' static
-    // initialiser reads PropertyNamingStrategy.PASCAL_CASE_TO_CAMEL_CASE, a constant Jackson removed in
-    // 2.12, and every NGB startup builds this client (Application.s3Client) - so the whole context
-    // failed with NoSuchFieldError before a request was served. 1.12.797, the last v1 release, asks for
-    // PropertyNamingStrategies.UPPER_CAMEL_CASE and falls back to the legacy constant on LinkageError,
-    // so it works with either. Still SDK v1: D-table says v2, and that is a 6-file API rewrite that
-    // belongs to the dependency-refresh phase, not to this one.
-    implementation group: "com.amazonaws", name: "aws-java-sdk-s3", version: "1.12.797"
-    implementation group: "com.amazonaws", name: "aws-java-sdk-sts", version: "1.12.797"
+    // SDK v2 since Phase 8; it was aws-java-sdk-s3/-sts 1.12.797, the last v1 release, and v1 went
+    // end-of-support in December 2025. Three things to know about the v2 dependency shape:
+    //   - the HTTP client is not bundled into the SDK core, but every v2 service module inherits
+    //     apache5-client and netty-nio-client at runtime scope from its `services` parent POM, so
+    //     both arrive with s3 whether or not they are asked for. apache5-client is declared here as
+    //     well, to say out loud which transport the sync client uses - it is also the one the SDK
+    //     would pick anyway (ClasspathSdkHttpServiceProvider ranks Apache5 above Apache above
+    //     UrlConnection). Note it is httpclient*5*: the httpclient 4.5 that v1 used to put on the
+    //     classpath, and that 16 files still import as org.apache.http.*, now comes from opensaml
+    //     and google-http-client instead.
+    //   - netty-nio-client is excluded. It is the async transport, nothing here builds an async
+    //     client, and the adapter is dead weight. It is not what puts Netty in the fat jar - the
+    //     Azure SDK does that, through azure-core-http-netty and reactor-netty.
+    //   - sts is not imported by any NGB code, and neither was aws-java-sdk-sts: it is what the
+    //     default credential chain needs to honour a `role_arn` profile or an EKS web-identity
+    //     token, so it is runtime-only.
+    //   - the s3 POM declares org.mockito:mockito-junit-jupiter at *compile* scope (an upstream
+    //     packaging slip, still there in 2.54.1); a mocking framework has no business on the
+    //     server's runtime classpath.
+    implementation(group: "software.amazon.awssdk", name: "s3") {
+        exclude group: "org.mockito"
+        exclude group: "software.amazon.awssdk", module: "netty-nio-client"
+    }
+    implementation group: "software.amazon.awssdk", name: "apache5-client"
+    runtimeOnly(group: "software.amazon.awssdk", name: "sts") {
+        exclude group: "org.mockito"
+        exclude group: "software.amazon.awssdk", module: "netty-nio-client"
+    }
 
     // Azure Storage Blob
     implementation group: "com.azure", name: "azure-storage-blob", version: "12.14.0"

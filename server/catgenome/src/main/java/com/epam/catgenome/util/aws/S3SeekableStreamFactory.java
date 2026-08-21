@@ -26,7 +26,7 @@
 
 package com.epam.catgenome.util.aws;
 
-import com.amazonaws.util.IOUtils;
+import org.apache.commons.io.IOUtils;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableBufferedStream;
 import htsjdk.samtools.seekablestream.SeekableMemoryStream;

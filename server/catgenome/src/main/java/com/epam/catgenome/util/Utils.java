@@ -26,6 +26,7 @@ package com.epam.catgenome.util;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -56,7 +57,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.apache.http.util.TextUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -135,10 +135,14 @@ public final class Utils {
 
     /**
      * Makes time for S3 URL access
-     * @return a {@link Date} object, representing time for S3 URL access
+     *
+     * <p>A {@link Duration} rather than the expiry {@code Date} it was until Phase 8: AWS SDK v2's
+     * presigner signs for a lifetime, not until an instant.
+     *
+     * @return a {@link Duration} object, representing how long an S3 URL stays valid for
      */
-    public static Date getTimeForS3URL() {
-        return DateUtils.addMinutes(new Date(), S3_LINK_EXPIRATION);
+    public static Duration getTimeForS3URL() {
+        return Duration.ofMinutes(S3_LINK_EXPIRATION);
     }
 
     /**

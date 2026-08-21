@@ -3660,6 +3660,126 @@ other; do them as separate commits and verify each.
 - Excel export, protein/PDB views, LLM target summaries, S3 and Azure track loading all
   verified by hand.
 
+### Phase 8 execution findings
+
+#### Corrections to the table above
+
+Three rows describe a state that Phases 0–7 already changed:
+
+- **AWS SDK** was at v1 **1.12.797**, not 1.11.704. Phase 0 bumped it to the last v1 release to
+  get the application past `EC2MetadataUtils.<clinit>` (see `TEST-BASELINE.md`). v1 went
+  end-of-support in December 2025 either way, so the target is unaffected.
+- **Swagger annotations**: **41** files import `com.wordnik.swagger.annotations.*`, not 42.
+- **Misc**: `commons-lang3:3.0` and `commons-io:2.4` are already gone — lang3 has been
+  Boot-managed since Phase 3, commons-io is pinned at exactly 2.15.1 (deliberately: 2.16.0
+  deprecates `CountingInputStream`, which four seekable-stream classes use). `aspectjweaver`
+  also already lost its 1.8.8 pin in Phase 2. And the `snappy-java:1.0.3-rc3` pin the row
+  implies is gone: Phase 7 dropped it, htsjdk 5 manages snappy 1.1.10.5.
+
+#### Divergences: three claims in the table that do not match the code
+
+1. **biojava's consumers are not `manager/protein`, `manager/pdb`, `ConsensusSequenceUtils` or
+   `ProteinSequenceUtils`.** Those four contain zero biojava imports. The real consumers are
+   `manager/genbank/{GenbankManager, GenbankUtils, NGBGenbankReader}`, a single `DNASequence`
+   import in `manager/reference/ReferenceManager`, and `manager/genepred/GenePredManagerTest`.
+   `org.biojava.nbio.structure` has **no** direct import anywhere, although `biojava-structure`
+   is declared — it is on the classpath as one of the things that justify the javax JAXB stack
+   (`javax.xml.bind:jaxb-api` + `com.sun.xml.bind:jaxb-impl`), alongside libsbgn and
+   sbgn-converter. Consequence for the exit criteria: "protein/PDB views verified" is **not** a
+   biojava check. Genbank parsing and GenePred are.
+2. **There is no GA release of `azure-ai-openai`.** Published versions are `1.0.0-beta.1` …
+   `1.0.0-beta.16`. The only move available is beta.2 → beta.16; "beta → GA changed package
+   names" cannot be acted on.
+3. **The `org.apache.commons.collections` (v3) usage is not in `JWTSecurityConfiguration`.** It
+   is in nine files — `entity/gene/GeneFilterForm`, `dao/BiologicalDataItemDao`,
+   `dao/heatmap/HeatmapDao`, `dao/reference/SpeciesDao`,
+   `manager/externaldb/homologene/HomologeneManager`, `manager/reference/ReferenceManager`, and
+   in ngb-cli `AbstractHTTPCommandHandler`, `PrintPermissionsHelper`, `UrlGeneratorHandler`.
+
+#### AWS SDK v1 → v2 (commit 1)
+
+**Version: 2.54.1, via the BOM rather than per-artifact pins.** v2 is 477 co-released modules
+and mixing versions across them does not work, so `software.amazon.awssdk:bom` is imported as a
+second `mavenBom` next to Boot's. This is safe: the AWS BOM manages nothing but its own
+`software.amazon.awssdk` artifacts, so it cannot move anything Boot manages — Jackson and slf4j
+in particular, both of which the SDK depends on.
+
+**The name clash is the reason this code looks odd.** NGB's own class is
+`com.epam.catgenome.util.aws.S3Client` and the SDK's is
+`software.amazon.awssdk.services.s3.S3Client`. Eight other files refer to NGB's class by simple
+name, so the SDK type is spelled out in full inside `util/aws/S3Client.java` rather than
+renaming NGB's class.
+
+**Three API shifts drove the rewrite:**
+
+- *Presigning left the client.* `AmazonS3.generatePresignedUrl(request)` became a separate
+  `S3Presigner`, which carries its own region, credentials and endpoint configuration. Hence the
+  parallel field pair per cloud type in `util/aws/S3Client` (`s3`/`s3Presigner`,
+  `swiftStack`/`swiftStackPresigner`) and the `getPresigner(CloudType)` mirror of
+  `getAws(CloudType)`. `PresignedRequest.expiration()` reports the real expiry, so
+  `BiologicalDataItemDownloadUrl.expires` no longer has to be computed alongside the request.
+  `ResponseHeaderOverrides.withContentDisposition(...)` became
+  `GetObjectRequest.responseContentDisposition(...)`.
+- *URI parsing hangs off a client.* `AmazonS3URI` was a standalone parser; v2's equivalent is
+  `client.utilities().parseUri(URI)` returning an `S3Uri` whose `bucket()`/`key()` are
+  `Optional`. Verified against the 2.54.1 sources: it accepts the `s3://bucket/key` form and
+  percent-decodes, exactly as `AmazonS3URI` did. The `Optional`s are unwrapped by two helpers
+  that throw `IllegalArgumentException` on a keyless URI — v1 returned null there and failed
+  later.
+- *Ranges and errors.* `GetObjectRequest.setRange(a, b)` became `.range("bytes=a-b")` (both ends
+  inclusive, as before); `getObject` returns a `ResponseInputStream<GetObjectResponse>` instead
+  of `S3Object`+`getObjectContent()`; `AmazonS3Exception.getStatusCode()` became
+  `S3Exception.statusCode()`, and `NoSuchKeyException` (404) extends `S3Exception`, so
+  `isFileExisting`'s single catch still covers both 403 and 404. `org.apache.http.HttpStatus`
+  gave way to `software.amazon.awssdk.http.HttpStatusCode`.
+
+Smaller translations: `new AWSCredentialsProviderChain(new ProfileCredentialsProvider("sws"))`
+→ `ProfileCredentialsProvider.create("sws")`; `EndpointConfiguration(host, region)` →
+`endpointOverride(URI)` + `region(Region.of(...))` — v2 rejects an endpoint without a scheme
+where v1 defaulted to https, so `endpointUri()` adds `https://` when the configured
+`swift.stack.endpoint.url` has no scheme; `setPathStyleAccessEnabled` →
+`S3Configuration.builder().pathStyleAccessEnabled(...)`; `com.amazonaws.util.IOUtils` →
+`org.apache.commons.io.IOUtils` (same `toByteArray(InputStream) throws IOException`, so the
+three call sites are unchanged).
+
+`Utils.getTimeForS3URL()` now returns a `Duration` instead of an expiry `Date`, because that is
+what `GetObjectPresignRequest.signatureDuration` takes.
+
+**The transport shape needed measuring, not guessing.** The `s3` POM declares no HTTP client,
+but its `services` parent POM declares `apache5-client` **and** `netty-nio-client` at *runtime*
+scope, so every v2 service module drags both in whether asked or not. Consequences:
+
+- An explicit `apache-client` (httpclient 4.x) declaration is pointless next to that:
+  `ClasspathSdkHttpServiceProvider` ranks `Apache5SdkHttpService` above `ApacheSdkHttpService`
+  above `UrlConnection`, so apache5 wins regardless. (In 2.54.1 finding several sync
+  implementations is a debug log and a priority choice, not the hard failure older v2 versions
+  had.) `apache5-client` is therefore declared explicitly instead — to state which transport is
+  in use, not to change it.
+- The httpclient 4.5 that v1's `aws-java-sdk-core` used to put on the classpath, and that 16
+  files still import as `org.apache.http.*`, now arrives from opensaml/shibboleth and
+  google-http-client instead. Verified present on both `compileClasspath` and
+  `runtimeClasspath` after the swap.
+- `netty-nio-client` is excluded from both `s3` and `sts`: it is the async transport, nothing
+  here builds an async client. It is **not** what puts Netty in the fat jar — the Azure SDK does
+  that via `azure-core-http-netty` and reactor-netty — so this saves the adapter, not Netty.
+- The `s3` POM declares `org.mockito:mockito-junit-jupiter` at *compile* scope (an upstream
+  packaging slip, still present in 2.54.1). Excluded; a mocking framework has no business on the
+  server's runtime classpath.
+- `sts` stays runtime-only, as `aws-java-sdk-sts` was: no NGB code imports it, it is what the
+  default credential chain needs to honour a `role_arn` profile or an EKS web-identity token.
+
+Two behaviour details preserved deliberately: the constructor still swallows a failure to build
+the default client (`SdkException`, the supertype of the `SdkClientException` v1 threw when no
+region could be resolved) and logs "S3 services will be unavailable" — every NGB startup builds
+this bean, so a machine with no AWS configuration has to come up rather than fail. And
+`isFileExisting` still bypasses the `fileSizes` Guava cache, as v1 did, so the `S3Exception`
+arrives unwrapped rather than inside an `UncheckedExecutionException`.
+
+Finally, `profiles/dev/log4j2.xml`: `<Logger name="com.amazonaws">` became
+`<Logger name="software.amazon.awssdk">`, and an `org.apache.hc` muzzle was added — the SDK's
+wire logging now goes through httpclient 5, which the existing `org.apache.http` muzzles do not
+cover. Those muzzles stay: NGB's own REST calls still use httpclient 4.5.
+
 ---
 
 ### Phase 9 — Packaging, CI, docs, release

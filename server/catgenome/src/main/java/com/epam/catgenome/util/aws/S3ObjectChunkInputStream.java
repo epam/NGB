@@ -1,6 +1,6 @@
 package com.epam.catgenome.util.aws;
 
-import com.amazonaws.util.IOUtils;
+import org.apache.commons.io.IOUtils;
 import com.epam.catgenome.util.FeatureInputStream;
 import htsjdk.samtools.util.RuntimeIOException;
 

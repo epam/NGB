@@ -25,19 +25,20 @@
 
 package com.epam.catgenome.manager.aws;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.epam.catgenome.exception.S3ReadingException;
 import com.epam.catgenome.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 
 /**
  * Class for working with AWS S3 buckets
@@ -65,13 +66,18 @@ public class S3Manager {
         return instance.generateSingedUrl(inputUrl);
     }
     public String generateSingedUrl(String inputUrl) {
-        try {
-            AmazonS3 s3Client = getClient();
+        try (S3Presigner presigner = getClient()) {
             URI parsedUrl = new URI(inputUrl);
-            URL url = s3Client.generatePresignedUrl(parsedUrl.getHost(),
-                    normalizePath(parsedUrl.getPath()), Utils.getTimeForS3URL());
-            return url.toExternalForm();
-        } catch (AmazonClientException | URISyntaxException e) {
+            return presigner.presignGetObject(GetObjectPresignRequest.builder()
+                            .signatureDuration(Utils.getTimeForS3URL())
+                            .getObjectRequest(GetObjectRequest.builder()
+                                    .bucket(parsedUrl.getHost())
+                                    .key(normalizePath(parsedUrl.getPath()))
+                                    .build())
+                            .build())
+                    .url()
+                    .toExternalForm();
+        } catch (SdkException | URISyntaxException e) {
             LOGGER.error(e.getMessage(), e);
             throw new S3ReadingException(inputUrl, e);
         }
@@ -85,8 +91,18 @@ public class S3Manager {
         }
     }
 
-    AmazonS3 getClient() {
-        return AmazonS3ClientBuilder.standard().withPathStyleAccessEnabled(pathStyleAccessEnabled).build();
+    /**
+     * An {@link S3Presigner} rather than the {@code AmazonS3} this returned until Phase 8: on AWS
+     * SDK v2 signing a URL is no longer something the S3 client itself does. Like the client it
+     * replaces it is built per call and closed by the caller, and it resolves its region and
+     * credentials from the default provider chain.
+     */
+    S3Presigner getClient() {
+        return S3Presigner.builder()
+                .serviceConfiguration(S3Configuration.builder()
+                        .pathStyleAccessEnabled(pathStyleAccessEnabled)
+                        .build())
+                .build();
     }
 
     public static S3Manager singleton() {
