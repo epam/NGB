@@ -3780,6 +3780,56 @@ Finally, `profiles/dev/log4j2.xml`: `<Logger name="com.amazonaws">` became
 wire logging now goes through httpclient 5, which the existing `org.apache.http` muzzles do not
 cover. Those muzzles stay: NGB's own REST calls still use httpclient 4.5.
 
+#### commons-io 2.15.1 → 2.22.0, and the counting stream (commit 2)
+
+The pin existed for one reason, recorded in Phase 7: `FeatureSeekableStream` wrapped its inner
+data stream in commons-io's `CountingInputStream` to know how far into the stream reads had got,
+and 2.16.0 deprecated that class. Bumping the version and leaving the usage would have traded a
+pin for a deprecation warning, so the usage went first.
+
+**`BoundedInputStream`, the replacement commons-io's own deprecation notice points at, is not
+one.** Checked against the 2.22.0 sources: `CountingInputStream` overrides `skip` and adds the
+skipped bytes to its count, `BoundedInputStream` does not override `skip` at all, so its
+`getCount()` would under-report by however much was skipped and `position()` would drift.
+(Correcting a claim carried in the earlier notes, which had it the other way round.) Its
+single-argument constructor is also deprecated in favour of a builder whose `get()` throws
+`IOException`, which the three subclasses' non-throwing construction sites cannot use as they
+stand.
+
+So the count moved into `FeatureSeekableStream` itself — a field incremented in `read()` and
+`read(byte[], int, int)`, which is all a decorator was ever doing here. Nothing is lost: this
+class does not delegate `skip`, so a `skip` on it runs `InputStream.skip`, which reads into a
+throwaway buffer through `read(byte[], int, int)` and is still counted. (htsjdk agrees that this
+does not matter in practice — `SeekableStream` does not override `skip` either, and
+`SeekableBufferedStream.skip`, which is what wraps these streams in the reader stack, either
+skips inside its own buffer or calls `seek`; it never reaches the wrapped stream's `skip`.)
+
+That removes a wrapper object and a virtual call from every byte of every cloud and remote read,
+and it lets `CountingWithSkipInputStream` go — the bare `CountingInputStream` subclass with
+nothing left to override that survived Phase 7 only because two subclasses constructed it by
+name. In its place the parent exposes the two things the subclasses actually need:
+`closeDataStream()` (null-tolerant, for the first call) and `serveFrom(InputStream)`, which
+installs the stream and restarts the count. The subclasses keep their existing close-then-open
+ordering and their existing exception behaviour — `S3SeekableStream` and
+`AzureBlobSeekableStream` still wrap a close failure in `RuntimeIOException` because their
+`recreateInnerStream()` is called from a constructor and cannot throw; `UrlSeekableStream`'s
+still propagates.
+
+commons-io is now `2.22.0` and unpinned in spirit, but the version is still stated explicitly:
+Spring Boot 3.5's BOM does not manage commons-io, and it must stay at or above what
+commons-compress 1.26.0 (htsjdk 5's transitive) asks for.
+
+Not fixed here, and not introduced here: `NgbFileUtils:212`, `TargetExportHTMLManager:228`,
+`NCBISequenceManager:165` and 15 `FileUtils.writeStringToFile` calls in
+`UpdateFilePathManagerTest` use commons-io overloads that default to the platform charset. Those
+were already deprecated at 2.15.1, so the bump does not change their status; fixing them means
+deciding a charset per call site, which is not this phase's business.
+
+Verified: `make test` 534/4 failed/21 skipped (the four documented), `make lint` clean at 37
+warnings in 14 files, and `verify-tracks.sh` green — `signed s3 vcf`, `signed s3 bam`, `http
+vcf` and `cram` all byte-identical to their local equivalents, which is the check that matters
+since all three rewritten subclasses are on that path.
+
 ---
 
 ### Phase 9 — Packaging, CI, docs, release

@@ -25,17 +25,33 @@
 package com.epam.catgenome.util;
 
 import htsjdk.samtools.seekablestream.SeekableStream;
-import org.apache.commons.io.input.CountingInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * A {@link SeekableStream} whose reads are served from a plain {@link InputStream} that subclasses
+ * replace whenever someone seeks - so that a sequential read costs one request rather than one per
+ * seek. {@link #position()} is that inner stream's start offset plus however much of it has been
+ * consumed.
+ *
+ * <p>The consumed count used to come from a decorator: {@code CountingInputStream}, from
+ * commons-compress until migration Phase 7, then from commons-io. Phase 8 counts here instead, in
+ * the two {@code read} methods. That removes a wrapper from every cloud read, and it removes the
+ * only reason commons-io had to stay pinned at 2.15.1 - 2.16.0 deprecates its
+ * {@code CountingInputStream} in favour of {@code BoundedInputStream}, which does not count skipped
+ * bytes. Nothing is lost by counting here: skipping is not something this class delegates, so a
+ * {@code skip} on it goes through {@link InputStream#skip(long)}, which reads into a throwaway
+ * buffer through {@link #read(byte[], int, int)} and is therefore still counted.
+ */
 public abstract class FeatureSeekableStream extends SeekableStream {
 
     protected final String cloudUri;
     protected long contentLength;
-    protected CountingInputStream currentDataStream;
     protected long offset;
+
+    private InputStream currentDataStream;
+    private long streamBytesRead;
 
     public FeatureSeekableStream(String cloudUri) {
         this.cloudUri = cloudUri;
@@ -48,17 +64,25 @@ public abstract class FeatureSeekableStream extends SeekableStream {
 
     @Override
     public long position() throws IOException {
-        return offset + currentDataStream.getByteCount();
+        return offset + streamBytesRead;
     }
 
     @Override
     public int read() throws IOException {
-        return currentDataStream.read();
+        final int data = currentDataStream.read();
+        if (data != -1) {
+            streamBytesRead++;
+        }
+        return data;
     }
 
     @Override
     public int read(byte[] buffer, int offset, int length) throws IOException {
-        return currentDataStream.read(buffer, offset, length);
+        final int read = currentDataStream.read(buffer, offset, length);
+        if (read != -1) {
+            streamBytesRead += read;
+        }
+        return read;
     }
 
     @Override
@@ -77,19 +101,21 @@ public abstract class FeatureSeekableStream extends SeekableStream {
     }
 
     /**
-     * We should count data skipped because we want to count all data loaded.
-     *
-     * <p>Until Java 21 migration Phase 7 the counting came from
-     * {@code org.apache.commons.compress.utils.CountingInputStream}, which counted reads but not
-     * skips, so this subclass added the skip accounting. That class was removed in commons-compress
-     * 1.26 (the version htsjdk 5 brings), and its commons-io replacement counts skipped bytes
-     * itself - so nothing is left to override. The subclass survives only because
-     * {@code util/aws/S3SeekableStream} and {@code util/azure/AzureBlobSeekableStream} construct it
-     * by name; it can collapse into its parent when those are next touched.
+     * Closes the stream reads are currently served from, if there is one. Subclasses call this
+     * before opening the replacement, so that only one request is ever open at a time.
      */
-    public static class CountingWithSkipInputStream extends CountingInputStream {
-        public CountingWithSkipInputStream(InputStream in) {
-            super(in);
+    protected void closeDataStream() throws IOException {
+        if (currentDataStream != null) {
+            currentDataStream.close();
         }
+    }
+
+    /**
+     * Serves subsequent reads from {@code data} and restarts the count that {@link #position()}
+     * adds to {@link #offset}, which the caller is expected to have set already.
+     */
+    protected void serveFrom(final InputStream data) {
+        currentDataStream = data;
+        streamBytesRead = 0;
     }
 }

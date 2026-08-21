@@ -194,13 +194,14 @@ dependencies {
     implementation group: "org.codehaus.jettison", name: "jettison", version: "1.1"
 
     // Apache Commons
-    // 2.4 (2012) until Phase 7. htsjdk 5.0.0 brings commons-compress 1.26.0, which is the first
-    // commons-compress release to declare a hard (compile-scope, non-optional) dependency on
-    // commons-io - 2.15.1 - and the explicit pin here was silently downgrading it, which would have
-    // meant NoClassDefFoundError inside commons-compress on the CRAM bzip2/lzma paths. Pinned at
-    // exactly what commons-compress asks for: 2.16.0 deprecates
-    // org.apache.commons.io.input.CountingInputStream, which FeatureSeekableStream uses.
-    implementation group: "commons-io", name: "commons-io", version: "2.15.1"
+    // 2.4 (2012) until Phase 7, then exactly 2.15.1 - the version commons-compress 1.26.0 (which
+    // htsjdk 5 brings, and which is the first commons-compress to depend on commons-io at compile
+    // scope) asks for, held there because 2.16.0 deprecates
+    // org.apache.commons.io.input.CountingInputStream. Phase 8 removed that usage - the counting
+    // moved into FeatureSeekableStream itself, see its javadoc - so the pin is free to move again.
+    // It still has to stay at or above what commons-compress asks for, or commons-compress hits
+    // NoClassDefFoundError on the CRAM bzip2/lzma paths.
+    implementation group: "commons-io", name: "commons-io", version: "2.22.0"
     // commons-lang3 carried an explicit `version: "3.0"` (2011) until Phase 3; the BOM manages it, so
     // the pin is gone. It also had to go: 12 files imported commons-lang **2** (`org.apache.commons.lang`),
     // which was never declared here at all - it arrived transitively through the mangofactory Swagger

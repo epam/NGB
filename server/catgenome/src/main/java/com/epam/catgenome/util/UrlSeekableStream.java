@@ -25,7 +25,6 @@
 package com.epam.catgenome.util;
 
 import htsjdk.tribble.util.URLHelper;
-import org.apache.commons.io.input.CountingInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -71,15 +70,13 @@ public class UrlSeekableStream extends FeatureSeekableStream {
     }
 
     private void recreateInnerStream() throws IOException {
-        if (currentDataStream != null) {
-            currentDataStream.close();
-        }
+        closeDataStream();
         // A request for the range past the last byte is answered with 416 rather than with nothing,
         // and htsjdk does seek to the end of a file - of a BAM index, for one - so that range is
         // never asked for.
         final InputStream data = offset >= contentLength
                 ? nullInputStream()
                 : helper.openInputStreamForRange(offset, contentLength - 1);
-        currentDataStream = new CountingInputStream(data);
+        serveFrom(data);
     }
 }

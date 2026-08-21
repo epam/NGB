@@ -43,16 +43,13 @@ public class AzureBlobSeekableStream extends FeatureSeekableStream {
     }
 
     private void recreateInnerStream() {
-        if (null != currentDataStream) {
-            try {
-                currentDataStream.close();
-            } catch (IOException e) {
-                throw new RuntimeIOException(e.getMessage() + "failed to close the data stream", e);
-            }
+        try {
+            closeDataStream();
+        } catch (IOException e) {
+            throw new RuntimeIOException(e.getMessage() + "failed to close the data stream", e);
         }
 
-        this.currentDataStream = new CountingWithSkipInputStream(
-                new AzureBlobInputStream(cloudUri, offset, length() - 1, client));
+        serveFrom(new AzureBlobInputStream(cloudUri, offset, length() - 1, client));
         log.debug("A new data stream was launched on offset = {}", offset);
     }
 

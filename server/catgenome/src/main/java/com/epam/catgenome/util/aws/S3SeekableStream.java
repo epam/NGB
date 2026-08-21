@@ -43,16 +43,13 @@ public class S3SeekableStream extends FeatureSeekableStream {
     }
 
     private void recreateInnerStream() {
-        if (null != currentDataStream) {
-            try {
-                currentDataStream.close();
-            } catch (IOException e) {
-                throw new RuntimeIOException(e.getMessage() + "failed to close the data stream", e);
-            }
+        try {
+            closeDataStream();
+        } catch (IOException e) {
+            throw new RuntimeIOException(e.getMessage() + "failed to close the data stream", e);
         }
 
-        this.currentDataStream = new CountingWithSkipInputStream(
-                new S3ObjectChunkInputStream(cloudUri, offset, length() - 1));
+        serveFrom(new S3ObjectChunkInputStream(cloudUri, offset, length() - 1));
         log.debug("A new data stream was launched on offset = {}", offset);
     }
 
