@@ -4159,6 +4159,11 @@ Worth generalising: `:server:ngb-cli:build` passing means nothing about whether 
 tests exercise handlers directly and never go through `Application.main`, so the one command that
 catches this class of breakage is `ngb version` off `installDist`.
 
+`make test`: 534 tests, 4 failed, 21 skipped — the documented three plus the
+`PdbDataManagerTest.testParse` RCSB data flap. `make lint`: 14 files, 37 warnings, pmd clean.
+`:server:ngb-cli:build` (its own checkstyle/pmd/test, which neither `make lint` nor `make test`
+covers): green, and `ngb version` still runs off `installDist`.
+
 #### retrofit converter-jackson 2.7.2 → 3.0.0, and with it OkHttp 3 → 4 (commit 8)
 
 Retrofit is declared only through `com.squareup.retrofit2:converter-jackson`; the core artifact and
@@ -4207,9 +4212,111 @@ server JSON. None of it is in the Phase 8 table, and more to the point `make cli
 (its fixture host is gone — see `TEST-BASELINE.md`), so a bump there would be unverifiable beyond
 "it compiles". **Recommended for Phase 9**, together with the fixture hosting that makes it checkable.
 
-`make test`: 534 tests, 3 failed, 21 skipped — the documented three. `make lint`: 14 files,
-37 warnings, pmd clean. `:server:ngb-cli:build` (its own checkstyle/pmd/test, which `make lint` and
-`make test` do not cover): green, and `ngb version` still runs off `installDist`.
+#### The rest of the "Misc" row: jettison, opencsv, gson — and one bump refused (commit 9)
+
+Four changes, all in `server/catgenome/build.gradle`, no Java touched:
+
+| Coordinate | Was | Now | Why |
+|---|---|---|---|
+| `org.codehaus.jettison:jettison` | 1.1 (2009) | **1.5.7** | parser CVEs, on the path NGB uses |
+| `com.opencsv:opencsv` | 5.8 | **5.12.0** | drags `commons-beanutils` 1.9.4 → 1.11.0 |
+| `com.google.code.gson:gson` | 2.10.1 | **declaration deleted** | unused in Java, and the pin was a downgrade |
+| `commons-validator:commons-validator` | 1.5.0 | **1.5.0, deliberately** | 1.7+ rejects NGB's own URLs — below |
+
+**jettison.** The version was never chosen: until Phase 1 the library arrived transitively through
+`hadoop-client`, so it sat wherever Hadoop 2.2.0 put it. Four files use it
+(`HttpDataManager`, `NCBIDataManager`, `PdbEntriesManager`, `OpenTargetsManager`) and all four use
+exactly one entry point, `new JSONObject(String)` over an external service's reply — which is the code
+path the 2022–23 reports are about (CVE-2022-40149/40150, CVE-2022-45685/45693, CVE-2023-1436: stack
+exhaustion and unbounded allocation while *parsing*). The fix carries a behaviour change worth knowing
+about: parse nesting is capped, and `JSONObject.getGlobalRecursionDepthLimit()` reads **500** on 1.5.7
+(measured, not assumed). NCBI, RCSB, Ensembl, UniProt and Open Targets replies nest nowhere near that;
+`setGlobalRecursionDepthLimit`/`setRecursionDepthLimit` are there if one ever does. 1.5.7 also drops a
+dependency: 1.1 asked for `stax:stax-api:1.0.1` at compile scope, 1.5.7 has no non-test dependencies at
+all.
+
+This one gets live coverage rather than compile-only: `ExternalDBControllerTest` (2 tests),
+`EnsemblDataManagerTest` (3) and `UniprotDataManagerTest` (1) all go through `HttpDataManager` to real
+services and parse the reply with jettison. All six pass, none is skipped.
+
+**opencsv.** Only `CSVReader` and `CsvValidationException` are used, in `TargetGeneManager` and the two
+classes that propagate the exception; the API is identical in 5.12.0. The reason to bump is the
+transitive: opencsv is what puts `commons-beanutils` on the runtime classpath, 5.8 asks for 1.9.4, and
+CVE-2025-48734 (enum `declaredClass` access through `PropertyUtils`) is fixed in 1.11.0, which 5.12.0
+asks for. Resolved after the change: `commons-beanutils:1.11.0`, `commons-text:1.13.1`.
+
+**gson.** No file in either module imports `com.google.gson`. The declaration was worse than dead:
+because `io.spring.dependency-management` resolves Maven-style, `2.10.1` declared here beat both Boot's
+managed 2.13.2 and the 2.10 that `google-http-client-gson` asks for, so NGB was pinning a library it
+does not use to an older version than everything else wanted. Deleted; gson still resolves, via
+`google-api-services-customsearch` → `google-http-client-gson:1.42.3`, at **2.13.2**.
+
+##### commons-validator is left at 1.5.0, and that is a decision, not an oversight
+
+The Misc row asks for this one too. It cannot move without breaking a feature, and the reason is
+NGB's own URL format.
+
+The only usage is `UrlShorterManager.generateAndSaveShortUrlPostfix`:
+
+```java
+private UrlValidator validator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS);
+...
+if (!validator.isValid(url)) {
+    throw new IllegalArgumentException("Invalid url format: " + url);
+}
+```
+
+That validator gates what `POST /generateShortUrl` will store, and `GET /navigate?alias=` then
+301-redirects to whatever was stored — so it is also the only guard against the endpoint being used as
+an open redirect. Stricter is, in principle, what one wants here.
+
+**Measured, 1.5.0 vs 1.11.0, same `ALLOW_LOCAL_URLS` flags, 30 inputs.** The difference is confined to
+the query string, where 1.11.0 rejects nine characters that 1.5.0 accepts:
+
+| Unencoded in the query | 1.5.0 | 1.7+ |
+|---|---|---|
+| `{` `}` `"` `\|` `^` `\` `<` `>` space | accepted | **rejected** |
+| `[` `]` `,` `:` `@` `!` `$` `(` `)` `*` `+` `;` `=` `~` `-` `_` `.` `%22` | accepted | accepted |
+
+This is not a bug in the new version — those characters genuinely are not legal in an RFC 3986 query —
+and bisecting the releases puts the change in **1.7**: 1.6 accepts, 1.7, 1.9.0, 1.10.0 and 1.11.0 all
+reject. So there is no "safe" intermediate version either; anything past 1.6 is a behaviour change.
+
+The problem is that NGB emits those characters itself.
+`BiologicalDataItemManager.generateUrl` builds
+
+```java
+private static final String URL_PATTERN = "/#/${REFERENCE_NAME}${CHROMOSOME_NAME}${INDEXES}?tracks=${TRACKS}";
+...
+params.put("TRACKS", mapper.writeValueAsString(vos));
+```
+
+— raw Jackson JSON substituted straight into the query, giving
+`?tracks=[{"b":"sample_1.bam","p":"SV_Sample1"}]`. And `ngb url --alias` (`UrlGeneratorHandler`) takes
+that exact string and POSTs it to the shortener. So on 1.7+ every aliased CLI URL would come back
+`Invalid url format`, as would any hand-written embedding URL of the form documented in
+`docs/md/user-guide/embedding-url.md` and `docs/md/cli/typical-tasks.md` (both show raw JSON). The web
+client is *not* affected — `$state.href` percent-encodes, which is why the share links in
+`docs/md/installation/docker.md` are all `%5B%7B%22…`, and `%22` is accepted by both versions.
+
+Nothing in the suite would have caught it: `UrlShorterManagerTest` validates
+`http://fake.com/faaaaake` and `asdasd'awd'` only, and `make cli-test` cannot run at all (missing
+fixture host, see `TEST-BASELINE.md`).
+
+So: **1.5.0 stays**, with the reasoning in a comment next to the declaration. Nothing is outstanding
+against it — no CVE, and its `commons-beanutils:1.9.2` request loses to the 1.11.0 that opencsv now
+brings, so it contributes nothing vulnerable of its own.
+
+**The fix, for whoever picks this up:** percent-encode the query value where it is built
+(`generateUrl`'s `TRACKS`, plus the `layout`/`target`/`controls` parameters the client sets), then bump
+the validator. That changes a documented URL format and touches CLI output, which is a decision about
+NGB's API rather than a dependency bump — out of Phase 8's scope. **Recommended for Phase 9 or later**,
+and worth pairing with a `UrlShorterManagerTest` case that feeds it a real `?tracks=[{…}]` URL so the
+constraint is encoded in a test rather than in a build-file comment.
+
+`make test`: 534 tests, 4 failed, 21 skipped — the documented three plus the
+`PdbDataManagerTest.testParse` RCSB flap (`expected:<[B]> but was:<[A]>`, read out of the JUnit XML).
+`make lint`: 14 files, 37 warnings, pmd clean, exit 0.
 
 ---
 

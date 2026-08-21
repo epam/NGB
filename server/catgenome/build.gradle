@@ -205,10 +205,15 @@ dependencies {
     runtimeOnly group: "com.sun.xml.bind", name: "jaxb-impl", version: "2.3.9"
 
     // Jettison. Used directly by HttpDataManager, NCBIDataManager, PdbEntriesManager and
-    // OpenTargetsManager; until Phase 1 it arrived transitively through hadoop-client, so the
-    // version below is the one Hadoop 2.2.0 resolved. Superseded by a supported release when
-    // the dependency set is refreshed.
-    implementation group: "org.codehaus.jettison", name: "jettison", version: "1.1"
+    // OpenTargetsManager - all four only for `new JSONObject(String)` over an external service's
+    // response. Until Phase 1 it arrived transitively through hadoop-client, so it sat at the version
+    // Hadoop 2.2.0 resolved, 1.1 (2009); Phase 8 moved it to the current release. 1.1 is affected by
+    // the 2022-23 unbounded-recursion/allocation reports (CVE-2022-40149/40150, CVE-2022-45685/45693,
+    // CVE-2023-1436), all of which are parser-side and so on exactly the path NGB uses. The fix that
+    // closes them caps parse nesting at 500 levels by default (JSONObject.setGlobalRecursionDepthLimit
+    // changes it); NCBI, RCSB and Open Targets replies nest an order of magnitude less than that.
+    // 1.5.7 has no compile or runtime dependencies of its own - 1.1 pulled stax-api.
+    implementation group: "org.codehaus.jettison", name: "jettison", version: "1.5.7"
 
     // Apache Commons
     // 2.4 (2012) until Phase 7, then exactly 2.15.1 - the version commons-compress 1.26.0 (which
@@ -241,6 +246,19 @@ dependencies {
     // commons-validator and opencsv. Phase 8 moved them all to collections4; isEmpty/isNotEmpty/union
     // are the only methods involved and behave identically.
     implementation group: "org.apache.commons", name: "commons-collections4", version: "4.6.0"
+    // Deliberately NOT bumped in Phase 8, and the one dependency here that is knowingly left behind.
+    // The only usage is UrlShorterManager's `new UrlValidator(ALLOW_LOCAL_URLS)`, which gates what
+    // POST /generateShortUrl will store - and what GET /navigate?alias= then 301-redirects to.
+    // 1.7 tightened the query-string charset to what RFC 3986 actually allows, so from 1.7 on
+    // { } " | ^ \ < > and space are rejected unencoded ([ and ] still pass). NGB generates URLs that
+    // contain them: BiologicalDataItemManager.generateUrl substitutes raw Jackson JSON into
+    // `?tracks=`, and `ngb url --alias` posts exactly that string to the shortener, so every aliased
+    // CLI URL - and the hand-written embedding URLs in docs/md/user-guide/embedding-url.md - would
+    // start failing with "Invalid url format". The fix is to percent-encode the query value at the
+    // point it is built, which changes a documented URL format and belongs with the client, not in a
+    // dependency bump; see the Phase 8 findings in .devenv/JAVA21-MIGRATION-PLAN.md. No CVE is
+    // outstanding against 1.5.0, and its commons-beanutils 1.9.2 request is overridden to 1.11.0 by
+    // opencsv below.
     implementation group: "commons-validator", name: "commons-validator", version: "1.5.0"
     implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     // Logging.
@@ -423,8 +441,12 @@ dependencies {
     // honours it and switches to the api-key header - see the Phase 8 findings in
     // .devenv/JAVA21-MIGRATION-PLAN.md.
     implementation group: "com.azure", name: "azure-ai-openai", version: "1.0.0-beta.16"
-    implementation group: 'com.google.code.gson', name: 'gson', version: '2.10.1'
 
+    // gson carried an explicit `2.10.1` here until Phase 8. No Java file in either module imports
+    // com.google.gson; it is only ever used through the two google-api artifacts below, which bring
+    // it themselves. Worse than redundant: because io.spring.dependency-management resolves like
+    // Maven, a version declared here beat both the BOM's managed 2.13.2 and what those artifacts
+    // asked for, so the declaration was a downgrade.
     implementation group: 'com.google.apis', name: 'google-api-services-customsearch', version: 'v1-rev20240103-2.0.0'
     implementation group: 'com.google.http-client', name: 'google-http-client-jackson2', version: '1.44.1'
 
@@ -439,7 +461,11 @@ dependencies {
     implementation group: "org.apache.poi", name: "poi-ooxml", version: "5.5.1"
 
 //    CSV
-    implementation group: "com.opencsv", name: "opencsv", version: "5.8"
+    // 5.8 (2023) until Phase 8. Only CSVReader and CsvValidationException are used, in
+    // TargetGeneManager and the two classes that propagate its exception; neither changed. The bump
+    // is for the transitives - opencsv is what puts commons-beanutils on the runtime classpath, and
+    // 5.8 asks for 1.9.4, which CVE-2025-48734 covers; 5.12.0 asks for 1.11.0, which is the fix.
+    implementation group: "com.opencsv", name: "opencsv", version: "5.12.0"
 
     // >>>>> dependencies used to compile tests; in fact no need to include them into artifact
     testImplementation("org.springframework.boot:spring-boot-starter-test")
