@@ -21,7 +21,10 @@ We believe that NGB (being a namesake of a [Neuroglobin (NGB) gene](http://www.u
 
 Detailed documentation on building, installation, usage is available at
 * [Markdown sources](docs/README.md)
-* [Latest HTML documentation](http://ngb.opensource.epam.com/distr/latest/docs)
+* [HTML documentation](https://epam.github.io/NGB/) *(rendered from the `master` branch, i.e. the
+  latest released version)*
+* `ngb-docs.tar.gz`, an mkdocs build of the documentation, is published with every release — see
+  [Prebuilt binaries](#prebuilt-binaries)
 
 # Publications 
 Links to publications that contain NGB references
@@ -36,7 +39,6 @@ Make sure `docker` is installed
 
 ```
 $ docker --version
-Docker version 1.12.5
 ```
 
 If docker is not installed, please follow [docker engine installation guide](https://docs.docker.com/engine/installation/) for your operating system
@@ -59,7 +61,7 @@ Image with name **ngb:latest** will be created. Verify that it was created corre
 ```
 $ docker images
 REPOSITORY      TAG     IMAGE ID        CREATED         SIZE
-ngb             latest  356774a063ad    2 minutes ago    564.4 MB
+ngb             latest  356774a063ad    2 minutes ago    791MB
 ```
 
 Run NGB from a created image
@@ -96,10 +98,23 @@ NGB binaries can be retrieved from the following locations:
 
 ## Requirements
 
-* **[Oracle JDK 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html)** or **[Open JDK 8](http://openjdk.java.net/install/)**
-* **[Node.js = 6.9.5](https://nodejs.org/en/download/package-manager/)** 
+* **[JDK 21](https://adoptium.net/temurin/releases/?version=21)** — Eclipse Temurin or any other
+  build — to run Gradle and to build the server, and **JDK 17** as well to build `ngb-cli`, which
+  declares a Java 17 toolchain. Gradle will not download a missing JDK
+  (`org.gradle.java.installations.auto-download=false`, deliberately): install both, or build only
+  the parts you need.
+* **[Node.js = 14.17.5](https://nodejs.org/en/download/package-manager/)** *used to build the web
+  client. The version is pinned: the client is AngularJS 1.5 with a webpack 4 build that does not
+  run on a newer Node.*
 * **[Docker engine](https://docs.docker.com/engine/installation/)** *used to build docker images, if it is not a case - then could not be installed*
-* **[MkDocs >= 0.16.0](http://www.mkdocs.org/#installation)** and **[mkdocs-material](http://squidfunk.github.io/mkdocs-material/getting-started/#installing-mkdocs)** *used to build documentation, if it is not a case - then could not be installed*
+* **[MkDocs](http://www.mkdocs.org/#installation)** and **[mkdocs-material](http://squidfunk.github.io/mkdocs-material/getting-started/#installing-mkdocs)** *used to build documentation, if it is not a case - then could not be installed*
+
+`./gradlew buildJar` builds the client and the documentation as well as the server, so it needs all
+of the above. `./gradlew -p server/catgenome bootJar -Pprofile=jar` builds the server jar alone,
+reusing the client and documentation of the previous full build, and needs only the JDK.
+
+`.devenv/` holds a containerised version of this toolchain, which is how the project is built and
+tested in practice — see [.devenv/README.md](.devenv/README.md).
 
 ## General build process
 

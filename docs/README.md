@@ -6,11 +6,13 @@ NGB documentation is provided in a **Markdown** format, that could be viewed dir
 
 The following sections are currently covered in a documentation
 
+* [Release notes](md/release-notes/release-notes.md)
 * Installation guide
     * [Overview](md/installation/overview.md)
     * [Using Docker](md/installation/docker.md)
-    * [Using Binaries](md/installation/binaries.md)
     * [Using Standalone Jar](md/installation/standalone.md)
+    * [Upgrading the database](md/installation/database-upgrade.md)
+    * [Rebuilding the Lucene indexes](md/installation/lucene-reindex.md)
 * Command Line Interface guide
     * [Overview](md/cli/introduction.md)
     * [CLI Installation](md/cli/installation.md)

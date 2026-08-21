@@ -2,9 +2,11 @@
 
 Select the NGB version from the list below to see the release notes for it:
 
-- **Version** [**2.8.0**](2.8.0/2.8.0.md)
+- **Version** [**3.0.0**](3.0.0/3.0.0.md)
 
 ***
+- Version [2.8.0](2.8.0/2.8.0.md) - never released. The target identification feature it
+  describes ships in 3.0.0.
 - Version [2.7.1](2.7.1/2.7.1.md)
 - Version [2.7](2.7/2.7.md)
 - Version [2.6](2.6/v2.6.md)

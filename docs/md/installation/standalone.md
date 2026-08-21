@@ -10,7 +10,10 @@ Verify that your system meets or exceeds the following hardware/software require
     * CPU: 2 cores
     * RAM: 4Gb
     * HDD: 20 Gb free space
-    * **[Oracle JDK 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html)** or **[Open JDK 8](http://openjdk.java.net/install/)**
+    * **[Eclipse Temurin JDK 21](https://adoptium.net/temurin/releases/?version=21)**, or any other
+      Java 21 build. This is a hard requirement — the jar is compiled for Java 21 and refuses to
+      start on anything earlier with `UnsupportedClassVersionError`. 21 is what NGB is built and
+      tested against; later releases are untested.
     * GIT
 
 * Client web-browser requirements
@@ -36,6 +39,11 @@ $ ./gradlew buildJar
 
 You can find **catgenome.jar** archive in the **dist/** folder
 
+*Note:* `buildJar` builds the web client and the documentation as well as the server, so it needs
+two more toolchains besides the JDK: **Node.js 14.17.5** for the client and **mkdocs** (Python 3)
+for the documentation. If you only want to run NGB, take a prebuilt jar from one of the
+[distribution locations](overview.md#distributions) and skip to [Run JAR file](#run-jar-file).
+
 ## Run JAR file
 
 Run **catgenome.jar**
@@ -44,15 +52,59 @@ Run **catgenome.jar**
 
 ```
 # Data files will be located in the same folder as a catgenome.jar
-$ java -jar catgenome.jar
+$ java --enable-native-access=ALL-UNNAMED -jar catgenome.jar
 
 # Data files will be located in /home/user folder
 $ pwd
 /home/user
-$ java -jar NGB/dist/catgenome.jar
+$ java --enable-native-access=ALL-UNNAMED -jar NGB/dist/catgenome.jar
 ```
 
 NGB will be available at http://localhost:8080/catgenome
+
+### About `--enable-native-access=ALL-UNNAMED`
+
+NGB starts and works without that flag. What it does is suppress three warnings printed at every
+start:
+
+```
+WARNING: A restricted method in java.lang.foreign.Linker has been called
+WARNING: java.lang.foreign.Linker::downcallHandle has been called by org.apache.lucene.store.PosixNativeAccess
+```
+
+Lucene, which NGB uses for all of its search indexes, reads memory-mapped files through the
+foreign-memory API, and Java 21 warns about that unless native access is granted explicitly. The
+flag is already part of the docker image, of the shipped `bin/ngb-server` launchers and of the
+JRE-bundled archives; it only has to be typed by hand when you run `java -jar` yourself.
+
+## Running the JRE-bundled distribution
+
+`ngb-server-linux.tgz` and `ngb-server-windows.zip` contain the server, its launcher **and** an
+Eclipse Temurin 21 runtime, for a machine with no Java installed. Unpack the archive and run the
+launcher for your platform:
+
+```
+$ tar -xzf ngb-server-linux.tgz -C /opt/ngb-server
+$ cd /opt/ngb-server
+$ bin/ngb-server
+```
+
+```
+> unzip ngb-server-windows.zip -d C:\ngb-server
+> cd C:\ngb-server
+> bin\ngb-server.bat
+```
+
+The launcher uses the `jre/` directory inside the archive and ignores whatever Java may be on the
+`PATH`, and it already passes `-Xms512m -Xmx2g --enable-native-access=ALL-UNNAMED`. `NGB_SERVER_OPTS`
+is appended to that, so raising the heap takes one setting and nothing else has to be repeated:
+
+```
+$ NGB_SERVER_OPTS="-Xmx8g" bin/ngb-server
+```
+
+Everything under [Configuring NGB instance](#configuring-ngb-instance) applies unchanged: data and
+the `config/` directory are relative to the working directory the launcher is started from.
 
 ## Configuring NGB instance
 
@@ -91,6 +143,17 @@ If you want to configure default options for tracks visualization on a client si
 
 If you want to specify max number of VcfIndexEntries keeping in memory during vcf loading, add the following property. For files, which produce more entries then the number, extra entries will be spilled to disk (temp directory).
 * **files.vcf.max.entries.in.memory=1000000** - 1000000 entries take about 3Gb in the heap
+
+BLAT search sends a read's sequence to an external BLAT service and parses the PSL it returns:
+* **blat.search.url=https://genome.ucsc.edu/cgi-bin/hgBlat** the endpoint to query
+* **blat.search.type=DNA**, **blat.search.output.type=psl**, **blat.search.sort.order=query,score**
+  the query parameters sent with it
+
+> **Note**: the default points at UCSC's public `hgBlat`, and that service **does not answer
+> programmatic requests any more** — it returns a bot-protection challenge page, which NGB's PSL
+> parser reads as zero hits. This is not specific to this release. To use BLAT search, set
+> `blat.search.url` to a BLAT service that will answer it: your own `gfServer`/`hgBlat` deployment,
+> or an institutional mirror.
 
 If you want to secure NGB we provide several options:
 #### 1. JWT Authentication 
@@ -134,7 +197,7 @@ To enable generation of JWT tokens, set the following options:
 You should put **catgenome.properties** in **config** folder in the runtime folder or provide path to folder with properties file from command line:
  
 ```
-$ java -jar catgenome.jar --conf=/folder/with/properties
+$ java --enable-native-access=ALL-UNNAMED -jar catgenome.jar --conf=/folder/with/properties
 ```
  
 ### Configure Embedded Tomcat
@@ -144,9 +207,9 @@ These properties may be specified by the command line:
 
 ```
 # Run NGB on 9999 port 
-$ java -jar catgenome.jar --server.port=9999
+$ java --enable-native-access=ALL-UNNAMED -jar catgenome.jar --server.port=9999
 # Disable traffic compression
-$ java -jar catgenome.jar --server.compression.enabled=false
+$ java --enable-native-access=ALL-UNNAMED -jar catgenome.jar --server.compression.enabled=false
 ```
  
 or in **application.properties** file in **config** folder in the runtime folder:
@@ -253,7 +316,7 @@ Configuration properties can be specified either as
   ``` 
 - a JVM system property in the `java` command line, e. g. 
   ``` 
-  java -Dazure.storage.account=mystorageaccountname -jar catgenome.jar
+  java --enable-native-access=ALL-UNNAMED -Dazure.storage.account=mystorageaccountname -jar catgenome.jar
   ``` 
 - as a process environment variable for supported properties. See [Environment Credential](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet) for details.
 

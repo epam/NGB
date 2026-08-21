@@ -1,5 +1,9 @@
 # CLI installation
 
+CLI needs a **Java 17 or newer** runtime on the machine it runs on; unlike the server, it does not
+require Java 21 and does not need `--enable-native-access=ALL-UNNAMED`. It talks to the server over
+the REST API, so it does not have to run on the server host at all.
+
 There are two options to install NGB CLI, depending on NGB Server installation scenario:
 
 - NGB Docker image installation
@@ -15,19 +19,27 @@ For details on running docker image and attaching to a container - see descripti
 
 ## NGB Manual installation
 
-To manually install NGB CLI one can use the following script (**Note**: replace the value for CLI_HOME variable, if needed):
+Download `ngb-cli.tar.gz` from one of the
+[distribution locations](../installation/overview.md#distributions) and unpack it (**Note**: replace
+the values for CLI_HOME and NGB_CLI_URL, if needed):
 
 ```bash
 # Create a directory for ngb-cli
-$ CLI_HOME=/opt/catgenome
+$ CLI_HOME=/opt/ngb-cli
 
-$ mkdir $CLI_HOME && cd $CLI_HOME
+# One of the release assets at https://github.com/epam/NGB/releases, or a versioned build:
+$ NGB_CLI_URL=https://ngb-oss-builds.s3.amazonaws.com/public/builds/release/2.7.1/2.7.1.4384/ngb-cli-2.7.1.4384.tar.gz
+
+$ mkdir -p $CLI_HOME && cd $CLI_HOME
 
 # Download and unpack ngb-cli
-$ wget http://ngb.opensource.epam.com/distr/latest/ngb-cli-latest.tar.gz && \
-    tar -zxvf ngb-cli-latest.tar.gz && \
-    rm ngb-cli-latest.tar.gz
+$ wget -O ngb-cli.tar.gz "$NGB_CLI_URL" && \
+    tar -zxvf ngb-cli.tar.gz && \
+    rm ngb-cli.tar.gz
 
 # Write ngb-cli location to $PATH
 $ export PATH="$CLI_HOME/ngb-cli/bin:$PATH"
 ```
+
+There is no `latest` alias: every archive carries its version in its name. Build one from source
+with `./gradlew buildCli`, which leaves `dist/ngb-cli.tar.gz`.

@@ -5115,6 +5115,86 @@ executed. `actionlint` clean is not the same as a green run — the workflow is 
 someone pushes it, and `java_21` is in its `push` branch list so that the migration branch is what
 proves it.
 
+#### Task 4, docs: the nav was already clean; the links were not
+
+The plan's Task 4 asked for `installation/desktop.md` and `installation/binaries.md` to be removed
+from the mkdocs nav. Both files and both nav entries were already gone (Phases 1 and 7). What no one
+had noticed is that **`docs/README.md` still linked `md/installation/binaries.md`** — and that file
+is the index of the published documentation site, so the dead link was live. It is also missing the
+release notes and the two pages Phase 5 added; all four entries are fixed.
+
+**Every reference to `ngb.opensource.epam.com` in the documentation is dead**, not just the
+`/distr` one the plan mentions. The host is NXDOMAIN, so this is five separate broken things:
+
+| Where | Was | Now |
+|---|---|---|
+| `README.md` | "Latest HTML documentation" → `/distr/latest/docs` | <https://epam.github.io/NGB/> |
+| `docs/md/cli/installation.md` | `wget .../distr/latest/ngb-cli-latest.tar.gz` | a release asset or a versioned S3 URL; there is no `latest` alias and never was one on S3 |
+| `docs/md/installation/overview.md` | `/distr` as a distribution location | the S3 listing pages |
+| `docs/md/user-guide/embedding-url.md` | the host in every example URL | `localhost:8080` |
+| `docs/md/publications/dataset-prioritisation-of-sv.md` | "click a link to navigate to a public NGB instance" | `localhost:8080`, plus the one `docker run` that puts those three datasets behind those links |
+
+Two of those replacements needed checking rather than inventing:
+
+- **There is a live documentation site**: <https://epam.github.io/NGB/> is GitHub Pages serving
+  `docs/` from `master` through Jekyll (`md/**/*.html`, hence `installation/binaries.html` still
+  answers 200 — it is 2.7.1's copy). It is the released version, not `develop`, and the README says
+  so.
+- **The S3 bucket is public, browsable and laid out exactly as `publish.sh` writes it.** Verified:
+  `web/index.html` is an s3-bucket-listing app rooted at `public/`, so
+  `.../web/index.html?prefix=public/builds/release/` browses the releases; `ListBucket` is granted
+  only under `public/` (an unparameterised `GET /` is 403); and
+  `public/builds/release/2.7.1/2.7.1.4384/catgenome-2.7.1.4384.jar` is a 200. The `<branch>/<version>/`
+  layout the rewritten `publish.sh` produces is the layout already there.
+
+**`overview.md`'s OS requirements were wrong, and by how much is measurable.** It claimed CentOS and
+RedHat >= 6. The glibc symbol versions in Temurin 21's own binaries
+(`grep -ao 'GLIBC_2\.[0-9]*' libjvm.so libjava.so bin/java | sort -uV | tail`) top out at
+**`GLIBC_2.17`**, so the floor is glibc 2.17: RHEL/CentOS 7, Ubuntu 16.04. CentOS 6 ships 2.12 and
+no Java 21 will load on it at all. Ubuntu 14.04 does clear the glibc bar (2.19) but has been EOL
+since 2019, so the page says 16.04.
+
+**`NGB_SERVER_OPTS` is appended to `DEFAULT_JVM_OPTS`, not a replacement for it** — checked in the
+generated launcher rather than assumed (`printf '%s\n' "$DEFAULT_JVM_OPTS $JAVA_OPTS
+$NGB_SERVER_OPTS"`). So the documented way to raise the heap on a bundled distribution is
+`NGB_SERVER_OPTS="-Xmx8g"` and nothing else; the first draft of that section told the reader to
+repeat `-Xms512m --enable-native-access=ALL-UNNAMED`, which is unnecessary.
+
+**One anchor cannot be linked from another page.** mkdocs slugifies
+`### About \`--enable-native-access=ALL-UNNAMED\`` to `about-enable-native-accessall-unnamed`;
+GitHub's markdown renderer keeps the run of hyphens and produces
+`about---enable-native-accessall-unnamed`. The docs are read both ways, so there is no spelling of
+that fragment that works in both. `docker.md` names the section in prose and links the page.
+
+Also done here, and worth recording because it is a defect in shipped behaviour rather than prose:
+`blat.search.url` and the three query-shape properties beside it were undocumented, and
+`standalone.md` now carries them together with the reason the default cannot work (the Turnstile
+challenge from commit `02c55fe7`). The docker page documents `NGS_DATA_DIR`, which only became a
+runtime setting in this phase's commit `2d5886c4`, and the `/opt/catgenome` → `/opt/ngb` move — the
+one change in this phase that silently breaks an existing `docker run`: a volume at the old path is
+ignored and the container comes up with an empty database.
+
+**Release notes.** `docs/md/release-notes/3.0.0/3.0.0.md` is new, per decision A: platform
+requirements, the two mandatory upgrade steps, what was removed, what changed, packaging, known
+issues, and why the number is 3.0.0. 2.8.0 keeps its page, marked never released, and
+`release-notes.md` says the target-identification feature it describes ships in 3.0.0. Two claims
+were corrected before commit after checking the code: the PaLM 2 row (the *dependency* is gone; the
+`GOOGLE_MED_PALM2` provider never had a handler, so nothing that worked stopped working) and the
+SAML row (`/saml/login/ngb` appears in no metadata and no IdP registration — it is SP-internal, so
+no IdP has to be reconfigured). `/v3/api-docs/**` and `/swagger-ui/**` are in
+`SAMLSecurityConfiguration`'s permit list, so the release note's claim that the API documentation is
+reachable without authentication under SAML is true.
+
+**Verified:** `mkdocs build --strict` is clean, and every cross-page anchor this commit introduces
+was checked against the generated HTML rather than guessed.
+
+**A gap the owner should know about:** nothing publishes the JRE-bundled archives.
+`build.sh` deliberately does not build them (200 MB each), `publish.sh` publishes what is in
+`dist/`, and the `bundles` job uploads them as workflow artifacts. So `overview.md` describes them
+as "built by the release workflow and attached to its run, or from source", which is accurate and
+weak. Publishing ~400 MB per release build to a public bucket, or attaching them to the GitHub
+release, is a maintainer decision and not one this migration should take unilaterally.
+
 ---
 
 ## 4. Cross-cutting risk register

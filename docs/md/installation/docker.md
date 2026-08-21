@@ -100,8 +100,12 @@ When datasets are created - you can immediately browse NGS data.
 When any data was registered in NGB container - it will be lost once a container is removed. To avoid this, cache locations inside a container shall be exposed to the host filesystem.
 
 This can be achieved by mounting of host folders into a container, using paths that contain NGB index database (H2 dir) and files caches (contents dir):
-* /opt/catgenome/H2
-* /opt/catgenome/contents
+* /opt/ngb/H2
+* /opt/ngb/contents
+
+*Note: these were `/opt/catgenome/H2` and `/opt/catgenome/contents` up to NGB 2.7.1. The image works
+out of `/opt/ngb` from 3.0.0 on; a volume mounted at the old path will be ignored, and the container
+will quietly start with an empty database.*
 
 *Note: these options shall be specified to a `docker run` command at start time*
 
@@ -118,14 +122,55 @@ $ docker run -p 8080:8080 \
              -d \
              --name ngbcore \
              -v /ngs:/ngs \ 
-             -v /ngb-cache/H2:/opt/catgenome/H2 \
-             -v /ngb-cache/contents:/opt/catgenome/contents \
+             -v /ngb-cache/H2:/opt/ngb/H2 \
+             -v /ngb-cache/contents:/opt/ngb/contents \
              lifescience/ngb
 ```
 
 Restarting a container using this command will not cause loss of data or NGB configuration
 
--v /host/ngs:/ngs -v /host/H2:/opt/catgenome/H2 -v /host/contents:/opt/catgenome/contents
+## Configuring the container
+
+### Where the data root is
+
+`/ngs` is both the root of the `Open from NGB server` browser and the only tree from which local
+files can be registered — a path outside it is refused with *Parameter path doesn't fall into
+'ngs.data.root.path'*. Mounting data somewhere else means moving the root as well, with the
+`NGS_DATA_DIR` environment variable:
+
+```
+$ docker run -p 8080:8080 -d --name ngbcore \
+             -e NGS_DATA_DIR=/data -v /host/ngs:/data \
+             lifescience/ngb
+```
+
+The container writes `config/catgenome.properties` from that variable at every start. Mounting your
+own `/opt/ngb/config/catgenome.properties`, or the whole `/opt/ngb/config` directory, takes
+precedence and is how the rest of
+[Configuring NGB instance](standalone.md#configuring-ngb-instance) — JWT, SAML, an external
+PostgreSQL — is applied to a container.
+
+### JVM options
+
+`NGB_JAVA_OPTS` holds the JVM flags, and defaults to
+`-Xmx2G --enable-native-access=ALL-UNNAMED`. Override the whole variable to change the heap, and
+keep the flag when you do, or every start prints three warnings about restricted
+`java.lang.foreign` calls — see *About `--enable-native-access=ALL-UNNAMED`* in
+[Running NGB from standalone Jar](standalone.md).
+
+```
+$ docker run -p 8080:8080 -d --name ngbcore \
+             -e NGB_JAVA_OPTS="-Xmx8G --enable-native-access=ALL-UNNAMED" \
+             lifescience/ngb
+```
+
+### HTTPS and anything else in front of NGB
+
+The image serves plain HTTP on port 8080 and contains no web server of its own. TLS termination, a
+hostname, HTTP authentication or rate limiting belong in a separate reverse-proxy container (nginx,
+Caddy, Traefik) beside this one, or in the ingress of whatever orchestrates it. Up to 2.7.1 the
+image installed nginx but never configured or started it; the package is gone from 3.0.0 on, not the
+capability.
 
 ## Demo data description
 **ngb:latest-demo** container is built to show some basic features of NGB. It uses mostly shrinked data to minimize a container size
