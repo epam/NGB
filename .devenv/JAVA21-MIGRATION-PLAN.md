@@ -4354,6 +4354,131 @@ that, the count was checked directly: a throwaway main running ClassGraph agains
 `lib/*.jar` reports **66** annotated classes, against 66 files matching `^@Command` in the sources.
 `:server:ngb-cli:build` (compile, checkstyle, pmd, tests): green.
 
+#### Cloud verification: MinIO stands in for S3 (commit 11)
+
+The phase's exit criteria ask for "S3 and Azure track loading" by hand, and there are **no AWS or
+Azure credentials in this environment**. Nothing in the unit suite covers the gap: the only two S3
+tests, `S3ClientTest` and `S3ObjectChunkInputStreamTest`, stub the client away, so a green suite says
+nothing about whether the v2 client, the v2 pre-signer or v2's URI parsing work. So the S3 half is
+verified against **MinIO**, added to `.devenv` as a `cloud` profile:
+
+```
+make up-cloud        # MinIO + fixtures, and NGB restarted with s3:// and sws:// pointed at it
+make verify-cloud    # scripts/verify-cloud.sh
+```
+
+**This harness could not have been built before commit 1.** `sws://` was always endpoint-overridable
+(`swift.stack.endpoint.url` → `S3Client.configure`), but the plain `s3://` client had no such switch
+under SDK v1; v2 added `aws.endpointUrlS3` / `AWS_ENDPOINT_URL_S3` (present in `s3-2.54.1.jar`), and
+that is what makes `s3://` resolvable to something other than AWS without touching NGB code.
+
+Three things about the configuration are load-bearing and non-obvious:
+
+- **v2 has no setting for path-style addressing.** It is builder-only
+  (`S3Configuration.pathStyleAccessEnabled`) — no system property, no environment variable. NGB sets
+  it for the swift-stack client and not for the `s3://` one, so the `s3://` client asks for
+  `http://<bucket>.<endpoint host>/<key>`. `MINIO_DOMAIN` makes MinIO take the bucket from the `Host`
+  header, and two container network aliases make those names resolve. MinIO then serves both styles
+  at once, which is exactly what NGB needs: path-style for `sws://`, virtual-host for `s3://`.
+- **The endpoint is MinIO under an `s3.amazonaws.com` alias, not under `minio`.** `EnhancedUrlHelper`
+  decides whether to tolerate a 403 on `HEAD` by matching the host against `.*s3.*\.amazonaws\.com`,
+  and a pre-signed URL is signed for `GET` only. Under the `minio` name every pre-signed read comes
+  back as an empty file (`RuntimeEOFException: Premature EOF. Expected 4 but only received 0`). That
+  is finding 2 below, not a harness quirk.
+- **Credentials** go in `secrets/aws-credentials` (written by `make up-cloud`) with two profiles: an
+  `[sws]` one, which `S3Client` asks for by name, and a `[default]` one, which the `s3://` client
+  reaches through the default provider chain. System properties outrank `catgenome.properties`, so
+  the `swift.stack.*` settings need no `override.properties`.
+
+Two things about the REST surface, learned the hard way and both recorded in the script:
+
+- **A cloud file has to be registered with an explicit `"type":"S3","indexType":"S3"`.** The managers
+  take the resource type from the request via `translateRequestType`, which defaults to `FILE`; only
+  the non-registered path (`Utils.createNonRegisteredFile` → `getTypeFromPath`) infers it from the
+  scheme. Without it, registration fails with `FileNotFoundException: sws:/ngb-cloud/…` — one slash,
+  because that is what `new File(String)` does to a URI.
+- **The id in a register response is the format-specific id** (`bam_file.bam_id`), while `/dataitem`
+  addresses things by `bio_data_item_id`. They come from the same sequence but are not equal, and
+  `/dataitem/{wrong id}/downloadUrl` cheerfully answers *about a different file* instead of failing —
+  it reported `"type":"FILE","size":229` for a BAM registered from `s3://`. `verify-cloud.sh` looks
+  the item up by name for that reason.
+
+What `make verify-cloud` establishes, all of it against the same window (X:12,585,000–12,585,100) as
+a local read of the same file, compared byte for byte:
+
+| Path | Code it exercises | Result |
+|---|---|---|
+| registered `s3://` BAM track | `S3SeekableStream` → `S3ObjectChunkInputStream` → ranged `GetObject`, virtual-host | 416 reads, **identical to disk** |
+| registered `sws://` BAM track | the same, path-style, through the `[sws]` profile | 416 reads, **identical to disk** |
+| `GET /dataitem/{id}/downloadUrl`, `s3://` | `S3Presigner` (was `AmazonS3.generatePresignedUrl`) | `http://ngb-cloud.s3.amazonaws.com:9000/tracks/…` — `GET` **200, 4 129 556 bytes** (the exact object size), `HEAD` **403** |
+| the same, `sws://` | the swift-stack presigner, path-style | `http://s3.amazonaws.com:9000/ngb-cloud/tracks/…` — same 200/403 |
+| `fileUrl=s3://` BAM, and VCF | `Utils.processUrl` → `S3Manager.generateSignedUrl` → `EnhancedUrlHelper` → `UrlSeekableStream` | 416 reads / 115 variations, **identical to disk** |
+| `fileUrl=sws://` BAM, and VCF | the same | 416 reads / 115 variations, **identical to disk** |
+
+So: v2's pre-signed URLs are indistinguishable from v1's from the reader's point of view — `GET` 200,
+`HEAD` 403, ranged `GET` 206 — both presigners honour the endpoint override, and both addressing
+styles work. That is the Phase 7 pre-signed-URL read path (`IOHelper.getContentLength`'s `GET` probe
+and the 403 tolerance) exercised against a real object store rather than a staged 403.
+
+**Azure is not covered, and cannot be here without a code change.** `AzureBlobClient` builds its
+endpoint as `String.format("https://%s.blob.core.windows.net", account)` with no override, so Azurite
+— which listens on `http://127.0.0.1:10000/<account>` — cannot be pointed at. Adding an override
+would be a product change in the middle of a dependency phase, so it was not done. Commit 5 covers
+what can be covered offline (client construction through all three credential shapes, and the SAS
+URL, byte-compared across versions); `exists` / `getProperties` / `openInputStream` and therefore
+`az://` track loading remain **unverified**. Likewise the **LLM completion round trip** (commit 6):
+no keys, and every path needs a live one.
+
+##### Finding 1: a bgzip'd feature file cannot be registered from `s3://`, `sws://` or `az://`
+
+Pre-existing, and the cause of the narrowing Phase 7 documented. `POST /vcf/register` with
+`path=sws://…/CantonS.vcf.gz` fails with `invalid uncompressedLength: -1`:
+
+```java
+// FeatureInputStream, untouched since a9d1d8dc (2021)
+protected static final int EOF_BYTE = -1;
+protected int getNextByte() {
+    return currentDataChunck[chunckIndex++] & INVERSE_MASK;   // -1 & 0xff == 255
+}
+```
+
+Both cloud chunk streams signal end-of-object by handing that method a one-byte buffer containing
+`EOF_BYTE` (`S3ObjectChunkInputStream.getNewBuffer`, `AzureBlobInputStream.getNewBuffer`), and the
+`& 0xff` turns it into `255`. So past the last byte these streams return `0xFF` for ever instead of
+`-1`, and the full-file scan that registration performs (`VcfManager.readMetaMap` iterates to
+exhaustion) runs off the end into a BGZF block header of `0xFF`s.
+
+It is not a Phase 7 or Phase 8 regression: the file predates both, the pre-Phase-7 forked
+`FeatureSeekableStream` delegated `read()` identically, and htsjdk 2.2.4 contains the same
+`"BGZF file has invalid uncompressedLength:"` message. `UrlSeekableStream` is unaffected because it
+serves from a real `InputStream`, which is why the `fileUrl=` rows in the table above read the same
+VCF successfully. A BAM registers fine either way — BAM registration seeks by index and never reads
+to EOF.
+
+**The fix is small** — make the sentinel an empty buffer and have `read()` return `EOF_BYTE` when a
+refill produces nothing, instead of encoding `-1` in a byte — but it is a change to the cloud read
+path proper, not a dependency bump, and it needs a test that reads an object to its exact end.
+**Recommended for Phase 9**, with `S3ObjectChunkInputStreamTest` extended to cover the last chunk.
+
+##### Finding 2: the 403 tolerance is keyed to `*.amazonaws.com`, so S3-compatible stores lose it
+
+`EnhancedUrlHelper` gates both the 403 tolerance and the routing to `UrlSeekableStream` on
+
+```java
+private static final Pattern S3_PATTERN = Pattern.compile(".*s3.*\\.amazonaws\\.com");
+```
+
+matched against `url.getHost()`. Pre-signed URLs are signed for one method, so `HEAD` on them is
+refused — and every read that goes through a pre-signed URL therefore needs that tolerance. Against
+MinIO under its own name the content length comes back `-1` and the file reads as empty; the same is
+true of any SwiftStack, Ceph or MinIO deployment, i.e. of exactly the `sws://` scheme NGB has a
+dedicated client for. It only works today because production S3 satisfies the regex.
+
+The harness works around it by giving MinIO an `s3.amazonaws.com` alias, which is honest for a test
+but is not a fix. The fix is to decide 403-tolerance from *how the URL was produced* (NGB pre-signed
+it, so it knows) rather than from its hostname. **Recommended for Phase 9**; out of scope here
+because it is a behaviour change to the remote read path.
+
 ---
 
 ### Phase 9 — Packaging, CI, docs, release
@@ -4492,8 +4617,10 @@ make up               # run on H2
 NGB_JAVA_VERSION=21 make up
 make up-pg            # run on PostgreSQL
 make up-saml          # Keycloak + NGB over HTTPS
+make up-cloud         # MinIO + NGB with s3:// and sws:// pointed at it
 make smoke            # is it answering?
 make smoke-saml       # browser-less end-to-end SSO login
+make verify-cloud     # read tracks over s3:// and sws://, diffed against a local read
 make logs
 
 make reset-ngb-data   # wipe H2 db + contents/index volumes

@@ -5,6 +5,7 @@
 #   saml       + idp (Keycloak) + idp-metadata
 #   pg         + postgres + ngb-pg + test-pg
 #   cli        + ngb-cli container
+#   cloud      + minio + minio-init          -> S3/SWS without AWS credentials
 #
 # Ports are deliberately identical inside and outside the containers, because SAML
 # compares URLs byte-for-byte between the browser and the service provider.
@@ -192,6 +193,90 @@ services:
       - "test"
       - "-Pdatabase=postgres"
 
+  # ------------------------------------------------------------------- minio --
+  # An S3-compatible object store, so that NGB's s3:// and sws:// read paths can be exercised
+  # on a machine with no AWS account. Added in migration Phase 8, which moved the AWS SDK from
+  # v1 to v2: `sws://` was already endpoint-overridable (swift.stack.endpoint.url), and v2 added
+  # AWS_ENDPOINT_URL_S3 / -Daws.endpointUrlS3 for the plain `s3://` client. See `make up-cloud`.
+  #
+  # MINIO_DOMAIN is the load-bearing setting here. SDK v2 has no system property or environment
+  # variable for forcing path-style addressing - only S3Configuration.pathStyleAccessEnabled in
+  # code, which NGB sets for the swift-stack client and not for the S3 one - so the s3:// client
+  # asks for http://<bucket>.<endpoint host>. MINIO_DOMAIN makes MinIO read the bucket out of the
+  # Host header, and the aliases below make those hosts resolve. Both addressing styles are then
+  # served at once, which is what NGB needs: path-style for sws://, virtual-host for s3://.
+  #
+  # It answers to s3.amazonaws.com as well, and `make up-cloud` points NGB at that name rather than
+  # at `minio`, because one NGB code path keys off the hostname: EnhancedUrlHelper decides whether
+  # to tolerate a 403 on HEAD by matching the host against `.*s3.*\.amazonaws\.com`, and a
+  # pre-signed URL is signed for GET only. Under the `minio` name the pre-signed read path is not
+  # 403-tolerant and reads the object as empty; under this one it behaves as it does against AWS.
+  # (verify-tracks.sh hijacks the same name for its staged-403 probe, for the same reason.)
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    container_name: ngb-minio
+    profiles: [cloud]
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-ngbminio}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-ngbminio-secret}
+      MINIO_DOMAIN: minio,s3.amazonaws.com
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks:
+      ngb:
+        aliases:
+          - minio
+          - s3.amazonaws.com
+          # Quoted and on their own lines: `${...}` inside a YAML flow sequence reads as the start
+          # of a flow mapping and the file stops parsing.
+          - "${MINIO_BUCKET:-ngb-cloud}.minio"
+          - "${MINIO_BUCKET:-ngb-cloud}.s3.amazonaws.com"
+
+  # -------------------------------------------------------------- minio-init --
+  # One-shot: create the bucket and upload the fixtures the cloud checks read. Only the four
+  # files verify-cloud.sh compares against a local read are copied, not the whole of /ngs -
+  # this is a fixture loader, not a backup. Idempotent (`mb --ignore-existing`, `cp` overwrites).
+  minio-init:
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    container_name: ngb-minio-init
+    profiles: [cloud]
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_USER: ${MINIO_USER:-ngbminio}
+      MINIO_PASSWORD: ${MINIO_PASSWORD:-ngbminio-secret}
+      MINIO_BUCKET: ${MINIO_BUCKET:-ngb-cloud}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        mc alias set ngb "http://minio:9000" "$$MINIO_USER" "$$MINIO_PASSWORD" > /dev/null
+        mc mb --ignore-existing "ngb/$$MINIO_BUCKET"
+        for f in CantonS.vcf.gz CantonS.vcf.gz.tbi \
+                 agnX1.09-28.trim.dm606.realign.bam agnX1.09-28.trim.dm606.realign.bam.bai; do
+          if [ -f "/ngs/tracks/$$f" ]; then
+            mc cp "/ngs/tracks/$$f" "ngb/$$MINIO_BUCKET/tracks/$$f"
+          else
+            echo "missing /ngs/tracks/$$f - run scripts/prepare-track-fixtures.sh first" >&2
+            exit 1
+          fi
+        done
+        mc ls -r "ngb/$$MINIO_BUCKET"
+    volumes:
+      - ./data/ngs:/ngs:ro
+    networks: [ngb]
+
   # --------------------------------------------------------------------- idp --
   # Keycloak as SAML 2.0 IdP. KC_HTTP_PORT matches the published port so the SAML
   # URLs are identical from the browser and from inside the network.
@@ -291,3 +376,4 @@ volumes:
   ngb-h2-db:
   ngb-pg-contents:
   pg-data:
+  minio-data:

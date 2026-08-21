@@ -46,6 +46,8 @@ Three facts about the current codebase drive the whole design:
 | `idp` | `saml` | Keycloak 26 as SAML 2.0 IdP, realm `ngb` preloaded | `:8081` |
 | `idp-metadata` | `saml` | One-shot: pulls the IdP descriptor into `secrets/` | — |
 | `cli` | `cli` | `ngb-cli` wired to the running server | — |
+| `minio` | `cloud` | S3-compatible object store, so `s3://` and `sws://` work without an AWS account | `:9000` api, `:9001` console |
+| `minio-init` | `cloud` | One-shot: creates the bucket and uploads the track fixtures | — |
 
 Host entries (`make hosts` prints this):
 
@@ -213,6 +215,39 @@ docker-compose exec \
 
 That round trip is the check for the JWT half of the security stack (`make cli-test` cannot be: its
 fixtures were hosted on `ngb.opensource.epam.com`, which no longer resolves).
+
+**Cloud storage: reading tracks over `s3://` and `sws://`**
+
+There are no AWS credentials here, so MinIO stands in for S3. It needs no NGB code change — the AWS
+SDK v2 takes an endpoint override from a system property, which v1 could not:
+
+```bash
+scripts/prepare-track-fixtures.sh   # once: stages the BAM and VCF minio-init uploads
+make up-cloud                       # MinIO + bucket + fixtures, NGB restarted pointed at it
+make verify-cloud                   # reads tracks out of it and diffs against a local read
+```
+
+`make verify-cloud` covers registered `s3://` and `sws://` files (ranged `GetObject` through
+`S3SeekableStream`), `/dataitem/{id}/downloadUrl` (the pre-signer, checked for `GET` 200 and
+`HEAD` 403 — a pre-signed URL is signed for one method, and NGB's remote reader depends on
+tolerating that 403), and the non-registered `fileUrl=s3://…` path that pre-signs and reads over
+https. Every read is compared byte for byte with the same window read from disk.
+
+Three things worth knowing before you extend it:
+
+- **Register with `"type":"S3","indexType":"S3"`.** The scheme in the path is not enough for a
+  registration request; without the type NGB opens the path as a local file.
+- **The endpoint is `http://s3.amazonaws.com:9000`**, i.e. MinIO under a network alias that looks
+  like AWS. NGB decides whether to tolerate the 403 on `HEAD` by matching the hostname against
+  `.*s3.*\.amazonaws\.com`, so under the plain `minio` name every pre-signed read returns an empty
+  file. See "Finding 2" in the plan document.
+- **Registering a bgzip'd feature file (VCF/BED/GFF) from a cloud path fails**, with
+  `invalid uncompressedLength: -1`. That is a pre-existing defect in `FeatureInputStream`, not a
+  MinIO artifact; `verify-cloud.sh` asserts it still fails in exactly that way rather than skipping
+  it. See "Finding 1" in the plan document.
+
+Azure has no equivalent: `AzureBlobClient` hard-codes `https://<account>.blob.core.windows.net`, so
+Azurite cannot be pointed at without changing NGB code, and `az://` is unverified.
 
 ## Auth modes
 

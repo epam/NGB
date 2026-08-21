@@ -26,6 +26,13 @@ SERVER     := -p server/catgenome
 # localhost. Matches NGB_BASE_URL in scripts/saml-login-test.py.
 NGB_SAML_URL := https://ngb.dev.local:8443/catgenome
 
+# MinIO stands in for S3 so that the s3:// and sws:// read paths can be verified on a machine
+# with no AWS account (migration Phase 8). Exported because docker-compose.yml substitutes them.
+# The root credentials are dev-only; override them in .env if you care.
+export MINIO_USER     ?= ngbminio
+export MINIO_PASSWORD ?= ngbminio-secret
+export MINIO_BUCKET   ?= ngb-cloud
+
 .PHONY: help
 help: ## Show this help
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -158,6 +165,45 @@ up-pg: certs ## Run NGB on PostgreSQL (http://ngb-pg.dev.local:8090/catgenome)
 	$(COMPOSE) --profile pg up -d postgres ngb-pg
 	@echo "==> http://ngb-pg.dev.local:8090/catgenome"
 
+.PHONY: cloud
+cloud: ## Start MinIO and upload the track fixtures the cloud checks read
+	$(COMPOSE) --profile cloud up -d minio
+	$(COMPOSE) --profile cloud run --rm minio-init
+	@echo "==> MinIO API http://localhost:9000, console http://localhost:9001 ($(MINIO_USER))"
+	@echo "==> bucket    $(MINIO_BUCKET)"
+
+# Everything NGB needs in order to reach MinIO instead of AWS goes in on the command line:
+#   swift.stack.*  Spring properties, read by Application into S3Client.configure. System
+#                  properties outrank catgenome.properties, so no override.properties is involved.
+#   aws.*          AWS SDK v2 settings. endpointUrlS3 is v2-only - v1 had no such switch, which is
+#                  why this target could not have existed before migration Phase 8 - and
+#                  sharedCredentialsFile points at the file written below, which carries both the
+#                  [default] profile the s3:// client resolves through the default provider chain
+#                  and the [sws] one S3Client asks for by name.
+#
+# The endpoint is MinIO under its s3.amazonaws.com alias, not under `minio`: see the note on the
+# service in docker-compose.yml. Anything that reads through a pre-signed URL needs the host to
+# look like S3's, because that is how EnhancedUrlHelper decides to tolerate a 403 on HEAD.
+MINIO_ENDPOINT  := http://s3.amazonaws.com:9000
+MINIO_JAVA_OPTS := -Dswift.stack.endpoint.url=$(MINIO_ENDPOINT) \
+                   -Dswift.stack.region=us-east-1 \
+                   -Dswift.stack.path.style.access=true \
+                   -Daws.region=us-east-1 \
+                   -Daws.endpointUrlS3=$(MINIO_ENDPOINT) \
+                   -Daws.sharedCredentialsFile=/secrets/aws-credentials
+
+.PHONY: up-cloud
+up-cloud: certs cloud ## Run NGB with s3:// and sws:// pointed at MinIO
+	@printf '# Written by .devenv/Makefile (make up-cloud). MinIO root credentials, dev only.\n[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n\n[sws]\naws_access_key_id = %s\naws_secret_access_key = %s\n' \
+		"$(MINIO_USER)" "$(MINIO_PASSWORD)" "$(MINIO_USER)" "$(MINIO_PASSWORD)" > secrets/aws-credentials
+	@echo "wrote secrets/aws-credentials ([default] and [sws])"
+	JAVA_EXTRA_OPTS="$(MINIO_JAVA_OPTS)" $(COMPOSE) up -d builder ngb-h2
+	@echo "==> http://ngb.dev.local:8080/catgenome, s3:// and sws:// -> MinIO"
+
+.PHONY: verify-cloud
+verify-cloud: ## Read tracks over s3:// and sws:// from MinIO and compare with a local read
+	bash scripts/verify-cloud.sh
+
 .PHONY: cli
 cli: ## Shell with ngb-cli configured against the running server
 	$(COMPOSE) --profile cli up -d cli
@@ -173,11 +219,11 @@ logs: ## Follow NGB logs
 
 .PHONY: logs-all
 logs-all: ## Follow all service logs
-	$(COMPOSE) --profile saml --profile pg logs -f
+	$(COMPOSE) --profile saml --profile pg --profile cloud logs -f
 
 .PHONY: ps
 ps: ## Show container status
-	$(COMPOSE) --profile saml --profile pg --profile cli ps
+	$(COMPOSE) --profile saml --profile pg --profile cli --profile cloud ps
 
 .PHONY: smoke
 smoke: ## Check that the H2 instance answers
@@ -237,15 +283,15 @@ probe-java21: builder ## Show what breaks today under JDK 21 (expected to fail)
 
 .PHONY: stop
 stop: ## Stop containers, keep data
-	$(COMPOSE) --profile saml --profile pg --profile cli stop
+	$(COMPOSE) --profile saml --profile pg --profile cli --profile cloud stop
 
 .PHONY: down
 down: ## Remove containers, keep volumes
-	$(COMPOSE) --profile saml --profile pg --profile cli down
+	$(COMPOSE) --profile saml --profile pg --profile cli --profile cloud down
 
 .PHONY: reset
 reset: ## Remove containers AND all volumes (DB, caches, indexes)
-	$(COMPOSE) --profile saml --profile pg --profile cli down -v
+	$(COMPOSE) --profile saml --profile pg --profile cli --profile cloud down -v
 
 .PHONY: reset-pg
 reset-pg: ## Wipe only the PostgreSQL volume (needed when changing PG_VERSION)
