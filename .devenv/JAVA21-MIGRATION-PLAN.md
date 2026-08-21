@@ -4997,6 +4997,124 @@ Worth knowing for the CI task: **`build.sh` has never built either bundle**, and
 uploads whatever is already in `dist/`. These tasks have been orphaned since they were written, which
 is how they got to be this broken.
 
+#### Two of the four baseline failures were not live-data failures at all
+
+`BlatSearchManagerTest.testFind` and `testFindBlatReadSequence` are recorded in `TEST-BASELINE.md`
+as live-data failures, on the evidence that they fail with
+`ExternalDbUnavailableException: Unexpected HTTP status: 302 Found` from UCSC. They were meant to be
+offline: the class ships `blat/data/testResponse.html`, builds `EXPECTED` from it by hand, and stubs
+`HttpDataManager.fetchData` in `@Before`. The stub never reached the bean.
+
+spring-boot-test's `MockitoTestExecutionListener` creates `@Mock` fields at listener order 1950;
+`DependencyInjectionTestExecutionListener` fills `@Autowired` fields at 2000. So at the moment
+`@InjectMocks` ran, `blatSearchManager` was still null — Mockito constructed its own
+`BlatSearchManager` to inject the mock into, and DI then overwrote the field with the Spring bean,
+which still held the real `HttpDataManager`. Both tests have been calling UCSC over the network
+since 2017; they passed for as long as UCSC answered. `VcfManagerTest` hit the same listener
+ordering in Phase 5 and its `@Before` already calls `MockitoAnnotations.openMocks(this)` for exactly
+this reason; one such call here makes both tests deterministic and offline. **Fixed at the cause,
+not excluded** — the baseline is now 1–2 failures, both genuinely live-network
+(`GffManagerTest.testLoadGenesTranscript`, `PdbDataManagerTest.testParse`).
+
+`GffManagerTest.testLoadGenesTranscript` was checked for the same defect and does not have it: it
+calls `openMocks` itself and stubs three responses, but `loadGenesTranscript` reaches Ensembl and
+UniProt through other beans that hold their own `HttpDataManager`, so the stub covers only part of
+the call chain. Left as the baseline has it — a documented live-data failure, and one of the two the
+CI workflow excludes by name.
+
+**And the URL was wrong in a way the baseline's suggested fix would not have fixed.**
+`blat.search.url` was `http://genome.cse.ucsc.edu/cgi-bin/hgBlat` in seven property files, and the
+baseline's note says "until `blat.search.url` is changed to `https`". Changing only the scheme fails:
+the certificate `genome.cse.ucsc.edu:443` serves has `CN=*.cells.ucsc.edu` and eighteen SANs
+including `genome.ucsc.edu` and `www.genome.ucsc.edu` but **not** `genome.cse.ucsc.edu`, so the
+handshake is rejected — verified with `openssl s_client` from a clean container, in case this host's
+network was the problem. The default is now `https://genome.ucsc.edu/cgi-bin/hgBlat`.
+
+That fixes the address, not the feature. UCSC now answers a programmatic `hgBlat` query with a
+Cloudflare Turnstile challenge page — *"The Genome Browser is protecting itself from bots… To make
+programmatic queries, see our FAQ: https://genome.ucsc.edu/FAQ/FAQdownloads.html#CAPTCHA"* — which
+`PSLRecordParser` reads as zero hits. So **BLAT search does not work against UCSC's public endpoint
+from any NGB version**, and no default URL can change that; it needs `blat.search.url` pointed at a
+BLAT service that will answer. Documented in the release notes and in
+`docs/md/installation/standalone.md` rather than left as a silent empty result.
+
+#### Task 3, CI: AppVeyor was not running the tests, and could not have been
+
+The task text assumed `.github/` was empty. It is not — `ISSUE_TEMPLATE/` and
+`PULL_REQUEST_TEMPLATE.md` are there and `workflows/` is not, so `build.yml` is new and what it has
+to reproduce is `.appveyor.yml` plus the two scripts it called, `build.sh` and `publish.sh`.
+
+**AppVeyor never ran a test.** `build.sh` builds with `-PnoTest`, the config says `test: off`, and
+the next line is `./gradlew jacocoTestReport` — a report over a build that executed nothing, so
+every coverage upload was of an empty report, pushed through the codecov bash uploader that has
+since been sunset. The 534 server tests had no CI at all, and neither did the CLI's, which nothing
+in the repository ran: `-p server/ngb-cli test` is **135 tests, 0 failures, 0 skipped**, measured
+here for the first time. Both suites are now jobs, and the coverage report is generated after the
+tests that produce its execution data rather than before.
+
+Three things had to be got right for a hosted runner rather than a container:
+
+- **Toolchains.** `gradle.properties` sets `auto-download=false`, and Gradle's scan locations do not
+  include GitHub's hosted tool cache, so the JDKs `setup-java` installs have to be named through
+  `org.gradle.java.installations.fromEnv=JAVA_HOME_21_X64,JAVA_HOME_17_X64`. That line has to go in
+  `$HOME/.gradle/gradle.properties`, not the repository's: the root `buildJar` and `buildCli` are
+  nested `GradleBuild` invocations of the module directories, and a nested build does not read the
+  root project's `gradle.properties`. Only `GRADLE_USER_HOME` reaches every build in the job.
+  Factored into a composite action, `.github/actions/setup-jdks`, so there is one copy of it.
+- **The two live-network tests.** `-PexcludeNetworkTests` (a `filter` on the `test` task) drops
+  `GffManagerTest.testLoadGenesTranscript` and `PdbDataManagerTest.testParse` by name and nothing
+  else, so that a red run means a regression. It is the documented-exclusion branch of the "never
+  re-baseline" rule, not a re-baselining: both tests are recorded failures with a known cause, the
+  local `make test` still runs them, and the two BLAT tests that used to be in that list were fixed
+  at the cause instead (previous section). Measured with the flag, on H2: **543 tests, 0 failures,
+  0 errors, 21 skipped, BUILD SUCCESSFUL** — 543 because Phases 8 and 9 added 11 tests to the 534
+  and this run leaves 2 out.
+- **Node 14.** D12 freezes the client, so the workflow pins `node-version: 14.17.5` exactly as
+  `.devenv/toolbox/Dockerfile` does, and the `build` job pins `runs-on: ubuntu-22.04` — the newest
+  runner image that matches the toolbox's `eclipse-temurin:21-jdk-jammy`. Every other job is on
+  `ubuntu-latest`. When 22.04 is retired the fix is the client toolchain, not that line.
+
+`build.sh` and `publish.sh` no longer read `APPVEYOR_*`. They take `BRANCH_NAME`, `BUILD_NUMBER` and
+`COMMIT_SHA`, each falling back to git, so both run by hand; `publish.sh` also takes
+`S3_BUILDS_URI`, `DOCKER_NAMESPACE` (AppVeyor's `DOCKER_USER` doubled as the Docker Hub namespace —
+default `lifescience`, which is where the published image lives) and `NGB_PUBLISH_DRY_RUN=1`, which
+prints the `aws` and `docker` commands instead of running them. That is how the publish path was
+exercised without credentials; both scripts were also run end to end against a stub `gradlew` that
+produces the five artifact names, which is what confirmed the versioned filenames
+(`catgenome-3.0.0.42.jar`, …) and the `s3://…/builds/release/3.0/3.0.0.42/` prefix. Both are
+shellcheck-clean. AWS credentials come from OIDC (`id-token: write` plus a role ARN) rather than the
+long-lived access key pair AppVeyor held in its project settings.
+
+Two deliberate consequences of moving CI:
+
+- **The build counter restarts.** AppVeyor's version was `2.8.0.{build}`; this is
+  `3.0.0.${{ github.run_number }}`, starting from a low number again. Artifact names stay unique
+  because the major version changed with it.
+- **The docker image is built by the workflow, not by `build.sh`.** `buildDocker` depends on
+  `buildJar`, which is a nested `clean build`, so letting `build.sh` build the image on a release
+  branch would rebuild the whole server a third time. The `build` job instead copies the jar and the
+  CLI tarball into `docker/core` and runs `docker build` itself — the same three commands — and then
+  starts the image and asserts on `/restapi/version` **and** on the absence of `restricted method`
+  lines in the log, because a container that lost `--enable-native-access=ALL-UNNAMED` still works
+  and only the startup output shows it. The `publish` job rebuilds the image from the downloaded
+  artifact rather than carrying ~700 MB of `docker save` between jobs. The demo image is not built
+  in CI: 3.4 GB of downloads.
+
+The `bundles` job runs on release branches and `workflow_dispatch` only, and does not rebuild the
+jar: it drops the `build` job's artifact into `build/libs/` and runs `bundleLinux bundleWindows -x
+bootJar`, so the bundled jar and the published one are the same file. It starts the Linux archive in
+a `ubuntu:22.04` container with no JDK — the only honest test of an archive whose reason to exist is
+a machine without Java — and checks the Windows one by listing it (`jre/bin/java.exe`,
+`lib/catgenome.jar`, `bin/ngb-server.bat`, and *no* POSIX launcher).
+
+**What could not be verified: that any of this is green on GitHub.** That needs a push to a
+repository with Actions enabled, and this environment has none. What was run instead: `actionlint`
+(which also shellchecks every `run:` block) reports no findings; the workflow's test, lint, build
+and bundle commands are the ones already run locally in the containers; the two scripts were
+executed. `actionlint` clean is not the same as a green run — the workflow is unproven until
+someone pushes it, and `java_21` is in its `push` branch list so that the migration branch is what
+proves it.
+
 ---
 
 ## 4. Cross-cutting risk register

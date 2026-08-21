@@ -1,0 +1,38 @@
+name: Set up the JDKs the build needs
+description: >
+  Installs Temurin 21 and 17 and tells Gradle's toolchain resolver where to find them.
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        # 21 is listed last so that JAVA_HOME - and with it the Gradle daemon itself - is 21.
+        # 17 is here for server/ngb-cli, which declares a 17 toolchain: nothing documents a Java
+        # floor for the CLI, and 17 bytecode runs on 21, so it was left where it was rather than
+        # moved for the sake of tidiness.
+        java-version: |
+          17
+          21
+        cache: gradle
+
+    - name: Point Gradle's toolchain resolver at them
+      shell: bash
+      # gradle.properties in the repo root sets org.gradle.java.installations.auto-download=false
+      # on purpose: a build uses the JDKs its environment provides, and does not silently fetch
+      # one. Gradle then looks for toolchains in a fixed set of places, and GitHub's hosted tool
+      # cache (/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/...) is not one of them, so the two
+      # setup-java just installed have to be named explicitly or the build fails with "No matching
+      # toolchains found".
+      #
+      # This goes in GRADLE_USER_HOME rather than the repo's own gradle.properties because the root
+      # project's buildJar and buildCli are nested GradleBuild invocations of the module
+      # directories: they start a fresh build that never reads the root project's properties. The
+      # user-home file applies to every build in the job, nested ones included.
+      run: |
+        mkdir -p "$HOME/.gradle"
+        echo "org.gradle.java.installations.fromEnv=JAVA_HOME_21_X64,JAVA_HOME_17_X64" \
+            >> "$HOME/.gradle/gradle.properties"
+        echo "--- $HOME/.gradle/gradle.properties"
+        cat "$HOME/.gradle/gradle.properties"

@@ -59,6 +59,24 @@ test {
     // reflects on nothing. The same four went out of JAVA_REQUIRED_OPTS in
     // .devenv/ngb/entrypoint.sh at the same time.
     jvmArgs = ["-XX:MaxDirectMemorySize=7937m"]
+
+    // -PexcludeNetworkTests drops the only two tests in the suite that reach the public internet,
+    // and nothing else. They are the two long-standing baseline failures recorded in
+    // .devenv/TEST-BASELINE.md: GffManagerTest.testLoadGenesTranscript fetches a GTF from Ensembl
+    // over FTP-turned-HTTP, PdbDataManagerTest.testParse queries RCSB and flaps with its uptime.
+    // CI (.github/workflows/build.yml) passes the flag so that a red run means a real regression;
+    // a local `make test` does not, so the two stay visible to whoever is working here.
+    //
+    // Deliberately NOT excluded: BlatSearchManagerTest. It used to call UCSC too, but that was a
+    // defect in the test - see "Two of the four baseline failures were not live-data failures at
+    // all" in .devenv/JAVA21-MIGRATION-PLAN.md. It runs against its own fixture now, and if the
+    // mock is ever unwired again CI is exactly where that should surface.
+    if (project.hasProperty("excludeNetworkTests")) {
+        filter {
+            excludeTestsMatching "com.epam.catgenome.manager.GffManagerTest.testLoadGenesTranscript"
+            excludeTestsMatching "com.epam.catgenome.manager.externaldb.PdbDataManagerTest.testParse"
+        }
+    }
 }
 
 // >>>>> defines external project properties, e.g. external dependencies versions

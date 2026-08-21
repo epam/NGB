@@ -1,0 +1,352 @@
+# NGB's build.
+#
+# This replaces .appveyor.yml, per decision D7 of the Java 21 migration
+# (.devenv/JAVA21-MIGRATION-PLAN.md). AppVeyor built on `image: Previous Ubuntu1604` with
+# `stack: jdk 8, python 3.9, node 14`; the server module has declared a Java 21 toolchain since
+# Phase 3 and Gradle is 8.14.5, so that image could not build this tree at all.
+#
+# It also does something AppVeyor never did: run the tests. AppVeyor built with -PnoTest, set
+# `test: off`, and then ran `gradlew jacocoTestReport` over a build that had executed no test, so
+# every coverage upload was of an empty report. The 534 server tests and 135 CLI tests had no CI.
+#
+# Jobs, and the local equivalent of each (.devenv/README.md):
+#   lint      make lint      checkstyle + pmd
+#   test-h2   make test      the server suite on H2, plus the CLI's own unit tests
+#   test-pg   make test-pg   the same server suite on PostgreSQL 16
+#   build     make jar       the five artifacts a release publishes, then the docker image
+#   bundles   -              the two JRE-bundled archives; release branches and manual runs only
+#   publish   -              dist/ to S3, and the image to Docker Hub on release/*
+#
+# Repository secrets. Nothing up to and including `bundles` needs any; `publish` is skipped unless
+# AWS_PUBLISH_ROLE_ARN is set, so a fork builds and tests without configuring anything.
+#   AWS_PUBLISH_ROLE_ARN  an IAM role whose trust policy names GitHub's OIDC provider and this
+#                         repository, permitted to write s3://ngb-oss-builds/public/builds/.
+#                         AppVeyor kept a long-lived access key pair in its project settings; the
+#                         `id-token: write` permission on the publish job replaces it.
+#   DOCKERHUB_USERNAME
+#   DOCKERHUB_TOKEN       Docker Hub push credentials - an access token, not the account password.
+#                         AppVeyor's were DOCKER_USER and DOCKER_PSWD, and DOCKER_USER doubled as
+#                         the image namespace, which publish.sh now takes as DOCKER_NAMESPACE.
+#   CODECOV_TOKEN         optional. Without it the upload step is skipped and the coverage report is
+#                         only archived on the run.
+
+name: build
+
+on:
+  push:
+    # `java_21` is here for the duration of the Java 21 migration, so that the branch doing the
+    # migration is the first thing this workflow is run against. Remove it when that branch merges.
+    branches: [develop, 'release/**', java_21]
+  pull_request:
+    branches: [develop, 'release/**']
+  workflow_dispatch:
+
+# One build per branch. Superseding a push on a pull request is free; on develop and release
+# branches every commit is a candidate for publication, so they queue instead.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  # The tests are noisy and the interesting part is the failure summary, not the progress output.
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+jobs:
+  lint:
+    name: lint (checkstyle + pmd)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-jdks
+      # Exactly what `make lint` runs, on both modules. checkstyleTest/pmdTest are deliberately not
+      # here: neither module has ever had the test sources linted and both are full of violations
+      # that are nobody's current problem. Main is clean - 0 errors, 37 warnings in 14 files - and
+      # the warnings are counted in .devenv/TEST-BASELINE.md so that a rise is visible.
+      - run: ./gradlew -p server/catgenome checkstyleMain pmdMain
+      - run: ./gradlew -p server/ngb-cli checkstyleMain pmdMain
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: lint-reports
+          path: |
+            server/catgenome/build/reports/checkstyle
+            server/catgenome/build/reports/pmd
+            server/ngb-cli/build/reports/checkstyle
+            server/ngb-cli/build/reports/pmd
+          retention-days: 7
+
+  test-h2:
+    name: test (H2)
+    runs-on: ubuntu-latest
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-jdks
+      # -PexcludeNetworkTests drops GffManagerTest.testLoadGenesTranscript (fetches a GTF from
+      # Ensembl) and PdbDataManagerTest.testParse (queries RCSB, and flaps with its uptime). They
+      # are the two documented baseline failures; see the comment on the `test` task in
+      # server/catgenome/build.gradle and .devenv/TEST-BASELINE.md. Everything else runs.
+      #
+      # The one precondition a local run has to arrange - an empty contents/ directory, because a
+      # stale Lucene index from an earlier run fails several tests - a fresh checkout gives free.
+      - name: Server unit tests
+        run: ./gradlew -p server/catgenome test -Pdatabase=h2 -PexcludeNetworkTests
+      - name: CLI unit tests
+        run: ./gradlew -p server/ngb-cli test
+      - name: Coverage report
+        if: ${{ !cancelled() }}
+        run: ./gradlew -p server/catgenome jacocoTestReport -Pdatabase=h2
+      - name: Upload coverage
+        if: ${{ !cancelled() && env.CODECOV_TOKEN != '' }}
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: server/catgenome/build/reports/jacoco/test/jacocoTestReport.xml
+          fail_ci_if_error: false
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: test-reports-h2
+          path: |
+            server/catgenome/build/reports/tests
+            server/catgenome/build/reports/jacoco
+            server/ngb-cli/build/reports/tests
+          retention-days: 7
+
+  test-pg:
+    name: test (PostgreSQL 16)
+    runs-on: ubuntu-latest
+    services:
+      # The credentials and database name are the ones in
+      # server/catgenome/profiles/postgres/test-catgenome.properties, which the test profile reads
+      # as jdbc:postgresql://localhost:5432/ngb_test. PostgreSQL 16 is what .devenv runs (D3).
+      #
+      # `make test-pg` has to be preceded by `make reset-pg` because Flyway will not migrate a
+      # schema left behind by the previous run; a service container is new every time, so this job
+      # gets that for nothing.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: catgenome
+          POSTGRES_PASSWORD: catgenome
+          POSTGRES_DB: ngb_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-jdks
+      - name: Server unit tests
+        run: ./gradlew -p server/catgenome test -Pdatabase=postgres -PexcludeNetworkTests
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-reports-pg
+          path: server/catgenome/build/reports/tests
+          retention-days: 7
+
+  build:
+    name: build (artifacts + docker image)
+    # Not ubuntu-latest, and this is the one job that cares: the client is frozen at AngularJS 1.5
+    # on a webpack 4 toolchain that needs Node 14 (decision D12), and 22.04 is the newest runner
+    # image the .devenv toolbox - eclipse-temurin:21-jdk-jammy - is a match for. When GitHub retires
+    # 22.04, moving this line is not the fix; the client toolchain is.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-jdks
+      - uses: actions/setup-node@v4
+        with:
+          # Pinned, not "14.x": .devenv/toolbox/Dockerfile installs this exact version, client/
+          # build.gradle checks for it, and the npm tree is resolved by a committed
+          # package-lock.json from that npm. D12 freezes all of it - the client is not part of the
+          # Java 21 migration. Nothing here should be bumped without doing the client with it.
+          node-version: 14.17.5
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          # Only mkdocs needs Python. AppVeyor used 3.9 and installed mkdocs unpinned, which is how
+          # a docs build breaks on a Tuesday.
+          python-version: '3.11'
+      - name: Install mkdocs
+        # The same two pins as .devenv/toolbox/Dockerfile - keep them in step, or the ngb-docs
+        # archive this produces stops matching the one built locally.
+        run: pip install "mkdocs==1.5.3" "mkdocs-material==9.5.3"
+      - name: Build the artifacts
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+          BUILD_NUMBER: ${{ github.run_number }}
+          COMMIT_SHA: ${{ github.sha }}
+          # build.sh builds the image itself on a release branch, through `gradlew buildDocker`.
+          # Here the next step does it instead, from the jar this one has just produced: buildDocker
+          # depends on buildJar, and buildJar is a nested `clean build`, so letting it run would
+          # rebuild the whole server a third time - and it would leave dist/catgenome.jar holding
+          # the H2 jar for a reason unrelated to the mv/cp dance build.sh does around it.
+          BUILD_DOCKER: ''
+        run: bash build.sh
+      - name: Build and smoke-test the docker image
+        # docker/core only ever needs the two artifacts copied in and a `docker build`; this is what
+        # gradlew buildDocker does, minus the rebuild. The demo image is not built here: it
+        # downloads 3.4 GB of references and demo data (docker/README.md).
+        run: |
+          cp dist/catgenome.jar dist/ngb-cli.tar.gz docker/core/
+          docker build -t ngb:latest docker/core
+          rm docker/core/catgenome.jar docker/core/ngb-cli.tar.gz
+          docker run -d -p 8080:8080 --name ngbcore ngb:latest
+          for _ in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' \
+                http://localhost:8080/catgenome/restapi/version || true)
+            [ "$code" = 200 ] && break
+            sleep 5
+          done
+          if [ "$code" != 200 ]; then
+            echo "::error::the image did not answer /restapi/version"
+            docker logs ngbcore
+            exit 1
+          fi
+          # A JVM that lost --enable-native-access=ALL-UNNAMED still starts and still works; the
+          # only evidence is three warnings about restricted java.lang.foreign calls from Lucene's
+          # MMapDirectory. So assert on the startup output, not on the exit code.
+          if docker logs ngbcore 2>&1 | grep -F "restricted method"; then
+            echo "::error::NGB_JAVA_OPTS lost --enable-native-access=ALL-UNNAMED"
+            exit 1
+          fi
+          docker rm -f ngbcore
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+          retention-days: 14
+
+  bundles:
+    name: bundles (JRE-bundled archives)
+    # 200 MB each, and only a release needs them. `workflow_dispatch` is here so they can be built
+    # and checked without cutting a release branch.
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/heads/release/')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-jdks
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      # The bundle tasks copy build/libs/**/*.jar into the archive's lib/, so handing them the jar
+      # the build job already produced and skipping bootJar means the published jar and the bundled
+      # one are the same file - and this job needs neither Node nor mkdocs to get it.
+      - name: Bundle the server with a JRE
+        run: |
+          mkdir -p server/catgenome/build/libs
+          cp dist/catgenome.jar server/catgenome/build/libs/catgenome.jar
+          ./gradlew -p server/catgenome bundleLinux bundleWindows -x bootJar
+          ls -l server/catgenome/build/distributions
+      - name: Start the Linux bundle with no JDK anywhere
+        # The whole point of these archives is a machine with no Java on it, which is what the
+        # previous ones got wrong: the launcher was edited in a place the template never reaches,
+        # so it died with "JAVA_HOME is not set and no 'java' command could be found in your PATH".
+        # A container with no JDK is the only honest test of that.
+        run: |
+          docker run -d --name ngbbundle -p 8080:8080 \
+              -v "$PWD/server/catgenome/build/distributions:/bundle:ro" \
+              ubuntu:22.04 bash -c '
+                  mkdir -p /opt/ngb-server &&
+                  tar -xzf /bundle/ngb-server-linux.tgz -C /opt/ngb-server &&
+                  cd /opt/ngb-server && exec bin/ngb-server'
+          for _ in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' \
+                http://localhost:8080/catgenome/restapi/version || true)
+            [ "$code" = 200 ] && break
+            sleep 5
+          done
+          docker logs ngbbundle
+          if [ "$code" != 200 ]; then
+            echo "::error::the Linux bundle did not answer /restapi/version"
+            exit 1
+          fi
+          if docker logs ngbbundle 2>&1 | grep -F "restricted method"; then
+            echo "::error::the launcher lost --enable-native-access=ALL-UNNAMED"
+            exit 1
+          fi
+          docker rm -f ngbbundle
+      - name: Check the Windows bundle
+        # It cannot be started here. What can be checked is that it contains the three things whose
+        # absence made the old one useless: a JRE under jre/, the jar under lib/, and a .bat - and
+        # only the .bat, since CreateStartScripts' POSIX script pointed at a path that does not
+        # exist in a Windows JRE.
+        run: |
+          unzip -l server/catgenome/build/distributions/ngb-server-windows.zip > /tmp/win.txt
+          cat /tmp/win.txt
+          grep -q "jre/bin/java.exe" /tmp/win.txt
+          grep -q "lib/catgenome.jar" /tmp/win.txt
+          grep -q "bin/ngb-server.bat" /tmp/win.txt
+          if grep -qE "bin/ngb-server$" /tmp/win.txt; then
+            echo "::error::the Windows bundle ships a POSIX launcher again"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bundles
+          path: server/catgenome/build/distributions/ngb-server-*
+          retention-days: 14
+
+  publish:
+    name: publish
+    needs: [build, test-h2, test-pg, lint]
+    if: github.event_name == 'push' && github.repository == 'epam/NGB'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write        # for the OIDC token configure-aws-credentials exchanges for the role
+    env:
+      # The `secrets` context is not available in a step's `if`, only in `env`, `with` and `run`, so
+      # "publish only if it is configured" has to go through variables like these.
+      AWS_PUBLISH_ROLE_ARN: ${{ secrets.AWS_PUBLISH_ROLE_ARN }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-jdks   # publish.sh asks Gradle for the version
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Rebuild the docker image from the published jar
+        # Images do not survive a job boundary, and `docker save` of this one is ~700 MB of
+        # artifact. Rebuilding from the downloaded jar is the same three commands the build job ran
+        # and takes about a minute; the layers on top of the Temurin base are two COPYs.
+        if: startsWith(github.ref, 'refs/heads/release/')
+        run: |
+          cp dist/catgenome.jar dist/ngb-cli.tar.gz docker/core/
+          docker build -t ngb:latest docker/core
+          rm docker/core/catgenome.jar docker/core/ngb-cli.tar.gz
+      - uses: aws-actions/configure-aws-credentials@v4
+        if: ${{ env.AWS_PUBLISH_ROLE_ARN != '' }}
+        with:
+          role-to-assume: ${{ secrets.AWS_PUBLISH_ROLE_ARN }}
+          aws-region: us-east-1
+      - uses: docker/login-action@v3
+        if: ${{ startsWith(github.ref, 'refs/heads/release/') && env.DOCKERHUB_USERNAME != '' }}
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Publish
+        if: ${{ env.AWS_PUBLISH_ROLE_ARN != '' }}
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+          BUILD_NUMBER: ${{ github.run_number }}
+          DOCKER_NAMESPACE: ${{ vars.DOCKER_NAMESPACE || 'lifescience' }}
+        run: bash publish.sh
+      - name: Skipped
+        if: ${{ env.AWS_PUBLISH_ROLE_ARN == '' }}
+        run: |
+          echo "AWS_PUBLISH_ROLE_ARN is not set, so there is nowhere to publish to." >> "$GITHUB_STEP_SUMMARY"
+          echo "The artifacts are attached to the build job of this run." >> "$GITHUB_STEP_SUMMARY"

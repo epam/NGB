@@ -1,5 +1,5 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/sat5156jrv3lw9qw?svg=true)](https://ci.appveyor.com/project/epam/ngb)
-[![codecov](https://codecov.io/gh/epam/NGB/branch/master/graph/badge.svg)](https://codecov.io/gh/epam/NGB)
+[![build](https://github.com/epam/NGB/actions/workflows/build.yml/badge.svg?branch=develop)](https://github.com/epam/NGB/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/epam/NGB/branch/develop/graph/badge.svg)](https://codecov.io/gh/epam/NGB)
 
 # NGB
 New Genome Browser (NGB) is a Web client-server tool that has been developed with the several key distinctive features in mind:  
