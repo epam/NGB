@@ -4819,6 +4819,43 @@ container `verify-tracks.sh` gives the same name.
 track and compare it with the disk read — in place of the step that asserted the defect still
 reproduced. `make verify-cloud` is 0 failed, 0 skipped.
 
+#### The three remaining handover items
+
+**Finding 3 — rewriting `s3://` to a pre-signed `https://` URL at reader-open time: declined**, as
+Phase 8 recommended. The native path is better on every axis that matters: ranged `GetObject` through
+the SDK re-signs every request, so there is no expiry to outlive a long read and no bearer-equivalent
+URL to leak into a log; `S3SeekableStream` already does one request per 64 KiB chunk and re-opens on
+`seek`, which pre-signing would not improve; and it is the path that supports `sws://` and its
+separate credentials profile at all. The pre-signed path exists for the two cases that genuinely need
+a URL — `/dataitem/{id}/downloadUrl`, whose whole point is to hand a URL to a browser, and
+`fileUrl=s3://` on an unregistered file — and both are covered by `make verify-cloud`.
+
+**Finding 4 — commons-validator stays at 1.5.0.** Reported to the owner rather than done, because it
+is not cheap:
+
+- There are three producers of the unencoded format, not one. `docs/md/user-guide/embedding-url.md`
+  is documentation and could be rewritten; `ngb url --alias` is CLI code; and the AngularJS **client**
+  builds `?tracks=` and `?layout=` itself (`ngbShareLinkMenu.controller.js` → `JSON.stringify` →
+  `stateParams.service.js` → `$state.href`) and posts the result to `/generateShortUrl`. Whether
+  ui-router's `$state.href` percent-encodes those braces is the load-bearing question, and answering
+  it needs a browser: there is no client test runner in this build, and **D12 freezes the client**, so
+  if the answer is "no" the fix is out of scope by decision.
+- What it changes is a *documented* URL format, in a phase whose subject is packaging, CI and docs.
+- The security case is thin. `UrlValidator` here is a format gate on one endpoint, no CVE is
+  outstanding against 1.5.0, and its `commons-beanutils` 1.9.2 request is already overridden to
+  1.11.0 by opencsv.
+
+What was done instead is the cheap half of the handover's suggestion:
+`UrlShorterManagerTest.generateAndSaveShortUrlPostfixShouldAcceptTheDocumentedEmbeddingUrlFormat`
+feeds it two real URLs from `embedding-url.md`, one with `?tracks=[{…}]` and one that adds
+`?layout={…}`. A future bump to 1.7+ now fails that test with a comment pointing at the whole story,
+instead of turning the Share Link button into "Invalid url format" in production.
+
+**Finding 5 — ngb-cli's own dependency backlog** (jackson 2.7.5, httpclient 4.5.2,
+google-http-client-jackson2 1.22.0, commons-io 2.5, commons-lang3 3.5, slf4j 1.7.21, log4j2 2.17.1).
+Handled in the order the handover asked for: `make cli-test` first, the bump second. See the
+`make cli-test` findings below.
+
 ---
 
 ## 4. Cross-cutting risk register

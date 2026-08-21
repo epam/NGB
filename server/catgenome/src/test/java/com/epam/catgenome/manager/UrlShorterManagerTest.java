@@ -41,6 +41,19 @@ public class UrlShorterManagerTest {
     private static final String CORRECT2 = "http://fake2.com/faaaaake";
     private static final String INCORRECT = "asdasd'awd'";
 
+    /** From docs/md/user-guide/embedding-url.md - raw JSON in ?tracks=, brackets and quotes and all. */
+    private static final String EMBEDDING_TRACKS = "http://localhost:8080/catgenome/"
+            + "#/GRCh38/2/29224747/29224816"
+            + "?tracks=[{\"b\":\"GRCh38\",\"p\":\"SV_Sample1\",\"h\":20},"
+            + "{\"b\":\"sv_sample_1.bam\",\"p\":\"SV_Sample1\",\"h\":424}]";
+
+    /** The same document's ?layout= form, which adds braces to the brackets and quotes. */
+    private static final String EMBEDDING_LAYOUT = "http://localhost:8080/catgenome/"
+            + "#/GRCh38/2/29224747/29224816"
+            + "?embedded=On&toolbar=Off"
+            + "&layout={\"0\":{\"t\":\"0\",\"p\":\"1\",\"hasHeaders\":\"0\"},\"g\":[{\"n\":\"1\",\"k\":100}]}"
+            + "&tracks=[{\"b\":\"GRCh38\",\"p\":\"SV_Sample1\",\"h\":20}]";
+
     @Autowired
     UrlShorterManager urlShorterManager;
     private String alias = "alias";
@@ -56,6 +69,26 @@ public class UrlShorterManagerTest {
     @Test(expected = IllegalArgumentException.class)
     public void generateAndSaveShortUrlPostfixShouldThowExceptionWithWrongUrl() throws Exception {
         urlShorterManager.generateAndSaveShortUrlPostfix(INCORRECT, null);
+    }
+
+    /**
+     * The URL format documented in docs/md/user-guide/embedding-url.md, which POST /generateShortUrl
+     * has to keep accepting: raw Jackson JSON substituted into a query parameter, so unencoded
+     * {@code { } " [ ]}.
+     *
+     * <p>This is a pin, not a wish. commons-validator is held at 1.5.0 for exactly this reason: from
+     * 1.7 {@code UrlValidator} tightened the query string to what RFC 3986 actually allows, and
+     * {@code { } " | ^ \ < >} and space are rejected unencoded. Bumping it therefore has to fail here,
+     * loudly, rather than letting the Share Link button, {@code ngb url --alias} and every
+     * hand-written embedding URL start answering "Invalid url format" at runtime. See the
+     * commons-validator note in server/catgenome/build.gradle for what fixing it properly involves.
+     */
+    @Test
+    public void generateAndSaveShortUrlPostfixShouldAcceptTheDocumentedEmbeddingUrlFormat() throws Exception {
+        for (final String url : new String[]{EMBEDDING_TRACKS, EMBEDDING_LAYOUT}) {
+            final String shortPrefix = urlShorterManager.generateAndSaveShortUrlPostfix(url, null);
+            Assert.assertEquals(url, Optional.of(url), urlShorterManager.getOriginalUrl(shortPrefix));
+        }
     }
 
     @Test
