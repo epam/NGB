@@ -52,13 +52,12 @@ import com.epam.catgenome.manager.target.LaunchIdentificationSecurityService;
 import com.epam.catgenome.manager.target.export.TargetExportSecurityService;
 import com.epam.catgenome.manager.target.export.TargetExportTable;
 import com.epam.catgenome.util.FileFormat;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -67,7 +66,7 @@ import java.io.InputStream;
 import java.util.List;
 
 @RestController
-@Api(value = "target-identification", description = "Launch Target Identification Management")
+@Tag(name = "target-identification", description = "Launch Target Identification Management")
 @RequiredArgsConstructor
 public class LaunchIdentificationController extends AbstractRESTController {
 
@@ -75,12 +74,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     private final TargetExportSecurityService exportSecurityService;
 
     @PostMapping(value = "/target/identification")
-    @ApiOperation(
-            value = "Launches Target Identification",
-            notes = "Launches Target Identification",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Launches Target Identification",
+            description = "Launches Target Identification")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<TargetIdentificationResult> launchIdentification(@RequestBody final IdentificationRequest request)
             throws ExternalDbUnavailableException, ParseException, IOException {
@@ -88,14 +86,13 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/dgidb/drugs")
-    @ApiOperation(
-            value = "Launches Identification for dgidb datasource drug associations",
-            notes = "Launches Identification for dgidb datasource drug associations." +
+    @Operation(
+            summary = "Launches Identification for dgidb datasource drug associations",
+            description = "Launches Identification for dgidb datasource drug associations." +
                     "Available field names for sorting and filtering: GENE_ID, DRUG_NAME, DRUG_CLAIM_NAME, " +
-                    "INTERACTION_TYPES, INTERACTION_CLAIM_SOURCE.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "INTERACTION_TYPES, INTERACTION_CLAIM_SOURCE.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<DGIDBDrugAssociation>> getDGIDbDrugs(@RequestBody final AssociationSearchRequest request)
             throws ParseException, IOException {
@@ -103,16 +100,15 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/ttd/drugs")
-    @ApiOperation(
-            value = "Launches Identification for TTD datasource target - drug associations",
-            notes = "Launches Identification for TTD datasource target - drug associations." +
+    @Operation(
+            summary = "Launches Identification for TTD datasource target - drug associations",
+            description = "Launches Identification for TTD datasource target - drug associations." +
                     "Available field names for sorting and filtering: TTD_TARGET, DRUG_NAME, COMPANY, " +
                     "TYPE, THERAPEUTIC_CLASS, INCHI, INCHI_KEY, CANONICAL_SMILES, STATUS, COMPOUND_CLASS. " +
                     "The following fields are optional: TTD_TARGET, COMPANY, TYPE, THERAPEUTIC_CLASS, " +
-                    "STATUS, COMPOUND_CLASS.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "STATUS, COMPOUND_CLASS.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<TTDDrugAssociation>> getTTDDrugs(@RequestBody final AssociationSearchRequest request)
             throws ParseException, IOException {
@@ -120,12 +116,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/ttd/drugs/fieldValues")
-    @ApiOperation(
-            value = "Returns filed values for TTD drugs data",
-            notes = "Returns filed values for TTD drugs data",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns filed values for TTD drugs data",
+            description = "Returns filed values for TTD drugs data")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<TTDDrugFieldValues> getTTDDrugFieldValues(@RequestParam(required = false) final Long targetId,
                                                             @RequestParam final List<String> geneIds)
@@ -134,14 +129,13 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/ttd/diseases")
-    @ApiOperation(
-            value = "Launches Identification for TTD datasource target - disease associations",
-            notes = "Launches Identification for TTD datasource target - disease associations." +
+    @Operation(
+            summary = "Launches Identification for TTD datasource target - disease associations",
+            description = "Launches Identification for TTD datasource target - disease associations." +
                     "Available field names for sorting and filtering: TTD_TARGET, DISEASE_NAME, CLINICAL_STATUS. " +
-                    "The following fields are optional: TTD_TARGET, CLINICAL_STATUS.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "The following fields are optional: TTD_TARGET, CLINICAL_STATUS.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<TTDDiseaseAssociation>> getTTDDiseases(
             @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
@@ -149,12 +143,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/ttd/diseases/fieldValues")
-    @ApiOperation(
-            value = "Returns filed values for TTD diseases data",
-            notes = "Returns filed values for TTD diseases data",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns filed values for TTD diseases data",
+            description = "Returns filed values for TTD diseases data")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<TTDDiseaseFieldValues> getTTDDiseaseFieldValues(@RequestParam(required = false) final Long targetId,
                                                                   @RequestParam final List<String> geneIds)
@@ -163,13 +156,12 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/pharmgkb/drugs")
-    @ApiOperation(
-            value = "Launches Identification for PharmGKB datasource drug associations",
-            notes = "Launches Identification for PharmGKB datasource drug associations." +
-            "Available field names for sorting and filtering: GENE_ID, DRUG_NAME, SOURCE.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Launches Identification for PharmGKB datasource drug associations",
+            description = "Launches Identification for PharmGKB datasource drug associations." +
+            "Available field names for sorting and filtering: GENE_ID, DRUG_NAME, SOURCE.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<PharmGKBDrug>> getPharmGKBDrugs(@RequestBody final AssociationSearchRequest request)
             throws ParseException, IOException {
@@ -177,13 +169,12 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/pharmgkb/diseases")
-    @ApiOperation(
-            value = "Launches Identification for PharmGKB datasource disease associations",
-            notes = "Launches Identification for PharmGKB datasource disease associations." +
-                    "Available field names for sorting and filtering: GENE_ID, DISEASE_NAME.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Launches Identification for PharmGKB datasource disease associations",
+            description = "Launches Identification for PharmGKB datasource disease associations." +
+                    "Available field names for sorting and filtering: GENE_ID, DISEASE_NAME.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<PharmGKBDisease>> getPharmGKBDiseases(
             @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
@@ -191,14 +182,13 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/opentargets/drugs")
-    @ApiOperation(
-            value = "Launches Identification for Open Targets datasource drug associations",
-            notes = "Launches Identification for Open Targets datasource drug associations." +
+    @Operation(
+            summary = "Launches Identification for Open Targets datasource drug associations",
+            description = "Launches Identification for Open Targets datasource drug associations." +
                     "Available field names for sorting and filtering: GENE_ID, DRUG_NAME, DISEASE_NAME, DRUG_TYPE, " +
-                    "MECHANISM_OF_ACTION, ACTION_TYPE, PHASE, STATUS, SOURCE.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "MECHANISM_OF_ACTION, ACTION_TYPE, PHASE, STATUS, SOURCE.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<DrugAssociation>> getOpenTargetsDrugs(
             @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
@@ -206,15 +196,14 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/opentargets/diseases")
-    @ApiOperation(
-            value = "Launches Identification for Open Targets datasource disease associations",
-            notes = "Launches Identification for Open Targets datasource disease associations." +
+    @Operation(
+            summary = "Launches Identification for Open Targets datasource disease associations",
+            description = "Launches Identification for Open Targets datasource disease associations." +
                     "Available field names for sorting and filtering: GENE_ID, DISEASE_NAME, OVERALL_SCORE, " +
                     "GENETIC_ASSOCIATIONS_SCORE, SOMATIC_MUTATIONS_SCORE, DRUGS_SCORE, PATHWAYS_SCORE, " +
-                    "TEXT_MINING_SCORE, RNA_EXPRESSION_SCORE, RNA_EXPRESSION_SCORE, ANIMAL_MODELS_SCORE.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "TEXT_MINING_SCORE, RNA_EXPRESSION_SCORE, RNA_EXPRESSION_SCORE, ANIMAL_MODELS_SCORE.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<DiseaseAssociationAggregated>> getOpenTargetsDiseases(
             @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
@@ -222,13 +211,12 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/opentargets/diseases/all")
-    @ApiOperation(
-            value = "Launches Identification for Open Targets datasource disease associations",
-            notes = "Launches Identification for Open Targets datasource disease associations " +
-                    "for bubbles and tree views",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Launches Identification for Open Targets datasource disease associations",
+            description = "Launches Identification for Open Targets datasource disease associations " +
+                    "for bubbles and tree views")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<DiseaseAssociationAggregated>> getAllOpenTargetsDiseases(
             @RequestBody final AssociationSearchRequest request) throws ParseException, IOException {
@@ -236,24 +224,22 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/opentargets/diseases/ontology")
-    @ApiOperation(
-            value = "Returns all diseases with parents",
-            notes = "Returns all diseases with parents",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns all diseases with parents",
+            description = "Returns all diseases with parents")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<BareDisease>> getDiseasesTree() throws IOException {
         return Result.success(launchIdentificationSecurityService.getDiseasesTree());
     }
 
     @PutMapping(value = "/target/import/opentargets")
-    @ApiOperation(
-            value = "Imports data from Open Targets datasource",
-            notes = "Imports data from Open Targets datasource",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Imports data from Open Targets datasource",
+            description = "Imports data from Open Targets datasource")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importOpenTargetsData(@RequestParam final String path) throws IOException, ParseException {
         launchIdentificationSecurityService.importOpenTargetsData(path);
@@ -261,12 +247,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PutMapping(value = "/target/import/dgidb")
-    @ApiOperation(
-            value = "Imports data from DGIdb datasource",
-            notes = "Imports data from DGIdb datasource",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Imports data from DGIdb datasource",
+            description = "Imports data from DGIdb datasource")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importDGIdbData(@RequestParam final String path) throws IOException, ParseException {
         launchIdentificationSecurityService.importDGIdbData(path);
@@ -274,12 +259,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PutMapping(value = "/target/import/pharmGKB")
-    @ApiOperation(
-            value = "Imports data from PharmGKB datasource",
-            notes = "Imports data from PharmGKB datasource",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Imports data from PharmGKB datasource",
+            description = "Imports data from PharmGKB datasource")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importPharmGKBData(
             @RequestParam final String genePath,
@@ -292,15 +276,14 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PutMapping(value = "/target/import/ttd")
-    @ApiOperation(
-            value = "Imports data from TTD datasource.",
-            notes = "Imports data from TTD datasource. Data can be found here: " +
+    @Operation(
+            summary = "Imports data from TTD datasource.",
+            description = "Imports data from TTD datasource. Data can be found here: " +
                     "drugs: https://idrblab.net/ttd/sites/default/files/ttd_database/P1-02-TTD_drug_download.txt," +
                     "targets: https://idrblab.net/ttd/sites/default/files/ttd_database/P1-01-TTD_target_download.txt," +
-                    "diseases: https://idrblab.net/ttd/sites/default/files/ttd_database/P1-06-Target_disease.txt",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "diseases: https://idrblab.net/ttd/sites/default/files/ttd_database/P1-06-Target_disease.txt")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importTTDData(
             @RequestParam final String drugsPath,
@@ -311,12 +294,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/pharmGKB/drugs/fieldValues")
-    @ApiOperation(
-            value = "Returns filed values for PharmGKB drugs data",
-            notes = "Returns filed values for PharmGKB drugs data",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns filed values for PharmGKB drugs data",
+            description = "Returns filed values for PharmGKB drugs data")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<PharmGKBDrugFieldValues> getPharmGKBDrugFieldValues(
             @RequestParam(required = false) final Long targetId,
@@ -325,12 +307,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/dgidb/drugs/fieldValues")
-    @ApiOperation(
-            value = "Returns filed values for DGIDB drugs data",
-            notes = "Returns filed values for DGIDB drugs data",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns filed values for DGIDB drugs data",
+            description = "Returns filed values for DGIDB drugs data")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<DGIDBDrugFieldValues> getDGIDBDrugFieldValues(@RequestParam(required = false) final Long targetId,
                                                                 @RequestParam final List<String> geneIds)
@@ -339,12 +320,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/opentargets/drugs/fieldValues")
-    @ApiOperation(
-            value = "Returns filed values for Open Targets drugs data",
-            notes = "Returns filed values for Open Targets drugs data",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns filed values for Open Targets drugs data",
+            description = "Returns filed values for Open Targets drugs data")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<DrugFieldValues> getDrugFieldValues(@RequestParam(required = false) final Long targetId,
                                                       @RequestParam final List<String> geneIds)
@@ -353,12 +333,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/publications")
-    @ApiOperation(
-            value = "Returns publications for specified gene ids",
-            notes = "Returns publications for specified gene ids",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns publications for specified gene ids",
+            description = "Returns publications for specified gene ids")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<NCBISummaryVO>> getPublications(@RequestBody final PublicationSearchRequest request)
             throws ParseException, IOException, ExternalDbUnavailableException {
@@ -366,12 +345,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/abstracts")
-    @ApiOperation(
-            value = "Returns merged abstracts for specified gene ids",
-            notes = "Returns merged abstracts for specified gene ids",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns merged abstracts for specified gene ids",
+            description = "Returns merged abstracts for specified gene ids")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<String> getAbstracts(@RequestBody final PublicationSearchRequest request)
             throws ParseException, IOException {
@@ -379,12 +357,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/sequences/table")
-    @ApiOperation(
-            value = "Returns data for Gene Sequences block as a table",
-            notes = "Returns data for Gene Sequences block as a table",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns data for Gene Sequences block as a table",
+            description = "Returns data for Gene Sequences block as a table")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<GeneRefSection>> getGeneSequencesTable(
             @RequestParam(required = false) final Long targetId,
@@ -398,12 +375,12 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/target/structures")
-    @ApiOperation(
-            value = "Loads structures entities from RCSB PDB",
-            notes = "Loads structures entities from RCSB PDB. Available field names for sorting: ENTRY_ID, RESOLUTION.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Loads structures entities from RCSB PDB",
+            description =
+                    "Loads structures entities from RCSB PDB. Available field names for sorting: ENTRY_ID, RESOLUTION.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<Structure>> getStructures(@RequestBody final StructuresSearchRequest request)
             throws ParseException, IOException {
@@ -411,12 +388,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/export")
-    @ApiOperation(
-            value = "Exports data to CSV/TSV file",
-            notes = "Exports data to CSV/TSV file",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Exports data to CSV/TSV file",
+            description = "Exports data to CSV/TSV file")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public void export(@RequestParam(required = false) final Long targetId,
                        @RequestParam final List<String> genesOfInterest,
@@ -433,12 +409,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/export/{geneId}")
-    @ApiOperation(
-            value = "Exports data to CSV/TSV file for single gene",
-            notes = "Exports data to CSV/TSV file for single gene",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Exports data to CSV/TSV file for single gene",
+            description = "Exports data to CSV/TSV file for single gene")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public void export(@PathVariable final String geneId,
                        @RequestParam final FileFormat format,
@@ -452,12 +427,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/report")
-    @ApiOperation(
-            value = "Exports data to Excel file",
-            notes = "Exports data to Excel file",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Exports data to Excel file",
+            description = "Exports data to Excel file")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public void report(@RequestParam(required = false) final Long targetId,
                        @RequestParam final List<String> genesOfInterest,
@@ -469,12 +443,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/report/{geneId}")
-    @ApiOperation(
-            value = "Exports data to Excel file for single gene",
-            notes = "Exports data to Excel file for single gene",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Exports data to Excel file for single gene",
+            description = "Exports data to Excel file for single gene")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public void report(@PathVariable final String geneId, HttpServletResponse response)
             throws IOException, ParseException, ExternalDbUnavailableException {
@@ -483,12 +456,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/html")
-    @ApiOperation(
-            value = "Downloads target identification html export",
-            notes = "Downloads target identification html export",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Downloads target identification html export",
+            description = "Downloads target identification html export")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public void html(@RequestParam final List<String> genesOfInterest,
                      @RequestParam(required = false) final List<String> translationalGenes,
@@ -500,12 +472,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/html/{geneId}")
-    @ApiOperation(
-            value = "Downloads target identification html export for single gene",
-            notes = "Downloads target identification html export for single gene",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Downloads target identification html export for single gene",
+            description = "Downloads target identification html export for single gene")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public void html(@PathVariable final String geneId, HttpServletResponse response)
             throws IOException, ParseException, ExternalDbUnavailableException {
@@ -514,12 +485,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/genes/{prefix}")
-    @ApiOperation(
-            value = "Searched genes by specified prefix",
-            notes = "Searched genes by specified prefix",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Searched genes by specified prefix",
+            description = "Searched genes by specified prefix")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<GeneInfo>> getGenes(@PathVariable final String prefix)
             throws IOException, ParseException {
@@ -527,12 +497,11 @@ public class LaunchIdentificationController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/target/drugs")
-    @ApiOperation(
-            value = "Returns drugs list for target identification.",
-            notes = "Returns drugs list for target identification.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns drugs list for target identification.",
+            description = "Returns drugs list for target identification.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<String>> getDrugs(@RequestParam(required = false) final Long targetId,
                                          @RequestParam final List<String> geneIds)

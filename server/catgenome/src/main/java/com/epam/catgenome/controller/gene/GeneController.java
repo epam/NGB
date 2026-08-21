@@ -39,7 +39,6 @@ import com.epam.catgenome.manager.protein.ProteinSequenceSecurityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 
 import com.epam.catgenome.component.MessageHelper;
@@ -67,10 +66,10 @@ import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.GeneReadingException;
 import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.util.Utils;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -91,7 +90,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Mikhail Miroliubov
  */
 @Controller
-@Api(value = "genes", description = "Gene Track Management")
+@Tag(name = "genes", description = "Gene Track Management")
 public class GeneController extends AbstractRESTController {
 
     private static final String REFERENCE_ID_FIELD = "referenceId";
@@ -106,17 +105,17 @@ public class GeneController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/gene/register", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Registers a gene file in the system.",
-            notes = "Registers a file, stored in a file system (for now). Registration request has the following " +
+    @Operation(
+            summary = "Registers a gene file in the system.",
+            description =
+                    "Registers a file, stored in a file system (for now). Registration request has the following " +
                     "properties: <br/>" +
                     "1) " + REFERENCE_ID_FIELD + " - a reference, for which file is being registered <br/>" +
                     "2) path - a path to file </br>" +
                     "3) indexPath - <i>optional</i> a path to an index file<br/>" +
-                    "4) name - <i>optional</i> a name for gene track",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "4) name - <i>optional</i> a name for gene track")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<GeneFile> registerGeneFile(@RequestBody
                                                  FeatureIndexedFileRegistrationRequest request) {
@@ -125,8 +124,7 @@ public class GeneController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/secure/gene/register", method = RequestMethod.DELETE)
-    @ApiOperation(value = "Unregisters a gene file in the system.",
-            notes = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Unregisters a gene file in the system.")
     public Result<Boolean> unregisterGeneFile(@RequestParam final long geneFileId) throws IOException {
         GeneFile deletedFile = geneSecurityService.unregisterGeneFile(geneFileId);
         return Result.success(true, MessageHelper.getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
@@ -134,11 +132,10 @@ public class GeneController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/gene/{geneFileId}/index", method = RequestMethod.GET)
-    @ApiOperation(value = "Rebuilds a gene file feature index",
-        notes = "Rebuilds a gene file feature index.</br>" +
+    @Operation(summary = "Rebuilds a gene file feature index",
+        description = "Rebuilds a gene file feature index.</br>" +
                 "<b>full</b> parameter specifies if full original file should be reindexed, or " +
-                "preprocessed large scale and transcript files should be used for indexing.</br>",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                "preprocessed large scale and transcript files should be used for indexing.</br>")
     public Result<Boolean> reindexGeneFile(@PathVariable long geneFileId,
             @RequestParam(defaultValue = "false") boolean full,
             @RequestParam(defaultValue = "false") boolean createTabixIndex) throws IOException {
@@ -149,9 +146,9 @@ public class GeneController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = GENE_URL + REFERENCE_ID_FIELD + "}/track/get", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns data matched the given query to fill in a gene track.",
-            notes = "It provides data for a gene track with the given scale factor between the beginning " +
+    @Operation(
+            summary = "Returns data matched the given query to fill in a gene track.",
+            description = "It provides data for a gene track with the given scale factor between the beginning " +
                     "position with the first base having position 1 and ending position inclusive in a target " +
                     "chromosome. All parameters are mandatory and described below:<br/><br/>" +
                     "1) <b>id</b> specifies ID of a track;<br/>" +
@@ -160,10 +157,9 @@ public class GeneController extends AbstractRESTController {
                     "chromosome always has got position = 1;<br/>" +
                     "4) <b>endIndex</b> is the last base position for a requested window. <br/>" +
                     "5) <b>scaleFactor</b> specifies an inverse value to number of bases per one visible element on a" +
-                    " track (e.g., pixel) - IS IGNORED FOR NOW",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    " track (e.g., pixel) - IS IGNORED FOR NOW")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Track<GeneHighLevel>> loadTrack(@RequestBody final TrackQuery trackQuery,
             @PathVariable(value = REFERENCE_ID_FIELD) final Long referenceId,
@@ -199,9 +195,10 @@ public class GeneController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/gene/transcript/track/get", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns data matched the given query to fill in a gene track with transcripts.",
-            notes = "It provides data for a gene track with the given scale factor between the beginning position " +
+    @Operation(
+            summary = "Returns data matched the given query to fill in a gene track with transcripts.",
+            description =
+                    "It provides data for a gene track with the given scale factor between the beginning position " +
                     "with the first base having position 1 and ending position inclusive in a target chromosome. " +
                     "All parameters are mandatory and described below:<br/><br/>" +
                     "1) <b>id</b> specifies ID of a track;<br/>" +
@@ -210,10 +207,9 @@ public class GeneController extends AbstractRESTController {
                     "chromosome always has got position  = 1;<br/>" +
                     "4) <b>endIndex</b> is the last base position for a requested window. <br/>" +
                     "5) <b>scaleFactor</b> specifies an inverse value to number of bases per one visible element on a" +
-                    " track (e.g., pixel) - IS IGNORED FOR NOW",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    " track (e.g., pixel) - IS IGNORED FOR NOW")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Track<GeneTranscript>> loadTrackWithTranscript(@RequestBody final TrackQuery trackQuery,
             @RequestParam(required = false) final String fileUrl,
@@ -225,12 +221,11 @@ public class GeneController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "gene/pbd/{pbdID}/get", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns a list of entity from PBD",
-            notes = "param is PBD ID",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns a list of entity from PBD",
+            description = "param is PBD ID")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<DimStructure> getPBDentity(@PathVariable(value = "pbdID") String pbdID)
             throws ExternalDbUnavailableException {
@@ -239,9 +234,9 @@ public class GeneController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/gene/track/histogram", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns a histogram of genes amount on regions of chromosome",
-            notes = "It provides histogram for a gene track with the given scale factor between the " +
+    @Operation(
+            summary = "Returns a histogram of genes amount on regions of chromosome",
+            description = "It provides histogram for a gene track with the given scale factor between the " +
                     "beginning position with the first base having position 1 and ending position inclusive " +
                     "in a target chromosome. All parameters are mandatory and described below:<br/><br/>" +
                     "1) <b>id</b> specifies ID of a track;<br/>" +
@@ -251,10 +246,9 @@ public class GeneController extends AbstractRESTController {
                     "4) <b>endIndex</b> is the last base position for a requested window. " +
                     "It is treated inclusively;<br/>" +
                     "5) <b>scaleFactor</b> specifies an inverse value to number of bases per one visible element" +
-                    " on a track (e.g., pixel) - IS IGNORED FOR NOW",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    " on a track (e.g., pixel) - IS IGNORED FOR NOW")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Track<Wig>> loadHistogram(@RequestBody final TrackQuery trackQuery) throws HistogramReadingException {
         final Track<Wig> geneTrack = Query2TrackConverter.convertToTrack(trackQuery);
@@ -263,9 +257,9 @@ public class GeneController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = GENE_URL + REFERENCE_ID_FIELD + "}/protein/get", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns reconstructed protein sequence matched to the given query of gene track.",
-            notes = "It provides data for a protein sequence with the given scale factor between the beginning " +
+    @Operation(
+            summary = "Returns reconstructed protein sequence matched to the given query of gene track.",
+            description = "It provides data for a protein sequence with the given scale factor between the beginning " +
                     "position with the first base having position 1 and ending position inclusive in a target " +
                     "chromosome. All parameters are mandatory and described below:<br/><br/>" +
                     "1) <b>" + REFERENCE_ID_FIELD + "</b> specifies ID of reference genome;<br/>" +
@@ -276,10 +270,9 @@ public class GeneController extends AbstractRESTController {
                     "5) <b>endIndex</b> is the last base position for a requested window. " +
                     "It is treated inclusively;<br/>" +
                     "6) <b>scaleFactor</b> specifies an inverse value to number of bases per one visible element on a" +
-                    " track (e.g., pixel) - IS IGNORED FOR NOW",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    " track (e.g., pixel) - IS IGNORED FOR NOW")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Track<ProteinSequenceInfo>> loadProteinSequence(@RequestBody final TrackQuery trackQuery,
                       @PathVariable(value = REFERENCE_ID_FIELD) final Long referenceId) throws GeneReadingException {
@@ -289,12 +282,11 @@ public class GeneController extends AbstractRESTController {
 
     @RequestMapping(value = "/gene/aminoacids", method = RequestMethod.POST)
     @ResponseBody
-    @ApiOperation(
-            value = "Generate amino acids sequence for the given feature ID, case-insensitive",
-            notes = "Generate amino acids sequence for the given feature ID, case-insensitive",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Generate amino acids sequence for the given feature ID, case-insensitive",
+            description = "Generate amino acids sequence for the given feature ID, case-insensitive")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<ProteinSequence> constructAminoAcidSequence(
             @RequestBody ProteinSequenceConstructRequest request) throws IOException {
@@ -304,10 +296,10 @@ public class GeneController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = GENE_URL + REFERENCE_ID_FIELD + "}/variation/protein/get", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns reconstructed protein sequence matched to the given query of gene track, "
+    @Operation(
+            summary = "Returns reconstructed protein sequence matched to the given query of gene track, "
                     + "taking into account variations.",
-            notes = "It provides data for a protein sequence with the given scale factor between the beginning " +
+            description = "It provides data for a protein sequence with the given scale factor between the beginning " +
                     "position with the first base having position 1 and ending position inclusive in a target " +
                     "chromosome. All parameters are mandatory and described below:<br/><br/>" +
                     "Body: <br/><br/>" +
@@ -321,8 +313,7 @@ public class GeneController extends AbstractRESTController {
                     "5) <b>endIndex</b> is the last base position for a requested window. " +
                     "It is treated inclusively;<br/>" +
                     "6) <b>scaleFactor</b> specifies an inverse value to number of bases per one visible element on a" +
-                    " track (e.g., pixel)",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    " track (e.g., pixel)")
     public Result<Track<MrnaProteinSequenceVariants>> loadProteinSequenceForVariations(
             @RequestBody final ProteinSequenceVariationQuery psVariationQuery, @PathVariable final Long referenceId)
         throws GeneReadingException {
@@ -331,13 +322,12 @@ public class GeneController extends AbstractRESTController {
 
     @RequestMapping(value = "/gene/{trackId}/{chromosomeId}/next", method = RequestMethod.GET)
     @ResponseBody
-    @ApiOperation(
-            value = "Returns the next feature for a given track",
-            notes = "Returns the next feature for a given track in a given chromosome. <br/>" +
-                    "Searches from given parameter 'fromPosition' (required)",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns the next feature for a given track",
+            description = "Returns the next feature for a given track in a given chromosome. <br/>" +
+                    "Searches from given parameter 'fromPosition' (required)")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Gene> jumpToNextGene(@RequestParam int fromPosition,
                                        @PathVariable(value = "trackId") long geneFileId,
@@ -350,14 +340,13 @@ public class GeneController extends AbstractRESTController {
 
     @RequestMapping(value = "/gene/{trackId}/{chromosomeId}/prev", method = RequestMethod.GET)
     @ResponseBody
-    @ApiOperation(
-            value = "Returns the previous feature for a given track",
-            notes = "Returns the previous feature for a given track in a given chromosome. <br/>" +
+    @Operation(
+            summary = "Returns the previous feature for a given track",
+            description = "Returns the previous feature for a given track in a given chromosome. <br/>" +
                     "Searches from given parameter 'fromPosition' (required), from a given sample (parameter " +
-                    "'sampleId', optional)",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "'sampleId', optional)")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Gene> jumpToPrevGene(@RequestParam int fromPosition,
                                        @PathVariable(value = "trackId") long geneFileId,
@@ -370,16 +359,15 @@ public class GeneController extends AbstractRESTController {
 
     @RequestMapping(value = "/gene/exons/viewport", method = RequestMethod.POST)
     @ResponseBody
-    @ApiOperation(
-            value = "Returns exons of the track",
-            notes = "Returns all exons of the track on a given interval, specified by:<br/>" +
+    @Operation(
+            summary = "Returns exons of the track",
+            description = "Returns all exons of the track on a given interval, specified by:<br/>" +
                     "<ul><li>centerPosition - a position of a view port's center on the reference</li>" +
                     "<li>viewPortSize - a size of a view port in bps</li>" +
                     "<li>intronLength - a value, determine how much of intron region lengths should be shown in bps" +
-                    "Affects the amount of exons fitted in a view port</li></ul>",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "Affects the amount of exons fitted in a view port</li></ul>")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<Block>> fetchExons(@RequestBody ExonViewPortQuery query) throws IOException {
         return Result.success(geneSecurityService.loadExonsInViewPort(query.getId(), query.getChromosomeId(),
@@ -388,16 +376,15 @@ public class GeneController extends AbstractRESTController {
 
     @RequestMapping(value = "/gene/exons/range", method = RequestMethod.POST)
     @ResponseBody
-    @ApiOperation(
-            value = "Returns exons of the track",
-            notes = "Returns all exons of the track on a given interval, specified by:<br/>" +
+    @Operation(
+            summary = "Returns exons of the track",
+            description = "Returns all exons of the track on a given interval, specified by:<br/>" +
                     "<ul><li>startIndex - a start of a range on a chromosome</li>" +
                     "<li>endIndex - an end of a range on a chromosome</li>" +
                     "<li>intronLength - a value, determine how much of intron region lengths should be shown in bps" +
-                    "Affects the amount of exons fitted in a view port</li></ul>",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "Affects the amount of exons fitted in a view port</li></ul>")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<Block>> fetchExons(@RequestBody ExonRangeQuery query) throws IOException {
         return Result.success(geneSecurityService.loadExonsInTrack(query.getId(), query.getChromosomeId(),
@@ -406,12 +393,11 @@ public class GeneController extends AbstractRESTController {
 
     @GetMapping("/gene/{fileId}/doc")
     @ResponseBody
-    @ApiOperation(
-            value = "Loads specific gene feature content",
-            notes = "Loads specific gene feature content",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Loads specific gene feature content",
+            description = "Loads specific gene feature content")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<GeneHighLevel> loadGeneFeatureByUid(@PathVariable(value = "fileId") final Long fileId,
                                                       @RequestParam(value = "uid") final String uid) {
@@ -420,12 +406,11 @@ public class GeneController extends AbstractRESTController {
 
     @PutMapping("/gene/{fileId}/doc")
     @ResponseBody
-    @ApiOperation(
-            value = "Updates specific gene feature content",
-            notes = "Updates specific gene feature content",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Updates specific gene feature content",
+            description = "Updates specific gene feature content")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<GeneHighLevel> updateGeneFeatureByUid(@PathVariable(value = "fileId") final Long fileId,
                                                         @RequestParam(value = "uid") final String uid,
@@ -435,12 +420,11 @@ public class GeneController extends AbstractRESTController {
 
     @GetMapping("/gene/{fileId}/activity")
     @ResponseBody
-    @ApiOperation(
-            value = "Returns gene activities by gene file ID and uid",
-            notes = "Returns gene activities by gene file ID and uid",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns gene activities by gene file ID and uid",
+            description = "Returns gene activities by gene file ID and uid")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<Activity>> loadGeneActivity(@PathVariable(value = "fileId") final Long fileId,
                                                    @RequestParam(value = "uid") final String uid) {
@@ -449,12 +433,11 @@ public class GeneController extends AbstractRESTController {
 
     @RequestMapping(value = "/gene/search", method = RequestMethod.GET)
     @ResponseBody
-    @ApiOperation(
-            value = "Searches for a given feature ID in all reference gene files, case-insensitive",
-            notes = "Searches an index of a gene file for a specified feature ID",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Searches for a given feature ID in all reference gene files, case-insensitive",
+            description = "Searches an index of a gene file for a specified feature ID")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<IndexSearchResult<FeatureIndexEntry>> searchFeatures(
             @RequestParam final String geneId) throws IOException {

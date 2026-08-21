@@ -29,12 +29,11 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.llm.LLMMessage;
 import com.epam.catgenome.entity.llm.LLMProvider;
 import com.epam.catgenome.manager.llm.LLMSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,19 +43,18 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@Api(value = "LLM", description = "Access to large language models API")
+@Tag(name = "LLM", description = "Access to large language models API")
 @RequiredArgsConstructor
 public class LLMController extends AbstractRESTController {
 
     private final LLMSecurityService llmSecurityService;
 
     @PostMapping(value = "/llm/summary")
-    @ApiOperation(
-            value = "Returns summary over specified PubMed articles",
-            notes = "Returns summary over specified PubMed articles",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns summary over specified PubMed articles",
+            description = "Returns summary over specified PubMed articles")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<String> getArticleSummary(
             @RequestBody final List<String> pubMedIDs,
@@ -67,12 +65,11 @@ public class LLMController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/llm/patent")
-    @ApiOperation(
-            value = "Returns summary over google patents",
-            notes = "Returns summary over google patents",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns summary over google patents",
+            description = "Returns summary over google patents")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<String> getPatentSummary(
             @RequestParam String query,
@@ -83,12 +80,11 @@ public class LLMController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/llm/chat")
-    @ApiOperation(
-            value = "Returns LLM model response for chat",
-            notes = "Returns LLM model response for chat",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns LLM model response for chat",
+            description = "Returns LLM model response for chat")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<String> getChatResponse(
             @RequestBody final List<LLMMessage> messages,

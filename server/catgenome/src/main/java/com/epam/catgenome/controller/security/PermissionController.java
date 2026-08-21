@@ -32,17 +32,16 @@ import com.epam.catgenome.controller.vo.security.PermissionGrantVO;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.entity.security.AclSecuredEntry;
 import com.epam.catgenome.security.acl.AclPermissionSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@Api(value = "Permissions")
+@Tag(name = "Permissions")
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 public class PermissionController extends AbstractRESTController {
 
@@ -50,24 +49,22 @@ public class PermissionController extends AbstractRESTController {
     private AclPermissionSecurityService permissionApiService;
 
     @RequestMapping(value = "/grant", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Sets user's  permissions for an object.",
-            notes = "Sets user's permissions for an object.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Sets user's  permissions for an object.",
+            description = "Sets user's permissions for an object.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<AclSecuredEntry> grantPermissions(@RequestBody PermissionGrantVO grantVO) {
         return Result.success(permissionApiService.setPermissions(grantVO));
     }
 
     @RequestMapping(value = "/grant", method = RequestMethod.DELETE)
-    @ApiOperation(
-            value = "Deletes user's permissions for an object.",
-            notes = "Deletes user's permissions for an object.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Deletes user's permissions for an object.",
+            description = "Deletes user's permissions for an object.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<AclSecuredEntry> deletePermissionsForUser(
             @RequestParam Long id,
@@ -77,12 +74,11 @@ public class PermissionController extends AbstractRESTController {
     }
 
     @RequestMapping(value = "/grant/all", method = RequestMethod.DELETE)
-    @ApiOperation(
-            value = "Deletes all permissions for an object.",
-            notes = "Deletes all permissions for an object.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Deletes all permissions for an object.",
+            description = "Deletes all permissions for an object.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<AclSecuredEntry> deleteAllPermissions(@RequestParam Long id,
             @RequestParam AclClass aclClass) {
@@ -90,12 +86,11 @@ public class PermissionController extends AbstractRESTController {
     }
 
     @RequestMapping(value = "/grant", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Loads all permissions for an object.",
-            notes = "Loads all permissions for an object.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Loads all permissions for an object.",
+            description = "Loads all permissions for an object.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<AclSecuredEntry> getPermissions(@RequestParam Long id,
                                                   @RequestParam AclClass aclClass) {
@@ -103,12 +98,11 @@ public class PermissionController extends AbstractRESTController {
     }
 
     @RequestMapping(value = "grant/owner", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Change the owner of the particular acl object.",
-            notes = "Change the owner of the particular acl object.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Change the owner of the particular acl object.",
+            description = "Change the owner of the particular acl object.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<AclSecuredEntry> changeOwner(@RequestParam Long id,
             @RequestParam AclClass aclClass, @RequestParam String userName) {
@@ -116,12 +110,11 @@ public class PermissionController extends AbstractRESTController {
     }
 
     @PostMapping(value = "grant/sync")
-    @ApiOperation(
-            value = "Synchronises all existing entities to ACL tables.",
-            notes = "Might be useful when security is enabled for previously registered data.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Synchronises all existing entities to ACL tables.",
+            description = "Might be useful when security is enabled for previously registered data.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public void syncAclEntities() {
         permissionApiService.syncEntities();

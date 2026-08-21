@@ -29,29 +29,27 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.pug.NCBIPugSecurityService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@Api(value = "compound", description = "Compound Management")
+@Tag(name = "compound", description = "Compound Management")
 @RequiredArgsConstructor
 public class CompoundController extends AbstractRESTController {
 
     private final NCBIPugSecurityService ncbiPugSecurityService;
 
     @GetMapping(value = "/compound/smiles/{name}")
-    @ApiOperation(
-            value = "Searches smiles by compound name.",
-            notes = "Searches smiles by compound name.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Searches smiles by compound name.",
+            description = "Searches smiles by compound name.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<String> getProteinPatents(@PathVariable final String name)
             throws ExternalDbUnavailableException, JsonProcessingException {

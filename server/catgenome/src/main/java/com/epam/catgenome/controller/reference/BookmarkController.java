@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,8 +40,8 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.BookmarkVO;
 import com.epam.catgenome.controller.vo.converter.BookmarkConverter;
 import com.epam.catgenome.manager.reference.BookmarkManager;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * {@code BookmarkController} represents implementation of MVC controller which handles
@@ -52,7 +51,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
  * calls and manage all operations concerned with bookmarks.
  */
 @Controller
-@Api(value = "bookmarks", description = "Bookmarks Management")
+@Tag(name = "bookmarks", description = "Bookmarks Management")
 public class BookmarkController extends AbstractRESTController {
 
     @Autowired
@@ -60,20 +59,18 @@ public class BookmarkController extends AbstractRESTController {
 
     @RequestMapping(value = "/bookmarks", method = RequestMethod.GET)
     @ResponseBody
-    @ApiOperation(
-            value = "Loads all bookmarks for current user",
-            notes = "Bookmarks provide without data on tracks, that vas opened when a bookmark was saved",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Loads all bookmarks for current user",
+            description = "Bookmarks provide without data on tracks, that vas opened when a bookmark was saved")
     public Result<List<BookmarkVO>> loadBookmarks() {
         return Result.success(BookmarkConverter.convertTo(bookmarkManager.loadAllBookmarks()));
     }
 
     @RequestMapping(value = "/bookmark/{bookmarkId}", method = RequestMethod.GET)
     @ResponseBody
-    @ApiOperation(
-            value = "Returns bookmark, specified by id",
-            notes = "Bookmarks provide data on tracks, that vas opened when a bookmark was saved",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns bookmark, specified by id",
+            description = "Bookmarks provide data on tracks, that vas opened when a bookmark was saved")
     public Result<BookmarkVO> loadBookmark(@PathVariable(value = "bookmarkId") final Long bookmarkId) {
         return Result.success(BookmarkConverter.convertTo(bookmarkManager.load(bookmarkId)));
     }
@@ -81,10 +78,9 @@ public class BookmarkController extends AbstractRESTController {
 
     @RequestMapping(value = "/bookmark/save", method = RequestMethod.POST)
     @ResponseBody
-    @ApiOperation(
-            value = "Saves bookmark for a specific chromosome for a given project",
-            notes = "Bookmarks provide data on tracks, that vas opened when a bookmark was saved",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Saves bookmark for a specific chromosome for a given project",
+            description = "Bookmarks provide data on tracks, that vas opened when a bookmark was saved")
     public Result<BookmarkVO> saveBookmark(@RequestBody final BookmarkVO bookmarkVO) throws IOException {
         return Result.success(BookmarkConverter.convertTo(bookmarkManager.create(BookmarkConverter.convertFrom(
                 bookmarkVO))));

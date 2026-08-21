@@ -41,15 +41,14 @@ import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
 import com.epam.catgenome.manager.blast.BlastTaskSecurityService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.exception.FeatureIndexException;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -61,43 +60,40 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
-@Api(value = "blast", description = "BLAST Task Management")
+@Tag(name = "blast", description = "BLAST Task Management")
 @RequiredArgsConstructor
 public class BlastController extends AbstractRESTController {
 
     private final BlastTaskSecurityService blastTaskSecurityService;
 
     @GetMapping(value = "/task/{taskId}")
-    @ApiOperation(
-            value = "Returns a task by given id",
-            notes = "Returns a task by given id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns a task by given id",
+            description = "Returns a task by given id")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<BlastTask> loadTask(@PathVariable final long taskId) {
         return Result.success(blastTaskSecurityService.load(taskId));
     }
 
     @GetMapping(value = "/task/{taskId}/result")
-    @ApiOperation(
-            value = "Returns a task result",
-            notes = "Returns a task result",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns a task result",
+            description = "Returns a task result")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<BlastRequestResult> getResult(@PathVariable final long taskId) throws BlastRequestException {
         return Result.success(blastTaskSecurityService.getResult(taskId));
     }
 
     @GetMapping(value = "/task/{taskId}/raw")
-    @ApiOperation(
-            value = "Returns a file with task result",
-            notes = "Returns a file with task result",
-            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @Operation(
+            summary = "Returns a file with task result",
+            description = "Returns a file with task result")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public void getRawResult(@PathVariable final long taskId, final HttpServletResponse response)
             throws BlastRequestException, IOException {
@@ -108,12 +104,11 @@ public class BlastController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/task/{taskId}/group")
-    @ApiOperation(
-            value = "Returns BLAST tasks results grouped by sequence",
-            notes = "Returns BLAST tasks results grouped by sequence",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns BLAST tasks results grouped by sequence",
+            description = "Returns BLAST tasks results grouped by sequence")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Collection<BlastSequence>> getGroupedResult(@PathVariable final long taskId)
             throws BlastRequestException {
@@ -121,38 +116,35 @@ public class BlastController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/tasks/count")
-    @ApiOperation(
-            value = "Returns tasks count",
-            notes = "Returns tasks count",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns tasks count",
+            description = "Returns tasks count")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Long> getTasksCount(@RequestBody final List<Filter> filters) {
         return Result.success(blastTaskSecurityService.getTasksCount(filters));
     }
 
     @PostMapping(value = "/tasks")
-    @ApiOperation(
-            value = "Loads all tasks",
-            notes = "DB fields mapping: id - task_id, "
+    @Operation(
+            summary = "Loads all tasks",
+            description = "DB fields mapping: id - task_id, "
                     + "createdDate - created_date, "
-                    + "endDate - end_date, statusReason - status_reason",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    + "endDate - end_date, statusReason - status_reason")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<TaskPage> loadTasks(@RequestBody final QueryParameters queryParameters) {
         return Result.success(blastTaskSecurityService.loadAllTasks(queryParameters));
     }
 
     @DeleteMapping(value = "/tasks")
-    @ApiOperation(
-            value = "Delete all not running tasks for current user",
-            notes = "Delete all not running tasks for current user",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Delete all not running tasks for current user",
+            description = "Delete all not running tasks for current user")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> deleteTasks() {
         blastTaskSecurityService.deleteTasks();
@@ -160,12 +152,11 @@ public class BlastController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/task")
-    @ApiOperation(
-            value = "Creates new task or updates existing one",
-            notes = "Creates new task or updates existing one",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Creates new task or updates existing one",
+            description = "Creates new task or updates existing one")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<BlastTask> createTask(@RequestBody final TaskVO taskVO)
             throws FeatureIndexException, BlastRequestException {
@@ -173,12 +164,11 @@ public class BlastController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/createdb")
-    @ApiOperation(
-            value = "Schedules a task for BLAST database creation",
-            notes = "Schedules a task for BLAST database creation",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Schedules a task for BLAST database creation",
+            description = "Schedules a task for BLAST database creation")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<CreateDatabaseResponse> createDatabase(@RequestBody final CreateDatabaseRequest request)
             throws BlastRequestException {
@@ -186,12 +176,11 @@ public class BlastController extends AbstractRESTController {
     }
 
     @PutMapping(value = "/task/{taskId}/cancel")
-    @ApiOperation(
-            value = "Cancels a task with given id",
-            notes = "Cancels a task with given id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Cancels a task with given id",
+            description = "Cancels a task with given id")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> cancelTask(@PathVariable final long taskId) throws BlastRequestException {
         blastTaskSecurityService.cancel(taskId);
@@ -199,12 +188,11 @@ public class BlastController extends AbstractRESTController {
     }
 
     @DeleteMapping(value = "/task/{taskId}")
-    @ApiOperation(
-            value = "Deletes a task, specified by task ID",
-            notes = "Deletes a task, specified by task ID",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Deletes a task, specified by task ID",
+            description = "Deletes a task, specified by task ID")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> deleteTask(@PathVariable final long taskId) throws IOException {
         blastTaskSecurityService.deleteTask(taskId);

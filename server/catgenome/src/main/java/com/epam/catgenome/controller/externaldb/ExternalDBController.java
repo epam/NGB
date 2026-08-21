@@ -43,7 +43,6 @@ import com.epam.catgenome.manager.externaldb.ncbi.NCBIStructVarManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 
@@ -67,10 +66,10 @@ import com.epam.catgenome.manager.externaldb.EnsemblDataManager;
 import com.epam.catgenome.manager.externaldb.UniprotDataManager;
 import com.epam.catgenome.manager.externaldb.bindings.uniprot.Entry;
 import com.epam.catgenome.manager.externaldb.bindings.uniprot.Uniprot;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -85,7 +84,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * </p>
  * */
 @Controller
-@Api(value = "externaldb", description = "External DB Management")
+@Tag(name = "externaldb", description = "External DB Management")
 public class ExternalDBController extends AbstractRESTController {
 
     private static final String SUCCESS = "info.database.successful.get";
@@ -130,15 +129,14 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/uniprot/{geneId}/get", method = RequestMethod.GET)
-    @ApiOperation(value = "UniProt: Retrieves information on protein using geneId.",
-        notes = "UniProt database (http://www.uniprot.org/) is being queried for information by gene " +
+    @Operation(summary = "UniProt: Retrieves information on protein using geneId.",
+        description = "UniProt database (http://www.uniprot.org/) is being queried for information by gene " +
                 "identifier <i>in any database</i>. Protein information in XML form is returned by UniProt, " +
                 "this information is converted to presentation required by NGGB.<br/><br/>" +
                 "Examples of id which could be used as a parameter to this service:<br/><br/>" +
                 "ENSG00000106683 -- Ensembl ID<br/>" +
-                "FBgn0000008 -- Fly Base ID<br/>",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+                "FBgn0000008 -- Fly Base ID<br/>")
+    @ApiResponses(value = { @ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION) })
     public Result<List<UniprotEntryVO>> fetchUniprotData(@PathVariable(value = "geneId") final String geneId)
             throws ExternalDbUnavailableException {
 
@@ -152,15 +150,14 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/ensembl/{geneId}/get", method = RequestMethod.GET)
-    @ApiOperation(value = "Ensembl: Retrieves information on gene using geneId.",
-            notes = "Ensembl database (http://rest.ensembl.org/) is being queried for information by gene " +
+    @Operation(summary = "Ensembl: Retrieves information on gene using geneId.",
+            description = "Ensembl database (http://rest.ensembl.org/) is being queried for information by gene " +
                     "identifier <i>in any database</i>. Gene information in JSON form is returned by Ensembl, " +
                     "this information is converted to presentation required by NGGB.<br/><br/>" +
                     "Examples of id which could be used as a parameter to this service:<br/><br/>" +
                     "ENSG00000106683 -- Ensembl ID<br/>" +
-                    "FBgn0000008 -- Fly Base ID<br/>",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+                    "FBgn0000008 -- Fly Base ID<br/>")
+    @ApiResponses(value = { @ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION) })
     public Result<EnsemblEntryVO> fetchEnsemblData(@PathVariable(value = "geneId") final String geneId)
             throws ExternalDbUnavailableException {
 
@@ -173,14 +170,13 @@ public class ExternalDBController extends AbstractRESTController {
     @ResponseBody
     @RequestMapping(value = "/externaldb/ensembl/variation/variationId={rsId}&species={species}",
             method = RequestMethod.GET)
-    @ApiOperation(value = "Ensembl: Retrieves information on variation for certain species using variation id(rsId).",
-            notes = "Ensembl database (http://rest.ensembl.org/) is being queried by rsId and species " +
+    @Operation(summary = "Ensembl: Retrieves information on variation for certain species using variation id(rsId).",
+            description = "Ensembl database (http://rest.ensembl.org/) is being queried by rsId and species " +
                     "type. Information of variation for certain species is returned from Ensembl db.<br/></br> " +
                     PARAMETERS_NOTE +
                     RSID_DESCRIPTION_NOTE + "<br/>" +
-                    "<b>species</b> - species name: human<br/>",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+                    "<b>species</b> - species name: human<br/>")
+    @ApiResponses(value = { @ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION) })
     public Result<EnsemblVariationEntryVO> fetchEnsemblVariationData(
             @PathVariable(value = VARIATION_ID_NAME) final String rsId,
             @PathVariable(value = "species") final String species)
@@ -194,17 +190,16 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/ensembl/variation/region", method = RequestMethod.POST)
-    @ApiOperation(value = "Ensembl: Retrieves information on variations located within certain chromosomal coordiates.",
-            notes = "Ensembl database (http://rest.ensembl.org/) is being queried for variations located " +
+    @Operation(summary = "Ensembl: Retrieves information on variations located within certain chromosomal coordiates.",
+            description = "Ensembl database (http://rest.ensembl.org/) is being queried for variations located " +
                     "in between certain coordinates (start and finish) for certain chromosome " +
                     "for the given species. <br/><br/>" +
                     PARAMETERS_NOTE +
                     "<b>species</b> - species name (e.g. \"human\")<br/>" +
                     "<b>chromosome</b> - chromosome name (e.g. \"1\")<br/>" +
                     "<b>start</b> - start coordinate in a given chromosome (e.g. 140424943)<br/>" +
-                    "<b>finish</b> - end coordinate in a given chromosome (e.g. 140624564)<br/>",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+                    "<b>finish</b> - end coordinate in a given chromosome (e.g. 140624564)<br/>")
+    @ApiResponses(value = { @ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION) })
     public Result<List<EnsemblEntryVO>> fetchEnsemblVariationOnRegionData(
             @RequestBody final RegionQuery regionQuery)
             throws ExternalDbUnavailableException {
@@ -227,8 +222,8 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/ncbi/gene/{geneId}/get", method = RequestMethod.GET)
-    @ApiOperation(value = "NCBI: Retrieves gene information using gene id.",
-            notes = "NCBI database (http://eutils.ncbi.nlm.nih.gov/entrez/eutils/) " +
+    @Operation(summary = "NCBI: Retrieves gene information using gene id.",
+            description = "NCBI database (http://eutils.ncbi.nlm.nih.gov/entrez/eutils/) " +
                     "is being queried by gene id.<br/><br/>" +
                     PARAMETERS_NOTE +
                     "<b>geneId</b> - NCBI gene id or Ensembl gene id (e.g. 3985, ENSG00000106683)<br/><br/>" +
@@ -241,9 +236,8 @@ public class ExternalDBController extends AbstractRESTController {
                     "<b>Summary</b> -- text description of gene<br/>" +
                     "<b>Related articles in PubMed</b> -- pubmed db articles<br/>" +
                     "<b>Pathways from BioSystems</b> -- biosystems reference<br/>" +
-                    "<b>Interactions</b> -- interactions information<br/>",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+                    "<b>Interactions</b> -- interactions information<br/>")
+    @ApiResponses(value = { @ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION) })
     public Result<NCBIGeneVO> fetchNCBIGene(@PathVariable(value = "geneId") final String geneId)
             throws ExternalDbUnavailableException {
 
@@ -255,13 +249,13 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/ncbi/variation/short/{rsId}/get", method = RequestMethod.GET)
-    @ApiOperation(value = "NCBI: Retrieves information on short variation using rsId.",
-            notes = "NCBI database (http://eutils.ncbi.nlm.nih.gov/entrez/eutils/) is being queried by variation id" +
+    @Operation(summary = "NCBI: Retrieves information on short variation using rsId.",
+            description =
+                    "NCBI database (http://eutils.ncbi.nlm.nih.gov/entrez/eutils/) is being queried by variation id" +
                     "(rsId) for short variation information.<br/><br/>" +
                     PARAMETERS_NOTE +
-                    RSID_DESCRIPTION_NOTE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+                    RSID_DESCRIPTION_NOTE)
+    @ApiResponses(value = { @ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION) })
     public Result<NCBIShortVarVO> fetchNCBIShortVariation(@PathVariable(value = VARIATION_ID_NAME) final String rsId)
             throws ExternalDbUnavailableException {
 
@@ -273,12 +267,11 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/ncbi/variation/struct/{rsId}/get", method = RequestMethod.GET)
-    @ApiOperation(value = "NCBI: Retrieves information on structural variation using rsId.",
-            notes = "NCBI structural variations db is being queried by rsId.<br/><br/>" +
+    @Operation(summary = "NCBI: Retrieves information on structural variation using rsId.",
+            description = "NCBI structural variations db is being queried by rsId.<br/><br/>" +
                     PARAMETERS_NOTE +
-                    RSID_DESCRIPTION_NOTE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+                    RSID_DESCRIPTION_NOTE)
+    @ApiResponses(value = { @ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION) })
     public Result<NCBIStructVarVO> fetchNCBIStructVariation(@PathVariable(value = VARIATION_ID_NAME) final String rsId)
             throws ExternalDbUnavailableException {
 
@@ -290,12 +283,11 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/ncbi/variation/clin/{rsId}/get", method = RequestMethod.GET)
-    @ApiOperation(value = "NCBI: Retrieves clinical information on variation using rsId.",
-            notes = "NCBI ClinVar is being queried by rsId<br/><br/>" +
+    @Operation(summary = "NCBI: Retrieves clinical information on variation using rsId.",
+            description = "NCBI ClinVar is being queried by rsId<br/><br/>" +
                     PARAMETERS_NOTE +
-                    RSID_DESCRIPTION_NOTE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+                    RSID_DESCRIPTION_NOTE)
+    @ApiResponses(value = { @ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION) })
     public Result<NCBIClinVarVO> fetchNCBIClinVariation(@PathVariable(value = VARIATION_ID_NAME) final String rsId)
             throws ExternalDbUnavailableException {
 
@@ -308,15 +300,14 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/ncbi/taxonomy/{taxId}/get", method = RequestMethod.GET)
-    @ApiOperation(value = "NCBI: Retrieves information on species from taxonomy database.",
-            notes = "NCBI Taxonomy database is being queried by taxId for organism information.<br/><br/>" +
+    @Operation(summary = "NCBI: Retrieves information on species from taxonomy database.",
+            description = "NCBI Taxonomy database is being queried by taxId for organism information.<br/><br/>" +
                     PARAMETERS_NOTE +
                     "<b>taxId</b> - id of species in taxonomy database (e.g. 9606)<br/><br/>" +
                     RETURNS_NOTE +
                     "<b>commonName</b> - common species name (e.g. \"human\")<br/>" +
-                    "<b>scientificName</b> - scientific species name (e.g. \"homo sapiens\")<br/>",
-                    produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+                    "<b>scientificName</b> - scientific species name (e.g. \"homo sapiens\")<br/>")
+    @ApiResponses(value = { @ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION) })
     public Result<NCBITaxonomyVO> fetchNCBITaxonomyInfo(@PathVariable(value = "taxId") final String taxId)
             throws ExternalDbUnavailableException {
 
@@ -327,10 +318,9 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/ncbi/taxonomy/{term}", method = RequestMethod.GET)
-    @ApiOperation(value = "NCBI: Retrieves list of organisms for search query",
-            notes = "NCBI: Retrieves list of organisms for search query",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+    @Operation(summary = "NCBI: Retrieves list of organisms for search query",
+            description = "NCBI: Retrieves list of organisms for search query")
+    @ApiResponses(value = { @ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION) })
     public Result<List<NCBITaxonomyVO>> getOrganismsByTerm(@PathVariable final String term)
             throws ExternalDbUnavailableException, JsonProcessingException {
         return Result.success(ncbiAuxiliaryManager.fetchTaxonomyInfosByTermMock(term));
@@ -338,16 +328,16 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/ncbi/variation/{rsId}/get", method = RequestMethod.GET)
-    @ApiOperation(value = "NCBI: Retrieves aggregated information on variation using rsId.",
-            notes = "Several NCBI databases are being queried by rsId, result information is being aggregated" +
+    @Operation(summary = "NCBI: Retrieves aggregated information on variation using rsId.",
+            description = "Several NCBI databases are being queried by rsId, result information is being aggregated" +
                     "in a proper way and returned by service.<br/><br/>" +
                     PARAMETERS_NOTE +
                     RSID_DESCRIPTION_NOTE +
                     "Following sequence of queries is peroformed:<br/>" +
                     "1) Short variation db poll<br/>" +
                     "2) Clin variation db poll<br/>" +
-                    "3) Taxonomy db poll<br/>", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+                    "3) Taxonomy db poll<br/>")
+    @ApiResponses(value = { @ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION) })
     public Result<NCBIVariationVO> fetchNCBIAggregatedVariationInfo(@PathVariable(value = VARIATION_ID_NAME)
                                                                         final String rsId)
             throws ExternalDbUnavailableException {
@@ -362,18 +352,17 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/ncbi/variation/region", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "NCBI: Retrieves information on variations located in given interval",
-            notes = "NCBI snp database is being queried for variations in given interval" +
+    @Operation(
+            summary = "NCBI: Retrieves information on variations located in given interval",
+            description = "NCBI snp database is being queried for variations in given interval" +
                     "in a proper way and returned by service.<br/><br/>" +
                     PARAMETERS_NOTE +
                     "<b>species</b> - species name (e.g. \"human\")<br/>" +
                     "<b>chromosome</b> - chromosome name (e.g. \"1\")<br/>" +
                     "<b>start</b> - start coordinate in a given chromosome (e.g. 140424943)<br/>" +
                     "<b>finish</b> - end coordinate in a given chromosome (e.g. 140624564)<br/>" +
-                    RSID_DESCRIPTION_NOTE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+                    RSID_DESCRIPTION_NOTE)
+    @ApiResponses(value = { @ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION) })
     public Result<List<Variation>> fetchNCBIVariationInfoOnInterval(@RequestBody final RegionQuery regionQuery)
             throws ExternalDbUnavailableException {
 
@@ -388,13 +377,13 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/blat/search", method = RequestMethod.POST)
-    @ApiOperation(
-        value = "Returns statistics generated by BLAT search.",
-        notes = "Provides statistics generated by BLAT search performed on a read sequence. ReferenceId is required "
-                + "to search for required species",
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+        summary = "Returns statistics generated by BLAT search.",
+        description =
+                "Provides statistics generated by BLAT search performed on a read sequence. ReferenceId is required "
+                + "to search for required species")
     @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
         })
     public Result<List<PSLRecord>> blatReadSequence(@RequestParam
                                                     final Long referenceId,
@@ -405,12 +394,11 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/ncbi/genes/import", method = RequestMethod.PUT)
-    @ApiOperation(
-            value = "Imports gene ids data from NCBI",
-            notes = "Imports gene ids data from NCBI",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Imports gene ids data from NCBI",
+            description = "Imports gene ids data from NCBI")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importNCBIGeneIdsData(@RequestParam final String path) throws IOException, ParseException {
         ncbiEnsemblIdsManager.importData(path);
@@ -419,12 +407,11 @@ public class ExternalDBController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/externaldb/ncbi/genes/info/import", method = RequestMethod.PUT)
-    @ApiOperation(
-            value = "Imports genes info data from NCBI",
-            notes = "Imports genes info data from NCBI",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Imports genes info data from NCBI",
+            description = "Imports genes info data from NCBI")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importNCBIGenesInfoData(@RequestParam final String path) throws IOException, ParseException {
         ncbiGeneInfoManager.importData(path);

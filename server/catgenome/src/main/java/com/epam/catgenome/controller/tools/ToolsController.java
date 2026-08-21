@@ -27,12 +27,11 @@ package com.epam.catgenome.controller.tools;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.manager.tools.ToolSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-@Api(value = "tools", description = "Tools service")
+@Tag(name = "tools", description = "Tools service")
 public class ToolsController extends AbstractRESTController {
 
     @Autowired
@@ -48,16 +47,15 @@ public class ToolsController extends AbstractRESTController {
 
     @ResponseBody
     @RequestMapping(value = "/tools/sort", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Sorts feature file.",
-            notes = "Sorting request has the following properties: <br/>" +
+    @Operation(
+            summary = "Sorts feature file.",
+            description = "Sorting request has the following properties: <br/>" +
                     "1) originalFilePath - a path to file to be sorted</br>" +
                     "2) sortedFilePath - <i>optional</i> a path where sorted file will be placed </br>" +
                     "3) maxMemory <i>optional</i> - amount of memory in megabytes to use when sorting " +
-                    "(default: 500)</br>",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "(default: 500)</br>")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<String> sortFeatureFile(@RequestBody FeatureFileSortRequest request) {
         return Result.success(toolSecurityService.sortFeatureFile(request));

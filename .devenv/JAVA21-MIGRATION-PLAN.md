@@ -4479,6 +4479,78 @@ but is not a fix. The fix is to decide 403-tolerance from *how the URL was produ
 it, so it knows) rather than from its hostname. **Recommended for Phase 9**; out of scope here
 because it is a behaviour change to the remote read path.
 
+#### Swagger 1.3 → OpenAPI 3 annotations, 41 files (commit 12)
+
+The last `com.wordnik` coordinate, and the only item in the phase that changes no behaviour: since
+Phase 3 the annotations have been compiled against `com.wordnik:swagger-annotations:1.3.11` as
+`compileOnly` and read by nobody, while springdoc generated the document from the Spring mappings
+alone. Translating them is what turns 297 hand-written English descriptions back into documentation.
+Done with a throwaway string-literal-aware rewriter, then checked by hand; 43 files, +1478 −1784.
+
+| Swagger 1.3 | OpenAPI 3 | Note |
+|---|---|---|
+| `@Api(value, description)` | `@Tag(name, description)` | 39 classes |
+| `@ApiOperation(value, notes)` | `@Operation(summary, description)` | 302 methods |
+| `@ApiOperation(produces = …)` | *dropped* | 297 of them; see below |
+| `@ApiResponses(value = {…})` | same annotation, v3 package | 288 |
+| `@ApiResponse(code = 200, message)` | `@ApiResponse(responseCode = "200", description)` | `code` was an `int`, `responseCode` is a `String` |
+| `@ApiModelProperty(value, allowableValues, required)` | `@Schema(description, allowableValues, requiredMode)` | one occurrence, `Result.getStatus()` |
+
+Three of those are not pure renames:
+
+- **`HTTP_STATUS_OK` changed type**, `int 200` → `String "200"`, in `AbstractRESTController` — 288 call
+  sites, all of them the constant. Its javadoc now says why, because an `int` there is the obvious
+  thing to write and will not compile.
+- **`allowableValues` is a `String[]`** in v3 where 1.x took one comma-separated `String`, and
+  `required = true` is deprecated in favour of `requiredMode = Schema.RequiredMode.REQUIRED`.
+- **`produces` was dropped uniformly**, not translated. `@Operation` has no equivalent attribute; the
+  v3 way is `@ApiResponse(content = @Content(mediaType = …))`, which is an addition rather than a
+  translation — and `DataItemController`'s download endpoint, one of the five
+  `APPLICATION_OCTET_STREAM_VALUE` cases, has no `@ApiResponses` block to attach it to. Nothing
+  regresses by dropping it: springdoc already derives the media type from the handler and emitted
+  `*/*` for these endpoints with the attribute present. If the response media types are wanted in the
+  document, that is an addition to make deliberately, **not** part of this translation.
+
+The generated document, `GET /catgenome/v3/api-docs` off the running `ngb-h2` container (springdoc
+serves it outside `/restapi`), before and after:
+
+| | before | after |
+|---|---|---|
+| paths / operations | 249 / 282 | **251 / 284** |
+| operation summaries | 0 | **278** |
+| operation descriptions | 0 | **267** |
+| response descriptions beyond springdoc's default `"OK"` | 0 of 282 | **264** of 284 |
+| top-level `tags` section (name + description) | absent | **36 entries** |
+| distinct tags used by operations | 37 | 36 |
+| schemas | 385 | 386 |
+| size | 236 KB | 394 KB |
+
+No path was lost. The two arithmetic oddities both check out:
+
+- **37 → 36 tags.** Before, springdoc derived one tag per controller class (`bam-controller` style),
+  and 37 controller classes are documented under the dev configuration — the other three,
+  `PermissionController`, `RoleController` and `UserController`, are
+  `@ConditionalOnProperty("security.acl.enable")` and absent as beans. 36 of the 37 now declare
+  `@Tag`, two of them share the name `target-identification`, and `UtilsController` declares none and
+  keeps its derived `utils-controller`: 35 + 1 = 36.
+- **385 → 386 schemas** is `ResponseBodyEmitter`, pulled in by the newly documented
+  `/restapi/bam/track/get`, which returns `ResponseEntity<ResponseBodyEmitter>`.
+
+**The two paths gained are a real behaviour change, and worth knowing.** They are
+`POST /restapi/bam/track/get` and `GET /restapi/dataitem/{id}/download`, and springdoc was skipping
+them: for a plain `@Controller` (which `AbstractRESTController` is — not `@RestController`) it
+documents a method only if the method or class carries `@ResponseBody`, *or* the method carries
+`@Operation`. Those two are the only two mapping methods in the whole controller package that are in
+a plain `@Controller` class and lack `@ResponseBody`; adding `@Operation` brought them in, exactly
++2. Not a duplicate-mapping artefact — each is mapped once — and not about the `void` /
+`ResponseBodyEmitter` return types, since other `void` endpoints (`/task/{taskId}/raw`,
+`/pathway/content/{pathwayId}`) were already documented, being in `@RestController` classes.
+
+`compileJava` green, `make lint` at baseline (0 errors, 37 warnings in 14 files, pmd clean). 26 lines
+crossed checkstyle's 120-char limit purely from the renames (`notes`→`description` is +6 characters,
+`code`→`responseCode` +10) and were wrapped after `summary =` / `description =` at the surrounding
+continuation indent.
+
 ---
 
 ### Phase 9 — Packaging, CI, docs, release

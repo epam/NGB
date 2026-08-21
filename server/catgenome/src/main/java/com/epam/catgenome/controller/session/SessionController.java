@@ -29,13 +29,12 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.session.NGBSession;
 import com.epam.catgenome.entity.session.NGBSessionFilter;
 import com.epam.catgenome.manager.session.NGBSessionSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,7 +49,7 @@ import java.util.List;
  */
 @Controller
 @RequiredArgsConstructor
-@Api(value = "session", description = "NGB Session Management")
+@Tag(name = "session", description = "NGB Session Management")
 public class SessionController extends AbstractRESTController {
 
     @Autowired
@@ -58,12 +57,11 @@ public class SessionController extends AbstractRESTController {
 
     @RequestMapping(value = "/session/filter", method = RequestMethod.POST)
     @ResponseBody
-    @ApiOperation(
-            value = "Returns all sessions matching filters",
-            notes = "List all available sessions matching filters",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns all sessions matching filters",
+            description = "List all available sessions matching filters")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<NGBSession>> filterSessions(@RequestBody(required = false) NGBSessionFilter filter) {
         return Result.success(sessionSecurityService.filter(filter));
@@ -71,12 +69,11 @@ public class SessionController extends AbstractRESTController {
 
     @RequestMapping(value = "/session/{id}", method = RequestMethod.GET)
     @ResponseBody
-    @ApiOperation(
-        value = "Returns session by id",
-        notes = "Returns session by id",
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+        summary = "Returns session by id",
+        description = "Returns session by id")
     @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
         })
     public Result<NGBSession> loadSession(@PathVariable Long id) {
         return Result.success(sessionSecurityService.load(id));
@@ -84,12 +81,11 @@ public class SessionController extends AbstractRESTController {
 
     @RequestMapping(value = "/session/{id}", method = RequestMethod.DELETE)
     @ResponseBody
-    @ApiOperation(
-            value = "Deletes a session by given ID",
-            notes = "Deletes a session by given ID",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Deletes a session by given ID",
+            description = "Deletes a session by given ID")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<NGBSession> deleteSession(@PathVariable final Long id) {
         return Result.success(sessionSecurityService.delete(id));
@@ -97,12 +93,11 @@ public class SessionController extends AbstractRESTController {
 
     @RequestMapping(value = "/session", method = RequestMethod.POST)
     @ResponseBody
-    @ApiOperation(
-        value = "Creates session",
-        notes = "Creates session with given parameters",
-        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+        summary = "Creates session",
+        description = "Creates session with given parameters")
     @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
         })
     public Result<NGBSession> createSession(@RequestBody final NGBSession session) {
         return Result.success(sessionSecurityService.create(session));
@@ -110,12 +105,11 @@ public class SessionController extends AbstractRESTController {
 
     @RequestMapping(value = "/session", method = RequestMethod.PUT)
     @ResponseBody
-    @ApiOperation(
-            value = "Updates session",
-            notes = "Updates session with given parameters",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Updates session",
+            description = "Updates session with given parameters")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<NGBSession> update(@RequestBody final NGBSession session) {
         return Result.success(sessionSecurityService.update(session));

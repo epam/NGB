@@ -43,7 +43,6 @@ import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.manager.vcf.VcfSecurityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.AbstractRESTController;
@@ -54,10 +53,10 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.VcfReadingException;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -81,7 +80,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequiredArgsConstructor
-@Api(value = "VCF", description = "VCF Track Management")
+@Tag(name = "VCF", description = "VCF Track Management")
 public class VcfController extends AbstractRESTController {
 
     private final VcfSecurityService vcfSecurityService;
@@ -90,29 +89,28 @@ public class VcfController extends AbstractRESTController {
     private boolean loadInfoForTrack;
 
     @PostMapping(value = "/vcf/register")
-    @ApiOperation(
-            value = "Registers a VCF file in the system.",
-            notes = "Registers a file, stored in a file system (for now). Registration request has the following " +
+    @Operation(
+            summary = "Registers a VCF file in the system.",
+            description =
+                    "Registers a file, stored in a file system (for now). Registration request has the following " +
                     "properties: <br/>" +
                     "1) referenceId - a reference, for which file is being registered <br/>" +
                     "2) path - a path to file </br>" +
                     "3) indexPath - <i>optional</i> a path to an index file<br/>" +
-                    "4) name - <i>optional</i> a name for VCF track",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "4) name - <i>optional</i> a name for VCF track")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<VcfFile> registerVcfFile(@RequestBody final FeatureIndexedFileRegistrationRequest request) {
         return Result.success(vcfSecurityService.registerVcfFile(request));
     }
 
     @PutMapping(value = "/vcf/{vcfFileId}/aliases")
-    @ApiOperation(
-            value = "Saves aliases for VCF file Samples.",
-            notes = "Saves aliases for VCF file Samples.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Saves aliases for VCF file Samples.",
+            description = "Saves aliases for VCF file Samples.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> setVcfAliases(@RequestBody final Map<String, String> aliases,
                                          @PathVariable final long vcfFileId) {
@@ -121,8 +119,8 @@ public class VcfController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/vcf/{vcfFileId}/index")
-    @ApiOperation(value = "Rebuilds a VCF feature index",
-            notes = "Rebuilds a VCF feature index", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Rebuilds a VCF feature index",
+            description = "Rebuilds a VCF feature index")
     public Result<Boolean> reindexVcf(@PathVariable final long vcfFileId,
                                       @RequestParam(defaultValue = "false") final boolean createTabixIndex)
             throws FeatureIndexException {
@@ -132,17 +130,16 @@ public class VcfController extends AbstractRESTController {
     }
 
     @DeleteMapping(value = "/secure/vcf/register")
-    @ApiOperation(value = "Unregisters a vcf file in the system.",
-            notes = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Unregisters a vcf file in the system.")
     public Result<Boolean> unregisterVcfFile(@RequestParam final long vcfFileId) throws IOException {
         VcfFile deletedFile = vcfSecurityService.unregisterVcfFile(vcfFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
     }
 
     @PostMapping(value = "/vcf/track/get")
-    @ApiOperation(
-            value = "Returns data matched the given query to fill in a VCF track.",
-            notes = "It provides data for a VCF track with the given scale factor between the beginning " +
+    @Operation(
+            summary = "Returns data matched the given query to fill in a VCF track.",
+            description = "It provides data for a VCF track with the given scale factor between the beginning " +
                     "position with the first base having position 1 and ending position inclusive in a target " +
                     "chromosome. All parameters are mandatory and described below:<br/><br/>" +
                     "1) <b>id</b> specifies ID of a track;<br/>" +
@@ -154,10 +151,9 @@ public class VcfController extends AbstractRESTController {
                     "5) <b>scaleFactor</b> specifies an inverse value to number of bases per one visible element on a" +
                     " track (e.g., pixel)." +
                     "6) <b>sampleId</b> optional sample id to load track for a specific sample. " +
-                    "If is absent, the first sample track will be returned",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "If is absent, the first sample track will be returned")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Callable<Result<Track<Variation>>> loadTrack(@RequestBody final VcfTrackQuery trackQuery,
                                                         @RequestParam(required = false) final String fileUrl,
@@ -179,14 +175,13 @@ public class VcfController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/vcf/variation/load")
-    @ApiOperation(
-            value = "Returns extended data for a variation",
-            notes = "Provides extended data about the particular variation: </br>" +
+    @Operation(
+            summary = "Returns extended data for a variation",
+            description = "Provides extended data about the particular variation: </br>" +
                     "info field : Additional information that is presented in INFO column</br>" +
-                    "genotypeInfo field : Genotype information for a specific sample</br>",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "genotypeInfo field : Genotype information for a specific sample</br>")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Variation> loadVariation(@RequestBody final VariationQuery query,
                                            @RequestParam(required = false) final String fileUrl,
@@ -200,14 +195,13 @@ public class VcfController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/vcf/{chromosomeId}/next")
-    @ApiOperation(
-            value = "Returns the next feature for a given track",
-            notes = "Returns the next feature for a given track in a given chromosome. </br>" +
+    @Operation(
+            summary = "Returns the next feature for a given track",
+            description = "Returns the next feature for a given track in a given chromosome. </br>" +
                     "Searches from given parameter 'fromPosition' (required), from a given sample (parameter " +
-                    "'sampleId', optional)",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "'sampleId', optional)")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Variation> jumpToNextGene(@RequestParam final int fromPosition,
                                             @PathVariable(value = "chromosomeId") final long chromosomeId,
@@ -223,14 +217,13 @@ public class VcfController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/vcf/{chromosomeId}/prev")
-    @ApiOperation(
-            value = "Returns the previous feature for a given track",
-            notes = "Returns the previous feature for a given track in a given chromosome. </br>" +
+    @Operation(
+            summary = "Returns the previous feature for a given track",
+            description = "Returns the previous feature for a given track in a given chromosome. </br>" +
                     "Searches from given parameter 'fromPosition' (required), from a given sample (parameter " +
-                    "'sampleId', optional)",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "'sampleId', optional)")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Variation> jumpToPrevGene(@RequestParam final int fromPosition,
                                             @PathVariable(value = "chromosomeId") final long chromosomeId,
@@ -245,12 +238,11 @@ public class VcfController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/vcf/{vcfFileId}/fieldInfo")
-    @ApiOperation(
-            value = "Returns information about VCF filter by file ID.",
-            notes = "Returns information about VCF filter by file ID, all information taken from file header.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns information about VCF filter by file ID.",
+            description = "Returns information about VCF filter by file ID, all information taken from file header.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<VcfFilterInfo> getFiltersInfo(@PathVariable(value = "vcfFileId") final Long vcfFileId,
                                      @RequestParam(required = false) final Long projectId) throws IOException {
@@ -260,12 +252,11 @@ public class VcfController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/vcf/{vcfFileId}/fieldValues")
-    @ApiOperation(
-            value = "Returns VCF INFO field values in a table view for annotation",
-            notes = "Returns VCF INFO field values in a table view for annotation",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns VCF INFO field values in a table view for annotation",
+            description = "Returns VCF INFO field values in a table view for annotation")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<VcfFieldValues> loadFieldValues(
             @PathVariable final Long vcfFileId,

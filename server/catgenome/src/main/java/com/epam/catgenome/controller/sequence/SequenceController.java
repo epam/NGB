@@ -32,31 +32,29 @@ import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.exception.TargetGenesException;
 import com.epam.catgenome.manager.externaldb.ncbi.util.NCBISequenceDatabase;
 import com.epam.catgenome.manager.externaldb.sequence.SequenceSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
 @RestController
-@Api(value = "sequence", description = "Sequences Management")
+@Tag(name = "sequence", description = "Sequences Management")
 @RequiredArgsConstructor
 public class SequenceController extends AbstractRESTController {
 
     private final SequenceSecurityService service;
 
     @GetMapping(value = "/sequence/{id}")
-    @ApiOperation(
-            value = "Returns a gene sequence by given ncbi sequence id and database type",
-            notes = "Returns a gene sequence by given ncbi sequence id and database type",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns a gene sequence by given ncbi sequence id and database type",
+            description = "Returns a gene sequence by given ncbi sequence id and database type")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<String> getFasta(@RequestParam final NCBISequenceDatabase database, @PathVariable final String id)
             throws ExternalDbUnavailableException {
@@ -64,12 +62,11 @@ public class SequenceController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/sequence/local")
-    @ApiOperation(
-            value = "Returns a gene sequence.",
-            notes = "Returns a gene sequence.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns a gene sequence.",
+            description = "Returns a gene sequence.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<String> getSequence(@RequestBody final LocalSequenceRequest request)
             throws ExternalDbUnavailableException, TargetGenesException, ReferenceReadingException,

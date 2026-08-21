@@ -29,13 +29,12 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.TMapException;
 import com.epam.catgenome.manager.target.TMapSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -45,19 +44,18 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@Api(value = "drug", description = "Drug Management")
+@Tag(name = "drug", description = "Drug Management")
 @RequiredArgsConstructor
 public class DrugController extends AbstractRESTController {
 
     private final TMapSecurityService tMapSecurityService;
 
     @GetMapping(value = "/drug/tmap")
-    @ApiOperation(
-            value = "Generates TMAP report for drugs associated with genes.",
-            notes = "Generates TMAP report for drugs associated with genes.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Generates TMAP report for drugs associated with genes.",
+            description = "Generates TMAP report for drugs associated with genes.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<String> generateTMapReport(@RequestParam final List<String> geneIds,
                                              @RequestParam(required = false) final Long targetId)
@@ -66,12 +64,11 @@ public class DrugController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/drug/tmap/{diseaseId}")
-    @ApiOperation(
-            value = "Generates TMAP report for drugs associated with disease.",
-            notes = "Generates TMAP report for drugs associated with disease.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Generates TMAP report for drugs associated with disease.",
+            description = "Generates TMAP report for drugs associated with disease.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<String> generateTMapReport(@PathVariable final String diseaseId)
             throws IOException, ParseException, ExternalDbUnavailableException, InterruptedException, TMapException {

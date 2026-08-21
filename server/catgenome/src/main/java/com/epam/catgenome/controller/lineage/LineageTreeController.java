@@ -29,12 +29,11 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.registration.LineageTreeRegistrationRequest;
 import com.epam.catgenome.entity.lineage.LineageTree;
 import com.epam.catgenome.manager.lineage.LineageTreeSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,19 +46,18 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@Api(value = "lineage", description = "Strain Lineage Tree files Management")
+@Tag(name = "lineage", description = "Strain Lineage Tree files Management")
 @RequiredArgsConstructor
 public class LineageTreeController extends AbstractRESTController {
 
     private final LineageTreeSecurityService lineageTreeSecurityService;
 
     @GetMapping(value = "/lineage/trees/{referenceId}")
-    @ApiOperation(
-            value = "Returns lineage trees by given parameters",
-            notes = "Returns lineage trees by given parameters",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns lineage trees by given parameters",
+            description = "Returns lineage trees by given parameters")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<LineageTree>> loadLineageTrees(@PathVariable final Long referenceId,
                                                       @RequestParam(required = false) final Long lineageTreeId,
@@ -68,12 +66,11 @@ public class LineageTreeController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/lineage/tree/{lineageTreeId}")
-    @ApiOperation(
-            value = "Returns a lineage tree by id",
-            notes = "Returns a lineage tree by id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns a lineage tree by id",
+            description = "Returns a lineage tree by id")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<LineageTree> loadLineageTree(@PathVariable final Long lineageTreeId,
                                                @RequestParam(required = false) final Long projectId) {
@@ -81,24 +78,22 @@ public class LineageTreeController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/lineage/trees/all")
-    @ApiOperation(
-            value = "Returns all lineage trees",
-            notes = "Returns all lineage trees",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns all lineage trees",
+            description = "Returns all lineage trees")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<LineageTree>> loadAllLineageTrees() {
         return Result.success(lineageTreeSecurityService.loadAllLineageTrees());
     }
 
     @PostMapping(value = "/lineage/tree")
-    @ApiOperation(
-            value = "Registers new lineage tree",
-            notes = "Registers new lineage tree",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Registers new lineage tree",
+            description = "Registers new lineage tree")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<LineageTree> createLineageTree(@RequestBody final LineageTreeRegistrationRequest request)
             throws IOException {
@@ -106,12 +101,11 @@ public class LineageTreeController extends AbstractRESTController {
     }
 
     @DeleteMapping(value = "/lineage/tree/{lineageTreeId}")
-    @ApiOperation(
-            value = "Deletes a lineage tree, specified by id",
-            notes = "Deletes a lineage tree, specified by id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Deletes a lineage tree, specified by id",
+            description = "Deletes a lineage tree, specified by id")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> deleteLineageTree(@PathVariable final long lineageTreeId) throws IOException {
         lineageTreeSecurityService.deleteLineageTree(lineageTreeId);

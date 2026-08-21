@@ -35,31 +35,29 @@ import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.patents.PatentsSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
 
 @RestController
-@Api(value = "patents", description = "Patents Management")
+@Tag(name = "patents", description = "Patents Management")
 @RequiredArgsConstructor
 public class PatentsController extends AbstractRESTController {
 
     private final PatentsSecurityService ncbiPatentsSecurityService;
 
     @PostMapping(value = "/patents/proteins/ncbi")
-    @ApiOperation(
-            value = "Searches protein patents by name in NCBI database.",
-            notes = "Searches protein patents by name in NCBI database.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Searches protein patents by name in NCBI database.",
+            description = "Searches protein patents by name in NCBI database.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<SequencePatent>> getProteinPatentsNcbi(@RequestBody final PatentsSearchRequest request)
             throws ExternalDbUnavailableException {
@@ -67,12 +65,11 @@ public class PatentsController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/patents/proteins/google")
-    @ApiOperation(
-            value = "Searches protein patents by name using Google Patents.",
-            notes = "Searches protein patents by name using Google Patents.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Searches protein patents by name using Google Patents.",
+            description = "Searches protein patents by name using Google Patents.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<GooglePatent>> getProteinPatentsGoogle(
             @RequestBody final PatentsSearchRequest request) {
@@ -80,12 +77,11 @@ public class PatentsController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/patents/drugs/ncbi")
-    @ApiOperation(
-            value = "Searches drug patents by name in NCBI database.",
-            notes = "Searches drug patents by name in NCBI database.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Searches drug patents by name in NCBI database.",
+            description = "Searches drug patents by name in NCBI database.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<DrugPatent>> getDrugPatents(@RequestBody final PatentsSearchRequest request)
             throws ExternalDbUnavailableException, IOException {
@@ -93,12 +89,11 @@ public class PatentsController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/patents/drugs/ncbi")
-    @ApiOperation(
-            value = "Searches drug patents by id in NCBI database.",
-            notes = "Searches drug patents by id in NCBI database.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Searches drug patents by id in NCBI database.",
+            description = "Searches drug patents by id in NCBI database.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<DrugPatent>> getDrugPatents(@RequestParam final String id)
             throws ExternalDbUnavailableException, IOException {
@@ -106,24 +101,22 @@ public class PatentsController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/patents/proteins")
-    @ApiOperation(
-            value = "Creates BLAST task to search protein patents by sequence.",
-            notes = "Creates BLAST task to search protein patents by sequence.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Creates BLAST task to search protein patents by sequence.",
+            description = "Creates BLAST task to search protein patents by sequence.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<BlastTask> getPatents(@RequestParam final String sequence) throws BlastRequestException {
         return Result.success(ncbiPatentsSecurityService.getPatents(sequence));
     }
 
     @GetMapping(value = "/patents/proteins/{targetId}")
-    @ApiOperation(
-            value = "Searches protein patents by sequence.",
-            notes = "Searches protein patents by sequence.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Searches protein patents by sequence.",
+            description = "Searches protein patents by sequence.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<BlastTask> getPatents(@PathVariable final Long targetId,
                                         @RequestParam final String sequenceId) {

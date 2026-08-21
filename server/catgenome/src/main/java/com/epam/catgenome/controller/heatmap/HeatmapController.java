@@ -31,12 +31,11 @@ import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.heatmap.HeatmapAnnotationType;
 import com.epam.catgenome.entity.heatmap.HeatmapTree;
 import com.epam.catgenome.manager.heatmap.HeatmapSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,19 +49,18 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@Api(value = "heatmap", description = "Heatmap files Management")
+@Tag(name = "heatmap", description = "Heatmap files Management")
 @RequiredArgsConstructor
 public class HeatmapController extends AbstractRESTController {
 
     private final HeatmapSecurityService heatmapSecurityService;
 
     @GetMapping(value = "/heatmap/{heatmapId}")
-    @ApiOperation(
-            value = "Returns a heatmap by given id",
-            notes = "Returns a heatmap by given id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns a heatmap by given id",
+            description = "Returns a heatmap by given id")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Heatmap> loadHeatmap(@PathVariable final long heatmapId,
                                        @RequestParam(required = false) final Long projectId) {
@@ -70,24 +68,22 @@ public class HeatmapController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/heatmaps")
-    @ApiOperation(
-            value = "Returns all heatmaps",
-            notes = "Returns all heatmaps",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns all heatmaps",
+            description = "Returns all heatmaps")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<Heatmap>> loadHeatmaps() {
         return Result.success(heatmapSecurityService.loadHeatmaps());
     }
 
     @GetMapping(value = "/heatmap/{heatmapId}/content")
-    @ApiOperation(
-            value = "Returns heatmap content",
-            notes = "Returns heatmap content",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns heatmap content",
+            description = "Returns heatmap content")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<List<List<List<String>>>> getContent(@PathVariable final long heatmapId,
                                                          @RequestParam(required = false) final Long projectId)
@@ -96,12 +92,11 @@ public class HeatmapController extends AbstractRESTController {
     }
 
     @PutMapping(value = "/heatmap/{heatmapId}/label/annotation")
-    @ApiOperation(
-            value = "Updates heatmap annotation for labels",
-            notes = "Updates heatmap annotation for labels",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Updates heatmap annotation for labels",
+            description = "Updates heatmap annotation for labels")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> updateLabelAnnotation(
             @PathVariable final long heatmapId,
@@ -113,12 +108,11 @@ public class HeatmapController extends AbstractRESTController {
     }
 
     @PutMapping(value = "/heatmap/{heatmapId}/cell/annotation")
-    @ApiOperation(
-            value = "Updates heatmap annotation for cells",
-            notes = "Updates heatmap annotation for cells",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Updates heatmap annotation for cells",
+            description = "Updates heatmap annotation for cells")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> updateCellAnnotation(
             @PathVariable final long heatmapId,
@@ -129,12 +123,11 @@ public class HeatmapController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/heatmap/{heatmapId}/tree")
-    @ApiOperation(
-            value = "Returns heatmap tree",
-            notes = "Returns heatmap tree",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns heatmap tree",
+            description = "Returns heatmap tree")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<HeatmapTree> getTree(@PathVariable final long heatmapId,
                                        @RequestParam(required = false) final Long projectId) throws IOException {
@@ -142,12 +135,11 @@ public class HeatmapController extends AbstractRESTController {
     }
 
     @PutMapping(value = "/heatmap/{heatmapId}/row/tree")
-    @ApiOperation(
-            value = "Updates phylogenetic tree for heatmap rows",
-            notes = "Updates phylogenetic tree for heatmap rows",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Updates phylogenetic tree for heatmap rows",
+            description = "Updates phylogenetic tree for heatmap rows")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> updateRowTree(@PathVariable final long heatmapId,
                                          @RequestParam(required = false) final String path) throws IOException {
@@ -156,12 +148,11 @@ public class HeatmapController extends AbstractRESTController {
     }
 
     @PutMapping(value = "/heatmap/{heatmapId}/column/tree")
-    @ApiOperation(
-            value = "Updates phylogenetic tree for heatmap columns",
-            notes = "Updates phylogenetic tree for heatmap columns",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Updates phylogenetic tree for heatmap columns",
+            description = "Updates phylogenetic tree for heatmap columns")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> updateColumnTree(@PathVariable final long heatmapId,
                                             @RequestParam(required = false) final String path) throws IOException {
@@ -170,24 +161,22 @@ public class HeatmapController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/heatmap")
-    @ApiOperation(
-            value = "Registers new heatmap",
-            notes = "Registers new heatmap",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Registers new heatmap",
+            description = "Registers new heatmap")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Heatmap> createHeatmap(@RequestBody final HeatmapRegistrationRequest heatmap) throws IOException {
         return Result.success(heatmapSecurityService.createHeatmap(heatmap));
     }
 
     @DeleteMapping(value = "/heatmap/{heatmapId}")
-    @ApiOperation(
-            value = "Deletes a heatmap, specified by id",
-            notes = "Deletes a heatmap, specified by id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Deletes a heatmap, specified by id",
+            description = "Deletes a heatmap, specified by id")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> deleteHeatmap(@PathVariable final long heatmapId) throws IOException {
         heatmapSecurityService.deleteHeatmap(heatmapId);

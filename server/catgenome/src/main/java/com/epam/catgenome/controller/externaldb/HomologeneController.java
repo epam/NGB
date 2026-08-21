@@ -29,13 +29,12 @@ import com.epam.catgenome.entity.externaldb.homologene.HomologeneEntry;
 import com.epam.catgenome.manager.externaldb.SearchResult;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneSecurityService;
 import com.epam.catgenome.manager.externaldb.homologene.HomologeneSearchRequest;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -43,19 +42,18 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@Api(value = "homologene", description = "Homologene Data Management")
+@Tag(name = "homologene", description = "Homologene Data Management")
 @RequiredArgsConstructor
 public class HomologeneController extends AbstractRESTController {
 
     private final HomologeneSecurityService homologeneSecurityService;
 
     @PostMapping(value = "/homologene/search")
-    @ApiOperation(
-            value = "Returns list of Homologenes",
-            notes = "Returns list of Homologenes",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns list of Homologenes",
+            description = "Returns list of Homologenes")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<HomologeneEntry>> search(
             @RequestBody final HomologeneSearchRequest query)
@@ -64,12 +62,11 @@ public class HomologeneController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/homologene/search")
-    @ApiOperation(
-            value = "Returns list of Homologenes by gene ids",
-            notes = "Returns list of Homologenes by gene ids",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns list of Homologenes by gene ids",
+            description = "Returns list of Homologenes by gene ids")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Map<String, List<HomologeneEntry>>> search(@RequestParam final List<String> geneIds)
             throws IOException, ParseException {
@@ -77,12 +74,11 @@ public class HomologeneController extends AbstractRESTController {
     }
 
     @PutMapping(value = "/homologene/import")
-    @ApiOperation(
-            value = "Creates Homologene Lucene Index from Homologene file",
-            notes = "Creates Homologene Lucene Index from Homologene file",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Creates Homologene Lucene Index from Homologene file",
+            description = "Creates Homologene Lucene Index from Homologene file")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> importHomologeneDatabase(@RequestParam final String databasePath)
             throws IOException, ParseException {

@@ -35,13 +35,12 @@ import com.epam.catgenome.manager.externaldb.target.opentargets.DiseaseSecurityS
 import com.epam.catgenome.manager.externaldb.target.opentargets.DrugFieldValues;
 import com.epam.catgenome.manager.index.SearchRequest;
 import com.epam.catgenome.util.FileFormat;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -54,43 +53,40 @@ import java.io.IOException;
 import java.util.Map;
 
 @RestController
-@Api(value = "disease", description = "Disease Management")
+@Tag(name = "disease", description = "Disease Management")
 @RequiredArgsConstructor
 public class DiseaseController extends AbstractRESTController {
 
     private final DiseaseSecurityService diseaseSecurityService;
 
     @GetMapping(value = "/disease")
-    @ApiOperation(
-            value = "Searches diseases by name",
-            notes = "Searches diseases by name",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Searches diseases by name",
+            description = "Searches diseases by name")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Map<String, String>> search(@RequestParam final String name) throws IOException, ParseException {
         return Result.success(diseaseSecurityService.search(name));
     }
 
     @GetMapping(value = "/disease/{diseaseId}")
-    @ApiOperation(
-            value = "Returns a disease by given id",
-            notes = "Returns a disease by given id",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns a disease by given id",
+            description = "Returns a disease by given id")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<Disease> searchById(@PathVariable final String diseaseId) throws IOException, ParseException {
         return Result.success(diseaseSecurityService.searchById(diseaseId));
     }
 
     @GetMapping(value = "/disease/identification/{diseaseId}")
-    @ApiOperation(
-            value = "Launches Disease Identification",
-            notes = "Launches Disease Identification",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Launches Disease Identification",
+            description = "Launches Disease Identification")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<DiseaseIdentificationResult> launchIdentification(@PathVariable final String diseaseId)
             throws IOException, ParseException {
@@ -98,14 +94,13 @@ public class DiseaseController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/disease/drugs/{diseaseId}")
-    @ApiOperation(
-            value = "Returns a disease drugs",
-            notes = "Returns a disease drugs" +
+    @Operation(
+            summary = "Returns a disease drugs",
+            description = "Returns a disease drugs" +
                     "Available field names for sorting and filtering: GENE_ID, GENE_SYMBOL, GENE_NAME, DRUG_NAME, " +
-                    "DRUG_TYPE, MECHANISM_OF_ACTION, ACTION_TYPE, PHASE, STATUS, SOURCE.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "DRUG_TYPE, MECHANISM_OF_ACTION, ACTION_TYPE, PHASE, STATUS, SOURCE.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<DrugAssociation>> searchDrugs(@RequestBody final SearchRequest request,
                                                              @PathVariable final String diseaseId)
@@ -114,12 +109,11 @@ public class DiseaseController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/disease/drugs/fieldValues/{diseaseId}")
-    @ApiOperation(
-            value = "Returns filed values for Open Targets drugs data",
-            notes = "Returns filed values for Open Targets drugs data",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Returns filed values for Open Targets drugs data",
+            description = "Returns filed values for Open Targets drugs data")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<DrugFieldValues> getDrugFieldValues(@PathVariable final String diseaseId)
             throws IOException, ParseException {
@@ -127,16 +121,15 @@ public class DiseaseController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/disease/targets/{diseaseId}")
-    @ApiOperation(
-            value = "Returns a disease targets",
-            notes = "Returns a disease targets" +
+    @Operation(
+            summary = "Returns a disease targets",
+            description = "Returns a disease targets" +
                     "Available field names for sorting and filtering: GENE_ID, GENE_SYMBOL, GENE_NAME, " +
                     "OVERALL_SCORE, GENETIC_ASSOCIATIONS_SCORE, SOMATIC_MUTATIONS_SCORE, DRUGS_SCORE, " +
                     "PATHWAYS_SCORE, TEXT_MINING_SCORE, RNA_EXPRESSION_SCORE, RNA_EXPRESSION_SCORE, " +
-                    "ANIMAL_MODELS_SCORE.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    "ANIMAL_MODELS_SCORE.")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public Result<SearchResult<DiseaseAssociation>> searchTargets(@RequestBody final SearchRequest request,
                                                                   @PathVariable final String diseaseId)
@@ -145,12 +138,11 @@ public class DiseaseController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/disease/drugs/export")
-    @ApiOperation(
-            value = "Exports drugs data to CSV/TSV file",
-            notes = "Exports drugs data to CSV/TSV file",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Exports drugs data to CSV/TSV file",
+            description = "Exports drugs data to CSV/TSV file")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public void exportDrugs(@RequestParam final String diseaseId,
                             @RequestParam final FileFormat format,
@@ -162,12 +154,11 @@ public class DiseaseController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/disease/targets/export")
-    @ApiOperation(
-            value = "Exports targets data to CSV/TSV file",
-            notes = "Exports targets data to CSV/TSV file",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Exports targets data to CSV/TSV file",
+            description = "Exports targets data to CSV/TSV file")
     @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
             })
     public void exportTargets(@RequestParam final String diseaseId,
                               @RequestParam final FileFormat format,

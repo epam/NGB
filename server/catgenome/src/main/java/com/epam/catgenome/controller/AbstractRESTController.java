@@ -69,8 +69,11 @@ public abstract class AbstractRESTController {
      * Declares HTTP status OK code value, used to specify this code when REST API
      * is described, using Swagger-compliant annotations. It allows create nice
      * documentation automatically.
+     * <p>
+     * A {@code String}, not an {@code int}: OpenAPI 3's {@code @ApiResponse.responseCode}
+     * is declared as one, where Swagger 1.x's {@code @ApiResponse.code} was an int.
      */
-    protected static final int HTTP_STATUS_OK = 200;
+    protected static final String HTTP_STATUS_OK = "200";
 
     /**
      * {@code String} specifies API responses description that explains meaning of different values
