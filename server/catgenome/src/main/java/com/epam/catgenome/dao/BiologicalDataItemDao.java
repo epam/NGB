@@ -58,7 +58,7 @@ import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.wig.WigFile;
 
 import com.epam.catgenome.util.db.PagingInfo;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

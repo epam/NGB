@@ -61,7 +61,7 @@ import com.epam.catgenome.util.BlockCompressedDataOutputStream;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.Utils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.biojava.nbio.core.sequence.DNASequence;

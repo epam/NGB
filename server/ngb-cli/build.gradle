@@ -48,7 +48,18 @@ dependencies {
     implementation group: 'commons-io', name: 'commons-io', version: '2.5'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
     implementation group: 'commons-configuration', name: 'commons-configuration', version: '1.10'
-    implementation group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
+    // The three CollectionUtils.isEmpty call sites here used commons-collections **3** until
+    // migration Phase 8, and now use collections4, which is what the server module uses; the two
+    // versions are kept in step by hand, there being no BOM over this module.
+    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.6.0'
+    // ...but collections 3 has to stay on the runtime classpath, and not because of NGB code:
+    // commons-configuration 1.10 above declares commons-collections <optional>true</optional> while
+    // XMLConfiguration.constructHierarchy uses CollectionUtils unconditionally. Since the declaration
+    // is optional, nothing brings it transitively, so dropping this line makes every `ngb` invocation
+    // die with NoClassDefFoundError in ConfigurationLoader.loadXmlConfiguration - i.e. before any
+    // command runs. Verified by doing exactly that. It goes when commons-configuration 1.x is replaced
+    // by commons-configuration2, which uses collections4 itself.
+    runtimeOnly group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
 
     // lombok
     compileOnly "org.projectlombok:lombok:$versionLombok"

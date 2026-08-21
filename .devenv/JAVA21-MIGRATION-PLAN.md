@@ -4108,6 +4108,69 @@ goes on the unverified list with the cloud items. See "Cloud verification" below
 `make test`: 534 tests, 3 failed, 21 skipped — the documented three. `make lint`: 14 files,
 37 warnings, pmd clean.
 
+#### commons-collections 3 → collections4, nine files (commit 7)
+
+Split out from the rest of the "Misc" row and done first, because the two version bumps that follow
+(commons-validator, opencsv) are what put commons-collections **3** on the classpath, and code that
+compiles against a transitive dependency breaks the day the transitive changes its mind.
+
+`commons-collections:commons-collections:3.2.2` is not declared in `server/catgenome/build.gradle` at
+all. `dependencyInsight` traces it to `commons-beanutils:1.9.4` ← `opencsv:5.8` and to
+`commons-validator:1.5.0`, which asks for it directly as well. Six files in the server module were
+importing `org.apache.commons.collections.CollectionUtils` from it while the module declares
+collections4; in ngb-cli, which declares `commons-collections:3.2.2` explicitly and no collections4,
+three more did (the plan's item 12 flagged that split — "align with the server module's choice if you
+touch it"). The plan's Phase 8 table names `JWTSecurityConfiguration` as the site; it is not, see the
+divergences above.
+
+Every call site is `CollectionUtils.isEmpty`, `isNotEmpty` or — once, in `ReferenceManager.parse` —
+`union`, and all three are the same in collections4. `union` widened its signature from
+`(Collection, Collection)` to `(Iterable<? extends O>, Iterable<? extends O>)` returning
+`Collection<O>`; both arguments there are `Set<String>` and the result is assigned to
+`Collection<String>`, so `O` infers to `String` and the cardinality-preserving semantics are
+unchanged. `GeneFilterForm` already imported `collections4.MapUtils` alongside the v3
+`CollectionUtils`, which is how visible the split was.
+
+In the server module, commons-collections 3.2.2 stays on the *runtime* classpath, because
+commons-validator genuinely uses it; nothing in NGB compiles against it any more.
+
+**ngb-cli's `commons-collections:3.2.2` line could not simply be replaced, and finding out took
+running the CLI.** With the line swapped for collections4, `:server:ngb-cli:build` was green —
+compile, checkstyle, pmd and the unit tests all pass — and then *every* `ngb` invocation died before
+executing any command:
+
+```
+Exception in thread "main" java.lang.NoClassDefFoundError: org/apache/commons/collections/CollectionUtils
+    at org.apache.commons.configuration.XMLConfiguration.constructHierarchy(XMLConfiguration.java:640)
+    ...
+    at com.epam.ngb.cli.app.ConfigurationLoader.loadXmlConfiguration(ConfigurationLoader.java:202)
+    at com.epam.ngb.cli.app.Application.main(Application.java:303)
+```
+
+`commons-configuration:1.10` declares `commons-collections` **`<optional>true</optional>`** — so
+neither Maven nor Gradle brings it transitively — while `XMLConfiguration` uses it unconditionally.
+NGB's explicit declaration was covering that hole, for a library it does not import. So ngb-cli now
+declares both: `commons-collections4:4.6.0` as `implementation` for its own three call sites, and
+`commons-collections:3.2.2` as `runtimeOnly` for commons-configuration, with the reason in a comment.
+It goes when commons-configuration 1.x is replaced by commons-configuration2, which uses collections4
+itself — another Phase 9 candidate.
+
+Worth generalising: `:server:ngb-cli:build` passing means nothing about whether the CLI *starts*. Its
+tests exercise handlers directly and never go through `Application.main`, so the one command that
+catches this class of breakage is `ngb version` off `installDist`.
+
+**Related, and deliberately not done here: ngb-cli's own dependency backlog.** That module pins
+`jackson-*:2.7.5`, `httpclient/httpmime:4.5.2`, `google-http-client-jackson2:1.22.0`,
+`commons-io:2.5`, `commons-lang3:3.5`, `slf4j-api:1.7.21` and `log4j2:2.17.1` — all 2016–2021, and
+jackson-databind 2.7.5 in particular carries a long CVE list for a component that deserializes
+server JSON. None of it is in the Phase 8 table, and more to the point `make cli-test` cannot run
+(its fixture host is gone — see `TEST-BASELINE.md`), so a bump there would be unverifiable beyond
+"it compiles". **Recommended for Phase 9**, together with the fixture hosting that makes it checkable.
+
+`make test`: 534 tests, 3 failed, 21 skipped — the documented three. `make lint`: 14 files,
+37 warnings, pmd clean. `:server:ngb-cli:build` (its own checkstyle/pmd/test, which `make lint` and
+`make test` do not cover): green, and `ngb version` still runs off `installDist`.
+
 ---
 
 ### Phase 9 — Packaging, CI, docs, release

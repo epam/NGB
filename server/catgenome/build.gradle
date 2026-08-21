@@ -230,6 +230,10 @@ dependencies {
     // newer - so leaving 4.1 in place would have quietly run POI against a library four minor
     // versions older than it was built against. Only CollectionUtils/ListUtils/MapUtils/SetUtils are
     // used here, all unchanged.
+    // Six files here (and three in ngb-cli) imported CollectionUtils from commons-collections **3**
+    // instead, which was never declared in either module - it arrives transitively under
+    // commons-validator and opencsv. Phase 8 moved them all to collections4; isEmpty/isNotEmpty/union
+    // are the only methods involved and behave identically.
     implementation group: "org.apache.commons", name: "commons-collections4", version: "4.6.0"
     implementation group: "commons-validator", name: "commons-validator", version: "1.5.0"
     implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'

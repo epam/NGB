@@ -52,7 +52,7 @@ import com.epam.ngb.cli.entity.SpeciesEntity;
 import com.epam.ngb.cli.entity.UserContext;
 import com.epam.ngb.cli.entity.target.Target;
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;

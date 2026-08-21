@@ -7,7 +7,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 import com.epam.ngb.cli.entity.UrlWithAliasItem;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.client.methods.HttpPost;
