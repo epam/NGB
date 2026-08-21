@@ -25,7 +25,7 @@ session to know where it is.
 | 4 | SAML2 + JWT on Spring Security 6 | `8a9a7fa3` | ☑ |
 | 5 | Flyway 11.7.2, H2 2.3.232, PostgreSQL 16.15 (HikariCP was already done in Phase 3) | `dda304bd`..`66b8d7d6` | ☑ |
 | 6 | Lucene + reindex procedure + startup guard | `c76ff2ee` | ☑ |
-| 7 | htsjdk latest, fork deleted, index cache dropped | | ☐ |
+| 7 | htsjdk latest, fork deleted, index cache dropped | `ac04780d` | ☑ |
 | 8 | Remaining libraries and API polish | | ☐ |
 | 9 | Packaging, CI, docs, release | | ☐ |
 
