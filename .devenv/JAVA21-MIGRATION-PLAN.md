@@ -4925,6 +4925,78 @@ mount `/opt/catgenome/H2` and `/opt/catgenome/contents`. The image's working dir
 so those two lines have never persisted anything. There is also a stray un-fenced
 `-v /host/ngs:/ngs -v /host/H2:/opt/catgenome/H2 …` line left over from an edit.
 
+#### Task 2, the JRE-bundled distributions: Temurin over jlink, and why the old ones could not have worked
+
+**`jlink` was rejected, deliberately, against the plan's "or better" suggestion.** `jlink` cannot
+cross-target: run on a Linux JDK it produces Linux runtime images only, so `bundleWindows` would need
+a Windows build host and the two archives could no longer come out of one CI job. The alternative the
+plan lists first — a pinned Temurin download — keeps both buildable anywhere, at the cost of roughly
+10 MB per archive. Recorded as a divergence from the plan's preference, not from a decision.
+
+So: Temurin **21.0.12+8**, from
+`https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/`, with each
+archive's SHA-256 pinned in `build.gradle` from Adoptium's own `.sha256.txt` and checked after
+download. That replaces `http://download.oracle.com/otn-pub/java/jdk/8-b132/` plus
+`Cookie: oraclelicense=accept-securebackup-cookie`, which was three separate problems: a dead URL, a
+cookie whose server-side handling was removed in 2019, and a build asserting acceptance of the Oracle
+BCL on the builder's behalf for a runtime that cannot be redistributed under it. Nothing verified the
+download at all before. `-PbundleArch=aarch64` selects the aarch64 archives (x64 is the default and
+what gets published); all four checksums — x64/aarch64 × linux/windows — are on record, and the build
+fails with a pointed message rather than a hash mismatch if a fifth architecture is asked for.
+
+**The old launchers could not have worked, and not only because of the JRE 8 paths.** Both
+`customStartScripts*` substituted the *last* line of Gradle's template — `exec "$JAVACMD" "$@"` — and
+left the JVM-discovery block above it untouched. That block `die`s first. Verified by running it: the
+first Linux bundle built in this phase, unpacked in a `ubuntu:22.04` container, failed with
+
+```
+ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+```
+
+on precisely the machine the archive exists for. The fix is to inject `JAVA_HOME="$APP_HOME/jre"`
+*before* the discovery block (and `set JAVA_HOME=%APP_HOME%\jre` before `if defined JAVA_HOME` in the
+`.bat`), which also gives the template's own "JAVA_HOME is set to an invalid directory" message a real
+meaning: the bundled `jre/` is missing. Every substitution now goes through a helper that throws if
+its anchor text is absent, so a Gradle upgrade that changes the template fails the build instead of
+shipping an archive that silently falls back to a system JVM.
+
+Three smaller defects fixed while there:
+
+- `customStartScriptsWin` and `customStartScriptsLinux` both wrote to `$buildDir/scripts`, and both
+  emit `ngb-server` *and* `ngb-server.bat`. Whichever ran last overwrote the other's substitutions —
+  so `bundleWindows` after `bundleLinux` shipped a `.bat` still looking for `%JAVA_HOME%`. They now
+  have separate output directories.
+- `bundleWindows`/`bundleLinux` each had a `from("$buildDir/downloads/jre1.8.0")` line that never
+  matched anything (the `tarTree` extraction does not land there). Gone.
+- The Windows zip shipped the POSIX script pointed at `jre1.8.0/bin/java`, a path that does not exist
+  in a Windows JRE — the executable is `java.exe`. It now ships only the `.bat`.
+- `zip` and `tar` copied `build/scripts` without declaring `dependsOn startScripts`. Added.
+
+The JRE unpacks as `jre/`, not `jdk-21.0.12+8-jre/`, so the launchers do not have to be re-edited when
+the pin moves and no path in either archive contains a `+`. `-Xms512m -Xmx2g` is kept — it matches the
+`-Xmx2G` the Docker image uses, and nothing about the runtime change argues for a different number —
+plus `--enable-native-access=ALL-UNNAMED`.
+
+**Verified**, `-PbundleArch=aarch64` on this aarch64 host:
+
+- `ngb-server-linux.tgz` (226 MB) unpacked in `ubuntu:22.04` — a container with no `java` on `PATH`
+  and no `/usr/lib/jvm` — and started. `/proc/<pid>/cmdline` is
+  `/opt/ngb-server/jre/bin/java -Xms512m -Xmx2g --enable-native-access=ALL-UNNAMED -classpath
+  /opt/ngb-server/lib/catgenome.jar org.springframework.boot.loader.launch.JarLauncher`, the bundled
+  runtime reports `Temurin-21.0.12+8`, `/restapi/version` answers `{"payload":"2.8.0","status":"OK"}`,
+  the client index page is HTTP 200, and the log contains **zero** restricted-method warnings.
+  Incidentally this also confirms that `JarLauncher` on the classpath — rather than `java -jar` — still
+  works under Boot 3.5, which the whole design of these bundles depends on.
+- `ngb-server-windows.zip` builds and has the right layout (`bin/ngb-server.bat`, `jre/`,
+  `lib/catgenome.jar`); the `.bat` carries the injected `set JAVA_HOME=%APP_HOME%\jre` with correct
+  CRLF line endings throughout. **It cannot be started in this environment** — there is no Windows
+  host — so that half of the exit criterion is inspected, not executed. Stated as such rather than
+  reported green.
+
+Worth knowing for the CI task: **`build.sh` has never built either bundle**, and `publish.sh` only
+uploads whatever is already in `dist/`. These tasks have been orphaned since they were written, which
+is how they got to be this broken.
+
 ---
 
 ## 4. Cross-cutting risk register

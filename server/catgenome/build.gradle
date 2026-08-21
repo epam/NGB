@@ -574,10 +574,11 @@ def appName = 'ngb-server'
 // into `assemble`, so nothing in .devenv builds them, but the name still has to be right.
 def springBootlauncherClass = 'org.springframework.boot.loader.launch.JarLauncher'
 def springBootJarName = 'catgenome.jar'
-def ngbJvmOptions = ["-Xms512m", "-Xmx2g"]
-def jreURL = "http://download.oracle.com/otn-pub/java/jdk/8-b132/"
-def windowsJre = "jre-8-windows-x64.tar.gz"
-def linuxJre = "jre-8-linux-x64.tar.gz"
+// --enable-native-access=ALL-UNNAMED suppresses three "restricted method in
+// java.lang.foreign.Linker has been called" warnings per start: Lucene 9's MMapDirectory uses the
+// FFM API. The manifest attribute that would make the flag unnecessary (Enable-Native-Access) is
+// JDK 24+, so on 21 it has to be on the command line of every launcher.
+def ngbJvmOptions = ["-Xms512m", "-Xmx2g", "--enable-native-access=ALL-UNNAMED"]
 
 startScripts {
     applicationName = appName
@@ -587,7 +588,7 @@ startScripts {
 }
 
 task zip(type: Zip) {
-    dependsOn bootJar
+    dependsOn bootJar, startScripts
     from('build/libs/') {
         include '**/*.jar'
         into('lib')
@@ -600,7 +601,7 @@ task zip(type: Zip) {
 }
 
 task tar(type: Tar) {
-    dependsOn bootJar
+    dependsOn bootJar, startScripts
     from('build/libs/') {
         include '**/*.jar'
         into('lib')
@@ -614,36 +615,127 @@ task tar(type: Tar) {
     compression = Compression.GZIP
 }
 
+// ---------------------------------------------------------------------------------------------
+// JRE-bundled distributions: the server plus a runtime, for machines with no Java installed.
+//
+// These downloaded a JRE 8 from http://download.oracle.com/otn-pub/java/jdk/8-b132/ with a
+// `Cookie: oraclelicense=accept-securebackup-cookie` header. That URL is gone, the cookie trick
+// stopped working in 2019, Oracle no longer ships a standalone JRE at all, and the licence it
+// asserted acceptance of on the builder's behalf is not one to redistribute under. The replacement
+// is Eclipse Temurin, pinned to an exact build and checked against Adoptium's own published
+// SHA-256 - see the checksums below.
+//
+// jlink is the other option the plan suggested, and it is not used, for one reason: it cannot
+// cross-target. `jlink` on a Linux JDK produces Linux runtime images only, so a Windows bundle
+// would need a Windows build host and the two bundles could no longer be produced by one CI job.
+// A prebuilt JRE is bigger (~45 MB compressed vs ~35 MB for a trimmed image) and keeps both
+// bundles buildable anywhere.
+//
+// `-PbundleArch=aarch64` builds for aarch64 instead of x64. The published artifacts are x64; the
+// switch exists so the Linux bundle can be unpacked and started on an aarch64 machine, which is
+// how the exit criterion for this task was actually checked.
+def bundleJreVersion = '21.0.12+8'
+def bundleJreDir = "jdk-${bundleJreVersion}-jre"          // the archive's own top-level directory
+def bundleArch = (project.findProperty('bundleArch') ?: 'x64').toString()
+def bundleJreUrlBase = 'https://github.com/adoptium/temurin21-binaries/releases/download/' +
+        "jdk-${bundleJreVersion.replace('+', '%2B')}/"
+def bundleJreFile = { String os, String extension ->
+    "OpenJDK21U-jre_${bundleArch}_${os}_hotspot_${bundleJreVersion.replace('+', '_')}.$extension"
+}
+// https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/<file>.sha256.txt
+def bundleJreChecksums = [
+        'OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz':
+                '8a379a67c91a3ae61ffb33d46e0a40c7ba35e70713c4db31cfca30492f792eff',
+        'OpenJDK21U-jre_aarch64_linux_hotspot_21.0.12_8.tar.gz':
+                '5f9c96b656827b9d14ebeda7739e25be554fa6d25669b03847c1df6e869c0679',
+        'OpenJDK21U-jre_x64_windows_hotspot_21.0.12_8.zip':
+                'b8aa18fef5edb69bee8618f99677d66d0873d22cb40d974c15ac9ffcdecf73ba',
+        'OpenJDK21U-jre_aarch64_windows_hotspot_21.0.12_8.zip':
+                'a50ed83b6a88d3127d406713f5057d78f845c3412d59e201dac6db37714af85c',
+]
+def windowsJre = bundleJreFile('windows', 'zip')
+def linuxJre = bundleJreFile('linux', 'tar.gz')
+
+def verifyJreChecksum = { File archive ->
+    def expected = bundleJreChecksums[archive.name]
+    if (expected == null) {
+        throw new GradleException("No published SHA-256 on record for ${archive.name}. " +
+                "-PbundleArch=$bundleArch is not one of the architectures listed in " +
+                "bundleJreChecksums; add its checksum from Adoptium's .sha256.txt first.")
+    }
+    def actual = java.security.MessageDigest.getInstance('SHA-256')
+            .digest(archive.bytes).encodeHex().toString()
+    if (actual != expected) {
+        throw new GradleException("Checksum mismatch on ${archive.name}:\n" +
+                "  expected $expected\n  actual   $actual\n" +
+                "Delete $archive and retry; if it keeps failing, the pinned build was re-published.")
+    }
+}
+
+// The start-script templates are Gradle's, and pointing them at the bundled JRE means editing
+// generated text. Do it loudly: a template change across a Gradle upgrade would otherwise leave a
+// bundle that quietly falls back to whatever `java` is on the PATH - which on a machine with no
+// system JDK, the whole point of these archives, is nothing at all.
+def pointAtBundledJre = { File script, String from, String to ->
+    def text = script.text
+    if (!text.contains(from)) {
+        throw new GradleException("Cannot point ${script.name} at the bundled JRE: Gradle's start " +
+                "script template no longer contains [$from]. Update the substitution in " +
+                "server/catgenome/build.gradle.")
+    }
+    script.text = text.replace(from, to)
+}
+
+// What both scripts get is JAVA_HOME, set before they look for a JVM - not a rewritten exec line at
+// the bottom. The previous version substituted the exec line only, and both templates `die` on a
+// missing java long before reaching it, so the Linux bundle failed with "JAVA_HOME is not set and no
+// 'java' command could be found in your PATH" on exactly the machine it exists for. Setting JAVA_HOME
+// instead also turns the template's own "JAVA_HOME is set to an invalid directory" check into a
+// useful one: it now means the bundled jre/ directory is missing.
+def bundledJavaHomeUnix = '''# The runtime this archive ships with, in place of a system JDK.
+JAVA_HOME="$APP_HOME/jre"
+
+# Determine the Java command to use to start the JVM.'''
+
+// Both bundles unpack the JRE as `jre/` rather than as `jdk-21.0.12+8-jre/`, so the launchers do not
+// have to be edited every time the pinned build moves - and so no path in the archive contains `+`.
+def unpackedAsJre = { spec ->
+    spec.eachFile { it.path = it.path.replaceFirst("^\\Q$bundleJreDir\\E/", 'jre/') }
+    spec.includeEmptyDirs = false
+}
+
 //Windows Distribution
 task customStartScriptsWin(type: CreateStartScripts) {
     applicationName = appName
     mainClass = springBootlauncherClass
     classpath = files(springBootJarName)
     defaultJvmOpts = ngbJvmOptions
-    outputDir = file("$buildDir/scripts")
+    // Its own directory. This task and customStartScriptsLinux both emit `ngb-server` and
+    // `ngb-server.bat`, and while they shared $buildDir/scripts whichever ran last overwrote the
+    // other's substitutions - so a bundleWindows that ran after bundleLinux shipped a .bat still
+    // looking for %JAVA_HOME%.
+    outputDir = file("$buildDir/scripts-windows")
     doLast {
-        windowsScript.text = windowsScript.text.replace("set JAVA_EXE=%JAVA_HOME%/bin/java.exe",
-                "set JAVA_EXE=%APP_HOME%/jre1.8.0/bin/java.exe")
-        unixScript.text = unixScript.text.replace("exec \"\$JAVACMD\" \"\$@\"",
-                "exec \"\$APP_HOME/jre1.8.0/bin/java\" \"\$@\"")
+        pointAtBundledJre(windowsScript,
+                'if defined JAVA_HOME goto findJavaFromJavaHome',
+                'set JAVA_HOME=%APP_HOME%\\jre\r\nif defined JAVA_HOME goto findJavaFromJavaHome')
     }
 }
 
 task downloadJreWin(type: Download) {
-    dependsOn bootJar
-    src jreURL + windowsJre
+    src bundleJreUrlBase + windowsJre
     dest "$buildDir/downloads/$windowsJre"
-    header 'Cookie', 'oraclelicense=accept-securebackup-cookie'
-    overwrite true
+    overwrite false
+    doLast {
+        verifyJreChecksum(file("$buildDir/downloads/$windowsJre"))
+    }
 }
 
 task bundleWindows(type: Zip) {
     dependsOn downloadJreWin
     dependsOn customStartScriptsWin, bootJar
-    from(tarTree(resources.gzip("$buildDir/downloads/$windowsJre"))) {
-    }
-
-    from("$buildDir/downloads/jre1.8.0") {
+    from(zipTree("$buildDir/downloads/$windowsJre")) {
+        unpackedAsJre(it)
     }
 
     from("$buildDir/libs") {
@@ -651,7 +743,10 @@ task bundleWindows(type: Zip) {
         into('lib')
     }
 
-    from("$buildDir/scripts") {
+    // Only the .bat. CreateStartScripts also emits a POSIX script, and the old bundle shipped it
+    // pointed at `jre1.8.0/bin/java` - a path that does not exist in a Windows JRE, where the
+    // executable is java.exe. A launcher that cannot work is worse than an absent one.
+    from("$buildDir/scripts-windows/${appName}.bat") {
         into('bin')
     }
 
@@ -666,28 +761,28 @@ task customStartScriptsLinux (type: CreateStartScripts) {
     mainClass = springBootlauncherClass
     classpath = files(springBootJarName)
     defaultJvmOpts = ngbJvmOptions
-    outputDir = file("$buildDir/scripts")
+    outputDir = file("$buildDir/scripts-linux")
     doLast {
-        unixScript.text = unixScript.text.replace("exec \"\$JAVACMD\" \"\$@\"",
-                "exec \"\$APP_HOME/jre1.8.0/bin/java\" \"\$@\"")
+        pointAtBundledJre(unixScript,
+                '# Determine the Java command to use to start the JVM.',
+                bundledJavaHomeUnix)
     }
 }
 
 task downloadJreLinux(type: Download) {
-    dependsOn bootJar
-    src jreURL + linuxJre
+    src bundleJreUrlBase + linuxJre
     dest "$buildDir/downloads/$linuxJre"
-    header 'Cookie', 'oraclelicense=accept-securebackup-cookie'
-    overwrite true
+    overwrite false
+    doLast {
+        verifyJreChecksum(file("$buildDir/downloads/$linuxJre"))
+    }
 }
 
 task bundleLinux(type: Tar) {
     dependsOn downloadJreLinux
     dependsOn customStartScriptsLinux, bootJar
-    from (tarTree(resources.gzip("$buildDir/downloads/$linuxJre"))) {
-    }
-
-    from("$buildDir/downloads/jre1.8.0") {
+    from(tarTree(resources.gzip("$buildDir/downloads/$linuxJre"))) {
+        unpackedAsJre(it)
     }
 
     from("$buildDir/libs") {
@@ -695,7 +790,7 @@ task bundleLinux(type: Tar) {
         into('lib')
     }
 
-    from("$buildDir/scripts/ngb-server") {
+    from("$buildDir/scripts-linux/$appName") {
         into('bin')
     }
 
