@@ -1,4 +1,5 @@
 import ngbConstants from '../../../../constants';
+import submitSamlLogout from '../../../../utils/saml-logout';
 
 export default  {
     controller: class ngbHeaderProjectController {
@@ -40,7 +41,7 @@ export default  {
                 : (urlPrefix || '');
             const logoutUrl = `${prefix}/saml/logout`;
             this.logout = () => {
-                $window.location.href = logoutUrl;
+                submitSamlLogout(logoutUrl, $window.document);
             };
         }
     },

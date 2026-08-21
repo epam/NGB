@@ -1,33 +1,33 @@
 # Appended to catgenome.properties when AUTH_MODE=saml.
 #
-# Note on the mode combination: JWTSecurityConfiguration @Autowires SAMLAuthenticationProvider
-# and SAMLEntryPoint, which only exist when saml.security.enable=true. JWT-only is therefore
-# not a startable configuration in this codebase - SAML mode enables both, which is also what
-# the docs recommend so that ngb-cli keeps working.
+# Note on the mode combination: SAML guards the browser and JWT guards /restapi/**, and both are
+# switched on here. They are independent as of migration Phase 4 - the JWT chain no longer needs
+# any SAML bean, only the URL to redirect /restapi/navigate to - so jwt.security.enable=true with
+# saml.security.enable=false now starts, and returns 401 instead of redirecting. Enabling both is
+# still what the docs recommend, so that ngb-cli keeps working while the UI uses SSO.
 #
-# SAMLUserDetailsServiceImpl is @ConditionalOnProperty(security.acl.enable=true), so ACL must
-# be on as well, otherwise SAMLSecurityConfiguration fails to find a SAMLUserDetailsService.
+# SamlUserDetailsService is @ConditionalOnProperty(security.acl.enable=true) and
+# SAMLSecurityConfiguration requires it, so ACL has to be on whenever SAML is.
 
 saml.security.enable=true
 security.acl.enable=true
 security.default.admin=${DEFAULT_ADMIN}
 
-# HTTPS - required by SAML.
-#
-# The HTTPS port is 9443, NOT 8443, and that is deliberate: after a successful
-# assertion, CustomAwareAuthenticationSuccessHandler does
-#     StringUtils.replace(savedRequest.getRedirectUrl(), "8443", "8080")
-# i.e. it rewrites the literal string "8443" to "8080" in the post-login target URL.
-# Spring Boot 1.5 only exposes one connector, so nothing listens on 8080 in SAML mode
-# and login would dead-end. Any port without "8443" in it sidesteps the rewrite.
-# Removing that hardcoded swap is a migration item, not something this env patches.
+# HTTPS - required by SAML. The port is 8443, set by HTTPS_PORT in docker-compose.yml; the app
+# exposes a single connector, so 8080 does not answer in this mode.
 server.ssl.ciphers=HIGH:!RC4:!aNULL:!MD5:!kEDH
 server.ssl.key-store=file:/secrets/ngb-keystore.jks
 server.ssl.key-store-type=JKS
 server.ssl.key-store-password=${KEYSTORE_PASS}
 server.ssl.keyAlias=${HTTPS_KEY_ALIAS}
 
-# SAML service provider identity
+# SAML service provider identity.
+#
+# saml.sign.key signs outgoing <AuthnRequest>s and, since Phase 4, the published SP metadata as
+# well - Spring Security keeps one credential list for both, where the OpenSAML 2 extension signed
+# messages with this key but signed and advertised metadata with server.ssl.keyAlias. That key is
+# now used only for decryption, and the metadata at /catgenome/saml/metadata advertises ngb-saml,
+# which is the key an IdP actually needs to validate what NGB sends it.
 saml.sign.key=${SAML_SIGN_KEY}
 server.ssl.endpoint.id=${ENDPOINT_ID}
 saml.base.url=${ENDPOINT_ID}

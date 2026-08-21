@@ -41,11 +41,14 @@ import org.springframework.security.web.SecurityFilterChain;
 public class NoSecurityConfiguration {
 
     /**
-     * The order the class used to carry as {@code @Order(3)}, behind the JWT (2) and SAML (1)
-     * chains. In Spring Security 6 the order belongs to the {@link SecurityFilterChain} bean rather
-     * than to the configuration class, and while SAML and JWT are out of the build (Phase 3) this
-     * is the only chain there is - but the number is kept so Phase 4 can slot the other two in
-     * front of it without having to rediscover the intended precedence.
+     * The order the class used to carry as {@code @Order(3)}, behind the JWT
+     * ({@link JWTSecurityConfiguration}, 1) and SAML ({@link SAMLSecurityConfiguration}, 2) chains.
+     * In Spring Security 6 the order belongs to the {@link SecurityFilterChain} bean rather than to
+     * the configuration class.
+     *
+     * <p>This chain matches every request, and {@code WebSecurityFilterChainValidator} rejects such
+     * a chain in any position but the last - which is why the SAML chain, which also matches
+     * everything, does so through an explicit {@code /**} pattern rather than implicitly.
      */
     private static final int CHAIN_ORDER = 3;
 

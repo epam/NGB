@@ -4,6 +4,7 @@ import {
 } from './utils/session-expiration-behavior';
 import BluebirdPromise from 'bluebird';
 import ngbConstants from '../constants';
+import submitSamlLogout from '../utils/saml-logout';
 
 const AUTH_ERROR_CODE = 401;
 const ERROR_CODE_RANGE_START = 400;
@@ -183,7 +184,7 @@ export class DataService {
     }
 
     authenticate() {
-        window.location = `${this._urlPrefix}saml/logout`;
+        submitSamlLogout(`${this._urlPrefix}saml/logout`);
     }
 }
 

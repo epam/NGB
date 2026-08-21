@@ -25,6 +25,7 @@
 package com.epam.catgenome.security;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,6 +36,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.saml2.provider.service.authentication.Saml2AuthenticatedPrincipal;
 
 import com.epam.catgenome.entity.security.JwtRawToken;
 import com.epam.catgenome.entity.security.JwtTokenClaims;
@@ -45,14 +47,29 @@ import lombok.Setter;
 
 /**
  * Class represents information about user
+ *
+ * <p>Besides {@link UserDetails}, which is what the JWT stack needs, this is also the principal
+ * of a SAML authentication, so it implements {@link Saml2AuthenticatedPrincipal}. That is not
+ * cosmetic: Spring Security 6 gates SP-initiated single logout on
+ * {@code principal instanceof Saml2AuthenticatedPrincipal} (see {@code Saml2LogoutConfigurer}),
+ * and it reads the registration id and the session indexes to put in the {@code <LogoutRequest>}
+ * off this interface. A principal that does not implement it logs out locally and never tells the
+ * identity provider.
+ *
+ * <p>{@code attributes} carries the raw assertion attributes in the shape the interface wants,
+ * {@code Map<String, List<Object>>}. It used to be a {@code Map<String, String>} that nothing in
+ * the tree ever wrote or read; the SAML attributes NGB actually cares about are mapped by
+ * {@code saml.user.attributes} and stored on the {@link NgbUser} record instead.
  */
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserContext implements UserDetails {
+public class UserContext implements UserDetails, Saml2AuthenticatedPrincipal {
     private List<String> groups = new ArrayList<>();
     private List<Role> roles = new ArrayList<>();
-    private Map<String, String> attributes;
+    private Map<String, List<Object>> attributes = new HashMap<>();
+    private List<String> sessionIndexes = new ArrayList<>();
+    private String relyingPartyRegistrationId;
     private JwtRawToken jwtRawToken;
     private Long userId;
     private String userName;
@@ -112,6 +129,15 @@ public class UserContext implements UserDetails {
 
     @Override
     public String getUsername() {
+        return userName;
+    }
+
+    /**
+     * {@code AuthenticatedPrincipal}'s name. Same value as {@link #getUsername()}, which is what
+     * {@code UserDetails} calls it.
+     */
+    @Override
+    public String getName() {
         return userName;
     }
 

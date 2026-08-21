@@ -22,6 +22,10 @@ GRADLE_H2  := with-java21 ./gradlew --no-daemon
 EXEC_BUILD := $(COMPOSE) exec -T builder
 SERVER     := -p server/catgenome
 
+# SAML compares URLs byte-for-byte, so the SAML targets address NGB by its entity id and not by
+# localhost. Matches NGB_BASE_URL in scripts/saml-login-test.py.
+NGB_SAML_URL := https://ngb.dev.local:8443/catgenome
+
 .PHONY: help
 help: ## Show this help
 	@grep -hE '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -139,12 +143,12 @@ up: certs ## Run NGB on H2 (http://ngb.dev.local:8080/catgenome)
 	@echo "==> http://ngb.dev.local:8080/catgenome  (AUTH_MODE from .env)"
 
 .PHONY: up-saml
-up-saml: certs ## Run NGB with Keycloak SAML SSO (https://ngb.dev.local:9443/catgenome)
+up-saml: certs ## Run NGB with Keycloak SAML SSO (https://ngb.dev.local:8443/catgenome)
 	$(COMPOSE) --profile saml up -d idp
 	$(COMPOSE) --profile saml run --rm idp-metadata
 	AUTH_MODE=saml $(COMPOSE) up -d builder ngb-h2
 	@echo ""
-	@echo "==> NGB      https://ngb.dev.local:9443/catgenome  (self-signed cert)"
+	@echo "==> NGB      https://ngb.dev.local:8443/catgenome  (self-signed cert)"
 	@echo "==> Keycloak http://idp.dev.local:8081  (admin/admin)"
 	@echo "==> sign in as ngbadmin@ngb.dev.local / admin  (NGB admin)"
 	@echo "                ngbuser@ngb.dev.local  / user   (plain user)"
@@ -178,19 +182,38 @@ ps: ## Show container status
 .PHONY: smoke
 smoke: ## Check that the H2 instance answers
 	# The app exposes a single connector, so exactly one of these answers:
-	# HTTP:8080 in AUTH_MODE=none, HTTPS:9443 in AUTH_MODE=saml.
+	# HTTP:8080 in AUTH_MODE=none, HTTPS:8443 in AUTH_MODE=saml.
 	# curl still writes %{http_code} (000) when the connection fails, so discard its
 	# output on a non-zero exit instead of letting both appear.
 	@code=$$(curl -fsS -o /dev/null -w '%{http_code}' http://localhost:8080/catgenome/ 2>/dev/null) \
 		&& echo "AUTH_MODE=none  -> http  $$code" || echo "AUTH_MODE=none  -> http  not listening"
-	@code=$$(curl -fksS -o /dev/null -w '%{http_code}' https://localhost:9443/catgenome/ 2>/dev/null) \
+	@code=$$(curl -fksS -o /dev/null -w '%{http_code}' https://localhost:8443/catgenome/ 2>/dev/null) \
 		&& echo "AUTH_MODE=saml  -> https $$code" || echo "AUTH_MODE=saml  -> https not listening"
-	@echo "version:        $$(curl -fsS http://localhost:8080/catgenome/restapi/version 2>/dev/null || curl -fksS https://localhost:9443/catgenome/restapi/version 2>/dev/null || echo '-')"
+	@echo "version:        $$(curl -fsS http://localhost:8080/catgenome/restapi/version 2>/dev/null || curl -fksS https://localhost:8443/catgenome/restapi/version 2>/dev/null || echo '-')"
 
 .PHONY: smoke-saml
 smoke-saml: builder ## Full browser-less SSO login through Keycloak (needs `make up-saml`)
 	$(EXEC_BUILD) python3 /workspace/.devenv/scripts/saml-login-test.py \
 		$(or $(U),ngbadmin@ngb.dev.local) $(or $(P),admin)
+
+.PHONY: cli-token
+cli-token: builder ## Print a JWT for the CLI: logs in over SAML and asks /restapi/user/token
+	@$(EXEC_BUILD) python3 /workspace/.devenv/scripts/jwt-token.py \
+		$(or $(U),ngbadmin@ngb.dev.local) $(or $(P),admin)
+
+.PHONY: saml-verify-signing
+saml-verify-signing: builder ## Check both signatures NGB produces: SP metadata, and the AuthnRequest
+	# Neither is checked by `make smoke-saml` on its own: saml.client.signature is off in the
+	# committed realm (the SP cert is generated per machine, so it cannot be inlined there) and
+	# nothing at all validates the metadata signature. So: verify the metadata signature with the
+	# JDK's XML-DSIG, then make Keycloak require the AuthnRequest signature and log in again.
+	# `make up-saml` re-imports the realm, which puts the flag back to off.
+	@echo "==> SP metadata signature"
+	$(EXEC_BUILD) bash -lc 'curl -fksS $(NGB_SAML_URL)/saml/metadata -o /tmp/sp-metadata.xml \
+		&& with-java21 java /workspace/.devenv/scripts/VerifyXmlSignature.java /tmp/sp-metadata.xml'
+	@echo "==> AuthnRequest signature"
+	$(EXEC_BUILD) python3 /workspace/.devenv/scripts/saml-client-signature.py on
+	@$(MAKE) smoke-saml $(if $(U),U=$(U)) $(if $(P),P=$(P))
 
 # ---------------------------------------------------------------- migration --
 

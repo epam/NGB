@@ -39,7 +39,7 @@ Three facts about the current codebase drive the whole design:
 |---|---|---|---|
 | `builder` | default | Toolbox: JDK 8 + 17 + 21, Node 14.17.5, mkdocs, muscle. All Gradle/npm work happens here | — |
 | `certs` | default | One-shot: JKS keystore (HTTPS + SAML signing) and the JWT RSA keypair | — |
-| `ngb-h2` | default | NGB on H2 | `:8080` http *or* `:9443` https |
+| `ngb-h2` | default | NGB on H2 | `:8080` http *or* `:8443` https |
 | `ngb-pg` | `pg` | NGB on PostgreSQL | `:8090` http *or* `:8493` https |
 | `postgres` | `pg` | PostgreSQL 9.6 (see note below), DBs `ngb` + `ngb_test` | `:5432` |
 | `test-pg` | `pg` | Unit tests against PostgreSQL | — |
@@ -114,19 +114,14 @@ made of the assertion, so you can verify SAML from a terminal (and it works befo
 `/etc/hosts` entries exist, because it runs inside the docker network):
 
 ```
-[3] POST SAMLResponse to https://ngb.dev.local:9443/catgenome/saml/SSO
+[3] POST SAMLResponse to https://ngb.dev.local:8443/catgenome/saml/SSO
   username    : NGBADMIN@NGB.DEV.LOCAL
   authorities : ['ROLE_USER', 'ROLE_ADMIN', 'NGB_ADMINS']
 SAML SSO OK
 ```
 
-Use `make smoke-saml U=ngbuser@ngb.dev.local P=user` for the non-admin user. When the
-SAML rewrite lands (migration step 3), this is the check that tells you it still works.
-
-> **`AUTH_MODE=saml` does not work between migration phases 3 and 4.** Phase 3 took the
-> OpenSAML 2 stack out of the build — it cannot work with Spring Security 6 — so the server
-> only starts with `AUTH_MODE=none`. The entrypoint refuses `saml` outright rather than
-> failing later inside Spring. Phase 4 rewrites it and this section applies again.
+Use `make smoke-saml U=ngbuser@ngb.dev.local P=user` for the non-admin user. This is the
+check that tells you the SAML stack still works after touching it.
 
 When it *doesn't* work, the packaged `log4j2.xml` is the first obstacle: its console appender
 is pinned to `ERROR`, so Spring Security says nothing. Point the app at the debug config in
@@ -139,30 +134,40 @@ NGB_JAVA_VERSION=21 AUTH_MODE=saml \
   docker-compose up -d --force-recreate ngb-h2
 ```
 
-Then open <https://ngb.dev.local:9443/catgenome> (accept the self-signed certificate) and
+Then open <https://ngb.dev.local:8443/catgenome> (accept the self-signed certificate) and
 sign in as `ngbadmin@ngb.dev.local` / `admin` (NGB admin, via `security.default.admin`)
 or `ngbuser@ngb.dev.local` / `user`. Keycloak's admin console is at
 <http://idp.dev.local:8081> (`admin`/`admin`).
+
+**Logging out in a browser does not work here, and it is the dev setup's fault.** Single logout
+POSTs a `<LogoutRequest>` form to the IdP, which in this environment is plain HTTP while NGB is
+HTTPS — a mixed-content form submission, which browsers block (`net::ERR_BLOCKED_BY_CLIENT`,
+`Mixed Content: … contains a form that targets an insecure endpoint`), leaving you on an error
+page with both sessions still live. Login is unaffected: those hops are top-level redirects.
+Either use `make smoke-saml`, which walks the same profile with no browser and no mixed-content
+policy, or start Chrome with `--allow-running-insecure-content
+--unsafely-treat-insecure-origin-as-secure=http://idp.dev.local:8081`, after which the logout
+round trip completes and Keycloak asks for credentials again.
 
 What's wired up: NGB's SP metadata is at `/catgenome/saml/metadata`, Keycloak's IdP
 descriptor is fetched into `secrets/idp-metadata.xml` (NGB reads it from a *file*), the
 realm's protocol mappers emit exactly the attribute names
 `saml.user.attributes`/`saml.authorities.attribute.names` expect, and Keycloak group
-membership (`NGB_ADMINS`, `NGB_USERS`) arrives as NGB authorities. Client signature
-validation is switched **off** in the realm so there's no chicken-and-egg certificate
-exchange at first start.
+membership (`NGB_ADMINS`, `NGB_USERS`) arrives as NGB authorities.
 
-Two things about SAML mode that look arbitrary but aren't:
+One thing about SAML mode that looks arbitrary but isn't: **exactly one port answers at a
+time.** `none` → HTTP 8080; `saml` → HTTPS 8443. The app exposes a single connector, so the
+other port is simply not listening. `make smoke` prints both and says which is live.
 
-- **HTTPS is on 9443, not 8443.** After a successful assertion,
-  `CustomAwareAuthenticationSuccessHandler` does
-  `StringUtils.replace(savedRequest.getRedirectUrl(), "8443", "8080")` — it rewrites the
-  literal `8443` to `8080` in the post-login target. Spring Boot 1.5 exposes a single
-  connector, so nothing listens on 8080 in SAML mode and login would dead-end on a
-  refused connection. Any port without `8443` in it avoids the rewrite. Deleting that
-  hardcoded swap belongs in the SAML rewrite, not here.
-- **Exactly one port answers at a time.** `none` → HTTP 8080; `saml` → HTTPS 9443. Same
-  single-connector limitation. `make smoke` prints both and says which is live.
+**Verifying the signing path.** NGB signs its `<AuthnRequest>`s and its SP metadata with the
+`ngb-saml` key from `secrets/ngb-keystore.jks`, but `saml.client.signature` is **off** in the
+committed realm: the certificate is generated per machine by `make certs`, so it cannot be
+inlined in `keycloak/realm-ngb.json`, and `--import-realm` would have nothing to validate
+against on a first start. Turn it on for a run with `make saml-verify-signing`, which pushes
+`secrets/ngb-saml-cert.pem` into the Keycloak client, flips the flag and then runs the login
+again — this time Keycloak rejects an `<AuthnRequest>` NGB did not sign with the advertised key.
+Do that after any change to the SAML configuration; with the flag off, a broken signature looks
+exactly like a working one. `make up-saml` re-imports the realm, so the flag goes back off.
 
 Keycloak's H2 database is intentionally *not* on a volume — it runs as uid 1000 and
 can't write a root-owned named volume. `--import-realm` rebuilds the realm from
@@ -192,8 +197,22 @@ That path was verified end to end (CLI → server → H2): the reference registe
 `/restapi/reference/1/loadChromosomes` reports chromosome `A1` at 56,400 bp, so the FASTA
 was really parsed and not just recorded.
 
-In SAML mode the CLI needs a JWT — generate one in the UI, put it in `CLI_TOKEN` in
-`.env` (or run `ngb set_token <token>` inside the container).
+In SAML mode the CLI needs a JWT. `make cli-token` prints one — it logs in over SAML the same way
+`make smoke-saml` does and then calls `/restapi/user/token`, which signs a token for whoever is
+asking. Put it in `CLI_TOKEN` in `.env`, or `ngb set_token <token>` inside the container. Two
+adjustments the CLI needs in that mode, because the server is then on HTTPS with a self-signed
+certificate:
+
+```bash
+make up-saml
+token=$(make -s cli-token)
+docker-compose exec \
+  -e JAVA_OPTS="-Djavax.net.ssl.trustStore=/workspace/.devenv/secrets/ngb-keystore.jks -Djavax.net.ssl.trustStorePassword=changeit" \
+  cli bash -lc "ngb set_srv https://ngb.dev.local:8443/catgenome && ngb set_token $token && ngb list_ref"
+```
+
+That round trip is the check for the JWT half of the security stack (`make cli-test` cannot be: its
+fixtures were hosted on `ngb.opensource.epam.com`, which no longer resolves).
 
 ## Auth modes
 
@@ -202,10 +221,12 @@ In SAML mode the CLI needs a JWT — generate one in the UI, put it in `CLI_TOKE
 - `none` — no security. Fastest loop; use it for everything except auth work.
 - `saml` — Keycloak SSO for the browser **plus** JWT for the CLI.
 
-There is deliberately no JWT-only mode: `JWTSecurityConfiguration` autowires
-`SAMLAuthenticationProvider` and `SAMLEntryPoint`, which only exist when
-`saml.security.enable=true`, so JWT alone doesn't start. SAML mode also forces
-`security.acl.enable=true`, because `SAMLUserDetailsServiceImpl` is conditional on it.
+There is no JWT-only `AUTH_MODE`, but the two halves are no longer welded together: before
+migration Phase 4 `JWTSecurityConfiguration` autowired `SAMLAuthenticationProvider` and
+`SAMLEntryPoint`, so JWT alone would not start; now it needs nothing from the SAML side, and
+`jwt.security.enable=true` with `saml.security.enable=false` (via `ngb/override.properties`)
+boots and answers 401 instead of redirecting to an IdP. SAML mode still forces
+`security.acl.enable=true`, because `SamlUserDetailsService` is conditional on it.
 
 ## Configuration
 
@@ -286,10 +307,12 @@ keeping in mind for the Flyway upgrade: the two flavours' schemas are not identi
    now Gradle 8.14.5, lombok 1.18.46, JDK 21 toolchain for the server module.*
 2. ☑ Spring Boot 1.5 → 3.x, Spring Security 4 → 6, `javax.*` → `jakarta.*`. *Phases 2–3;
    now Boot 3.5.16 on Spring 6.2. `make up` + `make smoke` is the check.*
-3. ☐ `spring-security-saml2-core` (OpenSAML 2, EOL) → Spring Security's SAML2 support —
-   `SAMLSecurityConfiguration.java` is a full rewrite. Verify against `make up-saml`.
-   *Phase 4. Until it lands, `AUTH_MODE=saml` and `make smoke-saml` cannot work: Phase 3
-   deleted the SAML and JWT configurations and left security at anonymous.*
+3. ☑ `spring-security-saml2-core` (OpenSAML 2, EOL) → Spring Security's SAML2 support —
+   `SAMLSecurityConfiguration.java` is a full rewrite. *Phase 4; now
+   `spring-security-saml2-service-provider` on OpenSAML 4.3.2, and `com.auth0:java-jwt` 4.6.0
+   for the JWT half. All four externally visible endpoints keep the OpenSAML 2 extension's
+   URLs, so existing IdP registrations do not have to be re-pointed. `make up-saml` +
+   `make smoke-saml`, and `make saml-verify-signing` for the signing path, are the checks.*
 4. ☐ Flyway 3.2.1 → 10.x and H2 1.3.176 → 2.x (schema/SQL differences), then
    `PG_VERSION=16`. Verify with `make test-pg` on both flavours. *Phase 5.*
 5. ☐ Lucene 6.6 → 9.x, htsjdk, POI 3.16. Verify with `make test` and by clicking through

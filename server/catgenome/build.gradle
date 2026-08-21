@@ -80,12 +80,20 @@ repositories {
     maven {
         url "https://jitpack.io"
     }
-    // The build.shibboleth.net repository that used to be declared here existed only for OpenSAML 2
-    // (org.opensaml:opensaml:2.6.6 and its net.shibboleth parent pom), which is not on Central.
-    // spring-security-saml2-core is out of the build from Phase 3, so nothing resolves from there
-    // any more. Phase 4's replacement, spring-security-saml2-service-provider, brings OpenSAML 4/5
-    // from Central and needs no extra repository.
-    //
+    // Shibboleth's own repository, for OpenSAML. Phase 3 removed it on the assumption that the
+    // Spring Security 6 SAML support resolves entirely from Central; it does not.
+    // spring-security-saml2-service-provider 6.5.x depends on org.opensaml:opensaml-saml-{api,impl}
+    // 4.3.2, and Central's org/opensaml/ directories stop at 4.0.1 — Shibboleth published 4.0.x to
+    // Central and then went back to publishing only here. So the repository comes back for
+    // OpenSAML 4, for a different reason than it was there for OpenSAML 2. Scoped by group so it
+    // cannot shadow Central for anything else.
+    maven {
+        url "https://build.shibboleth.net/maven/releases/"
+        content {
+            includeGroup "org.opensaml"
+            includeGroupByRegex "net\\.shibboleth.*"
+        }
+    }
     // org.sbgn:libsbgn:0.2 exists on no other repository — not Central, not Sonatype, not EBI —
     // and paxtools' sbgn-converter needs it transitively as well as directly. This repository
     // used to be declared as plain http, which Gradle 7 rejects; it serves https fine.
@@ -121,11 +129,13 @@ dependencies {
     implementation group: "org.springframework.security", name: "spring-security-config"
     implementation group: 'org.springframework.security', name: 'spring-security-acl'
 
-    // spring-security-saml2-core 1.0.10.RELEASE (the OpenSAML 2 extension) is out of the build from
-    // Phase 3: it is built on Spring Security 5's WebSecurityConfigurerAdapter/SAMLEntryPoint filter
-    // model and on OpenSAML 2, neither of which exists in Spring Security 6, and OpenSAML 2 itself
-    // has been end-of-life since 2016. Phase 4 brings SAML back on
-    // spring-security-saml2-service-provider. Until then only AUTH_MODE=none works.
+    // Replaces spring-security-saml2-core 1.0.10.RELEASE (the OpenSAML 2 extension), which Phase 3
+    // removed: it was built on Spring Security 5's WebSecurityConfigurerAdapter/SAMLEntryPoint
+    // filter model and on OpenSAML 2, neither of which exists in Spring Security 6, and OpenSAML 2
+    // itself has been end-of-life since 2016. This is Spring Security's own SAML 2 service-provider
+    // support, version-managed by the Boot BOM; it brings OpenSAML 4.3.2 from build.shibboleth.net
+    // (see `repositories` above).
+    implementation group: "org.springframework.security", name: "spring-security-saml2-service-provider"
 
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -250,9 +260,11 @@ dependencies {
     implementation group: "org.apache.lucene", name:"lucene-facet", version: versionLucene
     implementation group: "org.apache.lucene", name:"lucene-backward-codecs", version: versionLucene
 
-    // com.auth0:java-jwt:3.1.0 (2016) went out with the JWT stack in Phase 3. It was used by
-    // security/jwt/{JwtTokenGenerator,JwtTokenVerifier} only; Phase 4 restores both against a
-    // current release. AuthManager.issueTokenForCurrentUser throws in the meantime.
+    // Was com.auth0:java-jwt:3.1.0 (2016) until Phase 3 took the JWT stack out of the build; used by
+    // security/jwt/{JwtTokenGenerator,JwtTokenVerifier} only. 4.x is a compatible upgrade for
+    // everything those two call — the one semantic change is Claim.isNull(), see the Phase 4
+    // findings in .devenv/JAVA21-MIGRATION-PLAN.md. Boot does not manage this artifact.
+    implementation group: "com.auth0", name: "java-jwt", version: "4.6.0"
 
     // lombok
     compileOnly "org.projectlombok:lombok:$versionLombok"

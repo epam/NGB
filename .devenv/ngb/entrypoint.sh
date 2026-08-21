@@ -4,8 +4,7 @@
 #   JAVA_VERSION=8|17|21  which JDK to run the jar on (the whole point of this env). Since
 #                         migration Phase 3 the jar is Java 21 bytecode, so 8 and 17 no longer
 #                         run it; the switch stays because the image still carries all three.
-#   AUTH_MODE=none|saml   no security, or Keycloak SAML SSO + JWT for the CLI. `saml` is refused
-#                         between migration Phases 3 and 4 - see below.
+#   AUTH_MODE=none|saml   no security, or Keycloak SAML SSO + JWT for the CLI.
 #
 # Config is rendered into /opt/ngb/config/catgenome.properties, which the app picks up
 # via both --conf and CATGENOME_CONF_DIR.
@@ -17,26 +16,12 @@ NGB_HEAP="${NGB_HEAP:-2g}"
 NGB_JAR="${NGB_JAR:-/dist/catgenome-h2.jar}"
 NGB_HOSTNAME="${NGB_HOSTNAME:-localhost}"
 HTTP_PORT="${HTTP_PORT:-8080}"
-HTTPS_PORT="${HTTPS_PORT:-9443}"
+HTTPS_PORT="${HTTPS_PORT:-8443}"
 CONF_DIR="/opt/ngb/config"
 BIN_DIR="/opt/ngb/bin"
 
 log() { echo "[ngb-entrypoint] $*"; }
 die() { echo "[ngb-entrypoint] ERROR: $*" >&2; exit 1; }
-
-# --- auth mode --------------------------------------------------------------
-# Phase 3 of the Java 21 migration took the OpenSAML 2 stack (spring-security-saml2-core) and the
-# JWT filter out of the build: neither can work with Spring Security 6, and Phase 4 rewrites both.
-# Until then the jar has exactly one security configuration - anonymous - and every SAML property
-# below is inert. Refusing the mode here says that in one line, instead of letting the server come
-# up on HTTPS with no authentication in front of it and look like it worked.
-if [[ "$AUTH_MODE" == "saml" ]]; then
-  die "AUTH_MODE=saml is not available between migration Phases 3 and 4.
-    Phase 3 removed the OpenSAML 2 / JWT stack from the build (it cannot work with Spring
-    Security 6); Phase 4 rewrites it on spring-security-saml2-service-provider. Use
-    AUTH_MODE=none. The SAML plumbing in this environment - certs, Keycloak realm, the
-    property templates, make smoke-saml - is left in place for that phase."
-fi
 
 # --- JDK selection ----------------------------------------------------------
 case "$JAVA_VERSION" in

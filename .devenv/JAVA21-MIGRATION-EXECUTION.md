@@ -67,7 +67,7 @@ The default command timeout is 120 s and the ceiling is 600 s, but:
 | `make test` | ~3.5 min |
 | `make test-pg` | ~3.5 min, plus ~1 min if you `make reset-pg` first — and you should |
 | `make up` then `make smoke` | ~75 s of startup before the app answers |
-| `make cli-test` | **does not run at all** — `ngb.opensource.epam.com`, where it fetches its fixtures, is NXDOMAIN. Found in Phase 2; see `TEST-BASELINE.md`. Verify the CLI by hand instead |
+| `make cli-test` | **does not run at all** — `ngb.opensource.epam.com`, where it fetches its fixtures, is NXDOMAIN. Found in Phase 2; see `TEST-BASELINE.md`. Verify the CLI by hand instead: `make cli-token` (added in Phase 4) prints a JWT, and the truststore recipe is in `README.md` |
 
 **A session that leaves the timeout at its default will read a timeout as a build failure and
 start "fixing" it.** This is the most likely source of wasted effort in the whole migration.
@@ -276,6 +276,17 @@ validation ON in the dev Keycloak realm at least once, otherwise the
 keystore and signing path are untested.
 ```
 
+**How the endpoint-path question resolved.** Every legacy path is configurable —
+`/saml/metadata`, `/saml/SSO`, `/saml/SingleLogout` and `/saml/logout` are unchanged, so no
+existing IdP registration has to be re-pointed. The one that could not be kept is `/saml/login`,
+which is now `/saml/login/{registrationId}` = `/saml/login/ngb`; it appears in no metadata. The
+second decision the phase came back with was `GET /saml/logout`: Spring Security 6 only does
+single logout on `POST`, so the bundled client was changed to submit a form
+(`client/client/utils/saml-logout.js`) and a `GET` is now a local-only logout. Both decisions, the
+rest of the divergences and the measured exit-criteria runs are in the plan's "Phase 4 execution
+findings". Signature validation was turned on — that is what `make saml-verify-signing` does, and
+it also verifies the SP metadata signature, which nothing checked before.
+
 ### Phase 5
 
 ```
@@ -352,9 +363,10 @@ can be dropped.
 The final pass over .devenv is part of this phase: the environment
 should describe the new reality, not the migration. That means dropping
 JDK 8 from the toolbox, deleting `make probe-java21`, and rewriting the
-README sections that are historical by then — including the two "look
-arbitrary but aren't" SAML notes, which stop being true once Phase 4
-removes the hardcoded port rewrite.
+README sections that are historical by then. Phase 4 removed the
+hardcoded port rewrite and with it one of the two "looks arbitrary but
+isn't" SAML notes; the surviving one (exactly one port answers at a
+time) is still true.
 
 The goal for TEST-BASELINE.md is zero unexplained failures. Anything
 left must be a deliberate, documented exclusion.

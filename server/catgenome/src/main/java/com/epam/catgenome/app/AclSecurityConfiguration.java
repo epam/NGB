@@ -26,10 +26,10 @@ package com.epam.catgenome.app;
 
 import static com.epam.catgenome.entity.user.DefaultRoles.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
 import com.epam.catgenome.security.acl.customexpression.NGBMethodSecurityExpressionHandler;
@@ -127,21 +127,44 @@ public class AclSecurityConfiguration {
         return new SidRetrievalStrategyImpl(roleHierarchy);
     }
 
+    /**
+     * {@code ROLE_ADMIN} implies {@code ROLE_USER} and every per-format manager role, and each manager
+     * role implies {@code ROLE_USER}.
+     *
+     * <p>This is a behaviour change, and a bug fix. The previous version called
+     * {@code RoleHierarchyImpl.setHierarchy} sixteen times, once per edge - but {@code setHierarchy}
+     * <em>replaces</em> the hierarchy rather than adding to it, so fifteen of the sixteen calls were
+     * immediately discarded and the only edge that ever took effect was the last one written,
+     * {@code ROLE_SEG_MANAGER > ROLE_USER}. What changes now that all fifteen intended edges are
+     * actually in place: a principal holding {@code ROLE_ADMIN} passes checks written against
+     * {@code ROLE_USER} or a manager role, a manager passes checks written against {@code ROLE_USER},
+     * and - because {@link SidRetrievalStrategyImpl} expands authorities through this hierarchy too -
+     * ACL entries granted to {@code ROLE_USER} now also apply to admins and managers. Users get
+     * {@code ROLE_USER} from {@code RoleManager.getDefaultRolesIds} on registration, so in practice the
+     * effective new grant is {@code ROLE_ADMIN} over the manager roles.
+     *
+     * <p>One edge from the old code is deliberately <em>not</em> reinstated: the manager roles were
+     * joined with {@code " == "} in an attempt to make them mutually equivalent. No version of
+     * {@code RoleHierarchyImpl} has ever parsed {@code ==} - the grammar is {@code A > B}, one edge per
+     * line - so that call only ever wiped the map, and the relation it describes would let, say, a BAM
+     * manager act as a VCF manager, which is the opposite of why the roles are separate.
+     *
+     * <p>Built with {@link RoleHierarchyImpl#fromHierarchy(String)} because {@code setHierarchy} is
+     * deprecated in Spring Security 6.3 precisely for inviting the mistake above.
+     */
     @Bean
     public static RoleHierarchy roleHierarchy() {
-        RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
-        roleHierarchy.setHierarchy(ROLE_ADMIN.getName() + " > " +
-                ROLE_USER.getName());
+        final List<DefaultRoles> managerRoles = Arrays.asList(ROLE_REFERENCE_MANAGER, ROLE_BAM_MANAGER,
+                ROLE_VCF_MANAGER, ROLE_GENE_MANAGER, ROLE_BED_MANAGER, ROLE_WIG_MANAGER, ROLE_SEG_MANAGER);
 
-        List<DefaultRoles> managerRoles = Arrays.asList(ROLE_REFERENCE_MANAGER, ROLE_BAM_MANAGER, ROLE_VCF_MANAGER,
-                ROLE_GENE_MANAGER, ROLE_BED_MANAGER, ROLE_WIG_MANAGER, ROLE_SEG_MANAGER);
+        final List<String> hierarchy = new ArrayList<>();
+        hierarchy.add(ROLE_ADMIN.getName() + " > " + ROLE_USER.getName());
+        managerRoles.forEach(role -> {
+            hierarchy.add(ROLE_ADMIN.getName() + " > " + role.getName());
+            hierarchy.add(role.getName() + " > " + ROLE_USER.getName());
+        });
 
-        managerRoles.forEach(role -> roleHierarchy.setHierarchy(ROLE_ADMIN.getName() + " > " + role.getName()));
-        roleHierarchy.setHierarchy(managerRoles.stream().map(DefaultRoles::getName)
-                .collect(Collectors.joining(" == ")));
-        managerRoles.forEach(role -> roleHierarchy.setHierarchy(role.getName() + " > " + ROLE_USER.getName()));
-
-        return roleHierarchy;
+        return RoleHierarchyImpl.fromHierarchy(String.join("\n", hierarchy));
     }
 
     /**

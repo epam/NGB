@@ -28,3 +28,5 @@
 /.devenv/data/ngs/*
 !/.devenv/data/ngs/.gitkeep
 /.devenv/ngb/override.properties
+# jwt-token.py imports saml-login-test.py, and importing writes bytecode next to it
+/.devenv/scripts/__pycache__/

@@ -1826,6 +1826,288 @@ Behaviour that must be preserved:
   (`.devenv/keycloak/realm-ngb.json`). Turn it on at least once before declaring this phase
   done, otherwise the keystore/signing path is untested.
 
+#### Phase 4 execution findings
+
+Written as they were made.
+
+**Task 1 — OpenSAML artifact availability. The plan's assumption is wrong, and so is the
+comment Phase 3 left in `build.gradle`: the Shibboleth repository IS required.**
+Checked against the live repositories on 2026-08-21. Spring Boot 3.5.16 manages Spring
+Security **6.5.11** (the latest 6.5.x), whose `spring-security-saml2-service-provider` POM
+depends on `org.opensaml:opensaml-saml-api:4.3.2` and `opensaml-saml-impl:4.3.2`:
+
+| Coordinate | Maven Central | `build.shibboleth.net/maven/releases` |
+|---|---|---|
+| `org.opensaml:opensaml-saml-api:4.3.2` | **404** | 200 |
+| `org.opensaml:opensaml-saml-impl:4.3.2` | **404** | 200 |
+| `org.opensaml:opensaml-core:4.3.2` | **404** | 200 |
+| `net.shibboleth.utilities:java-support:8.4.2` | **404** | 200 |
+
+Central's `org/opensaml/opensaml-saml-api/` directory stops at **4.0.1** — Shibboleth
+published 4.0.x to Central and then went back to publishing only to their own repository.
+So `https://build.shibboleth.net/maven/releases/` goes back into `repositories`, scoped with
+`content { includeGroup }` to `org.opensaml` + `net.shibboleth*` so it cannot shadow Central,
+and the Phase 3 comment claiming "brings OpenSAML 4/5 from Central and needs no extra
+repository" is corrected in place. Net effect: the repository Phase 3 removed for OpenSAML 2
+comes back for OpenSAML 4, for a different reason.
+
+**Task 2 — the endpoint-path question, resolved: every legacy path is configurable.**
+Read against the real 6.5.11 sources (`-sources.jar` from Central), not the reference docs:
+
+| Legacy (OpenSAML 2 ext) | Spring Security 6.5.11 default | Configurable back to the legacy path? |
+|---|---|---|
+| `/saml/metadata` (`MetadataDisplayFilter`) | `/saml2/service-provider-metadata/{registrationId}`, `/saml2/metadata{,/{registrationId}}` | **Yes.** `saml2Metadata(m -> m.metadataUrl("/saml/metadata"))`. `Saml2MetadataConfigurer.metadataUrl` asserts only `hasText` — no `{registrationId}` required; with a single registration `BaseOpenSamlMetadataResolver` emits a plain `<md:EntityDescriptor>`, the same document shape as the legacy filter |
+| `/saml/SSO` (ACS, `CustomSAMLProcessingFilter`) | `/login/saml2/sso/{registrationId}` | **Yes.** `saml2Login(l -> l.loginProcessingUrl("/saml/SSO"))`. `Saml2LoginConfigurer.loginProcessingUrl` also asserts only `hasText` (the `{registrationId}` assertion that existed in 5.x is gone), and the same matcher is fed to the CSRF-ignore list. The registration still resolves without a path variable: `BaseOpenSamlAuthenticationTokenConverter` tries (1) the AuthnRequest stored in the session, (2) `{registrationId}` from the path, (3) `findUniqueByAssertingPartyEntityId(Response.Issuer)` — (1) covers SP-initiated login, (3) covers IdP-initiated |
+| `/saml/SingleLogout` (SLO receiver) | `/logout/saml2/slo` | **Yes.** `saml2Logout(l -> l.logoutRequest(r -> r.logoutUrl(...)).logoutResponse(r -> r.logoutUrl(...)))` |
+| `/saml/logout` (SP-initiated logout) | `/logout` | **URL yes, method no** — see below |
+| `/saml/login` (`SAMLEntryPoint`) | `/saml2/authenticate?registrationId={id}` | **Yes, with a caveat**: `authenticationRequestUriQuery` *asserts* that the value contains `{registrationId}` in the path or the query, so the exact string `/saml/login` is not available; `/saml/login/{registrationId}` is. This URL is SP-internal — it appears in no metadata and no IdP registration — so it is the one path where the compatibility argument does not apply |
+| `/saml/SSOHoK`, `/saml/discovery` | no equivalent | Not ported. Holder-of-Key and IdP discovery were wired by the legacy config but unused: one registration, one IdP, and nothing in NGB or the dev realm references either |
+
+The one genuine wrinkle is **`/saml/logout`**: the client hardcodes it as a browser
+navigation (a `GET`) in two places — `client/client/dataServices/data-service.js:186` and
+`client/client/app/shared/components/ngbMainToolbar/ngbMainToolbar.component.js:41` — while
+`Saml2LogoutConfigurer.createLogoutMatcher()` builds `RequestMatcherFactory.matcher(HttpMethod.POST, logoutUrl)`
+with the method **hardcoded to POST**, so a GET never reaches
+`Saml2RelyingPartyInitiatedLogoutFilter`. Nothing in the DSL relaxes that. The legacy
+`SAMLLogoutFilter` matched `/saml/logout/**` on any method and performed global (SLO) logout.
+
+**IdP metadata from a file** still works out of the box: `RelyingPartyRegistrations.fromMetadataLocation`
+is not deprecated in 6.5.11 and resolves through a `DefaultResourceLoader`, so it accepts
+`file:` and `classpath:` locations and HTTPS URLs. Caveat for `server.ssl.metadata`, whose
+current dev value is the bare path `/secrets/idp-metadata.xml`: a schemeless value is read by
+`DefaultResourceLoader` as a *classpath* location, so the configuration has to prepend `file:`
+when the property carries no scheme.
+
+**The two decisions taken on the back of the table above** (asked because both are
+externally visible, answered 2026-08-21, binding for the rest of the migration):
+
+1. **URL layout: preserve the legacy paths.** `/saml/metadata`, `/saml/SSO`,
+   `/saml/SingleLogout` and `/saml/logout` stay exactly as they are, so no existing customer
+   IdP registration has to be touched. No dual-path support and no Spring defaults alongside
+   them. The single unavoidable change is the SP-internal AuthnRequest endpoint,
+   `/saml/login` → `/saml/login/{registrationId}`, i.e. `/catgenome/saml/login/ngb`.
+2. **Logout: change the client to POST.** `saml2Logout()` is used as designed, with its
+   POST-only matcher, and the two hardcoded `window.location` navigations in the AngularJS
+   client become form POSTs. The alternative — reimplementing
+   `Saml2RelyingPartyInitiatedLogoutFilter` to accept GET — was rejected: that class is a
+   private static inner class of `Saml2LogoutConfigurer`, so it is not public API and a
+   copy of it would have to be maintained against every Security 6.x release.
+
+**Task 3 — `com.auth0:java-jwt` 3.1.0 → 4.6.0. Less of a break than the plan implies, but
+one silent behaviour change.** Checked against the 4.6.0 sources:
+
+| Legacy call | 4.6.0 |
+|---|---|
+| `Algorithm.RSA512(privateKey)` / `(publicKey)` | still there — `RSA512(RSAKey)` resolves the public/private halves by `instanceof`. Not deprecated. Compiles unchanged |
+| `JWT.create()`, `withHeader(Map)`, `withIssuedAt(Date)`, `withJWTId`, `withSubject`, `withClaim(String, Integer)`, `withArrayClaim(String, String[])`, `sign(Algorithm)` | all unchanged |
+| `JWT.require(alg).build().verify(token)` | unchanged; `Verification.build()` now returns the `com.auth0.jwt.interfaces.JWTVerifier` *interface* (the implementation's constructor is package-private), which the legacy code never named |
+| `DecodedJWT.getIssuedAt()/getExpiresAt()` → `Date` | unchanged (`…AsInstant()` variants were added alongside) |
+| **`Claim.isNull()`** | **changed.** 4.x added `isMissing()` and redefined `isNull()` as `!isMissing() && data.isNull()`. In 3.x an *absent* claim came back as a `NullClaim` whose `isNull()` was `true`; in 4.x an absent claim has `isNull() == false`. `JwtTokenVerifier` guards its two optional claims with `if (!getClaim(CLAIM_ROLES).isNull())`, so a naive port would enter the branch for a token with no `roles`/`groups`, store `null`, and then NPE in `validateRequiredClaims` — a 500 instead of a 401, from a security filter. Ported as `isMissing() || isNull()`, which is exactly the 3.x semantics |
+
+Also fixed while porting, none of it optional: `javax.annotation.PostConstruct` →
+`jakarta.annotation.PostConstruct`; `org.apache.commons.lang.StringUtils` → `lang3` (Phase 3
+dropped commons-lang 2); Guava `Strings.isNullOrEmpty`/`ImmutableMap.of` → `StringUtils` and
+`Map.of` (Guava is only a transitive dependency here and there is no reason to depend on it
+for this); `new Long(userId)` → `Long.valueOf(userId)`.
+
+**The plan's Phase 4 text says the JWT tokens are RS256. They are RS512** —
+`Algorithm.RSA512` in both the generator and the verifier, and the header of both fixture
+tokens in `test-catgenome-auth.properties` decodes to `{"alg":"RS512","typ":"JWT"}`. Nothing
+follows from it, but the plan is wrong.
+
+**Finding 2 from Phase 3 — `AclSecurityConfiguration.roleHierarchy()`. The replacement API is
+not called what the hand-over said, and part of the intended hierarchy was never expressible.**
+In 6.5.11 the replacement for the deprecated `setHierarchy` is
+`RoleHierarchyImpl.fromHierarchy(String)` (plus a `withDefaultRolePrefix()`/`withRolePrefix()`
+builder); there is no `withRolesFromHierarchy`. Two things fall out of reading the parser:
+
+- `buildRolesReachableInOneStepMap` splits each **line** on `\s+>\s+`. That is the whole
+  grammar — so the sixteen `setHierarchy` calls have to become one newline-separated string.
+- **`==` is not part of that grammar and never was.** The line
+  `ROLE_REFERENCE_MANAGER == ROLE_BAM_MANAGER == …`, which was meant to make the seven
+  manager roles mutually equivalent, parses to a single token and contributes nothing. It
+  cannot be expressed as a hierarchy either: mutual implication between two roles is a cycle,
+  and `buildRolesReachableInOneOrMoreStepsMap` throws `CycleInRoleHierarchyException` for it.
+  So that line is dropped rather than translated, and this is noted here because it is the
+  one piece of the original intent that is *not* being restored.
+- What was actually in effect until now: the last `setHierarchy` call wins, and the last one
+  is the final iteration of `managerRoles.forEach(role -> …+ " > " + ROLE_USER)`, so the
+  entire live hierarchy has been **`ROLE_SEG_MANAGER > ROLE_USER`** and nothing else. In
+  particular `ROLE_ADMIN` has not implied `ROLE_USER`.
+
+**What changed, as required by the hand-over.** The hierarchy is now the fifteen edges the old
+code was trying to declare: `ROLE_ADMIN > ROLE_USER`, and for each of the seven manager roles
+`ROLE_ADMIN > ROLE_<X>_MANAGER` and `ROLE_<X>_MANAGER > ROLE_USER`. Authorisation consequences,
+all of them widenings: an admin now passes checks written against `ROLE_USER` or against any
+manager role, a manager passes checks written against `ROLE_USER`, and — because
+`SidRetrievalStrategyImpl` expands a principal's authorities through the same hierarchy — ACL
+entries granted to `ROLE_USER` now also apply to admins and managers. Registered users already
+receive `ROLE_USER` from `RoleManager.getDefaultRolesIds`, so in practice the effective new grant
+is `ROLE_ADMIN` over the manager roles. Nothing narrows.
+
+**Task 2 as built — three places where the reading above turned out to be wrong when run.**
+
+1. **`saml2Metadata().metadataUrl(...)` is not usable after all.** The path is right but the
+   configurer builds its `OpenSaml4MetadataResolver` internally with signing left at the default
+   of *off*, and the extension signed its published metadata
+   (`ExtendedMetadata.setSignMetadata(true)`). So the configuration passes its own
+   `RequestMatcherMetadataResponseResolver` — over an `OpenSaml4MetadataResolver` with
+   `setSignMetadata(true)` — to `metadataResponseResolver(...)` instead, and carries the
+   `/saml/metadata` matcher on that resolver.
+   **`setUsePrettyPrint(false)` is load-bearing, and this was settled by experiment, not by
+   reading.** With pretty-printing on, the metadata signature does not verify:
+   `SerializeSupport.prettyPrintXML` inserts whitespace text nodes into the same DOM the enveloped
+   signature was computed over, canonicalisation keeps them, and the digest no longer matches.
+   Turning it on made `VerifyXmlSignature` report `SignedInfo signature: false, reference: false`;
+   turning it back off made it pass. It also matches what `MetadataDisplayFilter` served, which was
+   not pretty-printed either.
+2. **The `file:`-prefix note above is not what shipped, and the reason is worth recording.**
+   Prefixing a schemeless `server.ssl.metadata` and handing it to
+   `RelyingPartyRegistrations.fromMetadataLocation` works, but the first boot attempt — with a
+   `FileSystemResourceLoader`, which looked like the more faithful reading of
+   `new FilesystemMetadataProvider(new File(...))` — failed with
+   `FileNotFoundException: secrets/idp-metadata.xml` for the configured
+   `/secrets/idp-metadata.xml`: **`FileSystemResourceLoader.getResourceByPath` strips the leading
+   `/`** and resolves the rest against the working directory. `FileSystemResource` does not. So
+   both the metadata file and the key store go through one `resource(String)` helper that mirrors
+   how Boot itself resolves `server.ssl.key-store` — a prefixed location (`file:`, `classpath:`,
+   any URL) through the loader, anything else as a plain filesystem path — which keeps the
+   existing property values working whichever form they are in.
+3. **`authnRequestsSigned` has to be set explicitly.** It defaults to `false` in Spring Security
+   and is *not* derived from the asserting party's `WantAuthnRequestsSigned`, whereas the
+   extension's `MetadataGenerator` defaulted it to true and therefore always signed. Left at the
+   default, NGB would silently stop signing `<AuthnRequest>`s — and no IdP that does not require
+   signatures would complain.
+
+**The one product bug that only running found: Spring Security 6 filters `ERROR` dispatches, so
+a REST 401 came back as a 302.** An unauthenticated `GET /restapi/user/current` was answered by
+the JWT chain with `RestAuthenticationEntryPoint`'s `sendError(401)`, the container then dispatched
+to `/error`, and *that* dispatch went through the filter chains again. `/error` is not under
+`/restapi/**`, so it matched the SAML chain, which requires authentication — the client received
+`302 → /saml/login/ngb` instead of `401`. That breaks every non-browser client, `ngb-cli`
+included: it looks at the status code. Fixed with
+`authorizeHttpRequests(a -> a.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll())` on the
+SAML chain. Nothing in the pre-migration code needed this, because Spring Security 4 only filtered
+`REQUEST` dispatches by default.
+
+**Task 4 as built — two chains, not the single chain with two entry points the plan asks for.**
+JWT is order 1 with `securityMatcher("/restapi/**")` and SAML is order 2 with `/**`. The
+coupling the task is really about is gone either way: `JWTSecurityConfiguration` no longer
+autowires anything from the SAML side, only reads `saml.security.enable` and, when it is on,
+points `/restapi/navigate` — the single REST path a browser opens — at
+`SAMLSecurityConfiguration.AUTHENTICATION_REQUEST_URL` through
+`defaultAuthenticationEntryPointFor`. So `jwt.security.enable=true` with
+`saml.security.enable=false` now starts and answers 401, which was the point. Two chains rather
+than one because a single chain would have to carry `saml2Login`'s and `saml2Logout`'s filters on
+`/restapi/**` as well, would have to be conditional on the *combination* of the two properties
+rather than on one each, and would need its whole entry-point selection expressed as matchers
+inside one `DelegatingAuthenticationEntryPoint`; as it is, the only path needing that treatment is
+`/restapi/navigate`, inside the JWT chain. Note that the SAML chain matches `/**` *explicitly*:
+`WebSecurityFilterChainValidator` rejects an implicit `AnyRequestMatcher` chain in any position
+but last, and `NoSecurityConfiguration` (order 3) is one.
+
+**Task 5 done: the port rewrite is deleted and the dev environment is back on the conventional
+8443.** `CustomAwareAuthenticationSuccessHandler` was `SavedRequestAwareAuthenticationSuccessHandler`
+copied verbatim with one addition, `StringUtils.replace(redirectUrl, "8443", "8080")`; it is not
+reimplemented, the plain Spring class is used. `.devenv` follows: `entrypoint.sh`'s `HTTPS_PORT`
+default and `docker-compose.yml`, `.env.example`, `keycloak/realm-ngb.json` (client id, base URL,
+ACS and SLO URLs — the client id is the SAML entity id, so this is a realm edit, not a redirect
+tweak), and the two "looks arbitrary but isn't" notes in `README.md` and
+`ngb/auth-saml.properties.tpl` are gone. `entrypoint.sh`'s refusal of `AUTH_MODE=saml` is
+removed with them.
+
+**Tasks 6 and 7.** `AclSecurityConfiguration` was never disabled, so this reduced to the JWT
+side, as the hand-over said: `AuthManager` takes `JwtTokenGenerator` by constructor again and
+`issueTokenForCurrentUser` mints tokens instead of throwing, and
+`src/test/resources/applicationContext-test.xml` component-scans `com.epam.catgenome.security.jwt`
+again (`JwtTokenGenerator` is a component that every test context with an `AuthManager` needs;
+`JwtTokenVerifier` is not — it is a bean of `JWTSecurityConfiguration`). `UserContext` needed two
+changes for SAML: it implements `Saml2AuthenticatedPrincipal` as well as `UserDetails`, because
+`Saml2LogoutConfigurer` gates SP-initiated single logout on
+`principal instanceof Saml2AuthenticatedPrincipal` and reads the registration id and session
+indexes for the `<LogoutRequest>` off that interface — a principal without it logs out locally and
+never tells the IdP — and its `attributes` field is retyped from `Map<String, String>` to the
+`Map<String, List<Object>>` the interface returns. Nothing in the tree read the old field.
+
+**Findings 1 and 3 from Phase 3.** The unsecured-resource list is now
+`/swagger-ui/**`, `/v3/api-docs/**`, `/error-401.html`, on the SAML chain — verified anonymously:
+all three answer 200 in SAML mode. The pre-migration list also carried `/`, `/index.html` and
+Swagger 1's `/api-docs/**`; the first two are pointless (nothing is unauthenticated in a browser
+context that needs SSO to be useful) and the third was the stale path the hand-over flagged.
+`JWTSecurityConfiguration` deliberately does not repeat the list: its chain is scoped to
+`/restapi/**` and none of those paths is under it, so the entries there could never have had any
+effect. `NGBMethodSecurityExpressionHandler` was not touched — its
+`createEvaluationContext(Supplier<Authentication>, MethodInvocation)` override stands as Phase 3
+left it.
+
+**New verification tooling in `.devenv`,** because none of the signing path was checked by
+anything before: `make saml-verify-signing` verifies the SP metadata signature with the JDK's
+XML-DSIG (`scripts/VerifyXmlSignature.java`, standalone single-file source, no dependencies), then
+uploads `secrets/ngb-saml-cert.pem` to the Keycloak client and flips `saml.client.signature` on
+(`scripts/saml-client-signature.py`, Keycloak admin REST) and re-runs the login, so the
+`<AuthnRequest>` signature is checked by the IdP for real. `make cli-token`
+(`scripts/jwt-token.py`) logs in over SAML and prints the JWT `/restapi/user/token` issues, which
+is what makes the CLI criterion checkable by hand now that `make cli-test` is unrunnable.
+`scripts/saml-login-test.py` gained the logout leg of the profile and a `SAML_KEEP_SESSION`
+escape hatch for `jwt-token.py`.
+
+**Externally visible divergences, for the release notes.** Everything an existing deployment
+would notice, in one place:
+
+| Behaviour | Before (OpenSAML 2 extension) | Now |
+|---|---|---|
+| `GET /saml/logout` | global logout: `<LogoutRequest>` to the IdP, both sessions dropped | **local only** — clears the NGB session and lands on `/`; the IdP session survives, so the next request silently re-authenticates. `POST /saml/logout` does the single logout. The bundled client was changed to POST (`client/client/utils/saml-logout.js`); any other caller of that URL has to be too |
+| `/saml/logout?local=true` | skipped the IdP round trip | not ported — a `GET` is now exactly that |
+| `/saml/login` | SP-internal AuthnRequest endpoint | `/saml/login/{registrationId}` = `/saml/login/ngb`. Not in any metadata; matters only to a deployment that bookmarked it |
+| Post-login redirect | the saved URL | the saved URL with `?continue` appended — Spring Security 6's `HttpSessionRequestCache` marks the replayed request with `matchingRequestParameterName=continue` by default. Cosmetic, and left alone rather than switched off, because switching it off re-opens the redirect loop it exists to prevent |
+| Logout landing page | the SP's own `/` | `/`, but only because `logout().logoutSuccessUrl("/")` says so: `Saml2LogoutConfigurer.configure()` copies the plain `LogoutConfigurer`'s success handler onto `Saml2LogoutResponseFilter`, and the Spring default is `/login?logout`, which NGB has no page for |
+| SP metadata signing key | the key store's default key, i.e. the **HTTPS** key (`server.ssl.keyAlias`), while messages were signed with `saml.sign.key` | both are `saml.sign.key`. Spring Security keeps one credential list for signing and for advertising; the old split meant published metadata named a key NGB never signed with. An IdP configured from NGB's metadata now gets the right certificate; one configured by hand needs no change |
+| `/saml/SSOHoK`, `/saml/discovery`, `/saml/web/**` | mapped | gone. One IdP, no Holder-of-Key support |
+| `saml.lb.*`, `saml.validate.url.without.scheme` | honoured | ignored. Endpoint locations are absolute values built from `saml.base.url`; `server.forward-headers-strategy` covers reverse proxies |
+
+`LOGOUT_RESPONSE_SKEW` (120 s) has nowhere to go either — `OpenSaml4LogoutResponseValidator` does
+not time-validate logout responses at all — while the assertion skew (1200 s) and
+`saml.authn.max.authentication.age` are both honoured, the latter by an extra validator chained
+onto the default one, since Spring Security has no equivalent check.
+
+**Exit criteria, as actually run.** Every number below was measured on this branch, not predicted:
+
+| Criterion | Command | Result |
+|---|---|---|
+| Build and lint clean | `make jar`, `make lint` | BUILD SUCCESSFUL. One new PMD violation appeared and was fixed rather than suppressed: `AvoidFieldNameMatchingMethodName` on `SAMLSecurityConfiguration`'s `authnRequestBinding` field, so the accessor is now `singleSignOnServiceBinding()` |
+| H2 unit tests | `make test` | **526 tests, 3 failed, 21 skipped** — 519 + the 7 restored security tests, and the 3 are the documented live-data failures (`GffManagerTest.testLoadGenesTranscript`, two `BlatSearchManagerTest`) |
+| PostgreSQL unit tests | `make reset-pg && make test-pg` | **526 tests, 11 failed, 21 skipped** — the 9 documented PG failures plus the same 2 BLAT ones. `PdbDataManagerTest` passed on both flavours |
+| SAML login, admin | `make smoke-saml U=ngbadmin@ngb.dev.local P=admin` | whole web SSO profile plus single logout; authorities `['ROLE_USER', 'ROLE_ADMIN', 'NGB_ADMINS']` |
+| SAML login, plain user | `make smoke-saml U=ngbuser@ngb.dev.local P=user` | same, authorities `['ROLE_USER', 'NGB_USERS']` |
+| Signing path exercised | `make saml-verify-signing` | SP metadata signature validates under the JDK's XML-DSIG, and the login above was then re-run with Keycloak's `saml.client.signature = true`, i.e. with the IdP actually checking the `<AuthnRequest>` signature. Confirmed set on the client through the admin API before the run — a `make up-saml` re-imports the realm and turns it back off, so this has to be re-flipped each time |
+| JWT / CLI | `make cli-token` then `ngb set_token … && ngb list_ref` | 648-character RS512 token; `list_ref` returned both dev references. This stands in for `make cli-test`, which cannot run (dead `cli-test` host) |
+| No-auth mode still works | `make up` then `make smoke` | http 200, https not listening, version 2.8.0 |
+
+**Browser verification, and the one thing the dev environment gets in the way of.** Driven through
+a real Chrome over the DevTools protocol (throwaway script, not committed), against
+`https://ngb.dev.local:8443/catgenome/`, for both users:
+
+- unauthenticated visit → `/saml/login/ngb` → Keycloak's login form; credentials typed into
+  Keycloak's own page → back on `…/catgenome/?continue#/`, title `NGB`, `<ngb-main-toolbar>`
+  rendered, WebGL alive;
+- `/restapi/user/current` over the browser session returns the expected authorities and
+  `enabled: true`, and `/restapi/reference/loadAll` returns `dm6, test_ref`, so an ACL-enabled
+  read works off a SAML principal;
+- the toolbar's power button (`.logout-button`, `$ctrl.logout`) performs the profile the client
+  change was for: `POST /catgenome/saml/logout` → 200 auto-submit page → `POST` `<LogoutRequest>`
+  to the IdP → Keycloak `POST`s the `<LogoutResponse>` to `/catgenome/saml/SingleLogout` → `/` →
+  `/saml/login/ngb` → the IdP **asks for credentials again**, so both sessions are gone.
+
+The obstacle is worth writing down because the next person to click Logout in a browser against
+the dev stack will hit it: the dev IdP is plain HTTP (`http://idp.dev.local:8081`) while NGB is
+HTTPS, so the auto-submitted `<LogoutRequest>` form is a mixed-content POST and Chrome kills it —
+`net::ERR_BLOCKED_BY_CLIENT`, with `Mixed Content: … contains a form that targets an insecure
+endpoint` in the console, and the tab lands on `chrome-error://chromewebdata/`. Nothing to do with
+NGB: login is unaffected because those hops are top-level GET redirects (and the assertion POST is
+http → https, an upgrade). Launching Chrome with `--allow-running-insecure-content
+--unsafely-treat-insecure-origin-as-secure=http://idp.dev.local:8081` makes the hop go through and
+the profile completes as above. A production deployment, IdP on HTTPS, never sees it.
+
 ---
 
 ### Phase 5 — Persistence: Flyway 10/11, H2 2.x, PostgreSQL 16

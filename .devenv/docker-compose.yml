@@ -73,7 +73,7 @@ services:
       NGB_JAR: /dist/catgenome-h2.jar
       NGB_HOSTNAME: ngb.dev.local
       HTTP_PORT: "8080"
-      HTTPS_PORT: "9443"
+      HTTPS_PORT: "8443"
       DB_DRIVER: org.h2.Driver
       DB_URL: jdbc:h2:file:/opt/ngb/H2/catgenome
       DB_USER: catgenome
@@ -93,7 +93,7 @@ services:
       - ngb-h2-db:/opt/ngb/H2
     ports:
       - "8080:8080"
-      - "9443:9443"
+      - "8443:8443"
     networks:
       ngb:
         aliases: [ngb.dev.local]
@@ -219,8 +219,9 @@ services:
         aliases: [idp.dev.local]
 
   # ------------------------------------------------------------ idp-metadata --
-  # NGB reads IdP metadata from a *file* (FilesystemMetadataProvider), so the
-  # descriptor is pulled from Keycloak into the shared secrets directory.
+  # NGB reads IdP metadata from a *file* (server.ssl.metadata, resolved as a plain
+  # filesystem path), so the descriptor is pulled from Keycloak into the shared
+  # secrets directory.
   idp-metadata:
     <<: *toolbox
     container_name: ngb-idp-metadata

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2018 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,21 +22,25 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.app;
+package com.epam.catgenome.security.jwt;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
- * Collects the web-security configurations. Which of them are active is decided by the
- * {@code @ConditionalOnProperty} on each: {@code jwt.security.enable} picks between
- * {@link JWTSecurityConfiguration} and {@link NoSecurityConfiguration}, which are mutually
- * exclusive, {@code saml.security.enable} switches {@link SAMLSecurityConfiguration} on, and
- * {@code security.acl.enable} switches {@link AclSecurityConfiguration} on. The filter chains they
- * contribute are ordered JWT (1), SAML (2), none (3).
+ * Class represents an end point to commence an authentication scheme
  */
-@Configuration
-@Import({JWTSecurityConfiguration.class, SAMLSecurityConfiguration.class,
-         NoSecurityConfiguration.class, AclSecurityConfiguration.class})
-public class SecurityConfiguration {
+public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
+    @Override
+    public void commence(HttpServletRequest request, HttpServletResponse response,
+                         AuthenticationException authException) throws IOException, ServletException {
+        response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
+    }
 }

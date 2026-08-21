@@ -2,8 +2,8 @@
 # Generates the local dev secrets NGB needs for SAML + JWT:
 #
 #   /secrets/ngb-keystore.jks   two RSA key entries: HTTPS cert and SAML signing cert
-#   /secrets/ngb-saml-cert.pem  the SAML signing cert (upload to the IdP if you ever
-#                               turn on "client signature required" in Keycloak)
+#   /secrets/ngb-saml-cert.pem  the SAML signing cert; `make saml-verify-signing` uploads it
+#                               to Keycloak and turns "client signature required" on
 #   /secrets/jwt-private.b64    PKCS#8 DER, base64, single line  -> jwt.key.private
 #   /secrets/jwt-public.b64     X.509 SPKI DER, base64, one line -> jwt.key.public
 #
@@ -21,7 +21,9 @@ SAML_SIGN_KEY="${SAML_SIGN_KEY:-ngb-saml}"
 SAN_HOSTS="${SAN_HOSTS:-ngb.dev.local,ngb-pg.dev.local,localhost}"
 FORCE="${FORCE:-0}"
 
-# JKS (not PKCS12): spring-security-saml 1.0.2 uses JKSKeyManager.
+# JKS (not PKCS12) because server.ssl.key-store-type=JKS in ngb/auth-saml.properties.tpl, which
+# SAMLSecurityConfiguration also reads to load the SAML signing and decryption keys. Either format
+# would work now that JKSKeyManager is gone; changing it means changing both places.
 KEYTOOL="${JAVA_HOME_8:-/opt/java/jdk8}/bin/keytool"
 
 log() { echo "[certs] $*"; }

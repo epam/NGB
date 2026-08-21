@@ -48,21 +48,21 @@
 
   "clients": [
     {
-      "clientId": "https://ngb.dev.local:9443/catgenome",
+      "clientId": "https://ngb.dev.local:8443/catgenome",
       "name": "NGB (H2)",
-      "description": "NGB dev instance on H2, https://ngb.dev.local:9443/catgenome",
+      "description": "NGB dev instance on H2, https://ngb.dev.local:8443/catgenome",
       "protocol": "saml",
       "enabled": true,
       "publicClient": true,
       "standardFlowEnabled": true,
       "frontchannelLogout": true,
       "fullScopeAllowed": true,
-      "baseUrl": "https://ngb.dev.local:9443/catgenome",
-      "adminUrl": "https://ngb.dev.local:9443/catgenome/saml/SSO",
-      "redirectUris": ["https://ngb.dev.local:9443/catgenome/*"],
+      "baseUrl": "https://ngb.dev.local:8443/catgenome",
+      "adminUrl": "https://ngb.dev.local:8443/catgenome/saml/SSO",
+      "redirectUris": ["https://ngb.dev.local:8443/catgenome/*"],
       "attributes": {
-        "saml_assertion_consumer_url_post": "https://ngb.dev.local:9443/catgenome/saml/SSO",
-        "saml_single_logout_service_url_post": "https://ngb.dev.local:9443/catgenome/saml/SingleLogout",
+        "saml_assertion_consumer_url_post": "https://ngb.dev.local:8443/catgenome/saml/SSO",
+        "saml_single_logout_service_url_post": "https://ngb.dev.local:8443/catgenome/saml/SingleLogout",
         "saml_name_id_format": "email",
         "saml_force_name_id_format": "true",
         "saml.force.post.binding": "true",

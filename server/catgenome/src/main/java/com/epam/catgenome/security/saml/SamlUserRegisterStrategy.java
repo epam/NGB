@@ -22,21 +22,15 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.app;
-
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+package com.epam.catgenome.security.saml;
 
 /**
- * Collects the web-security configurations. Which of them are active is decided by the
- * {@code @ConditionalOnProperty} on each: {@code jwt.security.enable} picks between
- * {@link JWTSecurityConfiguration} and {@link NoSecurityConfiguration}, which are mutually
- * exclusive, {@code saml.security.enable} switches {@link SAMLSecurityConfiguration} on, and
- * {@code security.acl.enable} switches {@link AclSecurityConfiguration} on. The filter chains they
- * contribute are ordered JWT (1), SAML (2), none (3).
+ * Represents the SAML user registration strategies set into saml.user.auto.create property.
+ * AUTO - creates a new NGB user if not exists
+ * EXPLICIT - requires users pre-registration id database (performs by admin)
+ * EXPLICIT_GROUP - requires specific groups pre-registration. If users SAML groups have no intersections with
+ * registered NGB security groups the authentication will be failed.
  */
-@Configuration
-@Import({JWTSecurityConfiguration.class, SAMLSecurityConfiguration.class,
-         NoSecurityConfiguration.class, AclSecurityConfiguration.class})
-public class SecurityConfiguration {
+public enum SamlUserRegisterStrategy {
+    AUTO, EXPLICIT, EXPLICIT_GROUP
 }

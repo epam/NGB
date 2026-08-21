@@ -22,21 +22,18 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.app;
+package com.epam.catgenome.common.security;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-/**
- * Collects the web-security configurations. Which of them are active is decided by the
- * {@code @ConditionalOnProperty} on each: {@code jwt.security.enable} picks between
- * {@link JWTSecurityConfiguration} and {@link NoSecurityConfiguration}, which are mutually
- * exclusive, {@code saml.security.enable} switches {@link SAMLSecurityConfiguration} on, and
- * {@code security.acl.enable} switches {@link AclSecurityConfiguration} on. The filter chains they
- * contribute are ordered JWT (1), SAML (2), none (3).
- */
-@Configuration
-@Import({JWTSecurityConfiguration.class, SAMLSecurityConfiguration.class,
-         NoSecurityConfiguration.class, AclSecurityConfiguration.class})
-public class SecurityConfiguration {
+import org.springframework.security.test.context.support.WithSecurityContext;
+
+@Retention(RetentionPolicy.RUNTIME)
+@WithSecurityContext(factory = WithMockUserContextSecurityContextFactory.class)
+public @interface WithMockUserContext {
+    String userName();
+    long userId() default 0;
+    String[] groups() default {};
+    String orgUnitId() default "";
 }

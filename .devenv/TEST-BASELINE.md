@@ -1,17 +1,17 @@
 # Test baseline for the Java 21 migration
 
 First recorded on 2026-08-20 at the end of **migration Phase 0**; re-measured at the end of
-**Phase 1**, of **Phase 2** and of **Phase 3** (all the same day), inside this environment
+**Phase 1**, of **Phase 2**, of **Phase 3** and of **Phase 4**, inside this environment
 (H2 1.3.176 / PostgreSQL 9.6, aarch64/colima). The first two recordings were on JDK 8 / Gradle 3.3 /
-Boot 1.5, the third on JDK 17 / Gradle 7.6 / Boot 2.7.18; **the numbers below are Phase 3's, on
-JDK 21 / Gradle 8.14.5 / Boot 3.5.16**. **These tests still fail on the current code.** From here on
-this list is the reference: a run that is green except for this list is a pass. Anything else is your
-own breakage.
+Boot 1.5, the third on JDK 17 / Gradle 7.6 / Boot 2.7.18; **the numbers below are Phase 4's, on
+JDK 21 / Gradle 8.14.5 / Boot 3.5.16 / Spring Security 6.5.11**. **These tests still fail on the
+current code.** From here on this list is the reference: a run that is green except for this list is
+a pass. Anything else is your own breakage.
 
 | Suite | Command | Result |
 |---|---|---|
-| H2 | `make test` | 519 tests, **3 failed**, 21 skipped (~3.5 min) |
-| PostgreSQL | `make test-pg` | 519 tests, **11 failed**, 21 skipped (~2.5 min) |
+| H2 | `make test` | 526 tests, **3 failed**, 21 skipped (~2.5 min) |
+| PostgreSQL | `make test-pg` | 526 tests, **11 failed**, 21 skipped (~2.5 min) |
 | Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings / 0 errors (~30 s) |
 | CLI integration | `make cli-test` | **cannot run** — its fixture host no longer exists, see ["`make cli-test` is unrunnable"](#make-cli-test-is-unrunnable) |
 
@@ -19,8 +19,8 @@ Of those, **1 (H2) / 9 (PostgreSQL)** are the pre-existing failures documented b
 are network tests that external services moved under: `BlatSearchManagerTest.testFind` /
 `testFindBlatReadSequence`, on both flavours, new since Phase 1 because UCSC now redirects HTTP to
 HTTPS, and `PdbDataManagerTest.testParse` (live RCSB data), which passed on **both** flavours at the
-Phase 3 recording and failed on both at Phase 2's — which is all you need to know about it. See
-["Live-data failures"](#live-data-failures).
+Phase 3 and Phase 4 recordings and failed on both at Phase 2's — which is all you need to know about
+it. See ["Live-data failures"](#live-data-failures).
 
 Phase 0 took this from 19 H2 / 65 PostgreSQL / red lint. What it fixed is at the bottom.
 Phase 1 removed 9 tests along with the functionality they covered (GA4GH, HDFS, `person`),
@@ -29,8 +29,9 @@ which is the whole of the 537 → 528 change; the only *failure* it removed is
 move introduced instead of re-baselining them — see ["What Phase 2 changed"](#what-phase-2-changed).
 Phase 3 removed 9 more tests with the security stack and EhCache (528 → 519) and, again, fixed
 rather than re-baselined everything the upgrade broke — see
-["What Phase 3 changed"](#what-phase-3-changed), which also lists the test classes **Phase 4 has to
-bring back**.
+["What Phase 3 changed"](#what-phase-3-changed), which also lists the test classes Phase 4 had to
+bring back. Phase 4 brought back 7 of them (519 → 526) and changed no failure count on either
+flavour — see ["What Phase 4 changed"](#what-phase-4-changed).
 
 **Two conditions the numbers depend on.** Get either wrong and you will see extra failures
 that are not yours:
@@ -122,8 +123,8 @@ The PostgreSQL suite now exercises the ACL code, which it previously could not (
 new context-startup failure in `*SecurityServiceTest` as real — those 16 tests are the only thing
 standing between a broken NGB security expression and a green build, as Phase 3 found out the hard
 way (see ["What Phase 3 changed"](#what-phase-3-changed)). `JwtAuthenticationTest` and
-`AuthManagerTest` were in this sentence until Phase 3 deleted them with the JWT stack; Phase 4 brings
-them back.
+`AuthManagerTest` were in this sentence until Phase 3 deleted them with the JWT stack; Phase 4
+restored them and all 7 of their tests pass on both flavours.
 
 ## Static analysis: green
 
@@ -265,7 +266,7 @@ Boot 3.5.16 / Spring 6.2 / Spring Security 6.5 / JDK 21, with security reduced t
 | `src/test/java/com/epam/catgenome/app/JwtAuthenticationTest.java` | 4 | Tests `JWTSecurityConfiguration` and the `JwtTokenVerifier`/`JwtAuthenticationProvider` chain, deleted this phase | **restore** |
 | `src/test/java/com/epam/catgenome/manager/AuthManagerTest.java` | 3 | Asserts on the JWT `AuthManager` issues (`issueTokenForCurrentUser`, claims, expiry) | **restore** |
 | `src/test/java/com/epam/catgenome/common/AbstractSecurityTest.java` | 0 | Base class for the two above (`@WithMockUser`-style setup); no `@Test` of its own | **restore** |
-| `src/test/java/com/epam/catgenome/common/security/WithMockUserContext.java` | 0 | Custom `@WithSecurityContext` annotation | restore if the tests need it — **it was already dead code before this phase**, referenced by nothing |
+| `src/test/java/com/epam/catgenome/common/security/WithMockUserContext.java` | 0 | Custom `@WithSecurityContext` annotation | **restored, and it was not dead code** — this row said "referenced by nothing", which is wrong: `AuthManagerTest` annotates all three of its tests with it |
 | `src/test/java/com/epam/catgenome/common/security/WithMockUserContextSecurityContextFactory.java` | 0 | Its factory | same |
 
 Recover them with `git show <this phase's commit>^:<path>` rather than from a copy kept in the tree:
@@ -293,6 +294,40 @@ Phase 2.
 | `EnsemblDataManagerTest`: `new Double("0.0750799")` → `Double.valueOf` | PMD 7's `UnnecessaryBoxing` (which replaced `BooleanInstantiation`) flags the boxing constructors |
 | `src/test/resources/log4j.xml` deleted, JUnit 4 kept on the JUnit 5 platform via `junit-vintage-engine` | slf4j 2 has no `slf4j-log4j12`, so the suite logs through `spring-boot-starter-log4j2`; Boot 3.5's `spring-boot-starter-test` is JUnit 5 only (D13) |
 | All four `--add-opens` gone from the test JVM args | They existed only for EhCache 2's reflective sizing, which D11 removed |
+
+## What Phase 4 changed
+
+SAML 2 and JWT rewritten on Spring Security 6.5.11 (`spring-security-saml2-service-provider` /
+OpenSAML 4.3.2, `com.auth0:java-jwt` 4.6.0) — the findings are in `JAVA21-MIGRATION-PLAN.md`.
+**519 → 526 tests**, which is exactly the seven Phase 3 removed and listed above; **3 (H2) and
+11 (PostgreSQL) failures, unchanged**, and the same 21 skips. Nothing was re-baselined, nothing was
+`@Ignore`d, and no test was weakened to accommodate the new stack.
+
+The seven came back as they were, with two changes:
+
+| Change | Why |
+|---|---|
+| `@MockBean SAMLEntryPoint` and `@MockBean SAMLAuthenticationProvider` dropped from `JwtAuthenticationTest` and `AuthManagerTest` | They existed only because the old `JWTSecurityConfiguration` autowired both to build its entry point, so every JWT test context dragged in the SAML stack. The Security 6 chain redirects to a *URL* instead, so there is nothing left to mock — and `@MockBean` is deprecated for removal in Boot 3.4 anyway |
+| `src/test/resources/applicationContext-test.xml` component-scans `com.epam.catgenome.security.jwt` again | Phase 3 commented that scan out with the package. `AuthManager` takes `JwtTokenGenerator` by constructor, so every context that has an `AuthManager` needs it; `JwtTokenVerifier` is not a component but a bean of `JWTSecurityConfiguration` |
+
+One thing to know before writing another security test: `AbstractSecurityTest` imports the JWT,
+SAML and ACL configurations, but under `test-catgenome-auth.properties` only the JWT one is active —
+the other two are excluded by their `@ConditionalOnProperty`. Switching SAML on from a subclass
+needs a key store and identity provider metadata on disk, because `SAMLSecurityConfiguration` reads
+both eagerly while building the relying party registration.
+
+**No unit test covers the SAML half, deliberately.** There was none before this phase either — the
+OpenSAML 2 configuration was never unit-tested here — and a test worth having needs an identity
+provider, a key store and a signed assertion, i.e. the environment `make smoke-saml` already
+provides. So the SAML acceptance tests are the `.devenv` targets, and they are the ones to run after
+touching that code:
+
+```bash
+make up-saml && make smoke-saml                              # web SSO + single logout, both users
+make smoke-saml U=ngbuser@ngb.dev.local P=user
+make saml-verify-signing                                     # SP metadata + AuthnRequest signatures
+make cli-token                                               # a JWT, via the SAML session
+```
 
 ## Reproducing
 

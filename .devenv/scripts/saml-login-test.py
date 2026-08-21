@@ -22,10 +22,13 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-BASE = os.environ.get("NGB_BASE_URL", "https://ngb.dev.local:9443/catgenome")
+BASE = os.environ.get("NGB_BASE_URL", "https://ngb.dev.local:8443/catgenome")
 
 ctx = ssl._create_unverified_context()
 jar = http.cookiejar.CookieJar()
+
+# HTTP status of the last response `get` produced, after any redirects.
+status_code = None
 
 
 class LoggingRedirects(urllib.request.HTTPRedirectHandler):
@@ -54,11 +57,17 @@ def fail(msg):
 
 
 def get(url, data=None):
-    body = urllib.parse.urlencode(data).encode() if data else None
+    # `data is not None`, not `if data`: an empty dict means POST with an empty body, which is what
+    # logging out looks like. `if data` would silently turn that into a GET, and Spring Security's
+    # saml2Logout() only matches POST - the request would fall through to the plain LogoutFilter.
+    body = urllib.parse.urlencode(data).encode() if data is not None else None
+    global status_code
     try:
         with opener.open(url, body, timeout=60) as r:
+            status_code = r.status
             return r.geturl(), r.read().decode("utf-8", "replace")
     except urllib.error.HTTPError as e:
+        status_code = e.code
         return e.geturl(), e.read().decode("utf-8", "replace")
 
 
@@ -74,6 +83,26 @@ def hidden(page, name):
         rf'<input[^>]+name="{name}"[^>]+value="([^"]*)"', page, re.I
     ) or re.search(rf'<input[^>]+value="([^"]*)"[^>]+name="{name}"', page, re.I)
     return html.unescape(m.group(1)) if m else None
+
+
+def submit_saml_form(page, url, prefix=""):
+    """Submits an auto-POST SAML form if the page is one; returns None if it isn't.
+
+    Both ends use the POST binding for logout, so each hop of the single logout profile arrives as a
+    self-submitting form rather than a redirect. Redirect-binding hops need nothing: urllib follows
+    them itself.
+    """
+    action = form_action(page, url)
+    for field in ("SAMLRequest", "SAMLResponse"):
+        message = hidden(page, field)
+        if action and message:
+            payload = {field: message}
+            relay = hidden(page, "RelayState")
+            if relay is not None:
+                payload["RelayState"] = relay
+            print(f"{prefix}POST {field} to {action}")
+            return get(action, payload)
+    return None
 
 
 user, password = (sys.argv + [None, None])[1:3]
@@ -138,4 +167,47 @@ if not username:
     fail("authenticated, but NGB returned no user - check saml.user.attributes")
 if "ROLE_ADMIN" in authorities:
     print("  (admin - security.default.admin or NGB_ADMINS membership took effect)")
+
+if os.environ.get("SAML_KEEP_SESSION") == "1":
+    # jwt-token.py imports this script to get a logged-in session and then needs it to stay logged in.
+    print("SAML SSO OK (session kept)")
+    sys.exit(0)
+
+# 5. Single logout. POST, not GET: Spring Security's saml2Logout() only matches POST, which is why
+#    the client submits a hidden form instead of navigating. The profile is
+#    POST /saml/logout -> <LogoutRequest> to the IdP -> <LogoutResponse> to /saml/SingleLogout.
+step(5, f"POST {BASE}/saml/logout (SAML single logout)")
+url, page = get(f"{BASE}/saml/logout", {})
+if not hidden(page, "SAMLRequest") and "/realms/ngb/" not in url:
+    fail("no <LogoutRequest> was sent to the IdP - the local session was dropped and nothing else.\n"
+         f"Landed on {url}. A GET would do that (saml2Logout matches POST only); so would a plain\n"
+         "logout() configurer overriding the SAML logout success handler.")
+for _ in range(4):
+    hop = submit_saml_form(page, url, prefix="      ")
+    if hop is None:
+        break
+    url, page = hop
+step(5, f"    -> {url.split('?')[0]}")
+
+# Both sessions have to be gone, and the two halves of the server say so differently: /restapi/**
+# is the JWT chain, which answers 401 rather than redirecting anywhere (that is the whole point of
+# it - REST clients read status codes), while a browser path is the SAML chain and bounces to the
+# IdP. Check both, because each catches something the other cannot.
+url, page = get(f"{BASE}/restapi/user/current")
+if status_code != 401:
+    fail(f"still authenticated after logout: /restapi/user/current answered {status_code}, "
+         f"landed on {url}\n{page[:400]}")
+step(5, f"    /restapi/user/current -> {status_code}")
+
+# Checking only that NGB bounces to the IdP is not enough: if the LogoutRequest never reached
+# Keycloak, its own session would still be live and it would answer that bounce with a fresh
+# assertion instead of a login form.
+url, page = get(f"{BASE}/")
+if "/realms/ngb/" not in url:
+    fail(f"still authenticated after logout - landed on {url}\n{page[:400]}")
+if hidden(page, "SAMLResponse"):
+    fail("NGB logged out locally, but the IdP re-authenticated immediately - its session survived, "
+         "so the <LogoutRequest> never got there")
+step(5, "    both sessions are gone: NGB bounces to the IdP, which asks for credentials again")
+print()
 print("SAML SSO OK")
