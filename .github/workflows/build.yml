@@ -14,6 +14,7 @@
 #   test-h2   make test      the server suite on H2, plus the CLI's own unit tests
 #   test-pg   make test-pg   the same server suite on PostgreSQL 16
 #   build     make jar       the five artifacts a release publishes, then the docker image
+#   cli-e2e   make cli-test  the CLI driven against a running server, all 145 rows
 #   bundles   -              the two JRE-bundled archives; release branches and manual runs only
 #   publish   -              dist/ to S3, and the image to Docker Hub on release/*
 #
@@ -227,6 +228,31 @@ jobs:
           path: dist/*
           retention-days: 14
 
+  cli-e2e:
+    name: cli e2e (145 rows)
+    # `make cli-test` locally. Needs the jar and the CLI tarball, so it runs on the build job's
+    # artifact rather than building them again; ~5 minutes, almost all of it the 129 executed rows.
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-jdks
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      # dist/catgenome.jar is the H2 flavour (build.sh), which is the one this suite wants; the
+      # script's own default points at it. The fixtures are generated from the server module's test
+      # resources by e2e/cli/prepare_test_data.sh, so nothing is downloaded - which is the whole
+      # reason this job can exist. Before migration Phase 9 they came from a host that had stopped
+      # resolving, and the suite had been unrunnable for years.
+      #
+      # No report artifact: integrationCliTest is a plain Gradle task, not a Test task, so there is
+      # no HTML report to upload - it prints each row's command, output and verdict to stdout, and
+      # the failure summary at the end names every row that failed. The job log is the report.
+      - name: CLI integration suite
+        run: bash e2e/integration_tests.sh
+
   bundles:
     name: bundles (JRE-bundled archives)
     # 200 MB each, and only a release needs them. `workflow_dispatch` is here so they can be built
@@ -301,7 +327,7 @@ jobs:
 
   publish:
     name: publish
-    needs: [build, test-h2, test-pg, lint]
+    needs: [build, test-h2, test-pg, lint, cli-e2e]
     if: github.event_name == 'push' && github.repository == 'epam/NGB'
     runs-on: ubuntu-latest
     permissions:
