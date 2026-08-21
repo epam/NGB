@@ -4318,6 +4318,42 @@ constraint is encoded in a test rather than in a build-file comment.
 `PdbDataManagerTest.testParse` RCSB flap (`expected:<[B]> but was:<[A]>`, read out of the JUnit XML).
 `make lint`: 14 files, 37 warnings, pmd clean, exit 0.
 
+#### fast-classpath-scanner → ClassGraph, in ngb-cli (commit 10)
+
+`io.github.lukehutch:fast-classpath-scanner:2.0.9` (2017) → `io.github.classgraph:classgraph:4.8.193`.
+Same project — it was renamed at 4.0 — and the old coordinate has had no release since. Phase 2 left it
+alone after establishing that it still works on a modern JDK (it reads the classpath from the launcher
+jar's manifest rather than from a `URLClassLoader`, which is what breaks most scanners on 9+), so this
+is maintenance, not a fix. One call site, `CommandManager.createCommandHandler`:
+
+```java
+new FastClasspathScanner(HANDLER_PACKAGE)
+        .matchClassesWithAnnotation(Command.class, handlers::add).scan();
+```
+
+becomes a scan-then-query, which is ClassGraph's model — the callback form is gone:
+
+```java
+try (ScanResult scanResult = new ClassGraph()
+        .acceptPackages(HANDLER_PACKAGE)
+        .enableAnnotationInfo()
+        .scan()) {
+    handlers.addAll(scanResult.getClassesWithAnnotation(Command.class).loadClasses());
+}
+```
+
+`ScanResult` holds the scanned jars open, hence the try-with-resources; the loaded classes outlive it.
+`enableAnnotationInfo()` is required — without it `getClassesWithAnnotation` silently returns nothing,
+which is exactly the failure mode that would turn every command into
+`ERROR_COMMAND_HANDLER_NOT_FOUND`. One jar added, none removed: classgraph's only non-test dependency
+(`io.github.toolfactory:narcissus`) is `<optional>true</optional>`.
+
+Verified the way commit 7 established this module has to be verified — off `installDist`, not off
+`build`. `ngb version` prints `2.8.0`. And because a scan that finds *some* handlers would also print
+that, the count was checked directly: a throwaway main running ClassGraph against the installed
+`lib/*.jar` reports **66** annotated classes, against 66 files matching `^@Command` in the sources.
+`:server:ngb-cli:build` (compile, checkstyle, pmd, tests): green.
+
 ---
 
 ### Phase 9 — Packaging, CI, docs, release

@@ -67,10 +67,12 @@ dependencies {
     testCompileOnly "org.projectlombok:lombok:$versionLombok"
     testAnnotationProcessor "org.projectlombok:lombok:$versionLombok"
 
-    // to find classes by annotation. 2.0.9 predates JDK 9, but it reads the classpath from the
-    // manifest of the launcher jar rather than from URLClassLoader, so CommandManager's scan
-    // still finds every @Command handler on 17. Verified with `ngb version` off installDist.
-    implementation group: 'io.github.lukehutch', name: 'fast-classpath-scanner', version: '2.0.9'
+    // To find the @Command handlers by annotation. Was io.github.lukehutch:fast-classpath-scanner:2.0.9
+    // (2017) until migration Phase 8; that project was renamed to ClassGraph at 4.0 and the old
+    // coordinate has had no release since. 2.0.9 did still work on 21 - it reads the classpath from the
+    // launcher jar's manifest rather than from URLClassLoader - so this is a maintenance move, not a
+    // fix. One jar: classgraph's only non-test dependency, io.github.toolfactory:narcissus, is optional.
+    implementation group: 'io.github.classgraph', name: 'classgraph', version: '4.8.193'
 
     testImplementation 'junit:junit:4.13.2'
 

@@ -40,7 +40,8 @@ import com.epam.ngb.cli.manager.command.handler.CommandHandler;
 import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import com.epam.ngb.cli.manager.command.handler.simple.AbstractSimpleCommandHandler;
 
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ScanResult;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -100,8 +101,14 @@ public class CommandManager {
     private CommandHandler createCommandHandler(String command,
                                                 ServerParameters serverParameters, CommandConfiguration configuration) {
         final List<Class<?>> handlers = new ArrayList<>();
-        new FastClasspathScanner(HANDLER_PACKAGE)
-                .matchClassesWithAnnotation(Command.class, handlers::add).scan();
+        // ClassGraph's ScanResult holds open the jars and directories it scanned, hence the
+        // try-with-resources; the classes it loaded stay loaded after it is closed.
+        try (ScanResult scanResult = new ClassGraph()
+                .acceptPackages(HANDLER_PACKAGE)
+                .enableAnnotationInfo()
+                .scan()) {
+            handlers.addAll(scanResult.getClassesWithAnnotation(Command.class).loadClasses());
+        }
         Class<?> handler = null;
         Command annotation = null;
         for (Class<?> handlerClass : handlers) {
