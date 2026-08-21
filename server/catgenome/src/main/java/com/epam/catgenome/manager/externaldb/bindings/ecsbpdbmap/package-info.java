@@ -22,6 +22,6 @@
  * SOFTWARE.
  */
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://www.efamily.org.uk/xml/das/2004/06/17/dasalignment.xsd",
-        elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+@jakarta.xml.bind.annotation.XmlSchema(namespace = "http://www.efamily.org.uk/xml/das/2004/06/17/dasalignment.xsd",
+        elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap;

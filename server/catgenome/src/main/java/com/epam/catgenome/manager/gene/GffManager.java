@@ -920,7 +920,7 @@ public class GffManager {
      * @throws ExternalDbUnavailableException
      */
     public DimStructure getPBDItemsFromBD(final String pdbID) throws ExternalDbUnavailableException {
-        Assert.notNull(pdbID);
+        Assert.notNull(pdbID, "A PDB ID is required");
         final List<Record> recordList = pBDataManager.fetchRCSBEntry(pdbID).getRecord();
         final List<Alignment> alignmentList = pBDataManager.fetchPdbMapEntry(pdbID).getAlignment();
         return parseTo(recordList, alignmentList);

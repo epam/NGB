@@ -40,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -441,117 +440,94 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                 params.toArray(new MapSqlParameterSource[parameters.size()]));
     }
 
-    @Required
     public void setOrganismSequenceName(final String organismSequenceName) {
         this.organismSequenceName = organismSequenceName;
     }
 
-    @Required
     public void setExclOrganismSequenceName(final String exclOrganismSequenceName) {
         this.exclOrganismSequenceName = exclOrganismSequenceName;
     }
 
-    @Required
     public void setTaskParameterSequenceName(final String taskParameterSequenceName) {
         this.taskParameterSequenceName = taskParameterSequenceName;
     }
 
-    @Required
     public void setInsertTaskQuery(final String insertTaskQuery) {
         this.insertTaskQuery = insertTaskQuery;
     }
 
-    @Required
     public void setLoadTaskByIdQuery(final String loadTaskByIdQuery) {
         this.loadTaskByIdQuery = loadTaskByIdQuery;
     }
 
-    @Required
     public void setLoadAllTasksQuery(final String loadAllTasksQuery) {
         this.loadAllTasksQuery = loadAllTasksQuery;
     }
 
-    @Required
     public void setUpdateTaskStatusQuery(final String updateTaskStatusQuery) {
         this.updateTaskStatusQuery = updateTaskStatusQuery;
     }
 
-    @Required
     public void setDeleteTaskQuery(final String deleteTaskQuery) {
         this.deleteTaskQuery = deleteTaskQuery;
     }
 
-    @Required
     public void setDeleteTasksQuery(final String deleteTasksQuery) {
         this.deleteTasksQuery = deleteTasksQuery;
     }
 
-    @Required
     public void setInsertTaskOrganismsQuery(final String insertTaskOrganismsQuery) {
         this.insertTaskOrganismsQuery = insertTaskOrganismsQuery;
     }
 
-    @Required
     public void setDeleteTaskOrganismsQuery(final String deleteTaskOrganismsQuery) {
         this.deleteTaskOrganismsQuery = deleteTaskOrganismsQuery;
     }
 
-    @Required
     public void setLoadTaskOrganismsQuery(final String loadTaskOrganismsQuery) {
         this.loadTaskOrganismsQuery = loadTaskOrganismsQuery;
     }
 
-    @Required
     public void setInsertTaskExclOrganismsQuery(final String insertTaskExclOrganismsQuery) {
         this.insertTaskExclOrganismsQuery = insertTaskExclOrganismsQuery;
     }
 
-    @Required
     public void setDeleteTaskExclOrganismsQuery(final String deleteTaskExclOrganismsQuery) {
         this.deleteTaskExclOrganismsQuery = deleteTaskExclOrganismsQuery;
     }
 
-    @Required
     public void setLoadTaskExclOrganismsQuery(final String loadTaskExclOrganismsQuery) {
         this.loadTaskExclOrganismsQuery = loadTaskExclOrganismsQuery;
     }
 
-    @Required
     public void setInsertTaskParametersQuery(final String insertTaskParametersQuery) {
         this.insertTaskParametersQuery = insertTaskParametersQuery;
     }
 
-    @Required
     public void setDeleteTaskParametersQuery(final String deleteTaskParametersQuery) {
         this.deleteTaskParametersQuery = deleteTaskParametersQuery;
     }
 
-    @Required
     public void setLoadTaskParametersQuery(final String loadTaskParametersQuery) {
         this.loadTaskParametersQuery = loadTaskParametersQuery;
     }
 
-    @Required
     public void setDeleteOrganismsQuery(String deleteOrganismsQuery) {
         this.deleteOrganismsQuery = deleteOrganismsQuery;
     }
 
-    @Required
     public void setDeleteExclOrganismsQuery(String deleteExclOrganismsQuery) {
         this.deleteExclOrganismsQuery = deleteExclOrganismsQuery;
     }
 
-    @Required
     public void setDeleteParametersQuery(String deleteParametersQuery) {
         this.deleteParametersQuery = deleteParametersQuery;
     }
 
-    @Required
     public void setGetTaskCountQuery(final String getTaskCountQuery) {
         this.getTaskCountQuery = getTaskCountQuery;
     }
 
-    @Required
     public void setTaskSequenceName(String taskSequenceName) {
         this.taskSequenceName = taskSequenceName;
     }

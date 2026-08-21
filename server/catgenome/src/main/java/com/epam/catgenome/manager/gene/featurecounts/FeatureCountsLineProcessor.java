@@ -30,7 +30,7 @@ import com.epam.catgenome.util.sort.SortableRecordCodec;
 import com.google.common.io.LineProcessor;
 import htsjdk.samtools.util.SortingCollection;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.Map;

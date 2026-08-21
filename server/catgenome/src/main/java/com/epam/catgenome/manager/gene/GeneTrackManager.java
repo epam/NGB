@@ -282,7 +282,7 @@ public class GeneTrackManager {
 
     private List<Transcript> getTranscriptFromDB(final String geneID) throws ExternalDbUnavailableException {
         final EnsemblEntryVO vo = ensemblDataManager.fetchEnsemblEntry(geneID);
-        Assert.notNull(vo);
+        Assert.notNull(vo, "No Ensembl entry was found for gene " + geneID);
         final List<Transcript> transcriptList = ExtenalDBUtils.ensemblEntryVO2Transcript(vo);
         for (Transcript transcript : transcriptList) {
             if (transcript.getBioType().equals(PROTEIN_CODING)) {

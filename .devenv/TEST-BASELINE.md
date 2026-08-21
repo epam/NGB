@@ -1,24 +1,25 @@
 # Test baseline for the Java 21 migration
 
 First recorded on 2026-08-20 at the end of **migration Phase 0**; re-measured at the end of
-**Phase 1** and again at the end of **Phase 2** (same day), inside this environment (H2 1.3.176 /
-PostgreSQL 9.6, aarch64/colima). The first two recordings were on JDK 8 / Gradle 3.3 / Boot 1.5;
-**the numbers below are Phase 2's, on JDK 17 / Gradle 7.6 / Boot 2.7.18**. **These tests still
-fail on the current code.** From here on this list is the reference: a run that is green except
-for this list is a pass. Anything else is your own breakage.
+**Phase 1**, of **Phase 2** and of **Phase 3** (all the same day), inside this environment
+(H2 1.3.176 / PostgreSQL 9.6, aarch64/colima). The first two recordings were on JDK 8 / Gradle 3.3 /
+Boot 1.5, the third on JDK 17 / Gradle 7.6 / Boot 2.7.18; **the numbers below are Phase 3's, on
+JDK 21 / Gradle 8.14.5 / Boot 3.5.16**. **These tests still fail on the current code.** From here on
+this list is the reference: a run that is green except for this list is a pass. Anything else is your
+own breakage.
 
 | Suite | Command | Result |
 |---|---|---|
-| H2 | `make test` | 528 tests, **3 failed**, 21 skipped (~2.5 min) |
-| PostgreSQL | `make test-pg` | 528 tests, **12 failed**, 21 skipped (~4 min) |
-| Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings / 0 errors (~20 s) |
+| H2 | `make test` | 519 tests, **3 failed**, 21 skipped (~3.5 min) |
+| PostgreSQL | `make test-pg` | 519 tests, **11 failed**, 21 skipped (~2.5 min) |
+| Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings / 0 errors (~30 s) |
 | CLI integration | `make cli-test` | **cannot run** — its fixture host no longer exists, see ["`make cli-test` is unrunnable"](#make-cli-test-is-unrunnable) |
 
 Of those, **1 (H2) / 9 (PostgreSQL)** are the pre-existing failures documented below. The rest
-are network tests that external services moved under: `PdbDataManagerTest.testParse` (live RCSB
-data — it passed in the H2 run and failed in the PostgreSQL run five minutes later, which is all
-you need to know about it) and `BlatSearchManagerTest.testFind` /
-`testFindBlatReadSequence`, new since Phase 1 because UCSC now redirects HTTP to HTTPS — see
+are network tests that external services moved under: `BlatSearchManagerTest.testFind` /
+`testFindBlatReadSequence`, on both flavours, new since Phase 1 because UCSC now redirects HTTP to
+HTTPS, and `PdbDataManagerTest.testParse` (live RCSB data), which passed on **both** flavours at the
+Phase 3 recording and failed on both at Phase 2's — which is all you need to know about it. See
 ["Live-data failures"](#live-data-failures).
 
 Phase 0 took this from 19 H2 / 65 PostgreSQL / red lint. What it fixed is at the bottom.
@@ -26,6 +27,10 @@ Phase 1 removed 9 tests along with the functionality they covered (GA4GH, HDFS, 
 which is the whole of the 537 → 528 change; the only *failure* it removed is
 `VcfManagerTest.testLoadSmallScaleVcfFileGa4GH`. Phase 2 fixed the seven failures the toolchain
 move introduced instead of re-baselining them — see ["What Phase 2 changed"](#what-phase-2-changed).
+Phase 3 removed 9 more tests with the security stack and EhCache (528 → 519) and, again, fixed
+rather than re-baselined everything the upgrade broke — see
+["What Phase 3 changed"](#what-phase-3-changed), which also lists the test classes **Phase 4 has to
+bring back**.
 
 **Two conditions the numbers depend on.** Get either wrong and you will see extra failures
 that are not yours:
@@ -49,7 +54,7 @@ that are not yours:
 |---|---|---|
 | `GffManagerTest.testLoadGenesTranscript` | `expected:<protein_coding> but was:<protein_coding_CDS_not_defined>`. **Live external data, not a fixture problem** — see the note below. | Yes. Unaffected by every phase; only an Ensembl change or a decision about network tests will move it. |
 | `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | `ExternalDbUnavailableException: Unexpected HTTP status: 302 Found`. UCSC redirects `http://genome.cse.ucsc.edu/cgi-bin/hgBlat` to HTTPS and `HttpURLConnection` will not follow a cross-protocol redirect — see ["Live-data failures"](#live-data-failures). | Yes, until `blat.search.url` is changed to `https`. |
-| `PdbDataManagerTest.testParse` | `expected:<B> but was:<A>`. Live RCSB PDB data — see ["Live-data failures"](#live-data-failures). Passed at the Phase 2 H2 recording and failed at the PostgreSQL one. | Yes, until network tests are dealt with. |
+| `PdbDataManagerTest.testParse` | `expected:<B> but was:<A>`. Live RCSB PDB data — see ["Live-data failures"](#live-data-failures). Passed at the Phase 2 H2 recording and failed at the PostgreSQL one; passed on both at Phase 3's. Expect it either way. | Yes, until network tests are dealt with. |
 
 `VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` was here until Phase 1 deleted GA4GH; the test
 went with the feature. `UrlValidatorService.isRemotePath` was deliberately left untouched.
@@ -95,7 +100,7 @@ keep flipping. Treat a failure there as external drift, not regression — and d
 loosening the assertion, for the same reason as `GffManagerTest.testLoadGenesTranscript`: the
 real question is whether network-dependent assertions belong in the unit suite.
 
-## PostgreSQL: 9 documented failures (+3 live-data)
+## PostgreSQL: 9 documented failures (+2 live-data, +1 that flaps)
 
 All 9 are pre-existing, and 7 of them are the **two Flyway script sets having diverged**.
 None are caused by the environment. See "Latent bugs found" in `JAVA21-MIGRATION-PLAN.md`.
@@ -107,26 +112,31 @@ None are caused by the environment. See "Latent bugs found" in `JAVA21-MIGRATION
 | 1 | `RoleDaoTest.testLoadRolesWithUsers` | `expected:<11> but was:<12>` — the two script sets seed a different number of predefined roles (already documented in `README.md`). | Same — **Phase 5**. |
 | 1 | `TargetManagerTest.filterTargetsByOwnerTest` | `TargetGeneDao.loadTargetGenes` emits `WHERE target_id IN ()` for an empty id set. H2 1.3 accepts it, PostgreSQL does not. **Real production bug**: any target filter matching nothing fails on PostgreSQL. | Yes, until someone fixes the DAO. Nothing in the migration touches it. |
 | 1 | `GffManagerTest.testLoadGenesTranscript` | Same live-Ensembl failure as on H2. | Yes. |
-| 1 | `PdbDataManagerTest.testParse` | Same live-RCSB failure as on H2. Not counted in the 9. | Yes, until network tests are dealt with. |
+| 1 | `PdbDataManagerTest.testParse` | Same live-RCSB failure as on H2 — and it **passed** at the Phase 3 recording, which is the whole of the 12 → 11 change in the failure count. Not counted in the 9. | Yes, until network tests are dealt with. |
 | 2 | `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | Same UCSC HTTP→HTTPS drift as on H2. Not counted in the 9. | Yes, until `blat.search.url` is changed. |
 
 `VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` was the tenth entry here until Phase 1 deleted
 GA4GH.
 
-The PostgreSQL suite now exercises the ACL/JWT/auth code, which it previously could not
-(see below). Treat a new context-startup failure in `*SecurityServiceTest` /
-`JwtAuthenticationTest` / `AuthManagerTest` as real.
+The PostgreSQL suite now exercises the ACL code, which it previously could not (see below). Treat a
+new context-startup failure in `*SecurityServiceTest` as real — those 16 tests are the only thing
+standing between a broken NGB security expression and a green build, as Phase 3 found out the hard
+way (see ["What Phase 3 changed"](#what-phase-3-changed)). `JwtAuthenticationTest` and
+`AuthManagerTest` were in this sentence until Phase 3 deleted them with the JWT stack; Phase 4 brings
+them back.
 
 ## Static analysis: green
 
 `make lint` runs `checkstyleMain pmdMain` on the server module and both pass. Phase 2 moved the
-tools to **Checkstyle 11.1.0** and **PMD 6.55.0** (not PMD 7 — Gradle 7.6 cannot run it; see the
-Phase 2 findings) and rewrote both rulesets for the `category/java/*.xml` layout.
+tools to **Checkstyle 11.1.0** and PMD 6.55.0 (not PMD 7 — Gradle 7.6 cannot run it; see the
+Phase 2 findings) and rewrote both rulesets for the `category/java/*.xml` layout. Phase 3 finished
+that carry-over: **PMD 7.26.0**, on Gradle 8.14.5.
 
 | Module | Command | Checkstyle | PMD |
 |---|---|---|---|
 | `server/catgenome` | `make lint` | 37 warnings in 15 files, **0 errors** | clean |
-| `server/ngb-cli` | `./gradlew -p server/ngb-cli checkstyleMain pmdMain` | 6 warnings, **0 errors** | clean |
+| `server/catgenome`, tests too | `./gradlew -p server/catgenome checkstyleMain checkstyleTest pmdMain pmdTest` | +11 warnings in 3 test files, **0 errors** | clean |
+| `server/ngb-cli` | `./gradlew -p server/ngb-cli checkstyleMain checkstyleTest pmdMain pmdTest` | 6 warnings main + 1 test, **0 errors** | clean |
 
 Reports: `server/<module>/build/reports/{checkstyle,pmd}/main.html`.
 
@@ -142,10 +152,14 @@ worthwhile clean-up but it is a code-style change, not a migration step.
 PMD is clean with **zero** violations: the ruleset rewrite surfaced 59 real findings and all 59 were
 fixed at the source. Two rules were consciously narrowed rather than carried across
 (`SuspiciousConstantFieldName` dropped, `ClassNamingConventions` restored to its PMD 5 patterns) —
-both reasoned about in `JAVA21-MIGRATION-PLAN.md` and in the rulesets' own header comments. One
-deprecation warning is expected on every run and is deliberate:
-`Discontinue using Rule name category/java/performance.xml/BooleanInstantiation`. Its replacement
-(`UnnecessaryBoxing`) exists only in PMD 7, so the rule stays until Phase 3 bumps the tool.
+both reasoned about in `JAVA21-MIGRATION-PLAN.md` and in the rulesets' own header comments.
+
+On PMD 7 the `BooleanInstantiation` deprecation warning is gone — the rule is now `UnnecessaryBoxing`,
+as its PMD 6 message asked for. Two deprecation nags remain and are expected on every `ngb-cli` run:
+`AvoidCatchingNPE` and `AvoidLosingExceptionInformation` are "scheduled for removal from PMD in
+PMD 8.0.0". They still work; whoever moves to PMD 8 replaces them. Note also that PMD 7's
+`AvoidDuplicateLiterals` counts a literal used four times over as a violation where 6.55 did not —
+the one PMD failure Phase 3 caused, in `FileManager`, was exactly that.
 
 Keep it green. A red static-analysis baseline would hide the real regressions in Phases 3–9.
 
@@ -165,10 +179,12 @@ fix it — `cli-tests.gradle` and `e2e/cli/testcases.csv` are sound, and Groovy 
 **Phase 9 owns the fix** (host or generate the fixtures).
 
 Until then, verify the CLI by hand against a running server — this was done on JDK 17 at the end of
-Phase 2 and covers the same ground as `testcases.csv`:
+Phase 2 and again at the end of Phase 3 (server on JDK 21, CLI still built and run on 17, on a
+database wiped with `make reset-ngb-data` so it exercises Flyway from nothing as well). It covers the
+same ground as `testcases.csv`:
 
 ```bash
-NGB_JAVA_VERSION=17 make up          # server on JDK 17
+make up                              # server on JDK 21 since Phase 3
 docker-compose --profile cli up -d cli
 docker-compose exec cli ngb reg_ref /ngs/A3.fa --name test_ref      # + repeat: must fail "already exists"
 docker-compose exec cli ngb list_ref
@@ -236,6 +252,47 @@ Two things worth knowing when reading a Phase 2 run: the ACL failures are only v
 Phase 0 made the PostgreSQL suite exercise the ACL code at all, and both PostgreSQL fixes are
 PostgreSQL-only — H2 1.3 coerces the string to `bigint` and stores nanoseconds, so it never
 complained.
+
+## What Phase 3 changed
+
+Boot 3.5.16 / Spring 6.2 / Spring Security 6.5 / JDK 21, with security reduced to anonymous by design.
+528 → 519 tests, and the H2 failure count is unchanged at 3. Nothing was re-baselined.
+
+### Removed with the security stack — Phase 4 restores exactly this set
+
+| Path | Tests | Why it went | Phase 4 |
+|---|---|---|---|
+| `src/test/java/com/epam/catgenome/app/JwtAuthenticationTest.java` | 4 | Tests `JWTSecurityConfiguration` and the `JwtTokenVerifier`/`JwtAuthenticationProvider` chain, deleted this phase | **restore** |
+| `src/test/java/com/epam/catgenome/manager/AuthManagerTest.java` | 3 | Asserts on the JWT `AuthManager` issues (`issueTokenForCurrentUser`, claims, expiry) | **restore** |
+| `src/test/java/com/epam/catgenome/common/AbstractSecurityTest.java` | 0 | Base class for the two above (`@WithMockUser`-style setup); no `@Test` of its own | **restore** |
+| `src/test/java/com/epam/catgenome/common/security/WithMockUserContext.java` | 0 | Custom `@WithSecurityContext` annotation | restore if the tests need it — **it was already dead code before this phase**, referenced by nothing |
+| `src/test/java/com/epam/catgenome/common/security/WithMockUserContextSecurityContextFactory.java` | 0 | Its factory | same |
+
+Recover them with `git show <this phase's commit>^:<path>` rather than from a copy kept in the tree:
+they are the specification for what the SAML attribute mapping and the JWT claims must keep doing.
+
+Two more test cases went, and these are **not** to be restored: `EhCacheTest.testMaxSizeInBytes` and
+`testToString`, which asserted on EhCache 2's byte-size bounding and on the exact text of a
+`toString()` built from it. D11 replaced EhCache with Caffeine, which cannot bound a cache by the
+retained size of an object graph at all; the reasoning is in the class's own javadoc. The other three
+`EhCacheTest` cases still run. 4 + 3 + 2 = the 9 tests that left the suite.
+
+Nothing was `@Ignore`d or otherwise disabled in place. The 21 skipped tests are the same 21 as in
+Phase 2.
+
+### Test-visible fixes
+
+| Fix | Effect |
+|---|---|
+| `NGBMethodSecurityExpressionHandler` now overrides `createEvaluationContext(Supplier<Authentication>, MethodInvocation)`, not only the protected `createSecurityExpressionRoot` | **16 failures.** Spring Security 6 calls the supplier-based overload from its interceptors and builds the expression root through a *private* method, so NGB's root — and every `isAllowed`/`hasPermission…` expression with it — was silently bypassed: `EL1004E: Method call: Method isAllowed(...) cannot be found on type MethodSecurityExpressionRoot` in `NGBSessionSharingSecurityTest` ×8, `ProjectSecurityServiceTest` ×4, `DataItemSecurityServiceTest` ×3, `AclPermissionSecurityServiceTest` ×1 |
+| `aws-java-sdk-s3`/`-sts` 1.11.704 → 1.12.797 | Not a test failure — the application would not **start**. `EC2MetadataUtils.<clinit>` reads `PropertyNamingStrategy.PASCAL_CASE_TO_CAMEL_CASE`, deleted in Jackson 2.12; NGB builds the S3 client on every startup |
+| `ExternalDBControllerTest`: Boot's `@MockBean` → Spring's `@MockitoBean` | `@MockBean` is deprecated for removal in Boot 3.4 |
+| `controller/util/UrlTestingUtils`: `AbstractHandler` → `HttpServlet` in a `ServletContextHandler` | Jetty 12 deleted `AbstractHandler` and moved the servlet API into `org.eclipse.jetty.ee10` |
+| `CytobandControllerTest`: `MockMvcRequestBuilders.fileUpload` → `multipart` | `fileUpload` is gone in Spring 6 |
+| 6 test-side `Assert.isTrue(boolean)` / `Assert.notNull(Object)` call sites given messages | Spring 6 deleted the no-message overloads |
+| `EnsemblDataManagerTest`: `new Double("0.0750799")` → `Double.valueOf` | PMD 7's `UnnecessaryBoxing` (which replaced `BooleanInstantiation`) flags the boxing constructors |
+| `src/test/resources/log4j.xml` deleted, JUnit 4 kept on the JUnit 5 platform via `junit-vintage-engine` | slf4j 2 has no `slf4j-log4j12`, so the suite logs through `spring-boot-starter-log4j2`; Boot 3.5's `spring-boot-starter-test` is JUnit 5 only (D13) |
+| All four `--add-opens` gone from the test JVM args | They existed only for EhCache 2's reflective sizing, which D11 removed |
 
 ## Reproducing
 

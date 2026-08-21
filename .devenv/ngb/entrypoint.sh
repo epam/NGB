@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 # Starts an NGB server inside the dev environment.
 #
-#   JAVA_VERSION=8|17|21  which JDK to run the jar on (the whole point of this env)
-#   AUTH_MODE=none|saml   no security, or Keycloak SAML SSO + JWT for the CLI
+#   JAVA_VERSION=8|17|21  which JDK to run the jar on (the whole point of this env). Since
+#                         migration Phase 3 the jar is Java 21 bytecode, so 8 and 17 no longer
+#                         run it; the switch stays because the image still carries all three.
+#   AUTH_MODE=none|saml   no security, or Keycloak SAML SSO + JWT for the CLI. `saml` is refused
+#                         between migration Phases 3 and 4 - see below.
 #
 # Config is rendered into /opt/ngb/config/catgenome.properties, which the app picks up
 # via both --conf and CATGENOME_CONF_DIR.
 set -euo pipefail
 
 AUTH_MODE="${AUTH_MODE:-none}"
-JAVA_VERSION="${JAVA_VERSION:-8}"
+JAVA_VERSION="${JAVA_VERSION:-21}"
 NGB_HEAP="${NGB_HEAP:-2g}"
 NGB_JAR="${NGB_JAR:-/dist/catgenome-h2.jar}"
 NGB_HOSTNAME="${NGB_HOSTNAME:-localhost}"
@@ -20,6 +23,20 @@ BIN_DIR="/opt/ngb/bin"
 
 log() { echo "[ngb-entrypoint] $*"; }
 die() { echo "[ngb-entrypoint] ERROR: $*" >&2; exit 1; }
+
+# --- auth mode --------------------------------------------------------------
+# Phase 3 of the Java 21 migration took the OpenSAML 2 stack (spring-security-saml2-core) and the
+# JWT filter out of the build: neither can work with Spring Security 6, and Phase 4 rewrites both.
+# Until then the jar has exactly one security configuration - anonymous - and every SAML property
+# below is inert. Refusing the mode here says that in one line, instead of letting the server come
+# up on HTTPS with no authentication in front of it and look like it worked.
+if [[ "$AUTH_MODE" == "saml" ]]; then
+  die "AUTH_MODE=saml is not available between migration Phases 3 and 4.
+    Phase 3 removed the OpenSAML 2 / JWT stack from the build (it cannot work with Spring
+    Security 6); Phase 4 rewrites it on spring-security-saml2-service-provider. Use
+    AUTH_MODE=none. The SAML plumbing in this environment - certs, Keycloak realm, the
+    property templates, make smoke-saml - is left in place for that phase."
+fi
 
 # --- JDK selection ----------------------------------------------------------
 case "$JAVA_VERSION" in
@@ -33,18 +50,17 @@ log "using JDK $JAVA_VERSION -> $JAVA_HOME"
 java -version 2>&1 | sed 's/^/[ngb-entrypoint]   /'
 
 # Flags the app cannot run without on this JDK. JAVA_EXTRA_OPTS stays the user's escape hatch
-# for experiments; these are not optional, so they do not live there.
-#   --add-opens java.base/{java.util,java.util.concurrent,java.util.concurrent.atomic,java.io}:
-#   EhCache 2.10.1 sizes the `indexCache` entries (maxBytesLocalHeap="100M" in
-#   conf/catgenome/ehcache.xml) by walking the object graph reflectively, which JDK 16+ refuses
-#   for java.base fields - every cache put then throws InaccessibleObjectException. A package
-#   does not imply its sub-packages, hence all four. The same four are in
-#   server/catgenome/build.gradle's test { jvmArgs }. Goes away in Phase 3 with Caffeine.
+# for experiments; anything the app genuinely needs belongs here instead.
+#
+# Empty since migration Phase 3. It used to carry
+# --add-opens=java.base/{java.util,java.util.concurrent,java.util.concurrent.atomic,java.io},
+# which EhCache 2.10.1 needed to size the `indexCache` entries (maxBytesLocalHeap="100M" in
+# conf/catgenome/ehcache.xml): it walked the object graph reflectively, which JDK 16+ refuses for
+# java.base fields, and every cache put threw InaccessibleObjectException. D11 replaced EhCache
+# with Caffeine, which bounds the cache by entry count and reflects into nothing, so the flags
+# went with it - here and in server/catgenome/build.gradle's test { jvmArgs }. Boot 3 on JDK 21
+# needs no --add-opens of its own; a new one appearing here would mean a stale dependency.
 JAVA_REQUIRED_OPTS=""
-if [[ "$JAVA_VERSION" != "8" ]]; then
-  JAVA_REQUIRED_OPTS="--add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED"
-  log "required JDK $JAVA_VERSION flags: $JAVA_REQUIRED_OPTS"
-fi
 
 # --- the jar ----------------------------------------------------------------
 if [[ ! -f "$NGB_JAR" ]]; then

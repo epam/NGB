@@ -77,10 +77,10 @@ public class BamFileManager implements SecuredEntityManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public BamFile create(BamFile bamFile) {
-        Assert.notNull(bamFile);
-        Assert.notNull(bamFile.getName());
-        Assert.notNull(bamFile.getReferenceId());
-        Assert.notNull(bamFile.getPath());
+        Assert.notNull(bamFile, "A BAM file is required");
+        Assert.notNull(bamFile.getName(), "A BAM file name is required");
+        Assert.notNull(bamFile.getReferenceId(), "A BAM file reference ID is required");
+        Assert.notNull(bamFile.getPath(), "A BAM file path is required");
 
         bamFileDao.createBamFile(bamFile);
         return bamFile;

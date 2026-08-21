@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.UrlRequestVO;

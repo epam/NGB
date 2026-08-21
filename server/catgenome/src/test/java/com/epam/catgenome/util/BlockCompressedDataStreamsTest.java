@@ -30,7 +30,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang.math.RandomUtils;
+import java.util.concurrent.ThreadLocalRandom;
 import org.junit.Test;
 
 /**
@@ -78,14 +78,14 @@ public class BlockCompressedDataStreamsTest {
     }
 
     private void doWrite(BlockCompressedDataOutputStream outputStream) throws IOException {
-        outputStream.writeFloat(RandomUtils.nextFloat());
-        outputStream.writeDouble(RandomUtils.nextDouble());
-        outputStream.writeLong(RandomUtils.nextLong());
-        outputStream.writeInt(RandomUtils.nextInt());
+        outputStream.writeFloat(ThreadLocalRandom.current().nextFloat());
+        outputStream.writeDouble(ThreadLocalRandom.current().nextDouble());
+        outputStream.writeLong(ThreadLocalRandom.current().nextLong());
+        outputStream.writeInt(ThreadLocalRandom.current().nextInt());
         outputStream.writeShort(0);
-        outputStream.writeBoolean(RandomUtils.nextBoolean());
+        outputStream.writeBoolean(ThreadLocalRandom.current().nextBoolean());
         outputStream.writeBytes("test");
-        outputStream.writeByte(RandomUtils.nextInt());
+        outputStream.writeByte(ThreadLocalRandom.current().nextInt());
         outputStream.writeChar(TEST_CHAR_ID);
         outputStream.writeChars("test");
         outputStream.flush();

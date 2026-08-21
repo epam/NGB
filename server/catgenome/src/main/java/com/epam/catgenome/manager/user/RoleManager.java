@@ -38,7 +38,7 @@ import com.epam.catgenome.entity.security.NgbUser;
 import com.epam.catgenome.entity.user.ExtendedRole;
 import com.epam.catgenome.security.acl.GrantPermissionManager;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

@@ -90,7 +90,9 @@ public class CytobandControllerTest extends AbstractControllerTest {
         final Resource resource = getTemplateResource(FileTemplates.HP_CYTOBANDS.getPath());
         final MockMultipartFile multipartFile = new MockMultipartFile(UPLOAD_FILE_PARAM, resource.getFilename(),
                 null, resource.getInputStream());
-        builder = MockMvcRequestBuilders.fileUpload(SAVE_CYTOBANDS);
+        // MockMvcRequestBuilders.fileUpload until Phase 3 of the Java 21 migration; Spring 6 removed
+        // it (deprecated since 4.3 in favour of the identically-behaving multipart()).
+        builder = MockMvcRequestBuilders.multipart(SAVE_CYTOBANDS);
         actions = mvc()
                 .perform(builder
                         .file(multipartFile)

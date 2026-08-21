@@ -67,7 +67,7 @@ services:
         condition: service_completed_successfully
     environment:
       AUTH_MODE: ${AUTH_MODE:-none}
-      JAVA_VERSION: ${NGB_JAVA_VERSION:-8}   # 8 | 17 (Boot 2.7 waypoint) | 21
+      JAVA_VERSION: ${NGB_JAVA_VERSION:-21}  # 21 only since Phase 3 - the jar is Java 21 bytecode
       JAVA_EXTRA_OPTS: ${JAVA_EXTRA_OPTS:-}
       NGB_HEAP: ${NGB_HEAP:-2g}
       NGB_JAR: /dist/catgenome-h2.jar
@@ -111,7 +111,7 @@ services:
         condition: service_healthy
     environment:
       AUTH_MODE: ${AUTH_MODE:-none}
-      JAVA_VERSION: ${NGB_JAVA_VERSION:-8}   # 8 | 17 (Boot 2.7 waypoint) | 21
+      JAVA_VERSION: ${NGB_JAVA_VERSION:-21}  # 21 only since Phase 3 - the jar is Java 21 bytecode
       JAVA_EXTRA_OPTS: ${JAVA_EXTRA_OPTS:-}
       NGB_HEAP: ${NGB_HEAP:-2g}
       NGB_JAR: /dist/catgenome-psql.jar
@@ -183,7 +183,7 @@ services:
       GRADLE_USER_HOME: /cache/gradle
       npm_config_cache: /cache/npm
     command:
-      - "with-java17"
+      - "with-java21"
       - "./gradlew"
       - "-p"
       - "server/catgenome"
@@ -260,9 +260,10 @@ services:
     environment:
       GRADLE_USER_HOME: /cache/gradle
       npm_config_cache: /cache/npm
-      # 17 by default from Phase 2 on: the CLI is built by a JDK 17 toolchain. Deliberately not
-      # NGB_JAVA_VERSION - that one selects the JDK the *server* jar runs on and .env pins it to 8;
-      # which JDK the CLI needs is decided by how the CLI was compiled, not by the server.
+      # 17 by default from Phase 2 on: the CLI is built by a JDK 17 toolchain, and Phase 3 left it
+      # there - only the server module moved to 21. Deliberately not NGB_JAVA_VERSION: that one
+      # selects the JDK the *server* jar runs on, and which JDK the CLI needs is decided by how the
+      # CLI was compiled, not by the server.
       JAVA_VERSION: ${CLI_JAVA_VERSION:-17}
       NGB_SERVER_URL: ${CLI_SERVER_URL:-http://ngb.dev.local:8080/catgenome}
       NGB_TOKEN: ${CLI_TOKEN:-}

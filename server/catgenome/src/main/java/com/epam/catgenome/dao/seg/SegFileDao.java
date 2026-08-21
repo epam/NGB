@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -239,52 +238,42 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    @Required
     public void setSegFileSequenceName(String segFileSequenceName) {
         this.segFileSequenceName = segFileSequenceName;
     }
 
-    @Required
     public void setCreateSegFileQuery(String createSegFileQuery) {
         this.createSegFileQuery = createSegFileQuery;
     }
 
-    @Required
     public void setLoadSegFileQuery(String loadSegFileQuery) {
         this.loadSegFileQuery = loadSegFileQuery;
     }
 
-    @Required
     public void setDeleteSegFileQuery(String deleteSegFileQuery) {
         this.deleteSegFileQuery = deleteSegFileQuery;
     }
 
-    @Required
     public void setCreateSamplesForFileQuery(String createSamplesForFileQuery) {
         this.createSamplesForFileQuery = createSamplesForFileQuery;
     }
 
-    @Required
     public void setLoadSamplesForFileQuery(String loadSamplesForFileQuery) {
         this.loadSamplesForFileQuery = loadSamplesForFileQuery;
     }
 
-    @Required
     public void setLoadSamplesByFileIdsQuery(String loadSamplesByFileIdsQuery) {
         this.loadSamplesByFileIdsQuery = loadSamplesByFileIdsQuery;
     }
 
-    @Required
     public void setLoadSamplesForFilesByReferenceIdQuery(String loadSamplesForFilesByReferenceIdQuery) {
         this.loadSamplesForFilesByReferenceIdQuery = loadSamplesForFilesByReferenceIdQuery;
     }
 
-    @Required
     public void setSegSampleSequenceName(String segSampleSequenceName) {
         this.segSampleSequenceName = segSampleSequenceName;
     }
 
-    @Required
     public void setDeleteSamplesQuery(String deleteSamplesQuery) {
         this.deleteSamplesQuery = deleteSamplesQuery;
     }

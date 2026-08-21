@@ -40,11 +40,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -366,7 +366,7 @@ public class MultipartFileSender {
                 }
             } else {
                 long skipped = input.skip(start);
-                Assert.isTrue(skipped == start);
+                Assert.isTrue(skipped == start, "Failed to skip to the start of the requested range");
 
                 long toRead = length;
 

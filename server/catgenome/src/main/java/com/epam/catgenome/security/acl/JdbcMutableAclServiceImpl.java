@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
 import com.epam.catgenome.dao.DaoHelper;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
@@ -176,17 +175,19 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
         return jdbcOperations.queryForObject(query, Integer.class, sidIds.toArray());
     }
 
-    @Required
+    // The three setters below used to carry @Required, which Spring 6 removed (it was deprecated in
+    // 5.1 in favour of constructor injection). All three are set from conf/catgenome/acl-dao.xml, so
+    // dropping the annotation loses only the assertion that they were - and that assertion was
+    // already inert here: RequiredAnnotationBeanPostProcessor only checks beans it post-processes,
+    // and this one is built by XML with autowire="constructor".
     public void setDeleteSidByIdQuery(String deleteSidByIdQuery) {
         this.deleteSidByIdQuery = deleteSidByIdQuery;
     }
 
-    @Required
     public void setDeleteEntriesBySidQuery(String deleteEntriesBySidQuery) {
         this.deleteEntriesBySidQuery = deleteEntriesBySidQuery;
     }
 
-    @Required
     public void setLoadEntriesBySidsCountQuery(String loadEntriesBySidsCountQuery) {
         this.loadEntriesBySidsCountQuery = loadEntriesBySidsCountQuery;
     }

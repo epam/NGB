@@ -224,7 +224,8 @@ public class NibDataWriter {
         for (int i = 0; i < containerGC.lvlCount; i++) {
             checkNavigator += containerGC.lvlSize[i + 1];
             if (checkNavigator != containerGC.navigatorGC[i]) {
-                Assert.isTrue(checkNavigator == containerGC.navigatorGC[i]);
+                Assert.isTrue(checkNavigator == containerGC.navigatorGC[i],
+                        "GC content level sizes do not add up to the navigator offset");
             }
         }
         outStreamGC.write(containerGC.buff4Heap);

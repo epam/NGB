@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -144,32 +143,26 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
         return daoHelper.createId(geneFileSequenceName);
     }
 
-    @Required
     public void setGeneFileSequenceName(String geneFileSequenceName) {
         this.geneFileSequenceName = geneFileSequenceName;
     }
 
-    @Required
     public void setCreateGeneFileQuery(String createGeneFileQuery) {
         this.createGeneFileQuery = createGeneFileQuery;
     }
 
-    @Required
     public void setLoadGeneFileQuery(String loadGeneFileQuery) {
         this.loadGeneFileQuery = loadGeneFileQuery;
     }
 
-    @Required
     public void setLoadAllGeneFilesQuery(String loadAllGeneFilesQuery) {
         this.loadAllGeneFilesQuery = loadAllGeneFilesQuery;
     }
 
-    @Required
     public void setDeleteGeneFileQuery(String deleteGeneFileQuery) {
         this.deleteGeneFileQuery = deleteGeneFileQuery;
     }
 
-    @Required
     public void setLoadGeneFilesQuery(String loadGeneFilesQuery) {
         this.loadGeneFilesQuery = loadGeneFilesQuery;
     }

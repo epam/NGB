@@ -34,7 +34,7 @@ import com.epam.catgenome.controller.vo.NgbUserVO;
 import com.epam.catgenome.dao.user.RoleDao;
 import com.epam.catgenome.entity.security.NgbSecurityGroup;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;

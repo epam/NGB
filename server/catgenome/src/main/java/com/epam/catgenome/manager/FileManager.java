@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
@@ -167,6 +167,9 @@ public class FileManager {
     private static final TabixFormat BIGMAF_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 6, 7, 8, '#', 0);
     private static final String JSON_FILE_EXTENSION = ".json";
     private static final String EMPTY = "";
+    // A constant only because the same message is asserted at four points below, which PMD's
+    // AvoidDuplicateLiterals counts. Spring 6 removed Assert.isTrue(boolean), so all four need one.
+    private static final String FAILED_TO_CREATE_FILE = "Failed to create file ";
     public static final String BED_GRAPH_FEATURE_TEMPLATE = "%s\t%d\t%d\t%f%n";
 
     private static final String ROOT_DIR_NAME = "42";
@@ -1735,7 +1738,7 @@ public class FileManager {
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(SEG_FILE, params)));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), FAILED_TO_CREATE_FILE + file.getAbsolutePath());
 
         LOGGER.debug("Writing SEG Sample file at {}", file.getAbsolutePath());
 
@@ -1862,7 +1865,7 @@ public class FileManager {
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(MAF_FILE, params)));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), FAILED_TO_CREATE_FILE + file.getAbsolutePath());
 
         LOGGER.debug("Writing MAF file at {}", file.getAbsolutePath());
 
@@ -1890,7 +1893,7 @@ public class FileManager {
         params.put(CHROMOSOME_NAME.name(), chromosomeName);
 
         File file = new File(toRealPath(substitute(WIG_FILE, params)));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), FAILED_TO_CREATE_FILE + file.getAbsolutePath());
 
         BigWigFile.write(wigSections, chromSizes, file.toPath(), 0, CompressionType.DEFLATE, ByteOrder.nativeOrder());
     }
@@ -1922,7 +1925,7 @@ public class FileManager {
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(BED_GRAPH_FILE, params)));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), FAILED_TO_CREATE_FILE + file.getAbsolutePath());
         try (Writer writer = new BufferedWriter(new FileWriter(file))) {
             for (BedGraphFeature bedGraphFeature : sectionList) {
                 writer.write(String.format(

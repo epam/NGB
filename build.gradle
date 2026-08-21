@@ -39,7 +39,10 @@ task ui(type: Copy) {
     dependsOn ':client:buildUI'
     doFirst {
         delete fileTree(uiFilesDestination) {
-            exclude ('swagger-ui/**', 'blast**', 'tblast**', 'docs/**', 'miew/**')
+            // 'swagger-ui/**' used to be here to protect the committed Swagger 1.x UI in
+            // src/main/resources/static from this delete. springdoc serves its own UI out of a jar
+            // from Phase 3 on, and that directory is deleted, so there is nothing left to preserve.
+            exclude ('blast**', 'tblast**', 'docs/**', 'miew/**')
         }
     }
     from "$rootDir/client/dist"

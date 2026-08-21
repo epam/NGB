@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Diagnostic logging config for this dev environment. The log4j2.xml packaged in the jar pins the
+     console appender to ERROR, so Spring Security and Boot's servlet-filter wiring say nothing at
+     all - which is exactly what you need when SAML or a filter order is misbehaving. Activate with
+     JAVA_EXTRA_OPTS="-Dlogging.config=file:/opt/ngb/bin/log4j2-debug.xml"; see README.md.
+
+     log4j2 dialect since Phase 3 of the Java 21 migration: Boot 3 requires slf4j 2.x, for which no
+     slf4j-log4j12 exists, so NGB's logging goes through spring-boot-starter-log4j2. Note the switch
+     changed too - `-Dlog4j.configuration` was log4j 1's; use Boot's own `logging.config`, which
+     overrides the packaged configuration whatever the backend. -->
+<Configuration>
+    <Appenders>
+        <Console name="stdout" target="SYSTEM_OUT">
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout charset="UTF-8" pattern="%-5p [%c] %m%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="org.springframework.security" level="DEBUG"/>
+        <Logger name="org.springframework.boot.web.servlet" level="DEBUG"/>
+
+        <Root level="INFO">
+            <AppenderRef ref="stdout"/>
+        </Root>
+    </Loggers>
+</Configuration>

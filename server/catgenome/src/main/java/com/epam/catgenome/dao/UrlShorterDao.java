@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.dao;
 
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
@@ -77,16 +76,13 @@ public class UrlShorterDao extends NamedParameterJdbcDaoSupport {
         getJdbcTemplate().update(deleteExpiredUrlsQuery, expiredDate);
     }
 
-    @Required
     public void setLoadUrlByIdQuery(String loadUrlByIdQuery) {
         this.loadUrlByIdQuery = loadUrlByIdQuery;
     }
 
-    @Required
     public void setInsertUrlQuery(String insertUrlQuery) {
         this.insertUrlQuery = insertUrlQuery;
     }
-    @Required
     public void setDeleteExpiredUrlsQuery(String deleteExpiredUrlsQuery) {
         this.deleteExpiredUrlsQuery = deleteExpiredUrlsQuery;
     }

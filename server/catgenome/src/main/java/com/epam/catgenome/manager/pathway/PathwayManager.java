@@ -96,6 +96,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+// Deliberately javax, not jakarta - the only file in the server that is. See readFromFile below.
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -370,6 +371,13 @@ public class PathwayManager {
         return join(entries, ",");
     }
 
+    /**
+     * Reads an SBGN document through the *javax* JAXB API, on purpose: the classes being bound -
+     * {@code org.sbgn.bindings.*} from libsbgn 0.2 - carry javax.xml.bind annotations, and a
+     * jakarta JAXBContext reads jakarta annotations only, so it would treat them as unannotated
+     * POJOs. Everything else in the server was moved to jakarta.xml.bind in Phase 3 of the Java 21
+     * migration; this method follows the library, and follows it back once libsbgn does.
+     */
     private static Sbgn readFromFile(final File f) throws JAXBException {
         JAXBContext context = JAXBContext.newInstance("org.sbgn.bindings");
         Unmarshaller unmarshaller = context.createUnmarshaller();

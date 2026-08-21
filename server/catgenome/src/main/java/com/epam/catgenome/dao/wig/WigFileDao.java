@@ -27,7 +27,6 @@ package com.epam.catgenome.dao.wig;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -105,17 +104,14 @@ public class WigFileDao extends NamedParameterJdbcDaoSupport {
         BED_GRAPH_ID
     }
 
-    @Required
     public void setWigFileSequenceName(String wigFileSequenceName) {
         this.wigFileSequenceName = wigFileSequenceName;
     }
 
-    @Required
     public void setCreateWigFileQuery(String createWigFileQuery) {
         this.createWigFileQuery = createWigFileQuery;
     }
 
-    @Required
     public void setLoadWigFileQuery(String loadWigFileQuery) {
         this.loadWigFileQuery = loadWigFileQuery;
     }

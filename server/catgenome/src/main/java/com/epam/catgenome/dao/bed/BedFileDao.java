@@ -27,7 +27,6 @@ package com.epam.catgenome.dao.bed;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -109,22 +108,18 @@ public class BedFileDao extends NamedParameterJdbcDaoSupport {
         BED_ID
     }
 
-    @Required
     public void setBedFileSequenceName(String bedFileSequenceName) {
         this.bedFileSequenceName = bedFileSequenceName;
     }
 
-    @Required
     public void setCreateBedFileQuery(String createBedFileQuery) {
         this.createBedFileQuery = createBedFileQuery;
     }
 
-    @Required
     public void setLoadBedFileQuery(String loadBedFileQuery) {
         this.loadBedFileQuery = loadBedFileQuery;
     }
 
-    @Required
     public void setDeleteBedFileQuery(String deleteBedFileQuery) {
         this.deleteBedFileQuery = deleteBedFileQuery;
     }

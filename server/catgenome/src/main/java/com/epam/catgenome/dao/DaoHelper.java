@@ -30,7 +30,6 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
@@ -60,7 +59,6 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
 
     private String createIdsQuery;
 
-    @Required
     public void setCreateIdQuery(final String createIdQuery) {
         this.createIdQuery = createIdQuery;
     }
@@ -76,7 +74,7 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public Long createId(final String sequenceName) {
-        Assert.isTrue(StringUtils.isNotBlank(sequenceName));
+        Assert.isTrue(StringUtils.isNotBlank(sequenceName), "A sequence name is required");
         return getNamedParameterJdbcTemplate().queryForObject(createIdQuery,
             new MapSqlParameterSource(HelperParameters.SEQUENCE_NAME.name(), sequenceName), Long.class);
     }
@@ -99,7 +97,6 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
                         .map(Object::toString).collect(Collectors.joining(",")));
     }
 
-    @Required
     public void setCreateIdsQuery(final String createIdsQuery) {
         this.createIdsQuery = createIdsQuery;
     }
@@ -114,7 +111,7 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public List<Long> createIds(final String sequenceName, final int count) {
-        Assert.isTrue(StringUtils.isNotBlank(sequenceName));
+        Assert.isTrue(StringUtils.isNotBlank(sequenceName), "A sequence name is required");
         if (count == 0) {
             return Collections.emptyList();
         }

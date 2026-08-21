@@ -27,13 +27,13 @@ package com.epam.catgenome.controller.util;
 import java.io.File;
 import java.io.IOException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -56,25 +56,38 @@ public final class UrlTestingUtils {
     private UrlTestingUtils() {
     }
 
+    /**
+     * A local HTTP file server over {@code classpath:templates}, used by the tests that register a
+     * track from a URL rather than from a path.
+     *
+     * <p>Written against Jetty's {@code AbstractHandler} until Phase 3 of the Java 21 migration. Jetty
+     * 12, which Boot 3.5 manages, deleted that class along with the rest of the servlet API in
+     * {@code jetty-server}: core handlers now see Jetty's own {@code Request}/{@code Response}/{@code
+     * Callback}, and anything that wants {@code HttpServletRequest} goes through
+     * {@code org.eclipse.jetty.ee10.servlet}. Since the body only ever needed the request URI and the
+     * two servlet objects to hand to {@link MultipartFileSender}, a plain {@link HttpServlet} in a
+     * {@link ServletContextHandler} is the smaller of the two translations.
+     */
     public static Server getFileServer(ApplicationContext context) {
         Resource resource = context.getResource("classpath:templates");
 
         Server server = new Server(TEST_FILE_SERVER_PORT);
-        server.setHandler(new AbstractHandler() {
-                @Override
-                public void handle(String target, Request baseRequest, HttpServletRequest request,
-                                   HttpServletResponse response) throws IOException, ServletException {
-                String uri = baseRequest.getRequestURI();
+        ServletContextHandler handler = new ServletContextHandler();
+        handler.setContextPath("/");
+        handler.addServlet(new ServletHolder(new HttpServlet() {
+            @Override
+            protected void service(HttpServletRequest request, HttpServletResponse response) {
+                String uri = request.getRequestURI();
                 LOGGER.info(uri);
-                File file = new File(resource.getFile().getAbsolutePath() + uri);
-                MultipartFileSender fileSender = MultipartFileSender.fromFile(file);
                 try {
-                    fileSender.with(request).with(response).serveResource();
+                    File file = new File(resource.getFile().getAbsolutePath() + uri);
+                    MultipartFileSender.fromFile(file).with(request).with(response).serveResource();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error(e.getMessage(), e);
                 }
             }
-        });
+        }), "/*");
+        server.setHandler(handler);
 
         return server;
     }

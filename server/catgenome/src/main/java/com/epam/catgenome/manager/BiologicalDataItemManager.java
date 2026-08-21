@@ -186,8 +186,8 @@ public class BiologicalDataItemManager {
         List<Long> references = project.getItems().stream()
                 .filter(item -> item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE)
                 .map(item -> item.getBioDataItem().getId()).collect(Collectors.toList());
-        Assert.notNull(references);
-        Assert.isTrue(!references.isEmpty());
+        Assert.notNull(references, "A list of references is required");
+        Assert.isTrue(!references.isEmpty(), "At least one reference is required");
         Long referenceId = references.get(0);
         Reference reference = referenceGenomeManager.load(referenceId);
         items.add(reference);

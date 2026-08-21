@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Translated from log4j 1.2 in Phase 3 of the Java 21 migration; see profiles/dev/log4j2.xml for
+     the mapping and for the two log4j-1 declarations that are deliberately not carried over. -->
+<Configuration>
+    <Appenders>
+        <Console name="stdout" target="SYSTEM_OUT">
+            <!-- Log from DEBUG and higher. -->
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout charset="UTF-8" pattern="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="org.springframework.aop.framework.CglibAopProxy" level="ERROR"/>
+        <Logger name="com.epam.catgenome" level="DEBUG"/>
+        <Logger name="org.apache.commons.beanutils" level="WARN"/>
+
+        <Root level="DEBUG">
+            <AppenderRef ref="stdout"/>
+        </Root>
+    </Loggers>
+</Configuration>

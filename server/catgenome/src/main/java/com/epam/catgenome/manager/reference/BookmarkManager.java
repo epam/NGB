@@ -139,7 +139,7 @@ public class BookmarkManager implements SecuredEntityManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public Bookmark delete(Long bookmarkId) {
         Bookmark bookmark = bookmarkDao.loadBookmarkById(bookmarkId);
-        Assert.notNull(bookmark);
+        Assert.notNull(bookmark, "A bookmark is required");
         bookmarkDao.deleteBookmarkItems(bookmarkId);
         bookmarkDao.deleteBookmark(bookmarkId);
         return bookmark;

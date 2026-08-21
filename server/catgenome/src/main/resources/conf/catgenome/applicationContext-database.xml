@@ -11,14 +11,28 @@
 
     <!-- Configures database connection pool used to establish and manage connections to a content
          database. It is required to support interaction between database server and application
+
+         HikariCP since Phase 3 of the Java 21 migration (D9); it was c3p0's ComboPooledDataSource,
+         last released in 2015. Every `database.*` property name is unchanged - only the pool's own
+         setter names differ:
+             user               -> username
+             jdbcUrl            -> jdbcUrl              (same)
+             driverClass        -> driverClassName
+             maxPoolSize        -> maximumPoolSize
+             initialPoolSize    -> minimumIdle
+         `initialPoolSize` is the one that is not an exact equivalent: c3p0 opened that many
+         connections eagerly at startup, whereas Hikari's minimumIdle is the floor it keeps *idle*
+         and it fills the pool lazily. Same steady state, no eager connect - and Hikari defaults
+         minimumIdle to maximumPoolSize, which for `database.initial.pool.size=5` against
+         `max.pool.size=25` would be a real change, so it is set explicitly.
     -->
-    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
-        <property name="user" value="${database.username}"/>
+    <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+        <property name="username" value="${database.username}"/>
         <property name="password" value="${database.password}"/>
         <property name="jdbcUrl" value="${database.jdbc.url}"/>
-        <property name="driverClass" value="${database.driver.class}"/>
-        <property name="maxPoolSize" value="${database.max.pool.size}"/>
-        <property name="initialPoolSize" value="${database.initial.pool.size}"/>
+        <property name="driverClassName" value="${database.driver.class}"/>
+        <property name="maximumPoolSize" value="${database.max.pool.size}"/>
+        <property name="minimumIdle" value="${database.initial.pool.size}"/>
     </bean>
 
     <!-- Enables the annotations-based configuration for transactional behavior  -->

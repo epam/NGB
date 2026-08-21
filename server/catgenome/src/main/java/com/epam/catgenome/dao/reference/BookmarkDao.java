@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -264,67 +263,54 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    @Required
     public void setBookmarkSequenceName(String bookmarkSequenceName) {
         this.bookmarkSequenceName = bookmarkSequenceName;
     }
 
-    @Required
     public void setBookmarkItemSequenceName(String bookmarkItemSequenceName) {
         this.bookmarkItemSequenceName = bookmarkItemSequenceName;
     }
 
-    @Required
     public void setInsertBookmarkQuery(String insertBookmarkQuery) {
         this.insertBookmarkQuery = insertBookmarkQuery;
     }
 
-    @Required
     public void setUpdateBookmarkQuery(String updateBookmarkQuery) {
         this.updateBookmarkQuery = updateBookmarkQuery;
     }
 
-    @Required
     public void setLoadAllBookmarksQuery(String loadAllBookmarksQuery) {
         this.loadAllBookmarksQuery = loadAllBookmarksQuery;
     }
 
-    @Required
     public void setInsertBookmarkItemsQuery(String insertBookmarkItemsQuery) {
         this.insertBookmarkItemsQuery = insertBookmarkItemsQuery;
     }
 
-    @Required
     public void setDeleteBookmarkItemsQuery(String deleteBookmarkItemsQuery) {
         this.deleteBookmarkItemsQuery = deleteBookmarkItemsQuery;
     }
 
-    @Required
     public void setLoadBookmarksItemsQuery(String loadBookmarksItemsQuery) {
         this.loadBookmarksItemsQuery = loadBookmarksItemsQuery;
     }
 
-    @Required
     public void setDeleteBookmarkQuery(String deleteBookmarkQuery) {
         this.deleteBookmarkQuery = deleteBookmarkQuery;
     }
 
-    @Required
     public void setLoadBookmarkByIdQuery(String loadBookmarkByIdQuery) {
         this.loadBookmarkByIdQuery = loadBookmarkByIdQuery;
     }
 
-    @Required
     public void setLoadBookmarksByIdsQuery(String loadBookmarksByIdsQuery) {
         this.loadBookmarksByIdsQuery = loadBookmarksByIdsQuery;
     }
 
-    @Required
     public void setSearchBookmarksQuery(String searchBookmarksQuery) {
         this.searchBookmarksQuery = searchBookmarksQuery;
     }
 
-    @Required
     public void setSearchBookmarkCountQuery(String searchBookmarkCountQuery) {
         this.searchBookmarkCountQuery = searchBookmarkCountQuery;
     }

@@ -73,8 +73,8 @@ public class BucketDaoTest extends AbstractDaoTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void createBucketIdTest() {
         final Long testId = bucketDao.createBucketFileId();
-        Assert.notNull(testId);
-        Assert.isTrue(testId > 0);
+        Assert.notNull(testId, "bucket id");
+        Assert.isTrue(testId > 0, "bucket id is positive");
     }
 
     @Test

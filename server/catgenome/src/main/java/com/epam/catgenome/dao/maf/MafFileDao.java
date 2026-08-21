@@ -27,7 +27,6 @@ package com.epam.catgenome.dao.maf;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
@@ -113,22 +112,18 @@ public class MafFileDao extends NamedParameterJdbcDaoSupport {
         getJdbcTemplate().update(deleteMafFileQuery, id);
     }
 
-    @Required
     public void setMafFileSequenceName(String mafFileSequenceName) {
         this.mafFileSequenceName = mafFileSequenceName;
     }
 
-    @Required
     public void setCreateMafFileQuery(String createMafFileQuery) {
         this.createMafFileQuery = createMafFileQuery;
     }
 
-    @Required
     public void setLoadMafFileQuery(String loadMafFileQuery) {
         this.loadMafFileQuery = loadMafFileQuery;
     }
 
-    @Required
     public void setDeleteMafFileQuery(String deleteMafFileQuery) {
         this.deleteMafFileQuery = deleteMafFileQuery;
     }

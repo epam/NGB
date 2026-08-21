@@ -165,8 +165,8 @@ public class TrackHelper {
      * @return loaded valid Chromosome for that track
      */
     public Chromosome validateUrlTrack(final AbstractTrack track, String fileUrl, String indexUrl) {
-        Assert.isTrue(StringUtils.isNotBlank(fileUrl));
-        Assert.isTrue(StringUtils.isNotBlank(indexUrl));
+        Assert.isTrue(StringUtils.isNotBlank(fileUrl), "A file URL is required");
+        Assert.isTrue(StringUtils.isNotBlank(indexUrl), "An index URL is required");
 
         return validateCommonTrack(track);
     }

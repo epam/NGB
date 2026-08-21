@@ -6,11 +6,12 @@ import java.util.Set;
 
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class FastaSequenceFile {
-    private static final Logger LOG = Logger.getLogger(FastaSequenceFile.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FastaSequenceFile.class);
 
     private final FastaIndex index;
     private final String path;

@@ -59,10 +59,9 @@ import com.epam.catgenome.entity.wig.WigFile;
 
 import com.epam.catgenome.util.db.PagingInfo;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -654,64 +653,52 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         }
 
     }
-    @Required
     public void setInsertBiologicalDataItemQuery(String insertBiologicalDataItemQuery) {
         this.insertBiologicalDataItemQuery = insertBiologicalDataItemQuery;
     }
 
-    @Required
     public void setLoadBiologicalDataItemsByIdsQuery(String loadBiologicalDataItemsByIdsQuery) {
         this.loadBiologicalDataItemsByIdsQuery = loadBiologicalDataItemsByIdsQuery;
     }
 
-    @Required
     public void setLoadBiologicalDataItemsQuery(String loadBiologicalDataItemsQuery) {
         this.loadBiologicalDataItemsQuery = loadBiologicalDataItemsQuery;
     }
 
-    @Required
     public void setUpdateBiologicalDataItemQuery(String updateBiologicalDataItemQuery) {
         this.updateBiologicalDataItemQuery = updateBiologicalDataItemQuery;
     }
 
-    @Required
     public void setBiologicalDataItemSequenceName(String biologicalDataItemSequenceName) {
         this.biologicalDataItemSequenceName = biologicalDataItemSequenceName;
     }
 
-    @Required
     public void setDeleteBiologicalDataItemQuery(String deleteBiologicalDataItemQuery) {
         this.deleteBiologicalDataItemQuery = deleteBiologicalDataItemQuery;
     }
 
-    @Required
     public void setLoadBiologicalDataItemsByNameStrictQuery(
             String loadBiologicalDataItemsByNameStrictQuery) {
         this.loadBiologicalDataItemsByNameStrictQuery = loadBiologicalDataItemsByNameStrictQuery;
     }
 
-    @Required
     public void setLoadBiologicalDataItemsByNameQuery(String loadBiologicalDataItemsByNameQuery) {
         this.loadBiologicalDataItemsByNameQuery = loadBiologicalDataItemsByNameQuery;
     }
 
-    @Required
     public void setLoadBiologicalDataItemsByNamesStrictQuery(String loadBiologicalDataItemsByNamesStrictQuery) {
         this.loadBiologicalDataItemsByNamesStrictQuery = loadBiologicalDataItemsByNamesStrictQuery;
     }
 
-    @Required
     public void setLoadBiologicalDataItemsByNameCaseInsensitiveQuery(
             String loadBiologicalDataItemsByNameCaseInsensitiveQuery) {
         this.loadBiologicalDataItemsByNameCaseInsensitiveQuery = loadBiologicalDataItemsByNameCaseInsensitiveQuery;
     }
 
-    @Required
     public void setUpdateOwnerQuery(String updateOwnerQuery) {
         this.updateOwnerQuery = updateOwnerQuery;
     }
 
-    @Required
     public void setCountBiologicalDataItemsQuery(String countBiologicalDataItemsQuery) {
         this.countBiologicalDataItemsQuery = countBiologicalDataItemsQuery;
     }

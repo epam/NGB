@@ -29,7 +29,6 @@ import com.epam.catgenome.entity.project.ProjectDescription;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -155,52 +154,42 @@ public class ProjectDescriptionDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    @Required
     public void setProjectDescriptionSequenceName(final String projectDescriptionSequenceName) {
         this.projectDescriptionSequenceName = projectDescriptionSequenceName;
     }
 
-    @Required
     public void setSaveProjectDescriptionQuery(final String saveProjectDescriptionQuery) {
         this.saveProjectDescriptionQuery = saveProjectDescriptionQuery;
     }
 
-    @Required
     public void setUpdateProjectDescriptionQuery(final String updateProjectDescriptionQuery) {
         this.updateProjectDescriptionQuery = updateProjectDescriptionQuery;
     }
 
-    @Required
     public void setDeleteProjectDescriptionByProjectIdQuery(final String deleteProjectDescriptionByProjectIdQuery) {
         this.deleteProjectDescriptionByProjectIdQuery = deleteProjectDescriptionByProjectIdQuery;
     }
 
-    @Required
     public void setDeleteProjectDescriptionByIdQuery(final String deleteProjectDescriptionByIdQuery) {
         this.deleteProjectDescriptionByIdQuery = deleteProjectDescriptionByIdQuery;
     }
 
-    @Required
     public void setFindProjectDescriptionContentByIdQuery(final String findProjectDescriptionContentByIdQuery) {
         this.findProjectDescriptionContentByIdQuery = findProjectDescriptionContentByIdQuery;
     }
 
-    @Required
     public void setFindProjectDescriptionsByProjectIdQuery(final String findProjectDescriptionsByProjectIdQuery) {
         this.findProjectDescriptionsByProjectIdQuery = findProjectDescriptionsByProjectIdQuery;
     }
 
-    @Required
     public void setFindProjectDescriptionByIdQuery(final String findProjectDescriptionByIdQuery) {
         this.findProjectDescriptionByIdQuery = findProjectDescriptionByIdQuery;
     }
 
-    @Required
     public void setFindProjectDescriptionsByProjectIdsQuery(final String findProjectDescriptionsByProjectIdsQuery) {
         this.findProjectDescriptionsByProjectIdsQuery = findProjectDescriptionsByProjectIdsQuery;
     }
 
-    @Required
     public void setFindProjectDescriptionsQuery(final String findProjectDescriptionsQuery) {
         this.findProjectDescriptionsQuery = findProjectDescriptionsQuery;
     }

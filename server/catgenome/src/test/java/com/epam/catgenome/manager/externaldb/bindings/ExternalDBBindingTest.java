@@ -38,7 +38,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang.math.RandomUtils;
+import java.util.concurrent.ThreadLocalRandom;
 import org.junit.Test;
 
 import com.epam.catgenome.manager.externaldb.bindings.dbsnp.ObjectFactory;
@@ -126,15 +126,15 @@ public class ExternalDBBindingTest {
         if (type == String.class) {
             param = "test";
         } else if (type == Integer.class || type == Integer.TYPE) {
-            param = RandomUtils.nextInt();
+            param = ThreadLocalRandom.current().nextInt();
         } else if (type == Long.class || type == Long.TYPE) {
-            param = RandomUtils.nextLong();
+            param = ThreadLocalRandom.current().nextLong();
         } else if (type == Float.class || type == Float.TYPE) {
-            param = RandomUtils.nextFloat();
+            param = ThreadLocalRandom.current().nextFloat();
         } else if (type == Double.class || type == Double.TYPE) {
-            param = RandomUtils.nextDouble();
+            param = ThreadLocalRandom.current().nextDouble();
         } else if (type == Boolean.class || type == Boolean.TYPE) {
-            param = RandomUtils.nextBoolean();
+            param = ThreadLocalRandom.current().nextBoolean();
         } else if (type == BigInteger.class) {
             param = new BigInteger(TEST_BIGINTEGER);
         } else if (type == List.class) {

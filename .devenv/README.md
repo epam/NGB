@@ -19,12 +19,13 @@ make up            # run it -> http://ngb.dev.local:8080/catgenome
 
 Three facts about the current codebase drive the whole design:
 
-1. **The Gradle wrapper is pinned to Gradle 3.3, which only runs on JDK 8.** You cannot
-   compile anything with JDK 21 until the build itself is migrated. So the toolbox image
-   carries **three JDKs** (`with-java8` / `with-java17` / `with-java21`, or `use-java 17|21`
-   in a shell), and the app container picks its JDK at runtime via `NGB_JAVA_VERSION`. That
-   lets you run the *same* jar on 8 and on 21 and compare, which is the core migration loop.
-   17 is there for the Spring Boot 2.7 waypoint in migration Phase 2.
+1. **The build's JDK is not the host's JDK.** The wrapper was pinned to Gradle 3.3 on JDK 8
+   when this environment was written; since migration Phase 3 it is Gradle 8.14.5, the server
+   module builds on a **JDK 21** toolchain and `server/ngb-cli` on 17. The toolbox image
+   therefore still carries **three JDKs** (`with-java8` / `with-java17` / `with-java21`, or
+   `use-java 8|17|21` in a shell) and the app container still picks its JDK at runtime via
+   `NGB_JAVA_VERSION` — which now defaults to **21**, because the jar is Java 21 bytecode and
+   will not load on anything older. 8 and 17 are kept for bisecting against the earlier phases.
 2. **The database flavour is chosen at build time**, not at runtime
    (`-Pdatabase=h2|postgres` swaps `applicationContext-flyway.xml`), so there are two
    jars and two app services.
@@ -77,34 +78,29 @@ make cli-test                # CLI<->server integration suite (downloads test da
 ```
 
 **Read [`TEST-BASELINE.md`](TEST-BASELINE.md) before you trust a red run.** `make lint` is
-green; neither test suite quite is (3 failures on H2, 12 on PostgreSQL after migration
-Phase 2 — five of those are network tests). That file records each failure and why, so during
+green; neither test suite quite is (3 failures on H2, 11 on PostgreSQL after migration
+Phase 3 — five of those are network tests). That file records each failure and why, so during
 the migration you can tell new breakage from old — and it lists the two preconditions the
 numbers depend on: `make test-pg` wants `make reset-pg` first, and `make test` wants an empty
 `../contents/`.
 
-**Run the same jar on JDK 21**
+**Which JDK the server runs on**
 
 ```bash
-NGB_JAVA_VERSION=21 make up   # or set it in .env
-make logs
+make up                       # JDK 21 — the default since migration Phase 3
+NGB_JAVA_VERSION=8 make up    # or 17: only useful against a jar built by that phase
 ```
 
-Expect failures at first — that *is* the migration signal. `JAVA_EXTRA_OPTS` in `.env`
-has a ready-made `--add-opens` set for the usual reflection breakage.
+`JAVA_EXTRA_OPTS` in `.env` is **empty** and should stay that way. It used to carry four
+`--add-opens` for EhCache 2's reflective heap sizing; Phase 3 replaced EhCache with Caffeine and
+dropped them. A new `--add-opens` requirement appearing here is a signal — on Spring 6 it usually
+means a stale dependency, not a JDK problem.
 
-Verified starting point: the JDK 8-built jar does **not** boot on JDK 21. Spring 4.3's
-cglib dies during context refresh with
-
-```
-java.lang.reflect.InaccessibleObjectException: Unable to make protected final
-java.lang.Class java.lang.ClassLoader.defineClass(...) accessible:
-module java.base does not "opens java.lang" to unnamed module
-  at org.springframework.cglib.core.ReflectUtils.<clinit>(ReflectUtils.java:44)
-```
-
-so this is a *runtime* wall on top of the two build walls — reachable without compiling
-anything, which makes it a cheap way to re-measure progress as the Spring upgrade lands.
+Historical note, since it is what this environment was built to demonstrate: the original JDK
+8-built jar does **not** boot on JDK 21 — Spring 4.3's cglib dies during context refresh with
+`InaccessibleObjectException: Unable to make protected final java.lang.Class
+java.lang.ClassLoader.defineClass(...) accessible` at `ReflectUtils.<clinit>`. That was the runtime
+wall on top of the two build walls. All three are behind us as of Phase 3.
 
 **SAML SSO**
 
@@ -127,14 +123,19 @@ SAML SSO OK
 Use `make smoke-saml U=ngbuser@ngb.dev.local P=user` for the non-admin user. When the
 SAML rewrite lands (migration step 3), this is the check that tells you it still works.
 
-When it *doesn't* work, the packaged `log4j.xml` is the first obstacle: its console appender
+> **`AUTH_MODE=saml` does not work between migration phases 3 and 4.** Phase 3 took the
+> OpenSAML 2 stack out of the build — it cannot work with Spring Security 6 — so the server
+> only starts with `AUTH_MODE=none`. The entrypoint refuses `saml` outright rather than
+> failing later inside Spring. Phase 4 rewrites it and this section applies again.
+
+When it *doesn't* work, the packaged `log4j2.xml` is the first obstacle: its console appender
 is pinned to `ERROR`, so Spring Security says nothing. Point the app at the debug config in
 this directory instead — it logs `org.springframework.security` at DEBUG and Boot's servlet
 filter mappings, which is what most SAML failures come down to:
 
 ```bash
-NGB_JAVA_VERSION=17 AUTH_MODE=saml \
-  JAVA_EXTRA_OPTS="-Dlog4j.configuration=file:/opt/ngb/bin/log4j-debug.xml" \
+NGB_JAVA_VERSION=21 AUTH_MODE=saml \
+  JAVA_EXTRA_OPTS="-Dlogging.config=file:/opt/ngb/bin/log4j2-debug.xml" \
   docker-compose up -d --force-recreate ngb-h2
 ```
 
@@ -273,23 +274,28 @@ keeping in mind for the Flyway upgrade: the two flavours' schemas are not identi
 - **BLAST / LLM / NCBI** integrations point at external services (`blast.server.url`,
   `llm.*`, `ncbi.api.key`) and are left unset — add them to `override.properties` if a
   change touches those paths.
-- The first `make jar` downloads Gradle 3.3, the npm dependency tree and mkdocs into
-  named volumes; later builds reuse them. `make reset` throws those away too.
+- The first `make jar` downloads the Gradle distribution (8.14.5 since migration Phase 3), the
+  npm dependency tree and mkdocs into named volumes; later builds reuse them. `make reset`
+  throws those away too.
 
 ## Migration checkpoints this environment is built to verify
 
-`make probe-java21` shows the current wall — it runs JDK 21, then Gradle 3.3 on JDK 21
-(`Could not determine java version from '21.0.11'`), then compiles a one-line `@Getter`
-class with the lombok the build actually resolves: fine on javac 8, and
-`ExceptionInInitializerError` from the annotation processor on javac 21. In rough order:
-
-1. Gradle 3.3 → 8.x (wrapper, `compile`→`implementation`, `bootRepackage`→`bootJar`),
-   lombok → ≥ 1.18.30. Nothing compiles on JDK 21 before this, and the two are
-   independent walls — fixing Gradle alone just exposes the lombok one.
-2. Spring Boot 1.5 → 3.x, Spring Security 4 → 6, `javax.*` → `jakarta.*`.
-3. `spring-security-saml2-core` (OpenSAML 2, EOL) → Spring Security's SAML2 support —
+1. ☑ Gradle 3.3 → 8.x (wrapper, `compile`→`implementation`, `bootRepackage`→`bootJar`),
+   lombok → ≥ 1.18.30. Nothing compiled on JDK 21 before this, and the two were
+   independent walls — fixing Gradle alone just exposed the lombok one. *Phases 2–3;
+   now Gradle 8.14.5, lombok 1.18.46, JDK 21 toolchain for the server module.*
+2. ☑ Spring Boot 1.5 → 3.x, Spring Security 4 → 6, `javax.*` → `jakarta.*`. *Phases 2–3;
+   now Boot 3.5.16 on Spring 6.2. `make up` + `make smoke` is the check.*
+3. ☐ `spring-security-saml2-core` (OpenSAML 2, EOL) → Spring Security's SAML2 support —
    `SAMLSecurityConfiguration.java` is a full rewrite. Verify against `make up-saml`.
-4. Flyway 3.2.1 → 10.x and H2 1.3.176 → 2.x (schema/SQL differences), then
-   `PG_VERSION=16`. Verify with `make test-pg` on both flavours.
-5. Lucene 6.6 → 9.x, htsjdk, POI 3.16, `mangofactory` swagger →
-   springdoc. Verify with `make test` and by clicking through tracks in the UI.
+   *Phase 4. Until it lands, `AUTH_MODE=saml` and `make smoke-saml` cannot work: Phase 3
+   deleted the SAML and JWT configurations and left security at anonymous.*
+4. ☐ Flyway 3.2.1 → 10.x and H2 1.3.176 → 2.x (schema/SQL differences), then
+   `PG_VERSION=16`. Verify with `make test-pg` on both flavours. *Phase 5.*
+5. ☐ Lucene 6.6 → 9.x, htsjdk, POI 3.16. Verify with `make test` and by clicking through
+   tracks in the UI. *Phases 6–8. The `mangofactory` Swagger half of this one is done —
+   Phase 3 replaced it with springdoc, at `/swagger-ui/index.html` and `/v3/api-docs`.*
+
+`make probe-java21` demonstrated the first checkpoint's two walls by running Gradle 3.3 and
+lombok 1.16.16 under JDK 21 and failing. Both are gone, so the target no longer measures
+anything; Phase 9 removes it.

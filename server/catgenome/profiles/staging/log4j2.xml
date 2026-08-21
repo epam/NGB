@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Translated from log4j 1.2 in Phase 3 of the Java 21 migration; see profiles/dev/log4j2.xml for
+     the mapping and for the two log4j-1 declarations that are deliberately not carried over.
+     `${catalina.base}` needs log4j2's explicit lookup prefix: a bare `${name}` resolves against the
+     configuration's own <Properties>, not against system properties. -->
+<Configuration>
+    <Appenders>
+        <Console name="stdout" target="SYSTEM_OUT">
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout charset="UTF-8" pattern="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n"/>
+        </Console>
+
+        <RollingFile name="debug-appender" fileName="${sys:catalina.base}/logs/catgenome-debug.log"
+                     filePattern="${sys:catalina.base}/logs/catgenome-debug.log.%d{yyyy-MM-dd}">
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout charset="UTF-8" pattern="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+        </RollingFile>
+
+        <RollingFile name="error-appender" fileName="${sys:catalina.base}/logs/catgenome-error.log"
+                     filePattern="${sys:catalina.base}/logs/catgenome-error.log.%d{yyyy-MM-dd}">
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout charset="UTF-8" pattern="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="org.springframework.aop.framework.CglibAopProxy" level="ERROR"/>
+        <Logger name="com.epam.gene.catgenome" level="DEBUG"/>
+        <Logger name="org.apache.commons.beanutils" level="WARN"/>
+        <Logger name="org.springframework.jndi" level="ERROR"/>
+
+        <Root level="DEBUG">
+            <AppenderRef ref="stdout"/>
+            <AppenderRef ref="debug-appender"/>
+            <AppenderRef ref="error-appender"/>
+        </Root>
+    </Loggers>
+</Configuration>

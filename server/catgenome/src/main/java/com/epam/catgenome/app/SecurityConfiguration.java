@@ -27,8 +27,15 @@ package com.epam.catgenome.app;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+/**
+ * The two authenticating configurations that used to be imported here, JWTSecurityConfiguration and
+ * SAMLSecurityConfiguration, are out of the build for Phase 3 of the Java 21 migration: they are
+ * built on spring-security-saml2-core / OpenSAML 2, which cannot work with Spring Security 6 at all.
+ * Phase 4 rewrites them against spring-security-saml2-service-provider and puts them back. Until
+ * then the only web-security configuration is the anonymous one, so AUTH_MODE=none is the only mode
+ * that works; ACL authorization is untouched and still switched by security.acl.enable.
+ */
 @Configuration
-@Import({JWTSecurityConfiguration.class, SAMLSecurityConfiguration.class, NoSecurityConfiguration.class,
-         AclSecurityConfiguration.class})
+@Import({NoSecurityConfiguration.class, AclSecurityConfiguration.class})
 public class SecurityConfiguration {
 }

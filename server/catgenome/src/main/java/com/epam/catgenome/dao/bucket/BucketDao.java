@@ -28,7 +28,6 @@ package com.epam.catgenome.dao.bucket;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -144,27 +143,22 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
 
     }
 
-    @Required
     public void setBucketName(String bucketName) {
         this.bucketName = bucketName;
     }
 
-    @Required
     public void setCreateBucketQuery(String createBucketQuery) {
         this.createBucketQuery = createBucketQuery;
     }
 
-    @Required
     public void setLoadBucketByIdQuery(String loadBucketByIdQuery) {
         this.loadBucketByIdQuery = loadBucketByIdQuery;
     }
 
-    @Required
     public void setLoadAllBucketQuery(String loadAllBucketQuery) {
         this.loadAllBucketQuery = loadAllBucketQuery;
     }
 
-    @Required
     public void setUpdateBucketOwnerQuery(String updateBucketOwnerQuery) {
         this.updateBucketOwnerQuery = updateBucketOwnerQuery;
     }

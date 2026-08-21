@@ -31,7 +31,6 @@ import static com.epam.catgenome.dao.bam.BamFileDao.BamParameters.BAM_ID;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
@@ -117,23 +116,19 @@ public class BamFileDao extends NamedParameterJdbcDaoSupport {
         this.deleteBamFileQuery = deleteGeneFileQuery;
     }
 
-    @Required
     public void setBamFileSequenceName(String bamFileSequenceName) {
         this.bamFileSequenceName = bamFileSequenceName;
     }
 
-    @Required
     public void setLoadBamFileQuery(String loadBamFileQuery) {
         this.loadBamFileQuery = loadBamFileQuery;
     }
 
-    @Required
     public void setCreateBamFileQuery(String createBamFileQuery) {
         this.createBamFileQuery = createBamFileQuery;
     }
 
 
-    @Required
     public void setSearchByNameBamFileQuery(String searchByNameBamFileQuery) {
         this.searchByNameBamFileQuery = searchByNameBamFileQuery;
     }

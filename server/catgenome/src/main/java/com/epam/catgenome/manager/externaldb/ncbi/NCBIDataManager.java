@@ -49,7 +49,7 @@ import org.apache.http.util.TextUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_NO_RESULT_BY_EXTERNAL_DB;
 

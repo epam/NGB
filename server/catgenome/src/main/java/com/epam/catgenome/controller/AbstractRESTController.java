@@ -45,7 +45,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.epam.catgenome.manager.FileManager;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Source:      AbstractRESTController.java
@@ -93,7 +93,7 @@ public abstract class AbstractRESTController {
      * @throws IOException
      */
     protected File transferToTempFile(final MultipartFile multipart) throws IOException {
-        Assert.notNull(multipart);
+        Assert.notNull(multipart, "A multipart file is required");
         final File tmp = File.createTempFile(UUID.randomUUID().toString(), multipart.getOriginalFilename(),
             fileManager.getTempDir());
         multipart.transferTo(tmp);

@@ -28,17 +28,18 @@ import static com.epam.catgenome.entity.user.DefaultRoles.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
 import com.epam.catgenome.security.acl.customexpression.NGBMethodSecurityExpressionHandler;
-import net.sf.ehcache.config.PinningConfiguration;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.ehcache.EhCacheFactoryBean;
-import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
+import org.springframework.core.env.Environment;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -50,21 +51,52 @@ import org.springframework.security.acls.jdbc.LookupStrategy;
 import org.springframework.security.acls.model.AclCache;
 import org.springframework.security.acls.model.PermissionGrantingStrategy;
 import org.springframework.security.acls.model.SidRetrievalStrategy;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.security.acl.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+/**
+ * Method-security and ACL wiring. Reworked for Spring Security 6 in Phase 3 of the Java 21
+ * migration; three things about the shape of this class are consequences of that and not choices:
+ *
+ * <ul>
+ *   <li>{@code GlobalMethodSecurityConfiguration} and {@code @EnableGlobalMethodSecurity} were
+ *       removed. The replacement, {@code @EnableMethodSecurity}, has no {@code createExpressionHandler()}
+ *       hook: it picks up a {@link MethodSecurityExpressionHandler} <em>bean</em> instead. That bean is
+ *       consumed by the method-security interceptors, which are {@code ROLE_INFRASTRUCTURE} beans
+ *       built before any application bean exists, so it is declared {@code static} - a non-static
+ *       {@code @Bean} would drag this whole configuration class, its {@code DataSource} and the ACL
+ *       service into that early phase.</li>
+ *   <li>Because the handler bean is static it cannot call {@code roleHierarchy()}, so
+ *       {@link RoleHierarchy} is injected into it as a method parameter, and
+ *       {@code sidRetrievalStrategy} takes it the same way rather than calling the {@code @Bean}
+ *       method. {@code prePostEnabled} is not passed to {@code @EnableMethodSecurity}: it defaults to
+ *       true there.</li>
+ *   <li>{@code EhCacheBasedAclCache} is gone with the rest of Spring's EhCache 2 support. The ACL
+ *       cache is now {@link SpringCacheBasedAclCache} over a Caffeine region, and the EhCache
+ *       configuration it replaces is reproduced in {@link #aclCacheManager()}.</li>
+ * </ul>
+ */
 @Configuration
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
-@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
+@EnableMethodSecurity(securedEnabled = true)
 @ComponentScan(basePackages = "com.epam.catgenome.security.acl")
 @ImportResource("classpath*:conf/catgenome/acl-dao.xml")
-public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration {
+public class AclSecurityConfiguration {
 
-    private static final int UNLIMITED_NUMBER_OF_ENTITIES = 0;
+    private static final String ACL_CACHE = "aclCache";
+
+    /**
+     * EhCache's failsafe defaults, which is what the {@code aclCache} region got whenever
+     * {@code security.acl.cache.period} was unset or non-positive: 10,000 entries, 120 s
+     * time-to-live and time-to-idle. Spelled out here because nothing else carries them now that
+     * ehcache.xml is deleted - and the region was never in ehcache.xml to begin with, it was built
+     * by an {@code EhCacheFactoryBean} against a default {@code CacheManager}.
+     */
+    private static final long DEFAULT_MAX_ENTRIES = 10_000;
+    private static final long DEFAULT_CACHE_PERIOD_SECONDS = 120;
 
     @Autowired
     private ApplicationContext context;
@@ -75,24 +107,28 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
     @Autowired
     private PermissionFactory permissionFactory;
 
-    @Override
-    protected MethodSecurityExpressionHandler createExpressionHandler() {
-        NGBMethodSecurityExpressionHandler expressionHandler =
-            new NGBMethodSecurityExpressionHandler();
-        expressionHandler.setPermissionEvaluator(context.getBean(PermissionEvaluator.class));
-        expressionHandler.setRoleHierarchy(roleHierarchy());
+    @Bean
+    static MethodSecurityExpressionHandler methodSecurityExpressionHandler(final ApplicationContext context,
+                                                                          final RoleHierarchy roleHierarchy) {
+        // PermissionEvaluator and PermissionHelper are looked up through suppliers rather than
+        // injected: this bean is created during infrastructure setup, and resolving either of them
+        // here would pull the ACL service - and with it the DataSource and the acl-dao.xml beans - up
+        // with it. The suppliers are called from createSecurityExpressionRoot, i.e. inside a request.
+        NGBMethodSecurityExpressionHandler expressionHandler = new NGBMethodSecurityExpressionHandler(
+                () -> context.getBean(PermissionEvaluator.class),
+                () -> context.getBean(PermissionHelper.class));
+        expressionHandler.setRoleHierarchy(roleHierarchy);
         expressionHandler.setApplicationContext(context);
-        expressionHandler.setPermissionHelper(context.getBean(PermissionHelper.class));
         return expressionHandler;
     }
 
     @Bean
-    public SidRetrievalStrategy sidRetrievalStrategy() {
-        return new SidRetrievalStrategyImpl(roleHierarchy());
+    public SidRetrievalStrategy sidRetrievalStrategy(final RoleHierarchy roleHierarchy) {
+        return new SidRetrievalStrategyImpl(roleHierarchy);
     }
 
     @Bean
-    public RoleHierarchy roleHierarchy() {
+    public static RoleHierarchy roleHierarchy() {
         RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
         roleHierarchy.setHierarchy(ROLE_ADMIN.getName() + " > " +
                 ROLE_USER.getName());
@@ -112,7 +148,7 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
      * Takes the ACL service as a method parameter rather than an {@code @Autowired} field, because
      * the two are mutually dependent: the {@code jdbcMutableAclService} bean from the imported
      * conf/catgenome/acl-dao.xml is {@code autowire="constructor"} over {@link LookupStrategy} and
-     * {@link net.sf.ehcache.Ehcache}-backed {@code aclCache()}, both defined here - so it cannot be
+     * {@code aclCache()}, both defined here - so it cannot be
      * built until this configuration class exists, while a field would have required it to exist
      * before this class could be instantiated. Boot 2.6 turned that cycle from a warning into a
      * startup failure ({@code spring.main.allow-circular-references} defaults to false), and as a
@@ -155,30 +191,40 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
     @Bean
     public AclCache aclCache() {
-        return new EhCacheBasedAclCache(ehCacheFactoryBean().getObject(),
+        return new SpringCacheBasedAclCache(aclCacheManager().getCache(ACL_CACHE),
                 permissionGrantingStrategy(), aclAuthorizationStrategy());
     }
 
+    /**
+     * A cache manager of its own, not the application's {@code cacheManager} from
+     * conf/catgenome/applicationContext-cache.xml: the ACL region is configured from
+     * {@code security.acl.cache.period} at startup, and the EhCache setup this replaces likewise
+     * built it in a separate, privately named {@code CacheManager} ("aclCacheManager").
+     *
+     * <p>What the EhCache version did, and what is reproduced here: with a positive
+     * {@code security.acl.cache.period} the region was unbounded in entries and expired
+     * {@code period} seconds after write and after access; otherwise it fell through to EhCache's
+     * failsafe defaults of 10,000 entries and 120 s. The one thing not carried over is
+     * {@code pinning(LOCALMEMORY)}, which told EhCache not to spill this region to disk - Caffeine is
+     * heap-only, so it is already true by construction.
+     */
     @Bean
-    public EhCacheFactoryBean ehCacheFactoryBean() {
-        int aclSecurityCachePeriodInSeconds = context.getEnvironment()
-                .getProperty("security.acl.cache.period", Integer.class, -1);
-        EhCacheFactoryBean factoryBean = new EhCacheFactoryBean();
-        factoryBean.setCacheManager(ehCacheManagerFactoryBean().getObject());
-        factoryBean.setCacheName("aclCache");
-        if (aclSecurityCachePeriodInSeconds > 0) {
-            factoryBean.maxEntriesLocalHeap(UNLIMITED_NUMBER_OF_ENTITIES);
-            factoryBean.setTimeToLive(aclSecurityCachePeriodInSeconds);
-            factoryBean.setTimeToIdle(aclSecurityCachePeriodInSeconds);
-            factoryBean.pinning(new PinningConfiguration().store(PinningConfiguration.Store.LOCALMEMORY));
-        }
-        return factoryBean;
-    }
+    public CaffeineCacheManager aclCacheManager() {
+        final Environment environment = context.getEnvironment();
+        final int period = environment.getProperty("security.acl.cache.period", Integer.class, -1);
 
-    @Bean
-    public EhCacheManagerFactoryBean ehCacheManagerFactoryBean() {
-        EhCacheManagerFactoryBean factoryBean = new EhCacheManagerFactoryBean();
-        factoryBean.setCacheManagerName("aclCacheManager");
-        return factoryBean;
+        final Caffeine<Object, Object> caffeine = Caffeine.newBuilder();
+        if (period > 0) {
+            caffeine.expireAfterWrite(period, TimeUnit.SECONDS)
+                    .expireAfterAccess(period, TimeUnit.SECONDS);
+        } else {
+            caffeine.maximumSize(DEFAULT_MAX_ENTRIES)
+                    .expireAfterWrite(DEFAULT_CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
+                    .expireAfterAccess(DEFAULT_CACHE_PERIOD_SECONDS, TimeUnit.SECONDS);
+        }
+
+        final CaffeineCacheManager cacheManager = new CaffeineCacheManager(ACL_CACHE);
+        cacheManager.setCaffeine(caffeine);
+        return cacheManager;
     }
 }

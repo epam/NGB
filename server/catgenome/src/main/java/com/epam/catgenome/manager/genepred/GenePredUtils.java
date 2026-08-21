@@ -24,9 +24,8 @@
 
 package com.epam.catgenome.manager.genepred;
 
-import org.bouncycastle.util.Strings;
-
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 public final class GenePredUtils {
@@ -48,7 +47,11 @@ public final class GenePredUtils {
         return GENE_PRED_EXTENSION;
     }
 
+    // This used to call org.bouncycastle.util.Strings.toLowerCase, which was on the classpath only
+    // because spring-security-saml2-core dragged Bouncy Castle in transitively; Phase 3 of the Java
+    // 21 migration took that dependency out. Locale.ROOT is what the Bouncy Castle helper did - a
+    // locale-independent lowercase - so a file called ".GP" still matches under a Turkish locale.
     public static boolean isGenePred(String path) {
-        return GENE_PRED_EXTENSION.stream().anyMatch(Strings.toLowerCase(path)::endsWith);
+        return GENE_PRED_EXTENSION.stream().anyMatch(path.toLowerCase(Locale.ROOT)::endsWith);
     }
 }

@@ -39,7 +39,6 @@ import com.epam.catgenome.entity.security.NgbSecurityGroup;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -452,122 +451,98 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    @Required
     public void setFindUsersByPrefixQuery(String findUsersByPrefixQuery) {
         this.findUsersByPrefixQuery = findUsersByPrefixQuery;
     }
 
-    @Required
     public void setLoadGroupsByUserIdsQuery(String loadGroupsByUserIdsQuery) {
         this.loadGroupsByUserIdsQuery = loadGroupsByUserIdsQuery;
     }
 
-    @Required
     public void setUserSequence(String userSequence) {
         this.userSequence = userSequence;
     }
 
-    @Required
     public void setGroupSequence(String groupSequence) {
         this.groupSequence = groupSequence;
     }
 
-    @Required
     public void setCreateUserQuery(String createUserQuery) {
         this.createUserQuery = createUserQuery;
     }
 
-    @Required
     public void setAddRoleToUserQuery(String addRoleToUserQuery) {
         this.addRoleToUserQuery = addRoleToUserQuery;
     }
 
-    @Required
     public void setInsertGroupQuery(String insertGroupQuery) {
         this.insertGroupQuery = insertGroupQuery;
     }
 
-    @Required
     public void setLoadExistingGroupsFromListQuery(String loadExistingGroupsFromListQuery) {
         this.loadExistingGroupsFromListQuery = loadExistingGroupsFromListQuery;
     }
 
-    @Required
     public void setInsertUserGroupQuery(String insertUserGroupQuery) {
         this.insertUserGroupQuery = insertUserGroupQuery;
     }
 
-    @Required
     public void setLoadUserByNameQuery(String loadUserByNameQuery) {
         this.loadUserByNameQuery = loadUserByNameQuery;
     }
 
-    @Required
     public void setLoadAllUsersQuery(String loadAllUsersQuery) {
         this.loadAllUsersQuery = loadAllUsersQuery;
     }
 
-    @Required
     public void setLoadUserByIdQuery(String loadUserByIdQuery) {
         this.loadUserByIdQuery = loadUserByIdQuery;
     }
 
-    @Required
     public void setUpdateUserQuery(String updateUserQuery) {
         this.updateUserQuery = updateUserQuery;
     }
 
-    @Required
     public void setDeleteUserRolesQuery(String deleteUserRolesQuery) {
         this.deleteUserRolesQuery = deleteUserRolesQuery;
     }
 
-    @Required
     public void setDeleteUserQuery(String deleteUserQuery) {
         this.deleteUserQuery = deleteUserQuery;
     }
 
-    @Required
     public void setLoadAllGroupsQuery(String loadAllGroupsQuery) {
         this.loadAllGroupsQuery = loadAllGroupsQuery;
     }
 
-    @Required
     public void setFindGroupsQuery(String findGroupsQuery) {
         this.findGroupsQuery = findGroupsQuery;
     }
 
-    @Required
     public void setLoadUsersByGroupQuery(String loadUsersByGroupQuery) {
         this.loadUsersByGroupQuery = loadUsersByGroupQuery;
     }
 
-    @Required
     public void setLoadUsersByNamesQuery(String loadUsersByNamesQuery) {
         this.loadUsersByNamesQuery = loadUsersByNamesQuery;
     }
 
-    @Required
     public void setLoadUserByNameAndGroupQuery(String loadUserByNameAndGroupQuery) {
         this.loadUserByNameAndGroupQuery = loadUserByNameAndGroupQuery;
     }
 
-    @Required
     public void setDeleteUserGroupsQuery(String deleteUserGroupsQuery) {
         this.deleteUserGroupsQuery = deleteUserGroupsQuery;
     }
 
-    @Required
     public void setDeleteUserGroupByUserIdAndGroupIdQuery(String deleteUserGroupByUserIdAndGroupIdQuery) {
         this.deleteUserGroupByUserIdAndGroupIdQuery = deleteUserGroupByUserIdAndGroupIdQuery;
     }
 
-    @Required
     public void setLoadUserListQuery(String loadUserListQuery) {
         this.loadUserListQuery = loadUserListQuery;
     }
 
-    @Required
     public void setDeleteRoleFromUserQuery(String deleteRoleFromUserQuery) {
         this.deleteRoleFromUserQuery = deleteRoleFromUserQuery;
     }

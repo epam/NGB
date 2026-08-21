@@ -29,7 +29,6 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.activity.Activity;
 import com.epam.catgenome.entity.activity.ActivityType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -117,22 +116,18 @@ public class ActivityDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    @Required
     public void setActivitySequenceName(String activitySequenceName) {
         this.activitySequenceName = activitySequenceName;
     }
 
-    @Required
     public void setInsertActivityQuery(String insertActivityQuery) {
         this.insertActivityQuery = insertActivityQuery;
     }
 
-    @Required
     public void setLoadActivityByItemIdAndUidQuery(String loadActivityByItemIdAndUidQuery) {
         this.loadActivityByItemIdAndUidQuery = loadActivityByItemIdAndUidQuery;
     }
 
-    @Required
     public void setDeleteActivityByItemIdQuery(String deleteActivityByItemIdQuery) {
         this.deleteActivityByItemIdQuery = deleteActivityByItemIdQuery;
     }

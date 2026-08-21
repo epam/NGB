@@ -22,6 +22,6 @@
  * SOFTWARE.
  */
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://www.ncbi.nlm.nih.gov/SNP/docsum",
-        elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+@jakarta.xml.bind.annotation.XmlSchema(namespace = "http://www.ncbi.nlm.nih.gov/SNP/docsum",
+        elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package com.epam.catgenome.manager.externaldb.bindings.dbsnp;

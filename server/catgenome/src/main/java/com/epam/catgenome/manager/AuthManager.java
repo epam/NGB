@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.manager;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -32,7 +31,6 @@ import org.springframework.stereotype.Service;
 
 import com.epam.catgenome.entity.security.JwtRawToken;
 import com.epam.catgenome.security.UserContext;
-import com.epam.catgenome.security.jwt.JwtTokenGenerator;
 
 /**
  * A service class that encapsulates operations, connected with authenticated users
@@ -40,13 +38,6 @@ import com.epam.catgenome.security.jwt.JwtTokenGenerator;
 @Service
 public class AuthManager {
     public static final String UNAUTHORIZED_USER = "Unauthorized";
-
-    private final JwtTokenGenerator jwtTokenGenerator;
-
-    @Autowired
-    public AuthManager(JwtTokenGenerator jwtTokenGenerator) {
-        this.jwtTokenGenerator = jwtTokenGenerator;
-    }
 
     /**
      * @return UserContext of currently logged in user
@@ -94,14 +85,19 @@ public class AuthManager {
     /**
      * @param expiration expiration time for a JWT token. If null, a default expiration value is used
      * @return a JWT token for current user
+     * @throws UnsupportedOperationException always, for as long as JWT is out of the build
+     *
+     * <p>Phase 3 of the Java 21 migration removed {@code security.jwt.JwtTokenGenerator} together
+     * with the rest of the JWT and SAML stack (OpenSAML 2 cannot run on Spring Security 6), so there
+     * is nothing left to sign a token with. The method, the {@code GET /restapi/user/token} endpoint
+     * it backs and the "generate access token" button in the UI settings dialog therefore fail
+     * explicitly rather than silently returning an unusable token. Phase 4 restores the generator
+     * and this body along with it - see git history for {@code JwtTokenGenerator}, which is the
+     * specification for the claims the reissued tokens must carry.
      */
     public JwtRawToken issueTokenForCurrentUser(Long expiration) {
-        Object principal = getPrincipal();
-        if (principal instanceof UserContext) {
-            return new JwtRawToken(jwtTokenGenerator.encodeToken(((UserContext) principal).toClaims(), expiration));
-        } else {
-            return new JwtRawToken(jwtTokenGenerator.encodeToken(new UserContext(principal.toString()).toClaims(),
-                                                                 expiration));
-        }
+        throw new UnsupportedOperationException(
+                "JWT token issuing is unavailable: the JWT stack is out of the build until the "
+                        + "Spring Security 6 rewrite. Only AUTH_MODE=none is supported.");
     }
 }

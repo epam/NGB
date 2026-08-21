@@ -29,12 +29,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import com.epam.catgenome.common.AbstractManagerTest;
-import com.epam.catgenome.controller.util.MultipartFileSender;
 import com.epam.catgenome.controller.util.ResultReference;
 import com.epam.catgenome.controller.util.UrlTestingUtils;
 import com.epam.catgenome.controller.vo.ReadQuery;
@@ -58,9 +54,7 @@ import com.epam.catgenome.manager.bucket.BucketManager;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -431,22 +425,11 @@ public class BamManagerTest extends AbstractManagerTest {
         String bamUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + path;
         String indexUrl = bamUrl + BAI_EXTENSION;
 
-        Server server = new Server(UrlTestingUtils.TEST_FILE_SERVER_PORT);
-        server.setHandler(new AbstractHandler() {
-            @Override
-            public void handle(String target, Request baseRequest, HttpServletRequest request,
-                                   HttpServletResponse response) throws IOException, ServletException {
-                String uri = baseRequest.getRequestURI();
-                logger.info(uri);
-                File file = new File(resource.getFile().getAbsolutePath() + uri);
-                MultipartFileSender fileSender = MultipartFileSender.fromFile(file);
-                try {
-                    fileSender.with(request).with(response).serveResource();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        // This used to be a copy, character for character, of the Jetty handler in
+        // UrlTestingUtils.getFileServer - same port, same classpath:templates resource, same
+        // MultipartFileSender. Jetty 12 deleted the AbstractHandler it was written against (see the
+        // note on getFileServer), and there was no reason to translate the same handler twice.
+        Server server = UrlTestingUtils.getFileServer(context);
         try {
             server.start();
 

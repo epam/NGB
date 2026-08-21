@@ -30,7 +30,6 @@ import com.epam.catgenome.entity.metadata.MetadataVO;
 import com.epam.catgenome.entity.security.AclClass;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -123,27 +122,22 @@ public class MetadataDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
-    @Required
     public void setInsertMetadataQuery(final String insertMetadataQuery) {
         this.insertMetadataQuery = insertMetadataQuery;
     }
 
-    @Required
     public void setLoadMetadataQuery(final String loadMetadataQuery) {
         this.loadMetadataQuery = loadMetadataQuery;
     }
 
-    @Required
     public void setUpdateMetadataQuery(final String updateMetadataQuery) {
         this.updateMetadataQuery = updateMetadataQuery;
     }
 
-    @Required
     public void setDeleteMetadataQuery(final String deleteMetadataQuery) {
         this.deleteMetadataQuery = deleteMetadataQuery;
     }
 
-    @Required
     public void setLoadMetadataItemsQuery(final String loadMetadataItemsQuery) {
         this.loadMetadataItemsQuery = loadMetadataItemsQuery;
     }

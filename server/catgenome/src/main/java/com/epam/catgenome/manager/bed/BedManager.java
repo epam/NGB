@@ -95,7 +95,7 @@ import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.readers.LineIterator;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Provides service for handling {@code BedFile}: CRUD operations and loading data from the files

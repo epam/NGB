@@ -36,7 +36,7 @@ public class InfoFieldParser {
     }
 
     public InfoFieldParser(final String templates) {
-        Assert.notNull(templates);
+        Assert.notNull(templates, "An info field template is required");
         patterns = Arrays.stream(templates.split(TEMPLATE_DELIMITER))
                 .map(InfoPattern::new)
                 .collect(Collectors.toList());

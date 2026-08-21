@@ -38,17 +38,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.epam.catgenome.config.SwaggerConfig;
 import com.epam.catgenome.controller.JsonMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -56,7 +53,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Class provides MVC Configuration for Spring Boot application
  */
 @Configuration
-@Import(SwaggerConfig.class)
 @ComponentScan(basePackages = {"com.epam.catgenome.config", "com.epam.catgenome.controller"})
 public class AppMVCConfiguration implements WebMvcConfigurer {
 
@@ -107,11 +103,12 @@ public class AppMVCConfiguration implements WebMvcConfigurer {
         };
     }
 
+    // The /swagger-ui/** handler that used to stand at the top of this method served the
+    // Swagger 1.x UI out of three locations - src/main/webapp, src/main/resources/static and the
+    // org.webjars:swagger-ui:2.0.24 webjar. All three are gone with swagger-springmvc; springdoc
+    // registers its own handler for /swagger-ui/** and /v3/api-docs.
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/swagger-ui/**")
-                .addResourceLocations("/swagger-ui/", "classpath:/static/swagger-ui/",
-                        "classpath:/META-INF/resources/webjars/swagger-ui/2.0.24/");
         if (!StringUtils.isEmpty(staticResourcesPaths)) {
             registry.addResourceHandler(staticResourcesPaths.split(","))
                     .addResourceLocations("classpath:/static/")
@@ -127,21 +124,14 @@ public class AppMVCConfiguration implements WebMvcConfigurer {
         converters.add(converter);
     }
 
-    @Override
-    public void configurePathMatch(PathMatchConfigurer configurer) {
-        configurer.setUseSuffixPatternMatch(false);
-    }
+    // configurePathMatch used to turn off suffix pattern matching
+    // (configurer.setUseSuffixPatternMatch(false)). Spring 6 removed the switch along with suffix
+    // matching itself, so the override says nothing that is not already true.
 
     @Bean
     public ObjectMapper objectMapper() {
         return new JsonMapper();
     }
-
-    // SwaggerConfig is deliberately *not* declared as a @Bean here. It is a @Configuration class
-    // that both the @Import above and the component scan of com.epam.catgenome.config already
-    // register under the name "swaggerConfig"; Boot 1.5 silently let the @Bean method override
-    // that definition, but bean-definition overriding is disabled by default from Boot 2.1, so
-    // the duplicate is now a startup failure. Removing the method keeps the same single bean.
 
     /*@Bean //TODO: may be useful if we'll need to move swagger back to restapi
     public ServletRegistrationBean dispatcherRegistration(DispatcherServlet dispatcherServlet) {

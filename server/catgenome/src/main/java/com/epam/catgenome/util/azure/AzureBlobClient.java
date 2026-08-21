@@ -38,7 +38,7 @@ import com.epam.catgenome.entity.BiologicalDataItemDownloadUrl;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;

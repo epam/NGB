@@ -10,17 +10,30 @@
     <!-- Cache -->
     <cache:annotation-driven />
 
-     <!-- EhCache library setup -->
+    <!--
+      Caffeine, since Phase 3 of the Java 21 migration. Spring 6 removed the whole
+      org.springframework.cache.ehcache package, so the three beans that used to stand here
+      (EhCacheCacheManager, EhCacheManagerFactoryBean over conf/catgenome/ehcache.xml, and an unused
+      EhCacheFactoryBean named "cache") have no Spring 6 equivalent; ehcache.xml is deleted with them.
 
-    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager"
-          p:cacheManager-ref="ehcache"/>
+      One cache region is left to declare. ehcache.xml configured two, but "indexCache" was never
+      reached through this manager - EhCacheBasedIndexCache used it programmatically, and now holds
+      its own Caffeine cache. "proteinTrack" is the one @Cacheable region
+      (ProteinSequenceManager.loadProteinSequence): 1,000 entries, 5 s time-to-idle. Both carry over
+      exactly; the FIFO eviction policy does not, because Caffeine is Window-TinyLFU and has no FIFO
+      mode - for a region bounded by a 5-second idle timeout the replacement policy never binds.
 
-    <bean id="ehcache" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"
-        p:configLocation="classpath:conf/catgenome/ehcache.xml"
-        p:shared = "true"/>
-
-    <bean id="cache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
-        <property name="cacheManager" ref="ehcache"/>
+      cacheNames is deliberately fixed rather than left open. CaffeineCacheManager creates regions on
+      demand when it is empty, which would turn a mistyped @Cacheable name into a silently working
+      second cache; EhCacheCacheManager rejected unknown names, and this keeps that.
+    -->
+    <bean id="cacheManager" class="org.springframework.cache.caffeine.CaffeineCacheManager"
+          p:cacheSpecification="maximumSize=1000,expireAfterAccess=5s">
+        <property name="cacheNames">
+            <list>
+                <value>proteinTrack</value>
+            </list>
+        </property>
     </bean>
 
     <!-- Task executor for async cache population -->

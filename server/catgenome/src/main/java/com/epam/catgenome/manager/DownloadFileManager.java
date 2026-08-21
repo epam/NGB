@@ -153,7 +153,7 @@ public class DownloadFileManager {
         File file = new File(newPath);
         Assert.isTrue(!file.exists(), MessageHelper.getMessage(MessagesConstants.INFO_FILES_STATUS_ALREADY_EXISTS,
                                                                urlString));
-        Assert.isTrue(file.createNewFile());
+        Assert.isTrue(file.createNewFile(), "Failed to create file " + newPath);
         return file;
     }
 
@@ -166,7 +166,7 @@ public class DownloadFileManager {
 
 
     private File createTmpFileFromURL(final String urlString) throws IOException {
-        Assert.notNull(urlString);
+        Assert.notNull(urlString, "A URL is required");
         return File.createTempFile(UUID.randomUUID().toString(), FilenameUtils.getBaseName(urlString),
                 fileManager.getTempDir());
     }

@@ -33,7 +33,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.epam.catgenome.manager.bam.BamTrackEmitter;
 import htsjdk.samtools.util.RuntimeIOException;

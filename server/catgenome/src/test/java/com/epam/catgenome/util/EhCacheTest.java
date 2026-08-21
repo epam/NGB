@@ -2,12 +2,9 @@ package com.epam.catgenome.util;
 
 import com.epam.catgenome.util.feature.reader.IndexCache;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.config.CacheConfiguration;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.ehcache.EhCacheCacheManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -17,6 +14,24 @@ import static org.junit.Assert.*;
 
 /**
  * Test features of EhCacheBasedIndexCache: general functionality of cache.
+ *
+ * <p>Two of the five tests here went with EhCache in Phase 3 of the Java 21 migration, because what
+ * they asserted no longer exists rather than because they became inconvenient:
+ * <ul>
+ *   <li>{@code testMaxSizeInBytes} reached through {@code EhCacheCacheManager} to the region's
+ *       {@code CacheConfiguration}, set {@code maxBytesLocalHeap} to 10 bytes and checked that the
+ *       cache emptied itself. Caffeine cannot bound a cache by the retained size of an arbitrary
+ *       object graph at all - which is exactly why the sizing had to go, see
+ *       {@link EhCacheBasedIndexCache} - so there is no byte bound left to shrink. The
+ *       entry-count bound it is replaced by is not usefully testable the same way: it is 200, and
+ *       Caffeine evicts asynchronously.</li>
+ *   <li>{@code testToString} asserted the exact text of {@code toString()}, including the EhCache
+ *       {@code CacheManager}'s own {@code toString()} and the {@code maxBytesLocalHeap} figure, after
+ *       mutating the live configuration. Both of those are gone; the string is now built from
+ *       constants and {@code size()}, and pinning a diagnostic string is not worth a test.</li>
+ * </ul>
+ * The other three are unchanged apart from {@code getSize()}, which asks the cache itself instead of
+ * going through a cache manager the index cache no longer uses.
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -30,18 +45,15 @@ public class EhCacheTest {
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
-    @Autowired
-    private EhCacheCacheManager cacheManager;
-
     private IndexCache index1;
     private IndexCache index2;
-    private static final String INDEX_CACHE_NAME = "indexCache";
 
     @Before
     public void setup() {
         assertNotNull(context);
-        assertNotNull(cacheManager);
+        assertNotNull(indexCache);
 
+        indexCache.clearCache();
         index1 = new TestIndexCache("indexName1");
         index2 = new TestIndexCache("indexName2");
         indexCache.putInCache(index1, "1");
@@ -75,45 +87,10 @@ public class EhCacheTest {
         assertEquals(0, getSize());
     }
 
-    @Test
-    public void testMaxSizeInBytes() {
-        Cache cache = cacheManager.getCacheManager().getCache(INDEX_CACHE_NAME);
-        CacheConfiguration cacheConfiguration = cache.getCacheConfiguration();
-        Long maxSizeInBytes = cacheConfiguration.getMaxBytesLocalHeap();
-
-        cacheConfiguration.setMaxBytesLocalHeap(10L);
-        assertEquals(0, getSize());
-
-        cacheConfiguration.setMaxBytesLocalHeap(maxSizeInBytes);
-        indexCache.putInCache(index1, "1");
-        assertEquals(1, getSize());
-    }
-
-    @Test
-    public void testToString() {
-        Cache cache = cacheManager.getCacheManager().getCache(INDEX_CACHE_NAME);
-        CacheConfiguration cacheConfiguration = cache.getCacheConfiguration();
-        Long maxSizeInBytes = cacheConfiguration.getMaxBytesLocalHeap();
-        String cacheName = cacheConfiguration.getName();
-        Long timeToIdleSeconds = cacheConfiguration.getTimeToIdleSeconds();
-
-        cacheConfiguration.setMaxBytesLocalHeap(1L);
-        cacheConfiguration.setName("TestCache");
-        final int testingTimeToIdleSeconds = 100;
-        cacheConfiguration.setTimeToIdleSeconds(testingTimeToIdleSeconds);
-
-        assertEquals("Cache Name: TestCache, cacheManager: " + cache.getCacheManager() +
-                " cacheSize: 0 maxBytesLocalHeap: 1 timeToIdle: 100", indexCache.toString());
-        cacheConfiguration.setMaxBytesLocalHeap(maxSizeInBytes);
-        cacheConfiguration.setName(cacheName);
-        cacheConfiguration.setTimeToIdleSeconds(timeToIdleSeconds);
-    }
-
-    // Static on purpose. As an inner class every instance carries a this$0 reference to the test,
-    // and through its @Autowired ApplicationContext to the whole Spring container - which EhCache's
-    // sizing walker then traverses on every put, since indexCache is configured with
-    // maxBytesLocalHeap. On JDK 17 that walk reaches jdk.internal.loader.BuiltinClassLoader and
-    // dies with InaccessibleObjectException; on JDK 8 it merely mis-sized every entry by megabytes.
+    // Static on purpose. As an inner class every instance carries a this$0 reference to the test, and
+    // through its @Autowired ApplicationContext to the whole Spring container. That used to matter a
+    // great deal - EhCache's sizing walker traversed it on every put and died with
+    // InaccessibleObjectException on JDK 17 - and now matters only as a matter of hygiene.
     private static class TestIndexCache implements IndexCache {
         private String name;
 
@@ -141,6 +118,6 @@ public class EhCacheTest {
     }
 
     private int getSize() {
-        return cacheManager.getCacheManager().getCache(INDEX_CACHE_NAME).getSize();
+        return indexCache.size();
     }
 }

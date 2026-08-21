@@ -12,11 +12,12 @@ import java.util.regex.Pattern;
 
 import com.epam.catgenome.util.NgbFileUtils;
 import htsjdk.tribble.readers.AsciiLineReader;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class FastaUtils {
 
-    private static final Logger LOG = Logger.getLogger(FastaUtils.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FastaUtils.class);
     protected static final Set<String> FASTA_EXTENSIONS = new HashSet<>();
     static {
         FASTA_EXTENSIONS.add(".fasta");

@@ -1,7 +1,7 @@
 import de.undercouch.gradle.tasks.download.Download
 
 plugins {
-    id 'org.springframework.boot' version '2.7.18'
+    id 'org.springframework.boot' version '3.5.16'
     // From Boot 2.x the dependency BOM is a separate plugin rather than part of the Boot one.
     id 'io.spring.dependency-management' version '1.1.7'
     id "de.undercouch.download" version "5.7.0"
@@ -43,41 +43,30 @@ apply plugin: "jacoco"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
 test {
-    // EhCache 2.10.1 sizes the `indexCache` entries (maxBytesLocalHeap="100M") by walking the
-    // object graph reflectively, which JDK 16+ refuses for java.base fields. One package per
-    // --add-opens, and the packages are dictated by what actually ends up in the cache: the
-    // htsjdk index objects reach java.io.File, ehcache's own store is a
-    // java.util.concurrent.ConcurrentHashMap, and its element metadata is held in
-    // java.util.concurrent.atomic.AtomicReference / AtomicLongFieldUpdater. A package does not
-    // imply its sub-packages, hence one each. The running app needs those four too on 17/21 - see
-    // JAVA_REQUIRED_OPTS in .devenv/ngb/entrypoint.sh. Both go away in Phase 3 with Caffeine.
-    //
-    // java.base/java.lang was added in Phase 3: the walker reaches java.lang.String.value and dies
-    // there, but only under the JaCoCo agent Gradle 8.14.5 bundles (0.8.13). With Gradle 7.6's 0.8.8
-    // agent the same code, same JDK and same flags pass - checked both ways round. Pinning JaCoCo
-    // back would be a trap rather than a fix: 0.8.8 cannot read Java 21 class files, which this
-    // phase is heading for. Why the newer agent's instrumentation puts a String in the sized graph
-    // is not pinned down; it stops mattering when EhCache goes.
-    jvmArgs = ["-XX:MaxDirectMemorySize=7937m",
-               "--add-opens=java.base/java.lang=ALL-UNNAMED",
-               "--add-opens=java.base/java.util=ALL-UNNAMED",
-               "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
-               "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
-               "--add-opens=java.base/java.io=ALL-UNNAMED"]
+    // Per D13 the 129 JUnit 4 test classes are not converted; they run on the JUnit 5 platform
+    // through the vintage engine, because Boot 3.5's spring-boot-starter-test is JUnit 5 only and
+    // Gradle's JUnit 4 provider would leave the platform's own tests unrun.
+    useJUnitPlatform()
+
+    // The four --add-opens that used to be here are gone with EhCache 2 (D11): they existed only so
+    // that its maxBytesLocalHeap sizing could walk the cached object graph with
+    // Field.setAccessible, which JDK 16+ refuses for java.base. Caffeine bounds by entry count and
+    // reflects on nothing. The same four went out of JAVA_REQUIRED_OPTS in
+    // .devenv/ngb/entrypoint.sh at the same time.
+    jvmArgs = ["-XX:MaxDirectMemorySize=7937m"]
 }
 
 // >>>>> defines external project properties, e.g. external dependencies versions
 // Spring, Spring Security, Jackson, slf4j, JUnit, Mockito and Jetty are no longer listed here:
-// the Boot 2.7.18 BOM manages all of them. Only libraries Boot does not know about keep a pin.
+// the Boot 3.5.16 BOM manages all of them. Only libraries Boot does not know about keep a pin.
 ext {
     versionJayWayJsonPath = "2.7.0"
     versionUnitils = "3.4.2"
-    versionJavaXServlet = "3.1.0"
     versionLucene = "6.6.0"
     // 1.16.16 cannot run on any JDK past 8 (it reaches into com.sun.tools.javac internals that
     // JEP 396 closed). Lombok is a compile-time-only dependency, so the version is ours to pick
@@ -91,17 +80,12 @@ repositories {
     maven {
         url "https://jitpack.io"
     }
-    // OpenSAML 2 is not on Maven Central beyond 2.6.4, and spring-security-saml2-core 1.0.10
-    // requires org.opensaml:opensaml:2.6.6 exactly. Shibboleth is its canonical host.
-    // net.shibboleth is needed too: opensaml-2.6.6.pom's parent is net.shibboleth:parent-v2:4,
-    // which is not on Central either. Goes away with the OpenSAML 2 extension (see Phase 3/4).
-    maven {
-        url "https://build.shibboleth.net/maven/releases/"
-        content {
-            includeGroup "org.opensaml"
-            includeGroup "net.shibboleth"
-        }
-    }
+    // The build.shibboleth.net repository that used to be declared here existed only for OpenSAML 2
+    // (org.opensaml:opensaml:2.6.6 and its net.shibboleth parent pom), which is not on Central.
+    // spring-security-saml2-core is out of the build from Phase 3, so nothing resolves from there
+    // any more. Phase 4's replacement, spring-security-saml2-service-provider, brings OpenSAML 4/5
+    // from Central and needs no extra repository.
+    //
     // org.sbgn:libsbgn:0.2 exists on no other repository — not Central, not Sonatype, not EBI —
     // and paxtools' sbgn-converter needs it transitively as well as directly. This repository
     // used to be declared as plain http, which Gradle 7 rejects; it serves https fine.
@@ -116,6 +100,10 @@ repositories {
 configurations {
     all*.exclude module: 'spring-boot-starter-logging'
     all*.exclude group: 'ch.qos.logback'
+    // Kept as a guard, not because anything declares it: NGB now takes logging from
+    // spring-boot-starter-log4j2, whose slf4j binding is log4j-slf4j2-impl (slf4j 2.x). If some
+    // transitive dependency dragged in the slf4j-1.x binding as well, both would register and slf4j
+    // would pick one at random.
     all*.exclude module: 'log4j-slf4j-impl'
 }
 
@@ -133,7 +121,11 @@ dependencies {
     implementation group: "org.springframework.security", name: "spring-security-config"
     implementation group: 'org.springframework.security', name: 'spring-security-acl'
 
-    implementation group: "org.springframework.security.extensions", name: "spring-security-saml2-core", version: "1.0.10.RELEASE"
+    // spring-security-saml2-core 1.0.10.RELEASE (the OpenSAML 2 extension) is out of the build from
+    // Phase 3: it is built on Spring Security 5's WebSecurityConfigurerAdapter/SAMLEntryPoint filter
+    // model and on OpenSAML 2, neither of which exists in Spring Security 6, and OpenSAML 2 itself
+    // has been end-of-life since 2016. Phase 4 brings SAML back on
+    // spring-security-saml2-service-provider. Until then only AUTH_MODE=none works.
 
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -148,13 +140,25 @@ dependencies {
     implementation group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-xml"
     implementation group: "com.squareup.retrofit2", name: "converter-jackson", version: "2.7.2"
 
-    // JAXB left the JDK in Java 11, and ~282 imports here depend on it. Phase 2 deliberately
-    // stays on the `javax.xml.bind` package names, and jakarta.xml.bind-api 2.3.x still *is*
-    // that package — the rename to `jakarta.*` only happened in 3.0 — so the Boot-managed 2.3
-    // artifacts drop in without touching a single source file. Phase 3 renames the imports and
-    // moves to the 4.x artifacts.
+    // JAXB left the JDK in Java 11, and ~288 imports here depend on it. Phase 2 stayed on the
+    // `javax.xml.bind` package names because jakarta.xml.bind-api 2.3.x still *was* that package;
+    // Boot 3.5 manages 4.0.x, where it is `jakarta.xml.bind`, so Phase 3 renamed the imports.
     implementation group: "jakarta.xml.bind", name: "jakarta.xml.bind-api"
     runtimeOnly group: "org.glassfish.jaxb", name: "jaxb-runtime"
+
+    // ...and the javax JAXB stack stays as well, for three dependencies whose *own* class files are
+    // annotated with javax.xml.bind: org.sbgn:libsbgn:0.2 (2011; its POM declares no dependencies at
+    // all - it expected JAXB to be part of the JDK, as it was until Java 11), sbgn-converter, which
+    // marshals through libsbgn, and biojava-structure. A jakarta JAXBContext cannot bind them: it
+    // reads jakarta.xml.bind annotations only, so it sees those classes as unannotated POJOs. The two
+    // stacks share no package and no service file, so they coexist; ours is jakarta, theirs is javax
+    // (manager/pathway/PathwayManager.readFromFile, which builds the org.sbgn.bindings context by
+    // hand, therefore keeps its javax imports). Both go when those libraries are updated or replaced.
+    // The runtime is com.sun.xml.bind:jaxb-impl rather than org.glassfish.jaxb:jaxb-runtime:2.3.x
+    // because the latter is the same group:artifact as the jakarta 4.x runtime above, and Gradle
+    // resolves a group:artifact to one version.
+    implementation group: "javax.xml.bind", name: "jaxb-api", version: "2.3.1"
+    runtimeOnly group: "com.sun.xml.bind", name: "jaxb-impl", version: "2.3.9"
 
     // Jettison. Used directly by HttpDataManager, NCBIDataManager, PdbEntriesManager and
     // OpenTargetsManager; until Phase 1 it arrived transitively through hadoop-client, so the
@@ -164,41 +168,80 @@ dependencies {
 
     // Apache Commons
     implementation group: "commons-io", name: "commons-io", version: "2.4"
-    implementation group: "org.apache.commons", name: "commons-lang3", version: "3.0"
+    // commons-lang3 carried an explicit `version: "3.0"` (2011) until Phase 3; the BOM manages it, so
+    // the pin is gone. It also had to go: 12 files imported commons-lang **2** (`org.apache.commons.lang`),
+    // which was never declared here at all - it arrived transitively through the mangofactory Swagger
+    // stack, and disappeared with it. Those imports moved to the lang3 equivalents (StringUtils,
+    // ArrayUtils, time.DateUtils - same methods, same semantics); `lang.math.RandomUtils`, whose lang3
+    // successor has a different signature set and is deprecated in current releases, became
+    // ThreadLocalRandom in the two tests that used it, and `org.bouncycastle.util.Strings.toLowerCase`
+    // - another accidental transitive, from OpenSAML - became Locale.ROOT lowercasing in GenePredUtils.
+    implementation group: "org.apache.commons", name: "commons-lang3"
     implementation group: "org.apache.commons", name: "commons-collections4", version: "4.1"
     implementation group: "commons-validator", name: "commons-validator", version: "1.5.0"
     implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
-    // Logging
-    implementation group: "org.apache.logging.log4j", name: "log4j", version: "2.17.1"
+    // Logging.
+    // Until Phase 3 this was `org.apache.logging.log4j:log4j:2.17.1` (the aggregator POM) plus
+    // slf4j-log4j12, i.e. slf4j bound to log4j *1.2.17*, with the log4j 2 artifacts sitting on the
+    // classpath unused. slf4j-log4j12 does not exist for slf4j 2.x, which Boot 3 requires, so the
+    // standard starter takes over: log4j-api + log4j-core + log4j-slf4j2-impl, versions from the BOM.
+    // Consequence: the five log4j-1-format `log4j.xml` files were rewritten as log4j2.xml.
+    implementation("org.springframework.boot:spring-boot-starter-log4j2")
     implementation group: "org.slf4j", name: "slf4j-api"
-    implementation group: "org.slf4j", name: "slf4j-log4j12"
     // Samtools
     implementation group: "com.github.samtools", name: "htsjdk", version: "2.2.4"
     implementation "org.xerial.snappy:snappy-java:1.0.3-rc3"
-    // Swagger
-    implementation group: "org.webjars", name: "swagger-ui", version: "2.0.24"
-    implementation group: "com.mangofactory", name: "swagger-springmvc", version: "1.0.2"
+    // API docs. springdoc replaces com.mangofactory:swagger-springmvc:1.0.2 (Swagger 1.x, dead since
+    // 2015, and broken outright by Boot 2.6's PathPatternParser - see the Phase 2 findings) and the
+    // org.webjars:swagger-ui:2.0.24 webjar, whose UI was also committed under src/main/resources and
+    // src/main/webapp. springdoc ships its own UI in a jar; see config/OpenApiConfiguration.java.
+    implementation group: "org.springdoc", name: "springdoc-openapi-starter-webmvc-ui", version: "2.8.17"
+    // The 41 files carrying com.wordnik.swagger.annotations.* still compile against the old
+    // annotation jar, on the compile classpath only. Annotation types that are missing at runtime are
+    // silently skipped by Class.getDeclaredAnnotations(), so nothing reads them and nothing breaks;
+    // keeping them compiling means Phase 8 can *translate* that documentation text into
+    // io.swagger.v3.oas.annotations rather than rewrite it from nothing. Deleting the jar and the 41
+    // files' worth of annotations is a Phase 8 step, not a Phase 3 one.
+    compileOnly group: "com.wordnik", name: "swagger-annotations", version: "1.3.11"
     // H2 Database Engine & Connection pool.
-    // The h2, postgresql and flyway-core versions below are LOAD-BEARING pins: Boot 2.7.18's BOM
-    // would move them to 2.1.214 / 42.3.8 / 8.5.13, and the persistence-layer upgrade (with its
+    // The h2, postgresql and flyway-core versions below are LOAD-BEARING pins: Boot 3.5.16's BOM
+    // would move them to 2.3.x / 42.7.x / 11.x, and the persistence-layer upgrade (with its
     // 116 SQL scripts and applied-migration history) is Phase 5, not this phase.
-    implementation group: "com.mchange", name: "c3p0", version: "0.9.5.1"
+    //
+    // c3p0 0.9.5.1 is gone (D9): it was last released in 2015, and HikariCP is what Boot manages,
+    // tests and supports. The version comes from the BOM. See
+    // conf/catgenome/applicationContext-database.xml for the property-name mapping.
+    implementation group: "com.zaxxer", name: "HikariCP"
     implementation group: "com.h2database", name: "h2", version: "1.3.176"
-    implementation group: "org.aspectj", name: "aspectjweaver", version: "1.8.8"
+    // aspectjweaver carries no version any more: 1.8.8 (2015) predates the class-file format of
+    // every JDK past 8 and cannot weave Java 21 bytecode. The BOM's 1.9.x can.
+    implementation group: "org.aspectj", name: "aspectjweaver"
     implementation group: 'org.postgresql', name: 'postgresql', version: "9.4-1206-jdbc4"
     // Flyway database migration to update embedded database when application starts
     implementation group: "org.flywaydb", name: "flyway-core", version: "3.2.1"
     //Amazon s3
-    implementation group: "com.amazonaws", name: "aws-java-sdk-s3", version: "1.11.704"
-    implementation group: "com.amazonaws", name: "aws-java-sdk-sts", version: "1.11.704"
+    // 1.11.704 (2020) cannot start under the Jackson that Boot 3.5 manages: EC2MetadataUtils' static
+    // initialiser reads PropertyNamingStrategy.PASCAL_CASE_TO_CAMEL_CASE, a constant Jackson removed in
+    // 2.12, and every NGB startup builds this client (Application.s3Client) - so the whole context
+    // failed with NoSuchFieldError before a request was served. 1.12.797, the last v1 release, asks for
+    // PropertyNamingStrategies.UPPER_CAMEL_CASE and falls back to the legacy constant on LinkageError,
+    // so it works with either. Still SDK v1: D-table says v2, and that is a 6-file API rewrite that
+    // belongs to the dependency-refresh phase, not to this one.
+    implementation group: "com.amazonaws", name: "aws-java-sdk-s3", version: "1.12.797"
+    implementation group: "com.amazonaws", name: "aws-java-sdk-sts", version: "1.12.797"
 
     // Azure Storage Blob
     implementation group: "com.azure", name: "azure-storage-blob", version: "12.14.0"
     implementation group: "com.azure", name: "azure-identity", version: "1.4.4"
     implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.5.3'
 
-    //Ehcache
-    implementation group: "net.sf.ehcache", name: "ehcache", version: "2.10.1"
+    // Caching. EhCache 2.10.1 is gone (D11): Spring 6 removed org.springframework.cache.ehcache
+    // outright, and EhCache 2's heap-size accounting needs --add-opens on java.base to reflect over
+    // the cached object graph. Caffeine is what Spring Boot 3 supports out of the box; the version
+    // comes from the BOM. Three places were on EhCache - conf/catgenome/applicationContext-cache.xml,
+    // app/AclSecurityConfiguration and util/feature/reader/EhCacheBasedIndexCache - and
+    // conf/catgenome/ehcache.xml is deleted with it.
+    implementation group: "com.github.ben-manes.caffeine", name: "caffeine"
     // Lucene
     implementation group: "org.apache.lucene", name:"lucene-core", version: versionLucene
     implementation group: "org.apache.lucene", name:"lucene-queryparser", version: versionLucene
@@ -207,8 +250,9 @@ dependencies {
     implementation group: "org.apache.lucene", name:"lucene-facet", version: versionLucene
     implementation group: "org.apache.lucene", name:"lucene-backward-codecs", version: versionLucene
 
-    //security
-    implementation 'com.auth0:java-jwt:3.1.0'
+    // com.auth0:java-jwt:3.1.0 (2016) went out with the JWT stack in Phase 3. It was used by
+    // security/jwt/{JwtTokenGenerator,JwtTokenVerifier} only; Phase 4 restores both against a
+    // current release. AuthManager.issueTokenForCurrentUser throws in the meantime.
 
     // lombok
     compileOnly "org.projectlombok:lombok:$versionLombok"
@@ -255,17 +299,32 @@ dependencies {
     // >>>>> dependencies used to compile tests; in fact no need to include them into artifact
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     // spring-boot-starter-test dropped JUnit 4 in Boot 2.2 in favour of JUnit 5; all 129 test
-    // classes here are JUnit 4, and Gradle's default test framework is JUnit 4, so it comes back
-    // as an explicit dependency rather than through the starter.
+    // classes here are JUnit 4, so it comes back as an explicit dependency rather than through the
+    // starter, and the vintage engine runs it on the JUnit 5 platform (see `test` above, and D13).
     testImplementation group: "junit", name: "junit", version: "4.13.2"
+    testRuntimeOnly group: "org.junit.vintage", name: "junit-vintage-engine"
+    // Declared rather than left to Gradle to inject: Gradle 8 still adds the launcher implicitly but
+    // warns that it will stop doing so, and the version is BOM-managed either way.
+    testRuntimeOnly group: "org.junit.platform", name: "junit-platform-launcher"
     testImplementation group: "org.unitils", name: "unitils-core", version: project.ext.versionUnitils
-    testImplementation group: "javax.servlet", name: "javax.servlet-api", version: project.ext.versionJavaXServlet
+    // Was javax.servlet:javax.servlet-api:3.1.0. Same role - the tests that fake an HTTP request
+    // (MultipartFileSender, UrlTestingUtils, BamManagerTest) compile against the servlet API
+    // directly - under the name and version Boot 3.5 manages.
+    testImplementation group: "jakarta.servlet", name: "jakarta.servlet-api"
     testImplementation group: "com.jayway.jsonpath", name: "json-path", version: project.ext.versionJayWayJsonPath
     testImplementation group: "com.jayway.jsonpath", name: "json-path-assert", version: project.ext.versionJayWayJsonPath
+    // Jetty 12 (what the BOM manages) split the servlet API off into org.eclipse.jetty.ee10 and
+    // deleted the AbstractHandler that these tests' file servers were written against. jetty-server
+    // alone no longer knows what a servlet is, so the EE10 servlet module comes too and the two
+    // handlers are now plain HttpServlets - see controller/util/UrlTestingUtils.
     testImplementation group: 'org.eclipse.jetty', name: 'jetty-server'
+    testImplementation group: 'org.eclipse.jetty.ee10', name: 'jetty-ee10-servlet'
     testImplementation group: "org.springframework.security", name: "spring-security-test"
 
-    testRuntimeOnly group: "javax.transaction", name: "jta", version: "1.1"
+    // javax.transaction:jta:1.1 went out with EhCache 2, which was the only thing that wanted it
+    // (net.sf.ehcache.transaction refers to javax.transaction.* and EhCache's CacheManager touches
+    // those classes while parsing a configuration). Nothing else in the tree imports
+    // javax.transaction, and Spring 6 is on jakarta.transaction.
 }
 
 // io.spring.dependency-management applies the Boot BOM to *every* configuration, including the one
@@ -340,7 +399,11 @@ jar {
 //Distributions
 //distribution properties
 def appName = 'ngb-server'
-def springBootlauncherClass = 'org.springframework.boot.loader.JarLauncher'
+// Boot 3.2 relocated the loader classes into org.springframework.boot.loader.launch; the old name is
+// not in the jar any more, so the generated ngb-server start scripts would fail with
+// ClassNotFoundException. Only the zip/tar/bundle* distributions use this - none of them is wired
+// into `assemble`, so nothing in .devenv builds them, but the name still has to be right.
+def springBootlauncherClass = 'org.springframework.boot.loader.launch.JarLauncher'
 def springBootJarName = 'catgenome.jar'
 def ngbJvmOptions = ["-Xms512m", "-Xmx2g"]
 def jreURL = "http://download.oracle.com/otn-pub/java/jdk/8-b132/"

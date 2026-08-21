@@ -33,7 +33,7 @@ import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.util.Utils;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Comparator;
 import java.util.List;

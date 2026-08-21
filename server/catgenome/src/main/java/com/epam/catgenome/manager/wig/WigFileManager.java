@@ -80,11 +80,11 @@ public class WigFileManager implements SecuredEntityManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public WigFile create(WigFile wigFile) {
-        Assert.notNull(wigFile.getName());
-        Assert.notNull(wigFile.getReferenceId());
-        Assert.notNull(wigFile.getPath());
-        Assert.notNull(wigFile.getType());
-        Assert.notNull(wigFile.getFormat());
+        Assert.notNull(wigFile.getName(), "A WIG file name is required");
+        Assert.notNull(wigFile.getReferenceId(), "A WIG file reference ID is required");
+        Assert.notNull(wigFile.getPath(), "A WIG file path is required");
+        Assert.notNull(wigFile.getType(), "A WIG file resource type is required");
+        Assert.notNull(wigFile.getFormat(), "A WIG file format is required");
         wigFileDao.createWigFile(wigFile);
         return wigFile;
     }

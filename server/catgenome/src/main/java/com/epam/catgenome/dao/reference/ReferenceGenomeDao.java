@@ -35,7 +35,6 @@ import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -303,7 +302,6 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         return getNamedParameterJdbcTemplate().batchUpdate(createChromosomeQuery, batchArgs);
     }
 
-    @Required
     public void setLoadChromosomeByIdQuery(final String loadChromosomeByIdQuery) {
         this.loadChromosomeByIdQuery = loadChromosomeByIdQuery;
     }
@@ -397,122 +395,98 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         );
     }
 
-    @Required
     public void setReferenceGenomeSequenceName(final String referenceGenomeSequenceName) {
         this.referenceGenomeSequenceName = referenceGenomeSequenceName;
     }
 
-    @Required
     public void setChromosomeSequenceName(final String chromosomeSequenceName) {
         this.chromosomeSequenceName = chromosomeSequenceName;
     }
 
-    @Required
     public void setCreateChromosomeQuery(final String createChromosomeQuery) {
         this.createChromosomeQuery = createChromosomeQuery;
     }
 
-    @Required
     public void setLoadAllChromosomesByReferenceIdQuery(final String loadAllChromosomesByReferenceIdQuery) {
         this.loadAllChromosomesByReferenceIdQuery = loadAllChromosomesByReferenceIdQuery;
     }
 
-    @Required
     public void setCreateReferenceGenomeQuery(String createReferenceGenomeQuery) {
         this.createReferenceGenomeQuery = createReferenceGenomeQuery;
     }
 
-    @Required
     public void setLoadReferenceGenomeByIdQuery(String loadReferenceGenomeByIdQuery) {
         this.loadReferenceGenomeByIdQuery = loadReferenceGenomeByIdQuery;
     }
 
-    @Required
     public void setLoadReferenceGenomeByBioIdQuery(String loadReferenceGenomeByBioIdQuery) {
         this.loadReferenceGenomeByBioIdQuery = loadReferenceGenomeByBioIdQuery;
     }
 
-    @Required
     public void setLoadAllReferenceGenomesQuery(String loadAllReferenceGenomesQuery) {
         this.loadAllReferenceGenomesQuery = loadAllReferenceGenomesQuery;
     }
 
-    @Required
     public void setDeleteReferenceQuery(final String deleteReferenceQuery) {
         this.deleteReferenceQuery = deleteReferenceQuery;
     }
 
-    @Required
     public void setDeleteReferenceChromosomeQuery(final String deleteReferenceChromosomeQuery) {
         this.deleteReferenceChromosomeQuery = deleteReferenceChromosomeQuery;
     }
 
-    @Required
     public void setLoadBiologicalItemsQuery(String loadBiologicalItemsQuery) {
         this.loadBiologicalItemsQuery = loadBiologicalItemsQuery;
     }
 
-    @Required
     public String getLoadBiologicalItemsQuery() {
         return loadBiologicalItemsQuery;
     }
 
-    @Required
     public void setUpdateReferenceGeneFileIdQuery(String updateReferenceGeneFileIdQuery) {
         this.updateReferenceGeneFileIdQuery = updateReferenceGeneFileIdQuery;
     }
 
-    @Required
     public void setLoadAnnotationDataIdsByReferenceIdQuery(String loadAnnotationDataIdsByReferenceIdQuery) {
         this.loadAnnotationDataIdsByReferenceIdQuery = loadAnnotationDataIdsByReferenceIdQuery;
     }
 
-    @Required
     public void setLoadAllAnnotationDataIdsQuery(String loadAllAnnotationDataIdsQuery) {
         this.loadAllAnnotationDataIdsQuery = loadAllAnnotationDataIdsQuery;
     }
 
-    @Required
     public void setAddAnnotationDataItemByReferenceIdQuery(String addAnnotationDataItemByReferenceIdQuery) {
         this.addAnnotationDataItemByReferenceIdQuery = addAnnotationDataItemByReferenceIdQuery;
     }
 
-    @Required
     public String getDeleteAnnotationDataItemByReferenceIdQuery() {
         return deleteAnnotationDataItemByReferenceIdQuery;
     }
 
-    @Required
     public void setDeleteAnnotationDataItemByReferenceIdQuery(String deleteAnnotationDataItemByReferenceIdQuery) {
         this.deleteAnnotationDataItemByReferenceIdQuery = deleteAnnotationDataItemByReferenceIdQuery;
     }
 
-    @Required
     public String getLoadGenomeIdsByAnnotationDataItemIdQuery() {
         return loadGenomeIdsByAnnotationDataItemIdQuery;
     }
 
-    @Required
     public void setLoadGenomeIdsByAnnotationDataItemIdQuery(String loadGenomeIdsByAnnotationDataItemIdQuery) {
         this.loadGenomeIdsByAnnotationDataItemIdQuery = loadGenomeIdsByAnnotationDataItemIdQuery;
     }
 
-    @Required
     public void setLoadReferenceGenomeByNameQuery(String loadReferenceGenomeByNameQuery) {
         this.loadReferenceGenomeByNameQuery = loadReferenceGenomeByNameQuery;
     }
 
-    @Required
     public void setUpdateSpeciesQuery(String updateSpeciesQuery) {
         this.updateSpeciesQuery = updateSpeciesQuery;
     }
 
-    @Required
     public void setLoadReferenceGenomesByTaxIdQuery(String loadReferenceGenomesByTaxIdQuery) {
         this.loadReferenceGenomesByTaxIdQuery = loadReferenceGenomesByTaxIdQuery;
     }
 
-    @Required
     public void setUpdateProteinSequenceFileQuery(String updateProteinSequenceFileQuery) {
         this.updateProteinSequenceFileQuery = updateProteinSequenceFileQuery;
     }

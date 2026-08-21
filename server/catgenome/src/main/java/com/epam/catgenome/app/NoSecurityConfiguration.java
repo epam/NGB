@@ -26,29 +26,54 @@ package com.epam.catgenome.app;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * Class represents Configuration to disables security according to property file
  */
 @Configuration
 @ConditionalOnProperty(prefix = "jwt.security.", name = "enable", havingValue = "false")
-@Order(3)
-public class NoSecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class NoSecurityConfiguration {
+
+    /**
+     * The order the class used to carry as {@code @Order(3)}, behind the JWT (2) and SAML (1)
+     * chains. In Spring Security 6 the order belongs to the {@link SecurityFilterChain} bean rather
+     * than to the configuration class, and while SAML and JWT are out of the build (Phase 3) this
+     * is the only chain there is - but the number is kept so Phase 4 can slot the other two in
+     * front of it without having to rediscover the intended precedence.
+     */
+    private static final int CHAIN_ORDER = 3;
 
     @Value("${security.frame-options.disable:false}")
     private boolean frameOptionsDisable;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers("/*").permitAll().and().csrf().disable();
+    /**
+     * {@code WebSecurityConfigurerAdapter} was removed in Spring Security 6, so the chain is a bean.
+     *
+     * <p>The matcher widens from {@code antMatchers("/*")} to {@code anyRequest()} deliberately, and
+     * it is not a behaviour change: {@code /*} matches a single path segment, so under
+     * {@code authorizeRequests()} nothing below the first level was ever matched by a rule - and an
+     * unmatched request was <em>permitted</em>, because the old {@code FilterSecurityInterceptor}
+     * only rejected requests that had a matching-but-failing rule. Spring Security 6 inverted that:
+     * {@code authorizeHttpRequests} denies anything no rule matches. {@code anyRequest().permitAll()}
+     * is what the old configuration actually did.
+     */
+    @Bean
+    @Order(CHAIN_ORDER)
+    public SecurityFilterChain noSecurityFilterChain(final HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
+                .csrf(csrf -> csrf.disable());
 
         if (frameOptionsDisable) {
-            http.headers().frameOptions().disable();
+            http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
         }
+
+        return http.build();
     }
 
 }

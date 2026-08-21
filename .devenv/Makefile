@@ -14,9 +14,11 @@ SHELL := /bin/bash
 # Prefer the compose plugin, fall back to the standalone binary.
 COMPOSE ?= $(shell docker compose version >/dev/null 2>&1 && echo "docker compose" || echo "docker-compose")
 
-# Gradle 7.6 and Checkstyle 10 both need a JDK newer than the image default of 8, and the
-# build declares a Java 17 toolchain. `with-java17` is the toolbox's JDK switcher.
-GRADLE_H2  := with-java17 ./gradlew --no-daemon
+# Gradle 8.14 and Checkstyle 11 both need a JDK newer than the image default of 8, and since
+# migration Phase 3 the server declares a Java 21 toolchain. `with-java21` is the toolbox's JDK
+# switcher. `server/ngb-cli` still declares a 17 toolchain; Gradle provisions that itself from
+# the JDKs in the image, so one launcher JDK covers both modules.
+GRADLE_H2  := with-java21 ./gradlew --no-daemon
 EXEC_BUILD := $(COMPOSE) exec -T builder
 SERVER     := -p server/catgenome
 
@@ -124,9 +126,10 @@ cli-test: builder ## CLI/server integration tests (BROKEN: test-data host is gon
 	# e2e/integration_tests.sh wgets its fixtures from http://ngb.opensource.epam.com/, which no
 	# longer resolves (NXDOMAIN as of migration Phase 2 - the parent domain does resolve, the ngb
 	# host does not), so this target cannot pass until the data is hosted somewhere again. See
-	# TEST-BASELINE.md. with-java17 is still correct and needed: from Phase 2 both the server jar
-	# and the CLI are built by a JDK 17 toolchain, and the script runs `java -jar` directly.
-	$(EXEC_BUILD) with-java17 bash e2e/integration_tests.sh
+	# TEST-BASELINE.md. with-java21 is still correct and needed: from Phase 3 the server jar is
+	# built by a JDK 21 toolchain and the script runs `java -jar` directly. (The CLI it drives is
+	# still a 17 toolchain, but 17 bytecode runs on 21.)
+	$(EXEC_BUILD) with-java21 bash e2e/integration_tests.sh
 
 # --------------------------------------------------------------------- run --
 

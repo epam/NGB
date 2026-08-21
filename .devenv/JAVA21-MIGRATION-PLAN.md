@@ -1556,6 +1556,171 @@ is green. Still outstanding for whenever Gradle 9 arrives, and **not** touched h
 `export-templates/target-identification/build.gradle:15` (→ `ExecOperations.exec(Action)`), plus a
 long tail of Groovy space-assignment nags (`group "com.epam"`, `url "…"`) that Gradle 10 removes.
 
+**Sub-commit (b): Boot 3.5.16, Spring 6, jakarta, Jetty 12, log4j 2, security-as-anonymous.** Tasks
+3–11 of the phase. What follows is what the plan did not predict; the mechanical parts (BOM version,
+`javax.servlet`/`javax.xml.bind` renames, `spring-boot-starter-*` swaps, springdoc, HikariCP, Caffeine,
+JUnit-vintage on the JUnit 5 platform) went as written and are visible in the diff.
+
+*Divergence, task 3: `javax.annotation` had to be renamed too, contrary to the rename table above.*
+The table put `javax.annotation` (9 files) in the "left alone — still JDK packages" row. It is not a
+JDK package: `javax.annotation.PostConstruct`/`PreDestroy` were part of Java EE, shipped in the JDK
+only between 6 and 10, and left with the rest of `java.xml.ws.annotation` in Java 11. Spring 6 honours
+**only** `jakarta.annotation.PostConstruct` — `CommonAnnotationBeanPostProcessor` no longer looks for
+the javax names at all. Left alone, this compiles (the API jar is on the classpath transitively) and
+then silently never runs the eight `@PostConstruct` initialisers, which is a far worse failure than a
+compile error: `FileManager`, `BedManager`, `PathwayManager`, `BlastRequestManager`,
+`CloudPipelineManager`, `NCBIDataManager`, `TaskExecutorService`, `AzureBlobClient`, plus
+`NGBRegistrationUtils` in the tests. All nine renamed to `jakarta.annotation`, whose API jar Boot
+manages. Nothing else in that row moved: `javax.xml.xpath/parsers/datatype/stream/namespace`,
+`javax.net.ssl`, `javax.sql` and `javax.naming` are genuinely still in the JDK and are untouched.
+
+*Divergence, task 3: one file stays on `javax.xml.bind` on purpose.* `manager/pathway/PathwayManager`
+builds a `JAXBContext` over `org.sbgn.bindings` by hand, and the classes in that package — from
+`org.sbgn:libsbgn:0.2` — are annotated with **javax**.xml.bind. A jakarta `JAXBContext` reads jakarta
+annotations only, so it would bind them as unannotated POJOs; the compiler said as much, 17 ×
+`unknown enum constant XmlAccessType.FIELD / class file for javax.xml.bind.annotation.XmlAccessType
+not found`. Three dependencies are in this position (found by scanning their class files in the
+Gradle cache for `javax/xml/bind`): `org.sbgn:libsbgn:0.2` — a 2011 jar whose POM declares no
+dependencies at all, because JAXB was still in the JDK then — `org.biopax.paxtools:sbgn-converter:5.0.0`,
+which marshals SBGN back out through libsbgn (`L3ToSBGNPDConverter.writeSBGN`, the `POST
+/pathway/biopax` endpoint), and `org.biojava:biojava-structure:4.2.0`. None has a jakarta release, and
+replacing them is a dependency-refresh job, not a Phase 3 one. So both JAXB stacks are on the
+classpath: jakarta 4.0 (Boot-managed) for our own 64 binding classes, and `javax.xml.bind:jaxb-api:2.3.1`
++ `com.sun.xml.bind:jaxb-impl:2.3.9` for theirs. They share no package and no service file. The
+runtime is `com.sun.xml.bind:jaxb-impl` rather than `org.glassfish.jaxb:jaxb-runtime:2.3.x` because
+the latter is the same `group:artifact` as the jakarta 4.x runtime and Gradle would resolve the pair
+to one version. `PathwayManagerTest` covers the read path with a real `.sbgn` file; the `.owl`
+(BioPAX) path has no test.
+
+*Spring 6 removed `@Required` — 184 annotations across 20 files, and a startup check with them.*
+`org.springframework.beans.factory.annotation.Required` and its `RequiredAnnotationBeanPostProcessor`
+were deprecated in 5.1 and deleted in 6.0. Every XML-configured DAO used it on its setters (19 DAOs in
+main plus `util/AclTestDao` in the tests) to assert at context-refresh time that each of its SQL query
+properties had been set from `conf/catgenome/dao/*.xml`. There is no Spring 6 equivalent — the
+official answer is constructor injection, which for 19 setter-injected beans wired across 47 XML files
+is its own migration. The annotations and imports are gone and the properties are now plain optional
+setters. **Behavioural loss, recorded deliberately:** a query missing or misspelled in a DAO's XML
+used to fail the context on startup with the offending property named; it now surfaces as an NPE the
+first time that query is used. Nothing in the test suite covers it either way.
+
+*Spring 6 also removed the no-message `Assert` overloads — 42 call sites.*
+`Assert.isTrue(boolean)` and `Assert.notNull(Object)` were deprecated in 4.3.7 and deleted in 6.0
+(they still existed in Spring 5.3, which is why Phase 2 compiled). 36 sites in main and 6 in tests
+needed a message written for them; each got one describing the condition, and the several that carry a
+side effect inside the assertion (`Assert.isTrue(file.createNewFile(), …)` in `FileManager`,
+`DownloadFileManager`, `FeatureSorterFactory`) keep it, since the file creation is the point.
+`BedGraphCodec`'s `tokens.length == 4` got a `BED_GRAPH_COLUMNS` constant on the way past, because
+PMD's `AvoidLiteralsInIfCondition` would otherwise have flagged the new message string's `+ 4`.
+
+*Two dependencies turned out to be accidental transitives of things this phase deleted.*
+`org.apache.commons:commons-lang` **2** was never declared in `build.gradle` at all, yet 12 files
+imported it: it arrived through the mangofactory Swagger stack, and vanished with it. Those imports
+moved to their lang3 equivalents (`StringUtils`, `ArrayUtils`, `time.DateUtils` — same methods, same
+semantics); `lang.math.RandomUtils` became `ThreadLocalRandom` in the two tests that used it, because
+lang3's `RandomUtils` has a different signature set and is deprecated in current releases. Likewise
+`org.bouncycastle.util.Strings.toLowerCase` in `GenePredUtils` came in with OpenSAML and left with it,
+replaced by `Locale.ROOT` lowercasing — which is what the Bouncy Castle helper did. The explicit
+`commons-lang3 3.0` pin (2011) is gone at the same time; the BOM manages that version.
+
+*Other Boot-3 / Spring-6 relocations hit on the way, each documented at its site:* Jetty 12 deleted
+`AbstractHandler` and split the servlet API out of `jetty-server` into `org.eclipse.jetty.ee10`, so
+the tests' local file server is now an `HttpServlet` in a `ServletContextHandler`
+(`controller/util/UrlTestingUtils`); Boot 3.2 moved `JarLauncher` to
+`org.springframework.boot.loader.launch` (`springBootlauncherClass`, three bundle tasks);
+`MockMvcRequestBuilders.fileUpload` is gone in favour of the identical `multipart`
+(`CytobandControllerTest`); slf4j 2 has no `slf4j-log4j12`, which is what forced
+`spring-boot-starter-log4j2` and the rewrite of the five log4j-1-format `log4j.xml` files as
+`log4j2.xml` (and `-Dlog4j.configuration` → Boot's `logging.config` in `.devenv`); Boot's `@MockBean`
+is deprecated for removal in 3.4, so `ExternalDBControllerTest` uses Spring's own `@MockitoBean`.
+
+*A pre-existing bug in `AclSecurityConfiguration.roleHierarchy()`, left alone.* The method calls
+`RoleHierarchyImpl.setHierarchy` sixteen times (one literal, one `forEach` over seven manager roles,
+one joined `==` string, another `forEach` over the same seven), and every call **replaces** the whole
+hierarchy rather than adding to it, so only the last one — `ROLE_*_MANAGER > ROLE_USER`, seven times
+over, the last of which wins — has ever taken effect. It behaves
+the same way on Spring Security 5 and 6, so it is not a migration regression and fixing it here would
+change authorisation behaviour inside a phase whose security story is already "anonymous only". Noted
+for Phase 4, which rewrites this file's neighbourhood anyway. (`RoleHierarchyImpl.setHierarchy` is
+itself deprecated in Security 6.3 in favour of `RoleHierarchyImpl.withRolesFromHierarchy`, which is
+the natural place to fix it.)
+
+*A note for Phase 4.* The deleted SAML and JWT configurations' lists of unsecured resources referred
+to Swagger 1's `/api-docs`; when they come back from git they must point at springdoc's
+`/v3/api-docs/**` and `/swagger-ui/**` instead, or the API docs will be behind authentication.
+
+*Unrelated breakage found and not fixed:* `bundleWindows`/`bundleLinux` in
+`server/catgenome/build.gradle` bundle a **JRE 8** fetched from
+`http://download.oracle.com/otn-pub/java/jdk/8-b132/`, an Oracle OTN path that has not served an
+anonymous download for years, and their launcher scripts hard-code `jre1.8.0/bin/java`. Both tasks are
+therefore already broken on `develop`; neither is part of `make jar`, and this phase leaves them as
+found. Whoever revives them needs a JDK 21 runtime, not a patch.
+
+*The AWS SDK v1 could not start under Boot 3.5's Jackson — found at first boot, not at compile time.*
+`make jar` was green and the context then died with
+`BeanInstantiationException` → `NoSuchFieldError: PropertyNamingStrategy.PASCAL_CASE_TO_CAMEL_CASE`
+thrown from `EC2MetadataUtils.<clinit>` in aws-java-sdk-core **1.11.704** (2020), reached from
+`Application.s3Client(Application.java:111)`. Jackson deleted that constant in 2.12; Boot 3.5 manages
+2.19. Because NGB builds the S3 client on every startup, S3 configured or not, this failed the whole
+application before a single request was served — the first thing `make smoke` hits. Fixed by moving
+`aws-java-sdk-s3`/`-sts` to **1.12.797**, the last v1 release, whose bytecode asks for
+`PropertyNamingStrategies.UPPER_CAMEL_CASE` and falls back to the old constant on `LinkageError`, so it
+works either way (verified with `javap` before editing). Deliberately still SDK **v1**: D-table says
+v2, and that is a six-file API rewrite belonging to the dependency-refresh phase.
+
+*Spring Security 6 broke every NGB security expression, and the fix is one method.* With the ACL wiring
+otherwise complete, 16 tests failed identically —
+`SpelEvaluationException: EL1004E: Method call: Method isAllowed(...) cannot be found on type
+MethodSecurityExpressionRoot` (`NGBSessionSharingSecurityTest` ×8, `ProjectSecurityServiceTest` ×4,
+`DataItemSecurityServiceTest` ×3, `AclPermissionSecurityServiceTest` ×1). `javap` on
+spring-security-core 6.5.11 explains it: Security 6 added
+`DefaultMethodSecurityExpressionHandler.createEvaluationContext(Supplier<Authentication>, MethodInvocation)`
+and made it what the method-security interceptors call, and that overload builds its root through a
+**private** `createSecurityExpressionRoot(Supplier, MethodInvocation)` — so
+`NGBMethodSecurityExpressionHandler`'s `protected createSecurityExpressionRoot(Authentication,
+MethodInvocation)` override, which is what installs `NGBMethodSecurityExpressionRoot` and its
+`isAllowed`/`hasPermission…` family, was never reached and every expression evaluated against the stock
+root. The handler now overrides the supplier-based method and delegates to the `Authentication`-based
+overload (still public and non-deprecated in 6.5, and the only path through
+`createSecurityExpressionRoot`). Cost: the laziness the supplier was added for — the `Authentication` is
+now resolved for every secured invocation. Every expression in this application reads it anyway. This is
+the trap to remember in Phase 4: a *silent* fallback to the wrong expression root, with no bean-wiring
+error to point at it.
+
+*PMD 7's `AvoidDuplicateLiterals` fired on the Assert messages this phase wrote.* The four
+`Assert.isTrue(file.createNewFile(), "Failed to create file " + …)` sites in `FileManager` are one
+literal repeated four times, which PMD 6.55 tolerated at its old threshold and 7.26.0 does not; hoisted
+to a `FAILED_TO_CREATE_FILE` constant. Worth knowing when writing the remaining phases' messages: any
+literal used four times over needs a constant.
+
+**Exit criteria, as actually run** (all on the final tree, JDK 21 / Temurin 21.0.11, Boot 3.5.16):
+
+| Criterion | Result |
+|---|---|
+| `make jar`, `make jar-pg` | green |
+| `NGB_JAVA_VERSION=21 make up` + `make smoke` | HTTP 200, `{"payload":"2.8.0","status":"OK"}`; `JAVA_EXTRA_OPTS` empty — all four EhCache `--add-opens` gone |
+| `make test` (H2) | 519 tests, **3** failed, 21 skipped — the documented baseline |
+| `make test-pg` (after `make reset-pg`) | 519 tests, **11** failed — the documented baseline |
+| `make lint` | green: Checkstyle 11.1.0 37 warnings / 0 errors, PMD 7.26.0 clean. Plus `checkstyleTest`/`pmdTest` on catgenome and all four tasks + `build -x test` on `server/ngb-cli` |
+| `make cli-test` | **unrunnable**, unchanged since Phase 2 (fixture host `ngb.opensource.epam.com` is NXDOMAIN). Driven by hand instead — see below |
+| CLI by hand | the full `TEST-BASELINE.md` recipe on a wiped database: `reg_ref`, duplicate `reg_ref` fails "already exists", `list_ref`, `reg_file`, `search`, `reg_dataset`, `del_file` fails "used in projects: test_ds", `del_dataset` then `del_file` succeed, `search` finds nothing after. CLI on JDK 17, server on 21 |
+| UI: reference / genes / VCF / BAM tracks | all four render — see below |
+| springdoc | `/v3/api-docs` serves the spec and `/swagger-ui/index.html` renders it (OAS 3.1, "CATGenome Browser REST API") |
+
+The UI was driven in a real browser (headless Chrome over CDP, real mouse events, 1600×1000) against a
+**wiped** H2 database populated only through the CLI, so this also covers Flyway 3.2.1 creating the
+schema from nothing under Boot 3. Clicking the dataset checkbox opened the summary view — variants by
+chromosome, types and quality, i.e. the Lucene feature index — and clicking through to the chromosome
+drew the reference nucleotide-density track, the GENE track (the `PGLYRP4` model, exons and strand
+arrows) and the VCF track; a second dataset at `X:12,584,100-12,584,900` drew the BAM coverage
+histogram with expanded reads and mismatches over a base-resolution reference. No HTTP status ≥ 400 and
+no JS error in any of those runs.
+
+One trap for whoever repeats this: headless Chrome has no WebGL by default, PixiJS 6 refuses the canvas
+fallback, and the result is a browser window where the reference track paints but the GENE, VCF and BAM
+tracks are silently **blank** — indistinguishable from a server-side failure, and it produced exactly
+that false alarm here. Launch Chrome with
+`--enable-unsafe-swiftshader --use-gl=angle --use-angle=swiftshader` and they appear.
+
 ---
 
 ### Phase 4 — Security: SAML 2 and JWT on Spring Security 6

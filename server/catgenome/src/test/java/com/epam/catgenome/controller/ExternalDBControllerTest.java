@@ -42,7 +42,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
@@ -76,7 +76,9 @@ public class ExternalDBControllerTest extends AbstractControllerTest {
     private static final long GENE_START = 74082933L;
     private static final long END = 74122525L;
 
-    @MockBean(name = "httpDataManager")
+    // Boot's @MockBean until Phase 3 of the Java 21 migration; it is deprecated for removal in
+    // Boot 3.4 in favour of Spring's own bean-override support, which does the same thing here.
+    @MockitoBean(name = "httpDataManager")
     private HttpDataManager httpDataManager;
 
     @Autowired

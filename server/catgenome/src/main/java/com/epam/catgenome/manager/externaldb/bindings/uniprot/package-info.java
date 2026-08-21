@@ -31,6 +31,6 @@
 // Generated on: 2016.02.04 at 04:45:29 PM MSK
 //
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://uniprot.org/uniprot", 
-    elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+@jakarta.xml.bind.annotation.XmlSchema(namespace = "http://uniprot.org/uniprot", 
+    elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package com.epam.catgenome.manager.externaldb.bindings.uniprot;

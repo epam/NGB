@@ -444,8 +444,8 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public Species registerSpecies(Species species) {
-        Assert.isTrue(!StringUtils.isEmpty(species.getName()));
-        Assert.isTrue(!StringUtils.isEmpty(species.getVersion()));
+        Assert.isTrue(!StringUtils.isEmpty(species.getName()), "A species name is required");
+        Assert.isTrue(!StringUtils.isEmpty(species.getVersion()), "A species version is required");
         Species registeredSpecies = speciesDao.loadSpeciesByVersion(species.getVersion());
         Assert.isNull(registeredSpecies,
                 getMessage(MessagesConstants.ERROR_SPECIES_EXISTS, species.getVersion()));

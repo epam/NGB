@@ -38,7 +38,6 @@ import com.epam.catgenome.entity.security.NgbUser;
 import com.epam.catgenome.entity.user.ExtendedRole;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -228,66 +227,53 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
 
 
     }
-    @Required
     public void setLoadRolesByUserIdsQuery(String loadRolesByUserIdsQuery) {
         this.loadRolesByUserIdsQuery = loadRolesByUserIdsQuery;
     }
-    @Required
     public void setRoleSequence(String roleSequence) {
         this.roleSequence = roleSequence;
     }
 
-    @Required
     public void setCreateRoleQuery(String createRoleQuery) {
         this.createRoleQuery = createRoleQuery;
     }
 
-    @Required
     public void setUpdateRoleQuery(String updateRoleQuery) {
         this.updateRoleQuery = updateRoleQuery;
     }
 
-    @Required
     public void setDeleteRoleQuery(String deleteRoleQuery) {
         this.deleteRoleQuery = deleteRoleQuery;
     }
 
-    @Required
     public void setLoadAllRolesQuery(String loadAllRolesQuery) {
         this.loadAllRolesQuery = loadAllRolesQuery;
     }
 
-    @Required
     public void setLoadRolesQuery(String loadRolesQuery) {
         this.loadRolesQuery = loadRolesQuery;
     }
 
-    @Required
     public void setLoadRoleQuery(String loadRoleQuery) {
         this.loadRoleQuery = loadRoleQuery;
     }
 
-    @Required
     public void setLoadRoleByNameQuery(String loadRoleByNameQuery) {
         this.loadRoleByNameQuery = loadRoleByNameQuery;
     }
 
-    @Required
     public void setDeleteRolesReferencesQuery(String deleteRolesReferencesQuery) {
         this.deleteRolesReferencesQuery = deleteRolesReferencesQuery;
     }
 
-    @Required
     public void setLoadDefaultRolesQuery(String loadDefaultRolesQuery) {
         this.loadDefaultRolesQuery = loadDefaultRolesQuery;
     }
 
-    @Required
     public void setLoadRoleWithUsersQuery(String loadRoleWithUsersQuery) {
         this.loadRoleWithUsersQuery = loadRoleWithUsersQuery;
     }
 
-    @Required
     public void setLoadRolesWithUsersQuery(String loadRolesWithUsersQuery) {
         this.loadRolesWithUsersQuery = loadRolesWithUsersQuery;
     }

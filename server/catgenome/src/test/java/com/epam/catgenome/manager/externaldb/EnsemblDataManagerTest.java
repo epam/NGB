@@ -122,7 +122,7 @@ public class EnsemblDataManagerTest {
         // assert
         Assert.assertNotNull(ensemblVariationEntryVO);
         Assert.assertEquals("rs7412", ensemblVariationEntryVO.getName());
-        Assert.assertEquals(new Double("0.0750799"), ensemblVariationEntryVO.getMaf());
+        Assert.assertEquals(Double.valueOf("0.0750799"), ensemblVariationEntryVO.getMaf());
         Assert.assertEquals("Y", ensemblVariationEntryVO.getAmbiguity());
         Assert.assertEquals("SNP", ensemblVariationEntryVO.getVarClass());
         Assert.assertEquals("C", ensemblVariationEntryVO.getAncestralAllele());
