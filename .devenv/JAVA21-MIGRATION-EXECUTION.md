@@ -26,7 +26,7 @@ session to know where it is.
 | 5 | Flyway 11.7.2, H2 2.3.232, PostgreSQL 16.15 (HikariCP was already done in Phase 3) | `dda304bd`..`66b8d7d6` | ☑ |
 | 6 | Lucene + reindex procedure + startup guard | `c76ff2ee` | ☑ |
 | 7 | htsjdk latest, fork deleted, index cache dropped | `ac04780d` | ☑ |
-| 8 | Remaining libraries and API polish | | ☐ |
+| 8 | Remaining libraries and API polish | `925d5cdb`..`0334569e` | ☑ |
 | 9 | Packaging, CI, docs, release | | ☐ |
 
 ---
@@ -407,6 +407,28 @@ owns it: its fixtures were hosted on ngb.opensource.epam.com, which no
 longer resolves, so the whole e2e CLI suite has been unrunnable since
 Phase 2. Either host the data somewhere live or generate it — the
 test code itself is fine.
+
+Phase 8 hands three things over, all written up under "Phase 8
+execution findings" in the plan. The first two it recommends fixing
+here; the third it recommends against, and says why.
+
+  1. FeatureInputStream's EOF sentinel: `-1 & 0xff == 255`, so a
+     bgzip'd feature file cannot be registered from s3://, sws:// or
+     az://. Pre-existing, a few lines, needs a test that reads an
+     object to its exact end.
+  2. EnhancedUrlHelper gates the 403 tolerance on a
+     `.*s3.*\.amazonaws\.com` hostname match, so MinIO, Ceph and
+     SwiftStack — the sws:// scheme's own targets — lose it. Key it
+     to how the URL was produced instead.
+  3. Rewriting s3:// to a pre-signed https:// URL at reader-open
+     time. Possible now that commit 1 provides S3Presigner, and not
+     recommended: it is a redesign of the cloud read path, and (1)
+     costs a few lines.
+
+Also unverified and still owed: az:// track loading and the LLM
+completion round trip. Neither is verifiable without credentials, and
+Azurite cannot stand in until AzureBlobClient's hardcoded
+`https://%s.blob.core.windows.net` gets an endpoint override.
 ```
 
 ---
