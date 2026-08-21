@@ -3,10 +3,10 @@
 # Read tracks out of an S3-compatible object store through a running server, and compare what
 # comes back with the same file read from disk.
 #
-# Written for migration Phase 8 (AWS SDK v1 -> v2). Nothing in the unit suite touches S3: the
-# only S3 tests are S3ClientTest and S3ObjectChunkInputStreamTest, both of which stub the client
-# away, so a green suite says nothing about whether the v2 client, the v2 pre-signer or the v2
-# URI parser actually work. This does that pass against MinIO, which needs no AWS account:
+# Written for migration Phase 8 (AWS SDK v1 -> v2). The unit suite barely touches S3 - S3ManagerTest
+# and S3ObjectChunkInputStreamTest are all of it, and both stub the client away - so a green suite
+# says nothing about whether the v2 client, the v2 pre-signer or the v2 URI parser actually work.
+# This does that pass against MinIO, which needs no AWS account:
 #
 #   cd .devenv
 #   make up-cloud            # MinIO + fixtures + NGB restarted with s3:// and sws:// pointed at it
@@ -16,7 +16,7 @@
 # minio-init uploads. Everything it registers is named p8c_*; leftovers under those names are
 # deleted first, so it can be re-run.
 #
-# The four paths it covers, which are four different pieces of code:
+# The five paths it covers, which are five different pieces of code:
 #
 #   1. a registered s3://  file  - S3Client.headObject + ranged getObject through S3SeekableStream,
 #                                  addressed virtual-host style (aws.endpointUrlS3)
@@ -27,11 +27,14 @@
 #                                  HEAD on it is expected to be refused with 403 - that is the
 #                                  condition IOHelper.getContentLength exists for.
 #   4. a track read by fileUrl=  - not registered, so Utils.processUrl pre-signs the s3:// URI and
-#                                  the read happens over https through UrlSeekableStream.
-#
-# Registering a *feature* file (VCF/BED/GFF) from s3:// or sws:// is known to fail, and the script
-# asserts that it still fails in exactly the documented way rather than pretending it passes; see
-# the "known defect" step at the end and JAVA21-MIGRATION-PLAN.md.
+#                                  the read happens over https through UrlSeekableStream. NGB is
+#                                  pointed at MinIO under the name `minio`, so this is also what
+#                                  proves EnhancedUrlHelper keys its 403 tolerance to the
+#                                  pre-signature and not to an amazonaws.com hostname (Phase 9).
+#   5. a registered sws:// VCF   - a *bgzip'd* file, which reads the object right up to its last
+#                                  byte and then asks for one more. Until Phase 9 that returned
+#                                  0xff instead of an end of stream and BGZF rejected the trailing
+#                                  block with "invalid uncompressedLength: -1".
 
 set -uo pipefail
 
@@ -248,29 +251,22 @@ print(p.get("url", "") if p.get("type") == "S3" else "")')
     same "fileUrl $scheme vcf == disk" vcf_disk "vcf_${scheme}_url"
 done
 
-# ------------------------------------------------------------------ known defect
+# ------------------------------------------------------- a bgzip'd feature file
 
-step "registering a VCF from sws://  (known to fail, see the header)"
-OUT=$(curl -sS --max-time 600 -X POST "${JSON[@]}" \
-    -d "{\"path\":\"sws://$BUCKET/tracks/$VCF\",\"indexPath\":\"sws://$BUCKET/tracks/$VCF.tbi\",\"type\":\"S3\",\"indexType\":\"S3\",\"referenceId\":$REF_DM6,\"name\":\"p8c_vcf_sws\"}" \
-    "$BASE/vcf/register")
-if printf '%s' "$OUT" | grep -q 'invalid uncompressedLength: -1'; then
-    note "fails as documented: FeatureInputStream never returns -1, so the"
-    note "reader runs past the last byte into 0xff and BGZF rejects the block."
-    note "Pre-existing, not a Phase 8 regression - reading the same file by"
-    note "fileUrl= works, because that path goes through UrlSeekableStream."
-    SKIPPED=$((SKIPPED + 1))
-elif printf '%s' "$OUT" | grep -q '"status":"OK"'; then
-    note "it registered - the defect has been fixed; drop this step"
-else
-    printf '  %-34s %s\n' "register" "FAILED DIFFERENTLY: $(printf '%s' "$OUT" | cut -c1-140)"
-    FAILED=$((FAILED + 1))
-fi
+# Registering a feature file reads its header, which means reading the object to its exact end.
+# Until Phase 9 this is where every bgzip'd file in cloud storage failed - see path 5 in the header.
+step "registered sws:// VCF  (bgzip, read to the last byte)"
+register vcf_sws "register sws://$BUCKET/tracks/$VCF" /vcf/register \
+    "{\"path\":\"sws://$BUCKET/tracks/$VCF\",\"indexPath\":\"sws://$BUCKET/tracks/$VCF.tbi\",\"type\":\"S3\",\"indexType\":\"S3\",\"referenceId\":$REF_DM6,\"name\":\"p8c_vcf_sws\"}"
+probe vcf_sws_track "track" "$(first_variation)" \
+    -X POST "${JSON[@]}" -d "{\"id\":$(id_of vcf_sws),\"chromosomeId\":$CHR_X,\"startIndex\":12585000,\"endIndex\":12600000,\"scaleFactor\":1}" \
+    "$BASE/vcf/track/get"
+same "registered sws vcf == disk" vcf_disk vcf_sws_track
 
 step "result"
 if [ "$FAILED" -eq 0 ]; then
-    echo "OK: every cloud read path answered with the same data as the local read ($SKIPPED known defect)"
+    echo "OK: every cloud read path answered with the same data as the local read ($SKIPPED skipped)"
 else
-    echo "FAILED: $FAILED check(s), $SKIPPED known defect"
+    echo "FAILED: $FAILED check(s), $SKIPPED skipped"
 fi
 exit "$FAILED"

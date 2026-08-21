@@ -40,7 +40,7 @@ import java.io.InputStream;
  * HEAD with 403, so through that stream it is indistinguishable from an empty file - the reader
  * gets no bytes and reports the file as malformed. htsjdk offers no way to change the request
  * method, and the field is private, so the whole stream has to be replaced for those URLs;
- * {@link com.epam.catgenome.util.feature.reader.EnhancedUrlHelper#isSignedS3Url(String)} picks
+ * {@link com.epam.catgenome.util.feature.reader.EnhancedUrlHelper#headMayBeRefused(String)} picks
  * them out and {@link NgbSeekableStreamFactory} routes them here. Every other http URL stays on
  * stock htsjdk.
  *

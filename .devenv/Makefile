@@ -181,10 +181,13 @@ cloud: ## Start MinIO and upload the track fixtures the cloud checks read
 #                  [default] profile the s3:// client resolves through the default provider chain
 #                  and the [sws] one S3Client asks for by name.
 #
-# The endpoint is MinIO under its s3.amazonaws.com alias, not under `minio`: see the note on the
-# service in docker-compose.yml. Anything that reads through a pre-signed URL needs the host to
-# look like S3's, because that is how EnhancedUrlHelper decides to tolerate a 403 on HEAD.
-MINIO_ENDPOINT  := http://s3.amazonaws.com:9000
+# MinIO is addressed by its own name. Between Phase 8 and Phase 9 it had to be addressed as
+# s3.amazonaws.com instead, because EnhancedUrlHelper decided whether to tolerate a 403 on HEAD by
+# matching the host against `.*s3.*\.amazonaws\.com` and a pre-signed URL is signed for GET only -
+# so under the honest name the pre-signed read path read every object as empty. Phase 9 keyed that
+# tolerance to the URL's signature instead, which is what makes this line the proof of the fix:
+# `make verify-cloud` reads a track through a pre-signed http://<bucket>.minio:9000/... URL.
+MINIO_ENDPOINT  := http://minio:9000
 MINIO_JAVA_OPTS := -Dswift.stack.endpoint.url=$(MINIO_ENDPOINT) \
                    -Dswift.stack.region=us-east-1 \
                    -Dswift.stack.path.style.access=true \

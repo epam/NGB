@@ -41,13 +41,14 @@ import htsjdk.tribble.util.URLHelper;
  */
 public class EnhancedUrlHelper implements URLHelper {
 
-    private static final Pattern S3_PATTERN = Pattern.compile(".*s3.*\\.amazonaws\\.com");
+    private static final Pattern AWS_S3_HOST_PATTERN = Pattern.compile(".*s3.*\\.amazonaws\\.com");
+    private static final String SIGV4_SIGNATURE_PARAMETER = "X-Amz-Signature";
 
     private URLHelper wrappedHelper;
 
     public EnhancedUrlHelper(URL url) {
         String protocol = url.getProtocol().toLowerCase();
-        if (isSignedS3Url(url)) {
+        if (headMayBeRefused(url)) {
             this.wrappedHelper = new S3Helper(url);
         } else if (protocol.startsWith("http")) {
             this.wrappedHelper = new HTTPHelper(url);
@@ -90,22 +91,49 @@ public class EnhancedUrlHelper implements URLHelper {
      * htsjdk's {@code SeekableHTTPStream} measures a resource with its own HEAD request and does
      * not consult a {@code URLHelper} at all, so {@code NgbSeekableStreamFactory} has to recognise
      * them and route them elsewhere.
+     *
+     * <p>What is actually being recognised is a pre-signature, so that is what is looked for: an
+     * {@code X-Amz-Signature} query parameter, which every SigV4 query-signed URL carries and which
+     * is put there by whoever signed the URL - {@code S3Manager.generateSignedUrl} for the ones NGB
+     * makes itself. Until migration Phase 9 this matched the *host* against
+     * {@code .*s3.*\.amazonaws\.com} instead, which silently excluded every S3-compatible store that
+     * is not AWS: a pre-signed URL from MinIO, Ceph RGW or SwiftStack got stock htsjdk, whose HEAD
+     * the signature does not cover, and the file read back as empty.
+     *
+     * <p>The host test is kept as a second clause rather than replaced. It is nearly dead - S3 maps
+     * HeadObject onto the same {@code s3:GetObject} permission as GetObject, so a URL that can be
+     * read can normally also be measured - but it costs one GET probe in place of a HEAD where it
+     * does fire, and dropping it would change the behaviour of unsigned AWS URLs for no defect.
      */
-    public static boolean isSignedS3Url(final URL url) {
-        return S3_PATTERN.matcher(url.getHost()).matches();
+    public static boolean headMayBeRefused(final URL url) {
+        return isQuerySigned(url.getQuery()) || AWS_S3_HOST_PATTERN.matcher(url.getHost()).matches();
     }
 
     /**
-     * As {@link #isSignedS3Url(URL)}, for a path that is not necessarily a URL at all: anything
-     * that does not parse as one - a local file path, an {@code s3://} or {@code az://} URI - is
-     * not a signed S3 URL either.
+     * As {@link #headMayBeRefused(URL)}, for a path that is not necessarily a URL at all: anything
+     * that does not parse as one - a local file path, an {@code s3://} or {@code az://} URI - is not
+     * a pre-signed URL either.
      */
-    public static boolean isSignedS3Url(final String path) {
+    public static boolean headMayBeRefused(final String path) {
         try {
-            return isSignedS3Url(new URL(path));
+            return headMayBeRefused(new URL(path));
         } catch (MalformedURLException e) {
             return false;
         }
+    }
+
+    private static boolean isQuerySigned(final String query) {
+        if (query == null) {
+            return false;
+        }
+        for (final String parameter : query.split("&")) {
+            final int nameEnd = parameter.indexOf('=');
+            final String name = nameEnd < 0 ? parameter : parameter.substring(0, nameEnd);
+            if (SIGV4_SIGNATURE_PARAMETER.equalsIgnoreCase(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -4699,6 +4699,126 @@ unverified are unverifiable in this environment rather than skipped.
   again**), `make smoke`, `make smoke-saml`
   all green.
 
+### Phase 9 execution findings
+
+#### The two decisions the phase owed the owner, and how they were settled
+
+**Decision A — the release version is `3.0.0`.** Asked and answered at the top of the session,
+before anything that depends on it was written.
+
+The state the phase found: the root `build.gradle` said `Version(major: 2, minor: 8, patch: 0)`,
+`docs/mkdocs.yml` said `New Genome Browser 2.8.0`, `.appveyor.yml` said `2.8.0.{build}` — and
+`client/package.json` said `2.7.0`, i.e. they had already drifted apart. The decisive fact is that
+**2.8.0 was never released**: the last tag in the repository is `v2.7.1`, and `94284a21` ("Start
+v2.8.0 version development", 2023-05-18) is where the 2.8.0 in the build file came from. So
+choosing 3.0.0 skips no shipped version.
+
+3.0.0 rather than 2.8.0 because the migration is breaking on every axis semver cares about:
+functionality removed (HDFS, GA4GH, the Electron desktop app, the WAR, OAuth2, PaLM 2, the legacy
+`person` package, the index cache and its `server.index.cache.enabled` property), a **mandatory**
+Lucene reindex (D8) and an H2 1.3 → 2.x export/import (Phase 5) that no operator can skip, new
+platform floors (JDK 21, PostgreSQL 16), and one changed URL (`/saml/login` → `/saml/login/ngb`).
+
+Set in five places, which is the complete list — `grep -rn '2\.8\.0'` over the tree finds nothing
+else that is a version rather than prose:
+
+| Where | To |
+|---|---|
+| `build.gradle` → `allprojects { version = new Version(...) }` | `major: 3, minor: 0, patch: 0` — this is the one that reaches `/restapi/version`, via `filterTokens.version` → `profiles/version.properties` (`version=@version@`) → `@Value("#{catgenome['version']}")` in `UtilsController` |
+| `docs/mkdocs.yml` → `site_name` | `New Genome Browser 3.0.0` |
+| `client/package.json` → `version` | `3.0.0`. Read by nothing — no webpack config, no source file and no build step consults it, so this is drift repair, not a client change, and does not touch D12's freeze |
+| `.github/workflows/build.yml` | replaces `.appveyor.yml`'s `version: 2.8.0.{build}`; derives the build number instead of hardcoding the version, so this file can never drift again |
+| `docs/md/release-notes/` | new `3.0.0/3.0.0.md`, listed as current in `release-notes.md` |
+
+**`docs/md/release-notes/2.8.0/2.8.0.md` stays where it is, by the owner's choice**, with
+`release-notes.md` marking it as never released. It documents the target-identification feature
+(332 K with 12 images) that will now first ship in 3.0.0; folding it into the 3.0.0 page was the
+alternative and was declined in favour of the smaller diff.
+
+**Decision B — nginx is dropped from `docker/core/Dockerfile`.** The evidence, which is what the
+owner asked for before agreeing:
+
+- Two commits on 2021-09-02 put it there. `9a673ed9` added `apt-get install … nginx` **plus**
+  `ADD nginx.conf /etc/nginx.conf` and `CMD nginx && cd $NGB_HOME && java …`. `nginx.conf` was
+  never committed, so that Dockerfile could not build.
+- `cdf5ce45`, nine minutes later, reverted the `ADD` and the `nginx &&` from the `CMD`, keeping
+  only the apt install, with the message *"In case we need to extra routing, it can be added via
+  `-v my_nginx.conf:/etc/nginx/nginx.conf`"*.
+- So in every commit since, nginx has been **installed, never configured and never started**:
+  `CMD` runs `java` directly, there is no `EXPOSE 80`, and `grep -rn nginx` over the whole tree
+  returns exactly one hit — that apt line. `git log --all -S nginx` finds no configuration file
+  ever committed for it; the only nginx conf in the repository's history is a deleted
+  `e2e/gui/default.conf` belonging to a Selenium grid.
+- The escape hatch the commit message describes does not work as written: mounting a conf changes
+  nothing while nothing starts nginx, so an operator has to override `CMD` as well — at which
+  point a sidecar container is the ordinary shape and the in-image package buys nothing.
+
+Dropping it also removes an unpatched, unmonitored listener-capable package from an image that is
+published to Docker Hub (`lifescience/ngb`). `docker/README.md` gains a sentence saying a reverse
+proxy belongs in a container in front, so the capability is documented rather than silently
+deleted.
+
+#### The two cloud defects Phase 8 handed over, and what they actually were
+
+Both were fixed here, and both are now proved end to end by `make verify-cloud` against MinIO rather
+than by a unit test alone. Commit `[migration 9] Fix the two cloud read defects Phase 8 handed over`.
+
+**Finding 1 — `FeatureInputStream` never returned an end of stream, and dropped a one-byte tail.**
+Two defects in the same four lines, not one:
+
+- The end-of-object sentinel was `new byte[]{EOF_BYTE}` — a one-byte buffer holding `-1` — which
+  `getNextByte()` then handed back through `& 0xff` as **255**. Nothing ever saw `-1`, so a read past
+  the last byte produced 255s indefinitely. That is exactly the reported symptom: htsjdk reads the
+  trailing bgzip block's ISIZE as four bytes little-endian, four 255s are `0xFFFFFFFF`, and the
+  message is *"invalid uncompressedLength: -1"*. The `-1` in the error was never the sentinel value
+  travelling — it was four sentinel bytes being read as an `int`.
+- The refill guard was `if (position < destination)`, and both ends of the range are inclusive, so a
+  remaining tail of **exactly one byte** (`position == destination`) was read as end-of-object
+  instead. A one-byte object read as empty; any object whose last chunk was one byte long lost it.
+  Phase 8 did not spot this one.
+
+The fix moved `read()` and `getNewBuffer()` **up into `FeatureInputStream`** with an abstract
+`getBytes(from, to)`. They were byte-identical in `S3ObjectChunkInputStream` and
+`AzureBlobInputStream` apart from the one line that fetches the bytes, so leaving them there would
+have meant fixing the same two defects twice and testing one copy. The sentinel is now `new byte[0]`
+and `read()` returns `EOF_BYTE` when a refill produces nothing; the guard is `position > destination`.
+
+*Divergence from the handover:* it says to extend `S3ObjectChunkInputStreamTest`. **There is no such
+class** — the only S3 test is `manager/aws/S3ManagerTest`, and `verify-cloud.sh`'s header claimed the
+same non-existent test. It was written from scratch: six cases, `mockStatic(S3Client.class)` standing
+in for S3 at the `loadFromTo` boundary and honouring its inclusive-range contract, covering a
+multi-chunk object read to its exact end, a one-byte tail, a one-byte object, repeated EOF with no
+further requests, a read from an offset, and a real bgzip stream read back through
+`BlockCompressedInputStream` — the last of which is the reported failure itself.
+
+**Finding 2 — the pre-signed-URL 403 tolerance followed the hostname, not the signature.**
+`EnhancedUrlHelper.isSignedS3Url` matched `url.getHost()` against `.*s3.*\.amazonaws\.com`, so a
+pre-signed URL from MinIO, Ceph RGW or SwiftStack was routed to stock htsjdk, whose HEAD the
+signature does not cover, and the file read back as empty. It is now
+`EnhancedUrlHelper.headMayBeRefused`, and it looks for an **`X-Amz-Signature` query parameter** —
+which is what whoever signed the URL put there, `S3Manager.generateSignedUrl` for the ones NGB makes
+itself, and which every SigV4 query-signed URL carries whatever the endpoint. Parameter *names* are
+compared, so a signature mentioned inside a parameter value does not count.
+
+The hostname clause is **kept as a second clause** rather than replaced. It is nearly dead — S3 maps
+HeadObject onto the same `s3:GetObject` permission as GetObject, so a URL that can be read can
+normally also be measured — but where it does fire it costs one GET probe in place of a HEAD, and
+dropping it in the last phase of the migration would change the behaviour of unsigned AWS URLs with
+no defect asking for it. `verify-tracks.sh`'s staged-403 probe exercises that clause;
+`make verify-cloud` exercises the signature clause.
+
+The proof is in `.devenv`, not in the assertions: `MINIO_ENDPOINT` was
+`http://s3.amazonaws.com:9000` precisely because of this defect, and the `s3.amazonaws.com` /
+`${BUCKET}.s3.amazonaws.com` aliases and the `s3.amazonaws.com` half of `MINIO_DOMAIN` existed only
+to satisfy the host pattern. All of it is gone; MinIO is addressed as `minio`, the pre-signed URLs
+in the run below are `http://ngb-cloud.minio:9000/…` and `http://minio:9000/ngb-cloud/…`, and every
+read still matches the local one. Removing the alias also removes a latent collision with the
+container `verify-tracks.sh` gives the same name.
+
+`verify-cloud.sh` gained a fifth path for Finding 1 — register a bgzip'd VCF from `sws://`, read the
+track and compare it with the disk read — in place of the step that asserted the defect still
+reproduced. `make verify-cloud` is 0 failed, 0 skipped.
+
 ---
 
 ## 4. Cross-cutting risk register

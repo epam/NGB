@@ -206,12 +206,16 @@ services:
   # Host header, and the aliases below make those hosts resolve. Both addressing styles are then
   # served at once, which is what NGB needs: path-style for sws://, virtual-host for s3://.
   #
-  # It answers to s3.amazonaws.com as well, and `make up-cloud` points NGB at that name rather than
-  # at `minio`, because one NGB code path keys off the hostname: EnhancedUrlHelper decides whether
-  # to tolerate a 403 on HEAD by matching the host against `.*s3.*\.amazonaws\.com`, and a
-  # pre-signed URL is signed for GET only. Under the `minio` name the pre-signed read path is not
-  # 403-tolerant and reads the object as empty; under this one it behaves as it does against AWS.
-  # (verify-tracks.sh hijacks the same name for its staged-403 probe, for the same reason.)
+  # Between Phase 8 and Phase 9 it also answered to s3.amazonaws.com, and `make up-cloud` pointed NGB
+  # at that name rather than at `minio`, because one NGB code path keyed off the hostname:
+  # EnhancedUrlHelper decided whether to tolerate a 403 on HEAD by matching the host against
+  # `.*s3.*\.amazonaws\.com`, and a pre-signed URL is signed for GET only - so under the honest name
+  # the pre-signed read path read every object as empty. Phase 9 keyed that tolerance to the URL's
+  # own SigV4 signature, the alias is gone, and `make verify-cloud` reading a track through a
+  # pre-signed http://<bucket>.minio:9000/... URL is what proves it. (verify-tracks.sh still hijacks
+  # the name for its own staged-403 probe, on a container of its own - that exercises the
+  # amazonaws.com clause EnhancedUrlHelper deliberately keeps, and it would collide with an alias
+  # here.)
   minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     container_name: ngb-minio
@@ -220,7 +224,7 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_USER:-ngbminio}
       MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-ngbminio-secret}
-      MINIO_DOMAIN: minio,s3.amazonaws.com
+      MINIO_DOMAIN: minio
     volumes:
       - minio-data:/data
     ports:
@@ -235,11 +239,9 @@ services:
       ngb:
         aliases:
           - minio
-          - s3.amazonaws.com
-          # Quoted and on their own lines: `${...}` inside a YAML flow sequence reads as the start
-          # of a flow mapping and the file stops parsing.
+          # Quoted and on its own line: `${...}` inside a YAML flow sequence reads as the start of a
+          # flow mapping and the file stops parsing.
           - "${MINIO_BUCKET:-ngb-cloud}.minio"
-          - "${MINIO_BUCKET:-ngb-cloud}.s3.amazonaws.com"
 
   # -------------------------------------------------------------- minio-init --
   # One-shot: create the bucket and upload the fixtures the cloud checks read. Only the four

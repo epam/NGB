@@ -29,7 +29,9 @@
 #
 # The remote probes need docker: they start a container serving .devenv/data/ngs over HTTP with
 # two aliases on the ngb-dev network, one of which looks like S3 to NGB and refuses HEAD - see
-# fake-remote-files.py. Without docker they are skipped, and the script says so.
+# fake-remote-files.py. Without docker they are skipped, and the script says so. The S3-looking
+# alias is what exercises the hostname clause of EnhancedUrlHelper.headMayBeRefused, which Phase 9
+# kept alongside the signature clause; `make verify-cloud` covers the signature clause.
 #
 # MAF has no REST surface at all: MafController and MafSecurityService were deleted in 562b6a6d
 # (Dec 2018), leaving MafManager reachable only from Java. It cannot be verified here, and
