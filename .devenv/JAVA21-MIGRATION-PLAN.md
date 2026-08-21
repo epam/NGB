@@ -3886,6 +3886,85 @@ against the running server, before the bump and after, on identical inputs:
 `FileFormat` is only CSV and TSV, so `/target/export/{geneId}` is not an Excel path — the report
 endpoint and the gene import are the whole of NGB's POI surface, and both are now verified.
 
+#### biojava 4.2.0 → 7.2.6, and one dependency deleted outright (commit 4)
+
+Latest is 7.2.6 (checked against Central's `maven-metadata.xml`, not guessed); its class files are
+Java 11 bytecode (major 55). The table asked for "6/7" — 7 it is, because there is no reason to stop
+at 6: NGB uses two packages of it and both are stable across the range.
+
+**`biojava-structure:4.2.0` was declared and imported nowhere.** Zero references in any `.java`,
+`.xml` or `.properties` file in the repo. NGB's protein/PDB feature does not parse structures at
+all: it stores the PDB file and the client renders it with miew, and the RCSB metadata comes over
+REST through `PdbDataManager` (jettison). So that line is deleted rather than bumped, and with it
+one of the three justifications Phase 3 recorded for keeping the `javax.xml.bind` stack alongside
+the jakarta one. The stack still stays — `org.sbgn:libsbgn:0.2` and paxtools' `sbgn-converter` are
+still javax-annotated, and D6 freezes both — but the comment in `build.gradle` now names two
+dependencies, not three.
+
+**The forester exclusion is not a choice; it is an upstream packaging defect.**
+`biojava-genome → biojava-alignment → org.biojava.thirdparty:forester`, and forester's POM has
+never been resolvable: 1.038 (which biojava 4.2.0 asked for) declared `openchart` with a *relative*
+`systemPath`, which is why every Gradle invocation on this repo has been printing "Errors occurred
+while building effective model" for years; 1.039 (which biojava 7 asks for) declares
+`openchart:openchart:1.4.2` as an ordinary dependency, and that artifact is published nowhere — so
+what was a warning under biojava 4 becomes a hard `Could not find openchart:openchart:1.4.2` under
+biojava 7. Excluding `org.biojava.thirdparty:forester` fixes the failure and silences the
+long-standing warning at the same time.
+
+**But NGB *did* reach into forester, exactly once, and the compiler caught the claim that it did
+not.** `HeatmapManager` statically imported `org.forester.io.parsers.util.ParserUtils.createReader`
+— not for anything phylogenetic (the newick parsing has always been libnewicktree's
+`net.sourceforge.olduvai.treejuxtaposer.TreeParser`), but as a convenience factory. Disassembled
+(`javap -p -c`), its whole body is a type switch over `BufferedReader` constructors: `File`/`String`
+→ `exists`/`isFile`/`canRead` checks, each throwing an `IOException`, then
+`new BufferedReader(new FileReader(file))`; `InputStream` → `new BufferedReader(new
+InputStreamReader(is))`; `StringBuffer`/`StringBuilder` → `StringReader`; anything else →
+`IllegalArgumentException`. Both call sites were replaced with the idiom the same class already uses
+in five other methods (`try (Reader reader = …; BufferedReader r = new BufferedReader(reader))`):
+
+- `readTree(InputStream, String)` → `new InputStreamReader(is)`. The stream is a DB blob from
+  `heatmapDao.loadHeatmapRowTree`/`loadHeatmapColumnTree`; the `path` argument only names the tree.
+- `checkTree(Set<String>, String)` → `new FileReader(path)`, preceded by NGB's own
+  `NgbFileUtils.getFile(path)` — which is `Assert.isTrue(file.isFile() && file.canRead(), …)`,
+  i.e. forester's three checks in NGB's idiom and with NGB's localised message. Every one of the
+  four call sites (`createHeatmap` twice through `readFileContent`, `updateRowTree`,
+  `updateColumnTree`) already called `getFile` first, so this is belt-and-braces; it makes the
+  method self-validating rather than dependent on caller discipline. No test asserts forester's
+  error strings.
+
+`HeatmapManagerTest` covers both branches through `src/test/resources/heatmap/tree.txt`:
+registration with `rowTreePath`/`columnTreePath` exercises `checkTree`, and `getTree` exercises
+`readTree`.
+
+**The one API break in the bump**, and the only one in the whole of NGB:
+`GenbankSequenceParser.getDatabaseReferences()` now returns `Map<String, List<DBReferenceInfo>>`
+where 4.2.0 returned `Map<String, ArrayList<DBReferenceInfo>>` — one local variable in
+`NGBGenbankReader.process` (the taxonomy-ID lookup). Everything else compiled untouched:
+`GenbankUtils` (`DNASequenceCreator`, `DNACompoundSet`, `AccessionID`), `GenbankManager`
+(`FeatureInterface`, `Qualifier`, `FastaWriterHelper`, `genome.parsers.gff.Location`),
+`ReferenceManager` and `GenePredManagerTest`'s `GFF3Reader`.
+
+**Verified against the previous version byte-for-byte, because the tests do not check the output.**
+`GffManagerTest.testRegisterGbk`/`testRegisterGbf` and `ReferenceManagerTest.testGenbankRegister`
+only assert that registration succeeded and produced a `.gff` — a silently different Genbank parse
+would pass them. In particular `GenbankManager.genbankToGff` reads `f.getSource()` as a *raw
+location string* ("`191..7309`", "`<7306..11679`") and splits it on `\..|,`, and takes the strand
+from `f.getLocations()`; both are exactly the kind of thing a parser rewrite moves. So a temporary
+throwaway JUnit test (deleted after use; it needed nothing but
+`new MessageHelper(new ResourceBundleMessageSource("catgenome-messages"))`, since
+`GenbankManager.genbankToGff` touches no Spring bean) dumped, for `templates/KU131557.gbk`: the
+produced GFF3, the FASTA that `genbankToFasta` writes through `FastaWriterHelper`, and a full parse
+report — sequence key, `getSequenceId`, accession, original header, description, taxonomy ID,
+length, sequence head, and every feature's type, raw source, strand, location and qualifier keys.
+Run under 4.2.0 and under 7.2.6 (`git stash` between the two, so the same fixture and the same NGB
+code): **all three files identical**, including `taxonomy=taxon:28344`, the 12 features, and the
+`<7306..11679` partial-location string that the regex depends on.
+
+`make test`: 534 tests, 4 failed, 21 skipped — the three documented failures plus
+`PdbDataManagerTest.testParse`, which failed as `expected:<B> but was:<A>` on `record.getChainId()`,
+i.e. RCSB returned 1JSP's chains in the other order. That test reaches the live RCSB API and imports
+no biojava. `make lint`: 14 files, 37 warnings, 0 errors, pmd clean.
+
 ---
 
 ### Phase 9 — Packaging, CI, docs, release

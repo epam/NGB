@@ -60,6 +60,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -82,7 +83,6 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.util.NgbFileUtils.getBioDataItemName;
 import static com.epam.catgenome.util.NgbFileUtils.getCellValue;
 import static com.epam.catgenome.util.NgbFileUtils.getFile;
-import static org.forester.io.parsers.util.ParserUtils.createReader;
 
 @Service
 @RequiredArgsConstructor
@@ -254,7 +254,7 @@ public class HeatmapManager {
         if (is == null) {
             return null;
         }
-        try (BufferedReader r = createReader(is)) {
+        try (Reader reader = new InputStreamReader(is); BufferedReader r = new BufferedReader(reader)) {
             TreeParser tp = new TreeParser(r);
             return tp.tokenize(FilenameUtils.getBaseName(path));
         }
@@ -478,7 +478,8 @@ public class HeatmapManager {
 
     @SneakyThrows
     private void checkTree(final Set<String> labels, final String path) {
-        try (BufferedReader r = createReader(path)) {
+        getFile(path);
+        try (Reader reader = new FileReader(path); BufferedReader r = new BufferedReader(reader)) {
             TreeParser tp = new TreeParser(r);
             Tree tree = tp.tokenize(FilenameUtils.getBaseName(path));
             List<TreeNode> treeLabels = tree.nodes.stream()

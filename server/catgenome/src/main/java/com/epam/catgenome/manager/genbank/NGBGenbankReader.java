@@ -43,9 +43,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 public class NGBGenbankReader<S extends AbstractSequence<C>, C extends Compound> {
 
@@ -144,7 +144,7 @@ public class NGBGenbankReader<S extends AbstractSequence<C>, C extends Compound>
             }
 
             // add taxonomy ID to new sequence
-            ArrayList<DBReferenceInfo> dbQualifier = genbankParser.getDatabaseReferences().get("db_xref");
+            List<DBReferenceInfo> dbQualifier = genbankParser.getDatabaseReferences().get("db_xref");
             if (dbQualifier != null) {
                 DBReferenceInfo q = dbQualifier.get(0);
                 sequence.setTaxonomy(new TaxonomyID(q.getDatabase() + ":" + q.getId(), DataSource.GENBANK));

@@ -173,11 +173,13 @@ dependencies {
     implementation group: "jakarta.xml.bind", name: "jakarta.xml.bind-api"
     runtimeOnly group: "org.glassfish.jaxb", name: "jaxb-runtime"
 
-    // ...and the javax JAXB stack stays as well, for three dependencies whose *own* class files are
+    // ...and the javax JAXB stack stays as well, for the dependencies whose *own* class files are
     // annotated with javax.xml.bind: org.sbgn:libsbgn:0.2 (2011; its POM declares no dependencies at
-    // all - it expected JAXB to be part of the JDK, as it was until Java 11), sbgn-converter, which
-    // marshals through libsbgn, and biojava-structure. A jakarta JAXBContext cannot bind them: it
-    // reads jakarta.xml.bind annotations only, so it sees those classes as unannotated POJOs. The two
+    // all - it expected JAXB to be part of the JDK, as it was until Java 11) and sbgn-converter, which
+    // marshals through libsbgn. (Phase 3 counted biojava-structure here too; Phase 8 removed that
+    // dependency, so only the two SBGN ones are left, and both are frozen by decision D6.) A jakarta
+    // JAXBContext cannot bind them: it reads jakarta.xml.bind annotations only, so it sees those
+    // classes as unannotated POJOs. The two
     // stacks share no package and no service file, so they coexist; ours is jakarta, theirs is javax
     // (manager/pathway/PathwayManager.readFromFile, which builds the org.sbgn.bindings context by
     // hand, therefore keeps its javax imports). Both go when those libraries are updated or replaced.
@@ -346,9 +348,24 @@ dependencies {
         exclude group: "com.github.samtools", module: "htsjdk"
     }
 
-    // biojava
-    implementation group: "org.biojava", name:"biojava-genome", version: "4.2.0"
-    implementation group: "org.biojava", name:"biojava-structure", version: "4.2.0"
+    // biojava. 4.2.0 (2016) until Phase 8. Only two packages are used: org.biojava.nbio.core.sequence
+    // (the Genbank reader/writer trio in manager/genbank and one DNASequence in ReferenceManager) and
+    // org.biojava.nbio.genome.parsers.gff (GenbankManager's Location, and GFF3Reader in
+    // GenePredManagerTest). biojava-structure was declared here too and imported nowhere at all -
+    // NGB stores PDB files and lets the client render them - so it is gone rather than bumped.
+    // The forester exclusion is a packaging defect upstream, not a choice: biojava-alignment depends
+    // on org.biojava.thirdparty:forester, whose POM has never been resolvable. 1.038 declared
+    // openchart with a relative systemPath, which made every Gradle invocation print "Errors occurred
+    // while building effective model"; 1.039 declares openchart:openchart:1.4.2 as an ordinary
+    // dependency, which is published nowhere, and that is a hard resolution failure. Excluding it
+    // removes the warning as well as the failure. NGB did reach into forester, but for one thing only:
+    // HeatmapManager statically imported org.forester.io.parsers.util.ParserUtils.createReader, a
+    // convenience factory whose whole body is a File/InputStream/CharSequence switch over
+    // BufferedReader constructors. Phase 8 inlined the two branches it used - the newick parsing itself
+    // has always been libnewicktree's (net.sourceforge.olduvai), not forester's.
+    implementation(group: "org.biojava", name: "biojava-genome", version: "7.2.6") {
+        exclude group: "org.biojava.thirdparty", module: "forester"
+    }
 
     // newick format
     implementation group: "com.github.qurben", name: "libnewicktree", version: "1.0"
