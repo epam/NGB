@@ -23,7 +23,7 @@ session to know where it is.
 | 2 | Gradle 7.6 + Spring Boot 2.7.18 + Lombok on JDK 17 | `cd2ab292`..`4eacb473` | ☑ |
 | 3 | Spring Boot 3.5 + jakarta + Gradle 8 on JDK 21, security reduced to anonymous | `1dd9546b`..`ccd1a812` | ☑ |
 | 4 | SAML2 + JWT on Spring Security 6 | `8a9a7fa3` | ☑ |
-| 5 | Flyway 11.7.2, H2 2.3.232, PostgreSQL 16.15 (HikariCP was already done in Phase 3) | | ☐ |
+| 5 | Flyway 11.7.2, H2 2.3.232, PostgreSQL 16.15 (HikariCP was already done in Phase 3) | `dda304bd`..`66b8d7d6` | ☑ |
 | 6 | Lucene + reindex procedure + startup guard | | ☐ |
 | 7 | htsjdk latest, fork deleted, index cache dropped | | ☐ |
 | 8 | Remaining libraries and API polish | | ☐ |
