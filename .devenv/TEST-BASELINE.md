@@ -1,86 +1,58 @@
-# Test baseline for the Java 21 migration
+# Test baseline
 
-First recorded on 2026-08-20 at the end of **migration Phase 0**; re-measured at the end of every
-phase since, and last at the end of **Phase 9**, which is the end of the migration.
-Inside this environment. The first two recordings were on JDK 8 / Gradle 3.3 / Boot 1.5, the third
-on JDK 17 / Gradle 7.6 / Boot 2.7.18, the next two on H2 1.3.176 / PostgreSQL 9.6; **the numbers
-below are Phase 9's, i.e. NGB 3.0.0, on JDK 21 / Gradle 8.14.5 / Boot 3.5.16 / Spring Security
-6.5.11 / Flyway 11.7.2 / Lucene 9.12.3 / htsjdk 5.0.0 / AWS SDK v2 2.54.1 / POI 5.5.1 /
-biojava 7.2.6, against H2 2.3.232 and PostgreSQL 16.15** (aarch64/colima).
-**This one test still fails on the current code.** From here on this list is the reference: a run
-that is green except for this list is a pass. Anything else is your own breakage.
+What a green run looks like, so that a red one can be read. **The suite is not clean: one test
+fails on current code, and a second flaps.** From here on this list is the reference — a run that
+is green except for this list is a pass. Anything else is your own breakage.
+
+Recorded inside this environment (aarch64/colima) for **NGB 3.0.0**: JDK 21, Gradle 8.14.5,
+Spring Boot 3.5.16, Spring Security 6.5.11, Flyway 11.7.2, Lucene 9.12.3, htsjdk 5.0.0,
+AWS SDK v2 2.54.1, POI 5.5.1, biojava 7.2.6, against H2 2.3.232 and PostgreSQL 16.15.
 
 | Suite | Command | Result |
 |---|---|---|
 | H2 | `make test` | 545 tests, **1 failed**, 21 skipped (~4.5 min) |
-| PostgreSQL | `make test-pg` | 545 tests, **1 failed**, 21 skipped (~4 min on an idle host; 15 min at the Phase 9 recording, which shared the machine with a docker build and three running servers — the PostgreSQL suite is the one that notices) |
+| PostgreSQL | `make test-pg` | 545 tests, **1 failed**, 21 skipped (~4 min on an idle host; 15 min if it shares the machine with a docker build and a few running servers — the PostgreSQL suite is the one that notices) |
 | Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings in 14 files / 0 errors (~15 s) |
-| CLI integration | `make cli-test` | 145 rows, **129 passed, 0 failed, 16 skipped** (~5 min) — see ["`make cli-test` runs again"](#make-cli-test-runs-again) |
+| CLI integration | `make cli-test` | 145 rows, **129 passed, 0 failed, 16 skipped** (~5 min) — see [`make cli-test`](#make-cli-test) |
 | CLI unit | `./gradlew -p server/ngb-cli test` | 135 tests, **0 failed**, 0 skipped (~10 s). No make target of its own: `make jar` runs them, because `buildCli` is a `clean build` unless `-PnoTest` is passed. CI runs them as a step of `test-h2`. |
 
-**One failure is left on each flavour, and it is a live-network test**:
-`GffManagerTest.testLoadGenesTranscript`, which asserts on a biotype Ensembl returns over REST. Phase
-5 cleared the last of the code-and-schema failures — see
-["What Phase 5 changed"](#what-phase-5-changed) — and Phase 9 cleared two of the three that were
-recorded here as live-data ones: `BlatSearchManagerTest.testFind` and `testFindBlatReadSequence` were
-never meant to touch the network at all and now do not, and `PdbDataManagerTest.testParse` has been
-passing since Phase 8 but flaps with RCSB's answer, so treat a 2nd failure there as external weather.
-See ["Live-data failures"](#live-data-failures).
+**The one failure is a live-network test**: `GffManagerTest.testLoadGenesTranscript`, which asserts
+on a biotype Ensembl returns over REST. `PdbDataManagerTest.testParse` is the second network test;
+it usually passes but flaps with RCSB's answer, so treat a 2nd failure there as external weather.
+See [Live-data failures](#live-data-failures).
 
-Which means: **a non-network failure is now always a regression.** There is no longer a documented
-schema or DAO failure to hide behind on either flavour, and the two flavours no longer differ at all.
+Which means: **a non-network failure is always a regression.** There is no documented schema or DAO
+failure to hide behind on either flavour, and the two flavours do not differ — 545 / 1 / 21 on both.
 
-Phase 0 took this from 19 H2 / 65 PostgreSQL / red lint. What it fixed is at the bottom.
-Phase 1 removed 9 tests along with the functionality they covered (GA4GH, HDFS, `person`),
-which is the whole of the 537 → 528 change; the only *failure* it removed is
-`VcfManagerTest.testLoadSmallScaleVcfFileGa4GH`. Phase 2 fixed the seven failures the toolchain
-move introduced instead of re-baselining them — see ["What Phase 2 changed"](#what-phase-2-changed).
-Phase 3 removed 9 more tests with the security stack and EhCache (528 → 519) and, again, fixed
-rather than re-baselined everything the upgrade broke — see
-["What Phase 3 changed"](#what-phase-3-changed), which also lists the test classes Phase 4 had to
-bring back. Phase 4 brought back 7 of them (519 → 526) and changed no failure count on either
-flavour — see ["What Phase 4 changed"](#what-phase-4-changed). Phase 5 added no tests and removed
-none, and took PostgreSQL from 11 failures to 4 by fixing the causes — see
-["What Phase 5 changed"](#what-phase-5-changed). Phase 6 **added** 14 tests (526 → 540) for the
-Lucene version guard and changed no failure count — see
-["What Phase 6 changed"](#what-phase-6-changed). Phase 7 removed 6 tests with the index cache
-(540 → 534), fixed two Phase 6 assertions that had never held, and changed no failure count — see
-["What Phase 7 changed"](#what-phase-7-changed). Phase 8 replaced eleven libraries — AWS SDK v1 → v2,
-POI 3 → 5, biojava 4 → 7 among them — added and removed no tests, and changed no failure count on
-either flavour; see ["What Phase 8 changed"](#what-phase-8-changed). Phase 9 **added** 11 tests
-(534 → 545) for the two cloud defects Phase 8 handed over and for the URL format that pins
-commons-validator, and took both flavours from 3–4 failures to 1 by fixing two tests that had been
-calling UCSC since 2017 without meaning to — see ["What Phase 9 changed"](#what-phase-9-changed).
+CI passes `-PexcludeNetworkTests`, which drops exactly those two tests and nothing else
+(`server/catgenome/build.gradle`), so the `test-h2` and `test-pg` jobs should read
+543 tests / 0 failed / 21 skipped. A red CI run is a real regression by construction.
 
-**Two conditions the numbers depend on.** Get either wrong and you will see extra failures
-that are not yours:
+**Two conditions the numbers depend on.** Get either wrong and you will see extra failures that are
+not yours:
 
-1. **`make test-pg` needs a clean database.** `ngb_test` lives in the persistent `pg-data`
-   volume and several tests do not clean up after themselves, so a second run on a dirty
-   volume shows extra failures — 6 in `HeatmapManagerTest` ("File with name
-   'loadHeatmapTest' already exists"), `UrlShorterManagerTest`
-   (`expected:<95d52dd9> but was:<alias>`), and others. Run `make reset-pg` first. Fixing that
-   self-cleanup is worth doing but is not in the migration's path.
-   `TargetManagerTest.filterTargetsByOwnerTest` was in this list and is not any more: Phase 5
-   fixed the empty-`IN`-list bug that made it dirty-state-sensitive.
-2. **`make test` needs a clean `contents/`.** `/contents/` in the repo root is gitignored
-   scratch space (`files.base.directory.path`, plus every global Lucene index). Leftovers there
-   used to make `HomologeneManagerTest.searchTest` pass and `TargetManagerTest.loadTargetsTest`
-   fail; both are now self-contained, but if you get an inexplicable Lucene result,
-   `rm -rf ../contents` and re-run.
+1. **`make test-pg` needs a clean database.** `ngb_test` lives in the persistent `pg-data` volume
+   and several tests do not clean up after themselves, so a second run on a dirty volume shows
+   extra failures — 6 in `HeatmapManagerTest` ("File with name 'loadHeatmapTest' already exists"),
+   `UrlShorterManagerTest` (`expected:<95d52dd9> but was:<alias>`), and others. Run `make reset-pg`
+   first. Fixing that self-cleanup is worth doing and nobody has.
+2. **`make test` needs a clean `contents/`.** `/contents/` in the repo root is gitignored scratch
+   space (`files.base.directory.path`, plus every global Lucene index). Leftovers there used to make
+   `HomologeneManagerTest.searchTest` pass and `TargetManagerTest.loadTargetsTest` fail; both are
+   self-contained now, but if you get an inexplicable Lucene result, `rm -rf ../contents` and re-run.
 
-   Since Phase 6 that command is actually sufficient, which it was not before: the two test
-   profiles omitted `pathway.index.directory`, `homologene.index.directory` and
-   `bam.coverage.index.directory`, and the test contexts resolve placeholders with
-   `ignore-unresolvable="true"`, so those three indexes were written to directories in the source
-   tree named literally `server/catgenome/${pathway.index.directory}` and so on — outside
-   `contents/`, gitignored (`.gitignore:13`), and never cleaned. `ncbi.index.directory` was
-   `./contents/ncbi/`, i.e. relative to the test JVM's working directory, which is
-   `server/catgenome/`, so it missed too. All four now point at `@rootDirPath@/contents/`.
+   That command is sufficient today and was not always. The two test profiles omitted
+   `pathway.index.directory`, `homologene.index.directory` and `bam.coverage.index.directory`, and
+   the test contexts resolve placeholders with `ignore-unresolvable="true"`, so those three indexes
+   were written to directories in the source tree named literally
+   `server/catgenome/${pathway.index.directory}` and so on — outside `contents/`, gitignored
+   (`.gitignore:13`), and never cleaned. `ncbi.index.directory` was `./contents/ncbi/`, i.e.
+   relative to the test JVM's working directory, which is `server/catgenome/`, so it missed too.
+   All four point at `@rootDirPath@/contents/` now.
 
-   **If you are coming from a tree that ran the suite before Phase 6, delete those directories
-   once**, or you will see nine `LuceneIndexVersionException` failures that are not yours —
-   they hold Lucene 6 indexes and Lucene 9 cannot read them:
+   **If your tree ran the suite before NGB 3.0.0, delete those directories once**, or you will see
+   nine `LuceneIndexVersionException` failures that are not yours — they hold Lucene 6 indexes and
+   Lucene 9 cannot read them:
 
    ```bash
    rm -rf ../contents ../server/catgenome/contents "../server/catgenome/\${"*
@@ -88,102 +60,78 @@ that are not yours:
 
 ## H2: 1 live-data failure, and 1 that flaps
 
-| Class | Cause | Survives the migration? |
-|---|---|---|
-| `GffManagerTest.testLoadGenesTranscript` | `expected:<protein_coding> but was:<protein_coding_CDS_not_defined>`. **Live external data, not a fixture problem** — see the note below. At one Phase 6 run it failed instead with `NullPointerException: Cannot invoke "java.util.List.isEmpty()" because the return value of …`, i.e. Ensembl answered with a field missing; same test, same cause, different weather. | Yes. Unaffected by every phase; only an Ensembl change or a decision about network tests will move it. |
-| `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | Was `ExternalDbUnavailableException: Unexpected HTTP status: 302 Found` from UCSC. **Not a live-data failure at all** — the class stubs `HttpDataManager` and the stub never reached the bean, so both tests had been calling UCSC over the network since 2017. | **Fixed in Phase 9** (`02c55fe7`), at the cause: one `MockitoAnnotations.openMocks(this)` in `@Before`. Now offline and deterministic. |
-| `PdbDataManagerTest.testParse` | `expected:<B> but was:<A>`. Live RCSB PDB data — see ["Live-data failures"](#live-data-failures). Passed at the Phase 2 H2 recording and failed at the PostgreSQL one; passed on both at Phase 3's, failed at Phase 8's H2 one, passed on both at Phase 9's. | **Flaps.** Yes, until network tests are dealt with — a failure here is external drift, and 2 failures is still a pass. |
-
-`VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` was here until Phase 1 deleted GA4GH; the test
-went with the feature. `UrlValidatorService.isRemotePath` was deliberately left untouched.
+| Class | Cause |
+|---|---|
+| `GffManagerTest.testLoadGenesTranscript` | `expected:<protein_coding> but was:<protein_coding_CDS_not_defined>`. **Live external data, not a fixture problem** — see below. It has also been seen failing with `NullPointerException: Cannot invoke "java.util.List.isEmpty()" because the return value of …`, i.e. Ensembl answered with a field missing; same test, same cause, different weather. Only an Ensembl change, or a decision about network tests, will move it. |
+| `PdbDataManagerTest.testParse` | `expected:<B> but was:<A>`. Live RCSB PDB data — see [Live-data failures](#live-data-failures). **Flaps**: it passes most of the time, and 2 failures is still a pass. |
 
 ### Why `GffManagerTest.testLoadGenesTranscript` is not a fixture bug
 
-The migration plan assumed this was "fixture vs parser expectation, likely to move again in
-Phase 7 when htsjdk changes". It is neither. Evidence:
+It reads like one — a biotype the parser did not expect. It is not, and it cannot be fixed by
+editing the fixture or the parser:
 
-- The assertion reads `testTranscript.getBioType()`. `setBioType` is called from exactly one
-  place in the codebase: `ExtenalDBUtils.java:148`, from an `EnsemblExonVO` — i.e. from the
-  **Ensembl REST response**, never from the local GTF.
-- The fixture `Homo_sapiens.GRCh38.83.sorted.chr21-22.gtf` contains `protein_coding` 75,207
-  times and `protein_coding_CDS_not_defined` **zero** times.
+- The assertion reads `testTranscript.getBioType()`. `setBioType` is called from exactly one place
+  in the codebase: `ExtenalDBUtils.java:148`, from an `EnsemblExonVO` — i.e. from the **Ensembl REST
+  response**, never from the local GTF.
+- The fixture `Homo_sapiens.GRCh38.83.sorted.chr21-22.gtf` contains `protein_coding` 75,207 times
+  and `protein_coding_CDS_not_defined` **zero** times.
 - `protein_coding_CDS_not_defined` is a biotype Ensembl introduced in release 110 (2023).
 
-So `geneTrackManager.loadGenesTranscript` is a live-network call (the same test also asserts
-on UniProt domains, secondary structure and PDB entries, and is wrapped in
-`catch (GeneReadingException e) { logger.info("database unavailable"); }`). Editing the
-fixture or the parser cannot fix it, and htsjdk cannot move it. The real choice is whether
-network-dependent assertions belong in the unit suite at all — the same question
-`PdbDataManagerTest` raises. Deliberately left red rather than loosened, because
+So `geneTrackManager.loadGenesTranscript` is a live-network call (the same test also asserts on
+UniProt domains, secondary structure and PDB entries, and is wrapped in
+`catch (GeneReadingException e) { logger.info("database unavailable"); }`). The real question is
+whether network-dependent assertions belong in the unit suite at all — the same one
+`PdbDataManagerTest` raises. It is left red rather than loosened, because
 `protein_coding_CDS_not_defined` is a *different* biotype (no CDS defined), not a rename of
 `protein_coding`, so weakening the assertion would hide a real semantic change.
 
 ### Live-data failures
 
-`BlatSearchManagerTest.testFind` and `testFindBlatReadSequence` started failing during Phase 2 for a
-reason that has nothing to do with the migration: `blat.search.url` was
-`http://genome.cse.ucsc.edu/cgi-bin/hgBlat` in seven property files, and UCSC now answers `302
-Found` pointing at `https://` (confirmed with `curl`; no JDK has ever let `HttpURLConnection` follow
-a cross-protocol redirect). `BlatSearchManager` turned the 302 into
-`ExternalDbUnavailableException: Unexpected HTTP status: 302 Found`.
+`PdbDataManagerTest.testParse` parses live RCSB PDB data and asserts on a chain identifier the
+service returns, so it will keep flipping. Treat a failure there as external drift, not a
+regression — and do not "fix" it by loosening the assertion, for the same reason as
+`GffManagerTest.testLoadGenesTranscript`.
 
-**Phase 9 established that these two were never supposed to reach the network, and fixed both halves
-of the problem separately.** The class ships `blat/data/testResponse.html` and stubs
+`BlatSearchManagerTest.testFind` and `testFindBlatReadSequence` used to belong in this section and
+do not any more, which is worth knowing about because the trap is reusable. They failed with
+`ExternalDbUnavailableException: Unexpected HTTP status: 302 Found` from UCSC — and they were never
+meant to reach the network at all. The class ships `blat/data/testResponse.html` and stubs
 `HttpDataManager.fetchData`, but `MockitoTestExecutionListener` creates `@Mock` fields at listener
-order 1950 and `DependencyInjectionTestExecutionListener` overwrites the `@InjectMocks` field with the
-Spring bean at 2000 — so the stub was injected into an object that was then thrown away, and the tests
-had been calling UCSC since 2017. `MockitoAnnotations.openMocks(this)` in `@Before` fixes it; both are
-offline now. The default URL is separately wrong and is now `https://genome.ucsc.edu/cgi-bin/hgBlat`:
-scheme alone would not have worked, because the certificate on `genome.cse.ucsc.edu:443` does not
-carry that name in its SANs. **BLAT search against UCSC's public endpoint still does not work from any
-NGB version** — UCSC answers programmatic `hgBlat` queries with a Cloudflare Turnstile page, which
+order 1950 and `DependencyInjectionTestExecutionListener` overwrites the `@InjectMocks` field with
+the Spring bean at 2000 — so the stub was injected into an object that was then thrown away, and
+the tests had been calling UCSC since 2017. One `MockitoAnnotations.openMocks(this)` in `@Before`
+fixes it; both are offline and deterministic now. **If a `@Mock`/`@InjectMocks` test in this suite
+starts depending on the network, that is where to look.**
+
+The default `blat.search.url` was separately wrong and is now `https://genome.ucsc.edu/cgi-bin/hgBlat`
+(scheme alone would not have worked: the certificate on `genome.cse.ucsc.edu:443` does not carry
+that name in its SANs). BLAT search against UCSC's public endpoint still does not work from any NGB
+version — UCSC answers programmatic `hgBlat` queries with a bot-protection page, which
 `PSLRecordParser` reads as zero hits — so the feature needs `blat.search.url` pointed at a BLAT
-service that will answer. That is documented in the release notes and in
+service that will answer. That is in the release notes and in
 `docs/md/installation/standalone.md` rather than left as a silent empty result.
 
-`PdbDataManagerTest.testParse` parses live RCSB PDB data. It asserted `expected:<B> but was:<A>`
-two baselines ago, passed at the Phase 0 recording, and is red again on both flavours at the
-Phase 1 recording. **It is not Phase 1's doing**: it already failed on PostgreSQL when Phase 0's
-exit criteria were re-verified at the start of the Phase 1 session, before a single Phase 1
-change existed. The assertion is on a chain identifier returned by the RCSB service, so it will
-keep flipping. Treat a failure there as external drift, not regression — and do not "fix" it by
-loosening the assertion, for the same reason as `GffManagerTest.testLoadGenesTranscript`: the
-real question is whether network-dependent assertions belong in the unit suite.
+## PostgreSQL: the same failures as H2
 
-## PostgreSQL: the same 1 live-data failure as H2
+Identical, number for number. The list below is the set of PostgreSQL-only failures that **used** to
+exist, kept rather than deleted because it is the specification for what the schema-convergence
+migrations must keep true: if one of these comes back, the two script sets have drifted apart again.
 
-The same one as on H2, and it is a network test. **Phase 5 fixed the eight that were real**, so
-PostgreSQL and H2 have identical documented failures — and since Phase 9 the two suites are identical
-number for number, 545 / 1 / 21. The eight are kept below rather than deleted, because they are the
-specification for what the convergence migrations must keep true — if one comes back, a script set has
-drifted again.
-
-| Count | Class | Cause | Status |
+| Count | Class | Cause | Fixed by |
 |---|---|---|---|
-| 1 | `GffManagerTest.testLoadGenesTranscript` | Same live-Ensembl failure as on H2. | **Still fails.** Yes, survives. |
-| 1 | `PdbDataManagerTest.testParse` | Same live-RCSB failure as on H2. Failed on PostgreSQL and passed on H2 at the Phase 5 recording; at the Phase 6, 8 and 9 recordings it passed on PostgreSQL. | **Flaps.** |
-| 2 | `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | Not the UCSC drift after all: a listener-ordering bug meant the `HttpDataManager` stub never reached the bean. | **Fixed in Phase 9** (`02c55fe7`) on both flavours. |
-| 4 | `BookmarkDaoTest.testSaveLoadBookmark`, `testAllItemTypes`, `VcfFileDaoTest.testSaveLoadVcfFile`, `testSaveLoadSamples` | `catgenome.vcf.multi_sample` was `NOT NULL` in the PostgreSQL script set and nullable in the H2 one; `VcfFileDao` inserts `null`. | **Fixed in Phase 5** by `v2026.08.21_12.00__align_vcf_multi_sample_with_h2.sql`. |
-| 2 | `BlastTaskDaoTest.testDeleteOrganisms`, `testDeleteExclOrganisms` | `task_organism.organism` / `task_excl_organism.organism` were `character varying` on PostgreSQL and numeric on H2, while `BlastTaskDao.deleteOrganisms` emits `where organism = 1`. `ERROR: operator does not exist: character varying = integer`. | **Fixed in Phase 5** by `v2026.08.21_12.10__align_task_organism_with_h2.sql`. |
-| 1 | `RoleDaoTest.testLoadRolesWithUsers` | `expected:<11> but was:<12>` — the two script sets seeded a different number of predefined roles. | **Fixed in Phase 5** by `v2026.08.21_12.20__align_predefined_roles_with_h2.sql`. |
-| 1 | `TargetManagerTest.filterTargetsByOwnerTest` | `TargetManager.load` built `WHERE target_id IN ()` for an empty id set. H2 1.3 accepted it, PostgreSQL does not. **Was a real production bug**: any target filter matching nothing failed on PostgreSQL. | **Fixed in Phase 5**, as a separate commit — it was never the migration's doing. |
+| 4 | `BookmarkDaoTest.testSaveLoadBookmark`, `testAllItemTypes`, `VcfFileDaoTest.testSaveLoadVcfFile`, `testSaveLoadSamples` | `catgenome.vcf.multi_sample` was `NOT NULL` in the PostgreSQL script set and nullable in the H2 one; `VcfFileDao` inserts `null`. | `v2026.08.21_12.00__align_vcf_multi_sample_with_h2.sql` |
+| 2 | `BlastTaskDaoTest.testDeleteOrganisms`, `testDeleteExclOrganisms` | `task_organism.organism` / `task_excl_organism.organism` were `character varying` on PostgreSQL and numeric on H2, while `BlastTaskDao.deleteOrganisms` emits `where organism = 1`. `ERROR: operator does not exist: character varying = integer`. | `v2026.08.21_12.10__align_task_organism_with_h2.sql` |
+| 1 | `RoleDaoTest.testLoadRolesWithUsers` | `expected:<11> but was:<12>` — the two script sets seeded a different number of predefined roles. | `v2026.08.21_12.20__align_predefined_roles_with_h2.sql` |
+| 1 | `TargetManagerTest.filterTargetsByOwnerTest` | `TargetManager.load` built `WHERE target_id IN ()` for an empty id set. H2 1.3 accepted it, PostgreSQL does not. **Was a real production bug**: any target filter matching nothing failed on PostgreSQL. | `TargetManager`, and it also stopped the test being dirty-state-sensitive |
 
-`VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` was another entry here until Phase 1 deleted
-GA4GH.
-
-The PostgreSQL suite now exercises the ACL code, which it previously could not (see below). Treat a
-new context-startup failure in `*SecurityServiceTest` as real — those 16 tests are the only thing
-standing between a broken NGB security expression and a green build, as Phase 3 found out the hard
-way (see ["What Phase 3 changed"](#what-phase-3-changed)). `JwtAuthenticationTest` and
-`AuthManagerTest` were in this sentence until Phase 3 deleted them with the JWT stack; Phase 4
-restored them and all 7 of their tests pass on both flavours.
+The PostgreSQL suite exercises the ACL code, which it previously could not. Treat a new
+context-startup failure in `*SecurityServiceTest` as real — those 16 tests are the only thing
+standing between a broken NGB security expression and a green build.
 
 ## Static analysis: green
 
-`make lint` runs `checkstyleMain pmdMain` on the server module and both pass. Phase 2 moved the
-tools to **Checkstyle 11.1.0** and PMD 6.55.0 (not PMD 7 — Gradle 7.6 cannot run it; see the
-Phase 2 findings) and rewrote both rulesets for the `category/java/*.xml` layout. Phase 3 finished
-that carry-over: **PMD 7.26.0**, on Gradle 8.14.5.
+`make lint` runs `checkstyleMain pmdMain` on the server module with **Checkstyle 11.1.0** and
+**PMD 7.26.0**, and both pass.
 
 | Module | Command | Checkstyle | PMD |
 |---|---|---|---|
@@ -193,62 +141,47 @@ that carry-over: **PMD 7.26.0**, on Gradle 8.14.5.
 
 Reports: `server/<module>/build/reports/{checkstyle,pmd}/main.html`.
 
-**The warnings are not new and do not fail the build**, by long-standing choice: `checkstyle.xml`
-sets `severity=warning` at `Checker` level, and Gradle's `Checkstyle` task fails only on errors
+**The warnings do not fail the build**, by long-standing choice: `checkstyle.xml` sets
+`severity=warning` at `Checker` level, and Gradle's `Checkstyle` task fails only on errors
 (`maxWarnings` defaults to `Integer.MAX_VALUE`). Checkstyle 7.2 reported one of them; 11.1.0 reports
 37 because eight years of new checks and refined defaults landed in between — mostly `[Indentation]`
-in generated-looking `externaldb/bindings/*` VOs, a few `[FinalClass]`, and the original
-`CustomChatResponse.java` member name `finish_reason` (it mirrors a JSON field). Nothing was
-suppressed to get here and no severity was lowered. Turning the warnings into errors is a
-worthwhile clean-up but it is a code-style change, not a migration step.
+in generated-looking `externaldb/bindings/*` VOs, a few `[FinalClass]`, and
+`CustomChatResponse.java`'s member name `finish_reason` (it mirrors a JSON field). Nothing is
+suppressed and no severity was lowered. Turning the warnings into errors is a worthwhile clean-up
+and a code-style change, not a build fix.
 
-PMD is clean with **zero** violations: the ruleset rewrite surfaced 59 real findings and all 59 were
-fixed at the source. Two rules were consciously narrowed rather than carried across
+PMD is clean with **zero** violations, and worth keeping that way: a red static-analysis baseline
+hides real regressions. Two rules were consciously narrowed rather than carried across from PMD 5
 (`SuspiciousConstantFieldName` dropped, `ClassNamingConventions` restored to its PMD 5 patterns) —
-both reasoned about in `JAVA21-MIGRATION-PLAN.md` and in the rulesets' own header comments.
+both reasoned about in the rulesets' own header comments. Two deprecation nags are expected on every
+`ngb-cli` run: `AvoidCatchingNPE` and `AvoidLosingExceptionInformation` are "scheduled for removal
+from PMD in PMD 8.0.0". They still work; whoever moves to PMD 8 replaces them. Note also that PMD 7's
+`AvoidDuplicateLiterals` counts a literal used four times over as a violation where 6.55 did not.
 
-On PMD 7 the `BooleanInstantiation` deprecation warning is gone — the rule is now `UnnecessaryBoxing`,
-as its PMD 6 message asked for. Two deprecation nags remain and are expected on every `ngb-cli` run:
-`AvoidCatchingNPE` and `AvoidLosingExceptionInformation` are "scheduled for removal from PMD in
-PMD 8.0.0". They still work; whoever moves to PMD 8 replaces them. Note also that PMD 7's
-`AvoidDuplicateLiterals` counts a literal used four times over as a violation where 6.55 did not —
-the one PMD failure Phase 3 caused, in `FileManager`, was exactly that.
+## `make cli-test`
 
-Keep it green. A red static-analysis baseline would hide the real regressions in Phases 3–9.
-
-## `make cli-test` runs again
-
-**145 rows: 129 passed, 0 failed, 16 skipped.** Fixed in Phase 9 (`b10efd26`), which is what that
-phase owed this file.
-
-It had been unrunnable, not failing: `e2e/integration_tests.sh` downloaded its 19 fixtures from
-`http://ngb.opensource.epam.com/distr/data/tests/` with `wget -r`, and that host is NXDOMAIN from
-inside the container and from the host alike (`opensource.epam.com` itself resolves, so it is that one
-name that is gone). Nothing in the migration caused it. The fixtures are now **generated** from
-`server/catgenome/src/test/resources/templates` by `e2e/cli/prepare_test_data.sh`, so the suite needs
-no network at all and the `cli-e2e` job in `.github/workflows/build.yml` can run it too.
+**145 rows: 129 passed, 0 failed, 16 skipped.**
 
 The 16 skips are the rows whose names start with `#FAILS`, all marked that way in December 2018
-(`a7d81db9`); `cli-tests.gradle` counts them and skips them. Nothing in Phase 9 added to that set.
+(`a7d81db9`); `cli-tests.gradle` counts them and skips them.
 
-Ten expectations had to be changed to get to zero failures, and **none of them was migration
-fallout** — the file had not been edited since 2018 and nobody could run it, so `develop` moved out
-from under it unnoticed. Each is dated in `e2e/cli/testcases.csv` to the commit that changed the
-behaviour: `c8fa91a6` (BED/GTF open failures now surface from `IOHelper.openStream`), `9cfbda67`
-(`.txt` became a valid GENE extension, so the wrong-format row uses `.dat` now), `c32a95f0`
-(`generateUrl` appends the dataset's reference, so every URL carries one track more than the command
-asked for) and `330bdca7` (a non-numeric dataset argument resolves by name). One fixture was
-genuinely wrong rather than stale: `example.gff.gz` has to be **BGZF**, not plain gzip, because NGB
-tabix-indexes any `.gz` it registers. Details in `JAVA21-MIGRATION-PLAN.md`, Phase 9 findings.
+The fixtures are **generated** from `server/catgenome/src/test/resources/templates` by
+`e2e/cli/prepare_test_data.sh`, so the suite needs no network — it used to download 19 files from
+`http://ngb.opensource.epam.com/distr/data/tests/` with `wget -r`, and that host is NXDOMAIN
+(`opensource.epam.com` itself resolves, so it is that one name that is gone). That is why the
+`cli-e2e` job in `.github/workflows/build.yml` can run it too.
 
-The by-hand walkthrough below is kept because it is still the quickest way to check a CLI change
-against a *stateful* server — `cli-test` runs `AUTH_MODE=none` against a throwaway H2 database. It was
-used on JDK 17 at the end of Phase 2 and again at the end of Phase 3 (server on JDK 21, CLI still
-built and run on 17, on a database wiped with `make reset-ngb-data` so it exercises Flyway from
-nothing as well):
+Two things to know if you edit it. Expectations in `e2e/cli/testcases.csv` are dated in comments to
+the commit that changed the behaviour they assert on — the file went unrun between 2018 and 2026 and
+`develop` moved out from under it, so ten rows were stale rather than broken. And `example.gff.gz`
+has to be **BGZF**, not plain gzip, because NGB tabix-indexes any `.gz` it registers; a plain-gzip
+fixture fails at registration in a way that reads like a parser bug.
+
+`cli-test` runs `AUTH_MODE=none` against a throwaway H2 database. The quickest check of a CLI change
+against a *stateful* server is still by hand:
 
 ```bash
-make up                              # server on JDK 21 since Phase 3
+make up
 docker-compose --profile cli up -d cli
 docker-compose exec cli ngb reg_ref /ngs/A3.fa --name test_ref      # + repeat: must fail "already exists"
 docker-compose exec cli ngb list_ref
@@ -263,440 +196,86 @@ Registration, listing, search, dataset composition, deletion and both error path
 live in the repo under `server/catgenome/src/test/resources/templates/`; copy them into
 `.devenv/data/ngs/` (which is `/ngs` in both containers).
 
-## What Phase 0 changed
+## What a green suite does not tell you
 
-| Fix | Effect |
-|---|---|
-| Deleted the stale committed Tribble index `templates/Felis_catus.vcf.idx` (recorded 5,898 bytes for a 5,995-byte file, and embedded the original author's absolute path) | −5 `VcfManagerTest` failures on both flavours |
-| `TestAbstractFeatureReader` now builds its own Tribble index over a temp-dir copy in `@Before` | Keeps `requireIndex = true` satisfiable without that fixture. htsjdk only auto-builds a missing index on the managed `FileManager` path, **not** in `TribbleIndexedFeatureReader(..., requireIndex = true, ...)` — deleting the `.idx` alone breaks `testTribbleConstructors`. |
-| `BlastTaskDaoTest` now sets `blastTaskId` (the column has been `NOT NULL` since `v2024.03.21_19.00__blast_task_id.sql`, which backfilled existing rows with `BLAST_TASK_ID = TASK_ID`) | −9 failures on both flavours |
-| Removed the `database.*` block from `test-catgenome-acl.properties` and `test-catgenome-auth.properties` | −≈45 PostgreSQL failures. Those files hardcoded `jdbc:h2:mem:test_catgenome`, and because `@TestPropertySource` feeds the Environment — which `PropertySourcesPlaceholderConfigurer` consults *before* its local `properties-ref` map — they shadowed the flavour-matched `test-catgenome.properties` that `applicationContext-test.xml` already loads from `profiles/<flavour>/`. Deleting the block is enough; the files did not have to be duplicated per flavour. |
-| `TargetManagerTest.loadTargetsTest` no longer asserts manager-level paging | −1 on both flavours. Commit `cdb4b2bb` (Feb 2024) deliberately moved paging out of `TargetManager.load` into `TargetController.loadTargets`, so a page is cut from the ACL-filtered list; the test was never updated. It was *not* leftover Lucene state, as previously assumed. |
-| `HomologeneManagerTest` builds the taxonomy Lucene index in `@Before` | −1. `searchHomologenes` → `setGeneSpeciesNames` → `taxonomyManager.searchOrganismsByIds` opens a suite-shared index directory the repo does not ship, so the test only passed when `TaxonomyManagerTest` happened to run first. Built in setup rather than committed as a fixture, because a committed Lucene index would become unreadable in Phase 6 (D8). |
-| Rewrote the 4 PMD violations instead of suppressing them: `EnsemblDataManager.fetchNcbiId` null-checks the deserialised VO rather than catching `NullPointerException`; `AlignmentManager.processParasiteTargets` catches `IOException \| ParseException` | `make lint` green |
-| Fixed the stray trailing apostrophe in the H2 JDBC URL | Removes a landmine for H2 2.x in Phase 5 |
-| Added JDK 17 to the toolbox (`with-java17`, `use-java 17`) and to the app entrypoint / compose (`NGB_JAVA_VERSION=17`) | Phase 2 runs on 17 |
+**It does not tell you the server boots.** The unit suites build plain Spring contexts from the XML
+and never go through Boot's auto-configuration, never start Tomcat, never build an image and never
+unpack an archive. Things that have been green-suite-invisible here and were found by starting a
+real server:
 
-## What Phase 1 changed
+- a Boot auto-configuration colliding with an NGB bean of the same name (`FlywayAutoConfiguration`
+  vs NGB's own `flyway` bean — a hard context failure, excluded in `Application.java`);
+- log configuration discarding the messages a procedure depends on (the shipped appenders filter at
+  `ERROR`; one-time schema-history and Lucene-check notices went nowhere until a `WARN`-threshold
+  console appender was bound to those classes);
+- a Lucene index that could not be **written** because two fields in one document disagreed on
+  `IndexOptions`, which Lucene 6 tolerated and 9 does not;
+- htsjdk's length probe becoming a `HEAD` request, which turns a pre-signed S3 URL into a silently
+  empty file.
 
-Nothing was fixed and nothing was re-baselined; the suite shrank because functionality was
-deleted.
+**It does not tell you a dependency change is safe**, either: there is no xlsx fixture and no test
+mentions XSSF, nothing imports `org.biojava.nbio.structure`, the S3 tests stub the client away, and
+`GffManagerTest.testRegisterGbk` asserts that Genbank registration produced a file, not what is in
+it. A green suite means "nothing that was covered broke".
 
-| Removed with its feature | Tests |
-|---|---|
-| GA4GH / Google Genomics | `VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` (the failure), `testGetVariantsGA4GH`, `testAllTrackGa4GH` (`@Ignore`d), `ReferenceManagerTest.getReference` (`@Ignore`d), `ReferenceControllerTest.testSaveAndGetTrackDataGA4GH` (`@Ignore`d) |
-| HDFS / Hadoop | `BamManagerTest.hdfsTest` (`@Ignore`d) |
-| the legacy `person` package | `PersonDaoTest`, `PersonManagerTest` (whole classes) |
-
-Also deleted: the 5 `externaldb/data/GA4GH_id10473*.json` fixtures, the
-`templates/1000-genomes.chrMT.vcf` fixture used only by the GA4GH tests, and the
-`ga4gh.google.*` properties from all four test property files.
-
-Note that `build/test-results/test/` still holds stale XML for the deleted classes — Gradle
-does not remove result files for tests that no longer exist. Trust the run summary's counts,
-not a `grep` over that directory.
-
-## What Phase 2 changed
-
-The Gradle 7.6 / Boot 2.7.18 / JDK 17 waypoint broke a good number of tests on the way through. All
-of them were fixed; nothing was re-baselined, and the only new entries in the lists above are the two
-`BlatSearchManagerTest` network failures, which are not the migration's doing. The full reasoning is
-in `JAVA21-MIGRATION-PLAN.md` ("Phase 2 execution findings") — the test-visible fixes:
-
-| Fix | Effect |
-|---|---|
-| `MockitoAnnotations.initMocks` → `openMocks` at all 12 call sites, and `VcfManagerTest` unwraps its Spring proxies with `AopTestUtils.getTargetObject` before `openMocks` | Mockito 4 implements `initMocks` as `openMocks(...).close()`, which throws `NotAMockException` on a `@Spy` field holding a Spring bean |
-| `org.mockito.internal.matchers.{Equals,Find}` in `ToolsControllerTest` → `org.hamcrest.Matchers.is` / `matchesPattern` | Those were always Hamcrest matchers passed to `jsonPath().value()`; from Mockito 2 they no longer implement `org.hamcrest.Matcher`, so the call silently bound to `value(Object)` |
-| New `server/lombok.config` with `lombok.anyConstructor.addConstructorProperties = true` | Restores the `@ConstructorProperties` Lombok stopped emitting in 1.16.20, i.e. every implicit Jackson creator on the ~90 `@Builder` classes. 6 `NGBSessionSharingSecurityTest` failures, but the real exposure is production JSON parsing |
-| Four `--add-opens` in the test JVM args (`java.util`, `java.util.concurrent`, `java.util.concurrent.atomic`, `java.io`) and `EhCacheTest.TestIndexCache` made `static` | EhCache 2.10.1 sizes `indexCache` by walking the object graph reflectively, which JEP 396 forbids. 11 failures |
-| `CAST(? AS BIGINT)` around the three `object_id_identity` parameters in `conf/catgenome/acl-dao.xml` | Spring Security 5 binds the ACL identifier as a string against a `bigint` column; PostgreSQL rejects it and the library swallows the error, so it surfaced as `25P02` on the *next* statement. 4 PostgreSQL failures (`AclPermissionSecurityServiceTest` ×2, `BamSecurityServiceTest.saveBamTest`, `DataItemSecurityServiceTest.deleteFileByBioItemId`) |
-| `LocalDateTime.now().truncatedTo(ChronoUnit.MICROS)` in the `BlastTaskDaoTest` and `ActivityDaoTest` fixtures | JDK 9+ `now()` carries nanoseconds; PostgreSQL `timestamp` keeps microseconds. The assertions stay exact equality — the fixture just stops asking for precision no database here has. 3 PostgreSQL failures |
-
-Two things worth knowing when reading a Phase 2 run: the ACL failures are only visible because
-Phase 0 made the PostgreSQL suite exercise the ACL code at all, and both PostgreSQL fixes are
-PostgreSQL-only — H2 1.3 coerces the string to `bigint` and stores nanoseconds, so it never
-complained.
-
-## What Phase 3 changed
-
-Boot 3.5.16 / Spring 6.2 / Spring Security 6.5 / JDK 21, with security reduced to anonymous by design.
-528 → 519 tests, and the H2 failure count is unchanged at 3. Nothing was re-baselined.
-
-### Removed with the security stack — Phase 4 restores exactly this set
-
-| Path | Tests | Why it went | Phase 4 |
-|---|---|---|---|
-| `src/test/java/com/epam/catgenome/app/JwtAuthenticationTest.java` | 4 | Tests `JWTSecurityConfiguration` and the `JwtTokenVerifier`/`JwtAuthenticationProvider` chain, deleted this phase | **restore** |
-| `src/test/java/com/epam/catgenome/manager/AuthManagerTest.java` | 3 | Asserts on the JWT `AuthManager` issues (`issueTokenForCurrentUser`, claims, expiry) | **restore** |
-| `src/test/java/com/epam/catgenome/common/AbstractSecurityTest.java` | 0 | Base class for the two above (`@WithMockUser`-style setup); no `@Test` of its own | **restore** |
-| `src/test/java/com/epam/catgenome/common/security/WithMockUserContext.java` | 0 | Custom `@WithSecurityContext` annotation | **restored, and it was not dead code** — this row said "referenced by nothing", which is wrong: `AuthManagerTest` annotates all three of its tests with it |
-| `src/test/java/com/epam/catgenome/common/security/WithMockUserContextSecurityContextFactory.java` | 0 | Its factory | same |
-
-Recover them with `git show <this phase's commit>^:<path>` rather than from a copy kept in the tree:
-they are the specification for what the SAML attribute mapping and the JWT claims must keep doing.
-
-Two more test cases went, and these are **not** to be restored: `EhCacheTest.testMaxSizeInBytes` and
-`testToString`, which asserted on EhCache 2's byte-size bounding and on the exact text of a
-`toString()` built from it. D11 replaced EhCache with Caffeine, which cannot bound a cache by the
-retained size of an object graph at all; the reasoning is in the class's own javadoc. The other three
-`EhCacheTest` cases still run. 4 + 3 + 2 = the 9 tests that left the suite.
-
-Nothing was `@Ignore`d or otherwise disabled in place. The 21 skipped tests are the same 21 as in
-Phase 2.
-
-### Test-visible fixes
-
-| Fix | Effect |
-|---|---|
-| `NGBMethodSecurityExpressionHandler` now overrides `createEvaluationContext(Supplier<Authentication>, MethodInvocation)`, not only the protected `createSecurityExpressionRoot` | **16 failures.** Spring Security 6 calls the supplier-based overload from its interceptors and builds the expression root through a *private* method, so NGB's root — and every `isAllowed`/`hasPermission…` expression with it — was silently bypassed: `EL1004E: Method call: Method isAllowed(...) cannot be found on type MethodSecurityExpressionRoot` in `NGBSessionSharingSecurityTest` ×8, `ProjectSecurityServiceTest` ×4, `DataItemSecurityServiceTest` ×3, `AclPermissionSecurityServiceTest` ×1 |
-| `aws-java-sdk-s3`/`-sts` 1.11.704 → 1.12.797 | Not a test failure — the application would not **start**. `EC2MetadataUtils.<clinit>` reads `PropertyNamingStrategy.PASCAL_CASE_TO_CAMEL_CASE`, deleted in Jackson 2.12; NGB builds the S3 client on every startup |
-| `ExternalDBControllerTest`: Boot's `@MockBean` → Spring's `@MockitoBean` | `@MockBean` is deprecated for removal in Boot 3.4 |
-| `controller/util/UrlTestingUtils`: `AbstractHandler` → `HttpServlet` in a `ServletContextHandler` | Jetty 12 deleted `AbstractHandler` and moved the servlet API into `org.eclipse.jetty.ee10` |
-| `CytobandControllerTest`: `MockMvcRequestBuilders.fileUpload` → `multipart` | `fileUpload` is gone in Spring 6 |
-| 6 test-side `Assert.isTrue(boolean)` / `Assert.notNull(Object)` call sites given messages | Spring 6 deleted the no-message overloads |
-| `EnsemblDataManagerTest`: `new Double("0.0750799")` → `Double.valueOf` | PMD 7's `UnnecessaryBoxing` (which replaced `BooleanInstantiation`) flags the boxing constructors |
-| `src/test/resources/log4j.xml` deleted, JUnit 4 kept on the JUnit 5 platform via `junit-vintage-engine` | slf4j 2 has no `slf4j-log4j12`, so the suite logs through `spring-boot-starter-log4j2`; Boot 3.5's `spring-boot-starter-test` is JUnit 5 only (D13) |
-| All four `--add-opens` gone from the test JVM args | They existed only for EhCache 2's reflective sizing, which D11 removed |
-
-## What Phase 4 changed
-
-SAML 2 and JWT rewritten on Spring Security 6.5.11 (`spring-security-saml2-service-provider` /
-OpenSAML 4.3.2, `com.auth0:java-jwt` 4.6.0) — the findings are in `JAVA21-MIGRATION-PLAN.md`.
-**519 → 526 tests**, which is exactly the seven Phase 3 removed and listed above; **3 (H2) and
-11 (PostgreSQL) failures, unchanged**, and the same 21 skips. Nothing was re-baselined, nothing was
-`@Ignore`d, and no test was weakened to accommodate the new stack.
-
-The seven came back as they were, with two changes:
-
-| Change | Why |
-|---|---|
-| `@MockBean SAMLEntryPoint` and `@MockBean SAMLAuthenticationProvider` dropped from `JwtAuthenticationTest` and `AuthManagerTest` | They existed only because the old `JWTSecurityConfiguration` autowired both to build its entry point, so every JWT test context dragged in the SAML stack. The Security 6 chain redirects to a *URL* instead, so there is nothing left to mock — and `@MockBean` is deprecated for removal in Boot 3.4 anyway |
-| `src/test/resources/applicationContext-test.xml` component-scans `com.epam.catgenome.security.jwt` again | Phase 3 commented that scan out with the package. `AuthManager` takes `JwtTokenGenerator` by constructor, so every context that has an `AuthManager` needs it; `JwtTokenVerifier` is not a component but a bean of `JWTSecurityConfiguration` |
-
-One thing to know before writing another security test: `AbstractSecurityTest` imports the JWT,
-SAML and ACL configurations, but under `test-catgenome-auth.properties` only the JWT one is active —
-the other two are excluded by their `@ConditionalOnProperty`. Switching SAML on from a subclass
-needs a key store and identity provider metadata on disk, because `SAMLSecurityConfiguration` reads
-both eagerly while building the relying party registration.
-
-**No unit test covers the SAML half, deliberately.** There was none before this phase either — the
-OpenSAML 2 configuration was never unit-tested here — and a test worth having needs an identity
-provider, a key store and a signed assertion, i.e. the environment `make smoke-saml` already
-provides. So the SAML acceptance tests are the `.devenv` targets, and they are the ones to run after
-touching that code:
+The checks that cover the gap are scripted, and are the ones to run after touching a parser, an
+index, a cloud path or the packaging:
 
 ```bash
-make up-saml && make smoke-saml                              # web SSO + single logout, both users
-make smoke-saml U=ngbuser@ngb.dev.local P=user
-make saml-verify-signing                                     # SP metadata + AuthnRequest signatures
-make cli-token                                               # a JWT, via the SAML session
-```
-
-## What Phase 5 changed
-
-Flyway 3.2.1 → 11.7.2, H2 1.3.176 → 2.3.232, PostgreSQL 9.6 → 16.15, postgresql driver
-9.4-1206 → 42.7.x — the findings are in `JAVA21-MIGRATION-PLAN.md` ("Phase 5 execution findings").
-**No test was added, removed, `@Ignore`d or weakened; the count stays at 526 / 21 skipped.** H2
-holds at 3 failures and PostgreSQL goes **11 → 4**, entirely by fixing causes.
-
-### The eight non-network failures, fixed at the source
-
-Seven were the two Flyway script sets having diverged, and the eighth was a DAO bug. All were
-fixed forward, on the PostgreSQL side, with **H2 as the reference** — `DefaultRoles`,
-`docs/md/user-guide/um-overview.md` and the DAO code all agree with the H2 script set, so it is
-the one the application is actually written against.
-
-| Fix | Effect |
-|---|---|
-| `v2026.08.21_12.00__align_vcf_multi_sample_with_h2.sql` — `VCF.MULTI_SAMPLE` loses `NOT NULL` and its default | −4 (`BookmarkDaoTest` ×2, `VcfFileDaoTest` ×2) |
-| `v2026.08.21_12.10__align_task_organism_with_h2.sql` — `TASK_ORGANISM.ORGANISM` and `TASK_EXCL_ORGANISM.ORGANISM` `VARCHAR(250)` → `BIGINT` | −2 (`BlastTaskDaoTest`) |
-| `v2026.08.21_12.20__align_predefined_roles_with_h2.sql` — deletes `ROLE_CYTOBANDS_MANAGER` / `ROLE_MAF_MANAGER`, adds the **missing** `ROLE_WIG_MANAGER`, renumbers the rest to match H2's 1–10 and remaps `user_role` | −1 (`RoleDaoTest.testLoadRolesWithUsers`) |
-| `TargetManager.load(TargetQueryParams)` returns early when the filter matched nothing | −1 (`TargetManagerTest.filterTargetsByOwnerTest`). Separate commit; a pre-existing bug, not the migration's |
-
-`ROLE_WIG_MANAGER` being absent on PostgreSQL was **a real production defect**, not a test
-artefact: nothing but an administrator could manage WIG files there. Still open and *not* fixed
-here, because no test covers it and inventing role ids is not this phase's call:
-`NGBMethodSecurityExpressionRoot.hasSpecificRole` references MAF, BUCKET, PROJECT and BOOKMARK
-manager roles, and `DefaultRoles` a HEATMAP one, that **neither** flavour has ever seeded.
-
-### Two H2 2.x behaviour changes, caught only by running the suite
-
-The DDL work was proved out by migrating and diffing schemas, which is why it looked complete.
-The first `make test` on H2 2.3.232 came back **526 / 12 / 21** against a baseline of 4. Both
-causes are genuine data-correctness bugs on H2 2.x, not test artefacts:
-
-| Fix | Effect |
-|---|---|
-| `metadata-dao.xml`: `(entity_id, entity_class) IN (@ENTITIES@)` → `IN (VALUES @ENTITIES@)` | −7 (`MetadataDaoTest.shouldGetSeveralItems`, `ProjectManagerTest` ×4, `ProjectControllerTest` ×2). H2 2.x tries to convert `'PROJECT'` to the *first* column's type and fails the query with `Data conversion error` `[22018-232]`; 1.3.176 evaluated it correctly. Reproduced standalone, so it is H2's optimiser. `VALUES` reads correctly on both engines |
-| `v2026.08.21_12.30__heatmap_cell_value_double.sql`, on **both** flavours: `HEATMAP.MIN_CELL_VALUE` / `MAX_CELL_VALUE` bare `DECIMAL` → `DOUBLE PRECISION` | −1 (`HeatmapManagerTest.createHeatmapTest`, `expected:<0.001273579> but was:<0.0>`). H2 2.x reads bare `DECIMAL` as `NUMERIC(100000, 0)` — **scale zero** — and rounds every value. PostgreSQL's unconstrained `NUMERIC` kept the scale, which is why only H2 showed it |
-
-A ninth script-set divergence was found by the schema diff rather than by a test and converged
-anyway (`BAM_COVERAGE.COVERAGE`, `NUMERIC` → `DOUBLE PRECISION`, `v2026.08.21_12.40`). Nothing
-was re-baselined to get here.
-
-### Two things the suite cannot catch
-
-Both were found by starting a real server, and both are recorded here so the next phase does not
-read a green suite as "the application boots":
-
-- **Boot's `FlywayAutoConfiguration` collides with NGB's `flyway` bean** once flyway-core is 11
-  instead of 3.2.1 — a hard context failure. Excluded in `Application.java`. The unit suites
-  build plain Spring contexts from the XML and never go through auto-configuration.
-- **The shipped log configuration discards `WARN`**, so `FlywayMigrator`'s one-time
-  schema-history conversion notices went nowhere on a real upgrade. Fixed with a `WARN`-threshold
-  console appender bound only to that class, in the `jar`, `release` and `staging` profiles.
-
-So: after this phase, `make test` and `make test-pg` being at baseline is necessary but not
-sufficient. `make up`, `make up-pg` and the upgrade procedure in
-`docs/md/installation/database-upgrade.md` are the rest of it.
-
-## What Phase 6 changed
-
-Lucene 6.6.0 → 9.12.3, plus the startup guard and reindex procedure decision D8 asks for — the
-findings are in `JAVA21-MIGRATION-PLAN.md` ("Phase 6 execution findings"). **526 → 540 tests**, all
-14 of them new, and the failure count is unchanged on both flavours. Nothing was re-baselined,
-nothing was `@Ignore`d, and no assertion was weakened.
-
-### The 14 new tests
-
-| Class | Tests | Covers |
-|---|---|---|
-| `app/LuceneIndexVersionCheckTest` | 7 | The startup half: the refusal text and directory count, the per-leaf rebuild call for a multi-index root, the argument-less endpoints — and the four states that must **not** stop startup (unconfigured, absent, present but index-free, written by this release) |
-| `util/LuceneIndexUtilsTest` | 7 | The lazy half: a stale feature index named with the exact `ngb`/REST call that rebuilds it, derived from the path for vcf/genes/bed; the fallback for a non-feature index; the writer refusing identically to the reader; the rebuild writer discarding only Lucene's own files; and that a search counts every match, not the first 1000 |
-
-They assert on message *text*, deliberately: on this phase the message is the deliverable. Neither
-class needs a Lucene index committed to the tree — `util/StaleLuceneIndex` writes a `segments_1`
-holding nothing but a codec header declaring format version 6, which every path into the guard
-rejects in the same place as a real 6.6.0 index. A committed fixture would have been invalidated by
-this very phase.
-
-### Two real defects the phase found, and one test-infrastructure trap
-
-| Fix | Effect |
-|---|---|
-| `BamCoverageManager` indexed `chr` as both a `TextField` and a `SortedStringField` in the same document | Not a test failure — the coverage index could not be **written** at all on Lucene 9, which requires every document to agree on a field's `IndexOptions`, not only on its `DocValuesType`. Lucene 6 accepted it and stored a mess. Found by reindexing the captured fixture, not by the suite |
-| `LuceneIndexUtils.openWriterForRebuild` opened a writer, caught the version failure, discarded the files and retried with the same `IndexWriterConfig` | Found by `LuceneIndexUtilsTest`: `IndexWriter`'s constructor claims the config before it reads the commit, so the retry could only ever fail with "do not share IndexWriterConfig instances across IndexWriters". It now probes the commit point first. Invisible to the documented procedure, which deletes the directory first — and exactly the path an operator takes when they do not |
-| The two test profiles omitted three `*.index.directory` properties, so the suite wrote Lucene indexes into source-tree directories named literally `${pathway.index.directory}` and never cleaned them | Nine failures on the first post-upgrade run (`PathwayManagerTest` ×6, `BamCoverageManagerTest` ×2, `HomologeneManagerTest.searchTest`) — all of them stale **Lucene 6** data from the runs of 2026-08-20, none of them the code's doing. See precondition 2 above; the properties now point into `contents/` and the directories were archived to `.devenv/fixtures/pre-migration/lucene6/test-tree-lucene6-dirs.tgz` and deleted |
-
-That last row is the one to read twice before blaming yourself for a red run on this branch: a
-Lucene upgrade turns "stale scratch index" from harmless into a hard failure, and this suite
-carried scratch indexes between runs for years.
-
-### `make test` being green still does not mean the server boots
-
-Third phase in a row, and this time in both directions. The suite cannot see that the guard's
-messages reach a terminal — every appender in the shipped log4j2 profiles filters at `ERROR`, so
-the check's `WARN`/`INFO` lines went nowhere until they were bound to the `WARN`-threshold console
-appender Phase 5 added — and it cannot see the `chr` defect either, because no test writes a
-coverage index. The checks that do:
-
-```bash
-make up && make smoke                        # and read the log: the check reports at startup
-.devenv/scripts/verify-lucene.sh             # all 18 Lucene read paths against a running server
-```
-
-`verify-lucene.sh` is Phase 6's, and its output against 9.12.3 after the documented reindex is
-byte-identical to the 6.6.0 recording taken before the upgrade — both are in
-`.devenv/fixtures/pre-migration/lucene6/`, which also holds the last Lucene 6 indexes that will
-ever exist here, for testing the upgrade path against.
-
-## What Phase 7 changed
-
-htsjdk 2.2.4 → **5.0.0**, the forked reader package deleted, and the index cache deleted with it
-(decisions D9 and D10) — the findings are in `JAVA21-MIGRATION-PLAN.md` ("Phase 7 execution
-findings"). 117 files touch htsjdk; the failure count is unchanged on both flavours.
-
-| Suite | Phase 6 | Phase 7 |
-|---|---|---|
-| H2 | 540 / 3 failed / 21 skipped | **534 / 3 / 21** |
-| PostgreSQL | 540 / 3 / 21 | **534 / 3 / 21** — `PdbDataManagerTest.testParse` passed at this recording; it flaps, so 4 is also a pass |
-| `make lint` | 37 warnings in 15 files, pmd clean | **37 warnings in 14 files, pmd clean** |
-
-### The six removed tests
-
-All of them existed only to test the cache D10 removes, so they went with it:
-
-| Class | Tests | What it asserted |
-|---|---|---|
-| `util/EhCacheTest` | 3 | the `server.index.cache.enabled` property, put/evict, clear |
-| `util/IndexHeaderCacheTest` | 2 | that a Tribble and a Tabix index header came back from the cache |
-| `util/EhCacheDisabledIndexCacheTest` | 1 | that the property being `false` produced no cache |
-
-`src/test/resources/test-catgenome-cache-disable.properties` existed only for the third and went
-too. No other test lost coverage: the cache was a memoisation layer, and every reader path it sat
-in front of is still covered by the manager tests.
-
-### Two Phase 6 assertions that had never held
-
-The first `make test` of this phase showed **five** failures, not three.
-`LuceneIndexVersionCheckTest.refusesToStartOnAnIndexAnEarlierReleaseWrote` and
-`LuceneIndexUtilsTest.readingAStaleFeatureIndexNamesTheFileAndTheCallThatRebuildsIt` both expected
-the refusal message to mention `installation/lucene-reindex/` — the mkdocs URL form — against a
-message that says `docs/md/installation/lucene-reindex.md`. Both halves were committed together in
-`c76ff2ee`, so the assertion never passed; Phase 6's numbers were taken before the message text was
-settled and the suite was not re-run afterwards. Neither file is touched by this phase and the
-assertion is a deterministic `String.contains`, so it is not a Phase 7 regression.
-
-Fixed on the test side, which is not a re-baselining: the assertion's intent is "the message points
-at the reindex procedure", the pointer that exists is the repo path (three javadocs cite the same
-form, and `mkdocs.yml` has no `site_url` for the URL form to resolve against), and both assertions
-now expect the **full** path — stricter than before, not weaker.
-
-### `GffManagerTest.testLoadGenesTranscript` did not move, and its failure shape is evidence
-
-The plan expected this phase to change it; it could not, and Phase 0 had already established why
-(see ["Why `GffManagerTest.testLoadGenesTranscript` is not a fixture
-bug"](#why-gffmanagertesttestloadgenestranscript-is-not-a-fixture-bug)). It failed here in its other
-documented shape, the NPE at `GffManagerTest.java:455` — and that shape is positive evidence for the
-new parser: the assertions before it passed, so stock htsjdk parsed all 75,207 records of
-`Homo_sapiens.GRCh38.83.sorted.chr21-22.gtf` into `Gene`s exactly as the fork did. What failed is
-`GeneTrackManager.loadGenesTranscript` line 197, where `getTranscriptFromDB` threw
-`ExternalDbUnavailableException` and the `catch` left `gene.transcripts` null. Strictly downstream of
-the parser, strictly the network.
-
-### A green suite is even weaker evidence here than usual
-
-Fourth phase in a row. The suite reads the same fixtures through the managers with a Spring test
-context; it never boots the server, so it cannot tell you an instance still parses a BAM — and it
-verified nothing at all about the one regression this phase actually contained (htsjdk's length
-probe becoming a `HEAD` request, which turns a pre-signed S3 URL into a silently empty file). That
-was found by loading tracks through a running server, and the script that does it is committed:
-
-```bash
-.devenv/scripts/prepare-track-fixtures.sh    # stage the fixtures into /ngs/tracks
+bash scripts/prepare-track-fixtures.sh    # stage the fixtures into /ngs/tracks, once
 make up && make smoke
-.devenv/scripts/verify-tracks.sh             # every track type, with the data it returned
+make verify-tracks                        # every track type, through the parsers
+make verify-lucene                        # all 18 Lucene read paths
+make up-cloud && make verify-cloud        # s3:// and sws://, byte-for-byte against a local read
+make up-saml && make smoke-saml && make cli-token   # SAML SSO -> RS512 JWT
 ```
 
-It covers BED, GFF/GTF, GenePred, VCF, BedGraph, BigWig, SEG, BAM, CRAM, plain and bgzip+tabix, and
-three remote variants including one whose `HEAD` is answered with 403; it compares CRAM against the
-BAM it was made from and each remote read against the same file on disk, because those are the
-comparisons a parser regression cannot survive. Two coverage notes: the CRAM fixture had to be
-**created** (`.devenv/scripts/BamToCram.java` → `p7_agnX1.cram`, 45,237 records; there is none in the
-repo), and **MAF cannot be verified through the server at all** — `MafController` was deleted in
-`562b6a6d` (Dec 2018), so `MafManagerTest.testRegisterMaf` is the whole of its coverage.
+`verify-tracks.sh` covers BED, GFF/GTF, GenePred, VCF, BedGraph, BigWig, SEG, BAM, CRAM, plain and
+bgzip+tabix, and three remote variants including one whose `HEAD` is answered with 403; it compares
+CRAM against the BAM it was made from and each remote read against the same file on disk, because
+those are the comparisons a parser regression cannot survive. `verify-cloud.sh` stands **MinIO** up
+as a `cloud` compose profile and reads registered `s3://` / `sws://` tracks, `fileUrl=` tracks and
+pre-signed download URLs against it. `verify-lucene.sh`'s output is byte-identical to a recording
+taken on Lucene 6 before the upgrade, both kept in `.devenv/fixtures/pre-migration/lucene6/`.
 
-## What Phase 8 changed
+**MAF cannot be verified through the server at all** — `MafController` was deleted in `562b6a6d`
+(Dec 2018), so `MafManagerTest.testRegisterMaf` is the whole of its coverage, and the MAF row of
+`verify-tracks.sh` is skipped.
 
-The rest of the dependency backlog, in twelve commits — AWS SDK v1 1.12.797 → **v2 2.54.1**, POI
-3.16 → **5.5.1**, biojava 4.2.0 → **7.2.6** (and `biojava-structure` deleted), azure-storage-blob
-12.14.0 → 12.35.0, azure-ai-openai beta.2 → beta.16, commons-io 2.15.1 → 2.22.0, commons-collections
-3 → collections4, retrofit converter-jackson 2.7.2 → 3.0.0 (OkHttp 3 → 4), jettison 1.1 → 1.5.7,
-opencsv 5.8 → 5.12.0, fast-classpath-scanner → ClassGraph, and the Swagger 1.3 annotations →
-OpenAPI 3 in 41 files. The findings are in `JAVA21-MIGRATION-PLAN.md` ("Phase 8 execution findings").
+## Known gaps
 
-| Suite | Phase 7 | Phase 8 |
-|---|---|---|
-| H2 | 534 / 3 failed / 21 skipped | **534 / 4 / 21** — the documented three plus `PdbDataManagerTest.testParse` (`expected:<B> but was:<A>`, RCSB chain order); it flaps, so 3 is also a pass |
-| PostgreSQL | 534 / 3 / 21 | **534 / 3 / 21** — the RCSB test passed at this recording |
-| `make lint` | 37 warnings in 14 files, pmd clean | **37 warnings in 14 files, pmd clean** |
+Things nothing in this repository has ever verified. None of them is a known failure; they are
+places where a first report from the field would be the first evidence either way.
 
-**No test file was touched: `git diff 89a0210f..HEAD -- '*/src/test'` is empty.** Not one test was
-added, removed or adjusted, so the counts above are the same tests on eleven different libraries.
-Which is the point worth taking from this phase: the suite is nearly blind to it. There is no xlsx
-fixture and no test mentions XSSF; the two S3 tests stub the client away; nothing imports
-`org.biojava.nbio.structure`; and `GffManagerTest.testRegisterGbk` asserts only that Genbank
-registration produced a file, not what is in it. A green suite here means "nothing that was covered
-broke", and most of what changed was not covered.
+- **The `az://` (Azure Blob) path has never been exercised against a live service.**
+  `AzureBlobClient` builds `https://%s.blob.core.windows.net` from a hard-coded template, so Azurite
+  cannot stand in for it, and no Azure subscription was available. Compile- and unit-verified only.
+  The `s3://` / `sws://` paths that share the reader stack are covered by `verify-cloud`.
+- **`sws://` (Swift) has not been read from a live endpoint** either; MinIO stands in for it.
+- **The LLM round trip has never been exercised** — no API keys for any provider. The clients are
+  wired and compile; nothing has been observed on the wire.
+- **PostgreSQL 17 has never been run**, and neither has any version between 9.6 and 16. 16 is what
+  this environment and CI run. The wider range quoted in the documentation is the JDBC driver's.
+- **No upgrade has been performed on a production-sized database or index set.** Both conversions
+  were exercised against a purpose-built pre-3.0.0 fixture (60 `schema_version` rows, real ACL and
+  biological-data-item content) in `.devenv/fixtures/pre-migration/`; timings and failure modes at
+  real scale are unknown. Rehearse on a copy.
+- **The Windows bundle has never been started** — no Windows host. CI asserts only that
+  `ngb-server-windows.zip` contains `jre/bin/java.exe`, `lib/catgenome.jar` and `bin/ngb-server.bat`,
+  and that it does *not* contain a POSIX launcher.
+- **The x86_64 bundles have never been started.** This host is aarch64, so only
+  `-PbundleArch=aarch64` was run end to end; the four Temurin checksums are pinned in `build.gradle`
+  and the x64 launcher path is inspected, not executed.
+- **Nothing publishes the JRE-bundled archives.** `build.sh` does not produce them and `publish.sh`
+  uploads what it finds in `dist/`; the `bundles` CI job attaches them to the run as artifacts. A
+  release expected to offer them needs a step that does not exist yet.
+- **`.github/workflows/build.yml` has not run on GitHub.** Every job mirrors a `make` target that
+  passes in these containers and the YAML parses, but no run exists — the branch has not been
+  pushed. Expect the first push to shake out runner-specific problems; the likely candidates are the
+  Node 14.17.5 `cache: npm` step and JDK toolchain discovery in `.github/actions/setup-jdks`.
 
-So the verification that carried the phase was done by hand, and where it was repeatable it was
-scripted. All of these are committed:
-
-```bash
-.devenv/scripts/prepare-track-fixtures.sh && .devenv/scripts/verify-tracks.sh   # every track type
-.devenv/scripts/verify-lucene.sh                                               # 18 Lucene read paths
-make up-cloud && make verify-cloud                                             # s3:// and sws://
-make cli-token                                                                 # SAML login -> JWT
-```
-
-`verify-tracks.sh` and `verify-lucene.sh` came back green (1 skipped: MAF, which has no REST
-surface). `verify-cloud.sh` is new this phase: it stands **MinIO** up as a `cloud` compose profile
-and reads registered `s3://` / `sws://` tracks, `fileUrl=` tracks and pre-signed download URLs
-against it, diffing every result byte-for-byte against a local read — which is what establishes that
-v2's `S3Presigner` produces URLs the reader cannot tell from v1's. The one-off comparisons are in the
-plan: POI 5 against POI 3.16 on the same target report and the same gene import, and biojava 7.2.6
-against 4.2.0 on the same Genbank fixture (GFF, FASTA and a full parse dump, all three identical).
-
-**Two exit criteria could not be met in this environment**, and are recorded rather than dropped:
-`az://` track loading (no Azure credentials, and `AzureBlobClient` hard-codes
-`https://%s.blob.core.windows.net`, so Azurite cannot be pointed at) and the LLM target summaries
-(no API keys). Both are called out in the plan with what *was* verified offline in their place.
-
-## What Phase 9 changed
-
-Packaging, CI, docs and the release: the Docker images on Temurin 21, JRE-bundled distributions that
-actually start, AppVeyor → GitHub Actions, the docs, this environment's own final pass, and
-**version 3.0.0**. The findings are in `JAVA21-MIGRATION-PLAN.md` ("Phase 9 execution findings").
-
-| Suite | Phase 8 | Phase 9 |
-|---|---|---|
-| H2 | 534 / 4 failed / 21 skipped | **545 / 1 / 21** — only `GffManagerTest.testLoadGenesTranscript` |
-| PostgreSQL | 534 / 3 / 21 | **545 / 1 / 21** — the same one; the two flavours are now identical |
-| `make lint` | 37 warnings in 14 files, pmd clean | **37 warnings in 14 files, pmd clean** |
-| `make cli-test` | could not run | **145 rows: 129 passed, 0 failed, 16 skipped** |
-
-**Two failures were fixed at the cause, and 11 tests were added.** The fixes are
-`BlatSearchManagerTest.testFind` and `testFindBlatReadSequence`, which this file had recorded as
-live-data failures and which turn out never to have been meant to touch the network — see
-["Live-data failures"](#live-data-failures). Nothing was excluded to get there, and
-`-PexcludeNetworkTests` (which CI passes) still names only the two tests it named before.
-
-The 11 new tests are the Phase 8 handover:
-
-| Tests | Class | What it pins |
-|---|---|---|
-| 6 | `S3ObjectChunkInputStreamTest` | `FeatureInputStream`'s EOF sentinel: v2's `ResponseInputStream` returns `-1` where v1's threw, and a reader that treats `-1` as data reads past the end of a chunk. |
-| 4 | `EnhancedUrlHelperTest` | The 403-tolerant `HEAD` path is keyed to **how the URL was produced** (a pre-signed URL NGB made itself) rather than to the host, which is what the Phase 8 defect got wrong. |
-| 1 | `UrlShorterManagerTest` (+4 rewritten) | The URL format that holds **commons-validator at 1.5.0** — 1.6+ rejects the `dev.local`-style hostnames the dev environment and several tests use. The bump was refused, and this test is why the pin can be trusted rather than remembered. |
-
-**One CLI fixture was wrong and only a dependency bump exposed it.** The last Phase 8 handover item
-was ngb-cli's own dependency backlog, to be done *after* `make cli-test` could run; with the 145 rows
-green it was. Bumping jackson 2.7.5 → 2.21.4 turned 16 of the 135 CLI unit tests red with
-`Failed to load available DataItemFormats`, none of them a test about formats:
-`TestHttpServer.addGetFormatsRequest` stubbed `/dataitem/formats` with
-`Collections.singletonMap(null, null)`, and from jackson 2.9 the mapper's `Include.NON_EMPTY` applies
-to a map's contents too, so the only entry was suppressed, the map counted as empty and the whole
-`payload` key disappeared from the stubbed response. The fixture now returns
-`singletonMap("narrowPeak", BiologicalDataItemFormat.BED)` — one entry of what the real endpoint
-answers. 135 / 0 after, `make cli-test` re-run and still 129/0/16, `make lint` still green. The
-dependency story is in `JAVA21-MIGRATION-PLAN.md`, "ngb-cli's dependency backlog".
-
-**A green suite is again not the evidence that carried the phase**, for the same reason as Phase 8: no
-test boots a server, builds an image or unpacks an archive. What was actually run, all of it against
-the 3.0.0 artifacts built by `build.sh`:
-
-```bash
-make lint && rm -rf ../contents && make test          # 545/1/21
-make reset-pg && make test-pg                         # 545/1/21
-make cli-test                                         # 145 rows, 129 passed, 0 failed
-make up && make smoke                                 # http 200, version 3.0.0.<sha>
-bash scripts/verify-tracks.sh                         # every track type, 1 skipped (MAF)
-bash scripts/verify-lucene.sh                         # every Lucene read path
-make up-cloud && make verify-cloud                    # 5 cloud read paths, 0 skipped, all byte-identical
-make up-saml && make smoke-saml && make cli-token     # SAML SSO OK, RS512 JWT with ROLE_ADMIN
-```
-
-plus, by hand: the core image (791 MB) and the demo image (2.52 GB, `REFERENCES=dm6`) built and
-**run** — `/restapi/version` answers `3.0.0.<sha>`, the client index page is 200, the bundled `ngb`
-reports `3.0.0` and talks to its own server, the demo image registers its baked reference and reads a
-BAM (1977 reads) and a VCF (81 variations, first `12585001 DEL`) back over REST; and the JRE-bundled
-Linux archive unpacked and started in a `ubuntu:22.04` container with no JDK anywhere.
-**Zero "restricted method … java.lang.foreign" warnings in every one of those startups** — that is the
-positive check on `--enable-native-access=ALL-UNNAMED`, which a launcher can lose without failing.
-
-**Four things could not be verified in this environment.** None is papered over:
-
-| | Why not | What was done instead |
-|---|---|---|
-| The workflow running green in CI | Needs a push to GitHub; there is no runner here. | Every job's steps were run locally in the containers — `lint`, `test-h2`, `test-pg`, `build` (via `build.sh`), `cli-e2e`, `bundles`. The YAML parses (PyYAML). **The workflow itself has never executed**, and the first push is expected to shake out runner-specific problems. |
-| The Windows bundle starting | No Windows host. | Layout and launcher inspected: `jre/bin/java.exe`, `lib/catgenome.jar`, `bin/ngb-server.bat` present, no POSIX launcher, `set JAVA_HOME=%APP_HOME%\jre` injected before the discovery block, all 95 lines CRLF. |
-| `az://` track loading | No Azure credentials, and `AzureBlobClient` hard-codes `https://%s.blob.core.windows.net`, so Azurite cannot be pointed at it. Carried over from Phase 8. | Nothing. The `s3://`/`sws://` paths that share the reader stack are covered by `verify-cloud`; the Azure client itself is **unverified against a live service**. |
-| LLM target summaries | No API keys for any of the four providers. | Nothing beyond compile-and-wire checks from Phase 8. **Unverified.** |
-
-Also worth carrying forward: **the `x86_64` bundles cannot be started here either.** The archives CI
-publishes are x64; this host is aarch64, so the bundle that was unpacked and started is the one built
-with `-PbundleArch=aarch64`. The two differ only in which Temurin archive is downloaded (all four
-checksums are pinned in `build.gradle`), but the x64 launcher path is inspected, not executed.
+Defects that are known, reproducible and deliberately unfixed are in [`ISSUES.md`](../ISSUES.md)
+instead. Container vulnerability scanning is in [`SECURITY-SCAN.md`](SECURITY-SCAN.md).
 
 ## Reproducing
 
@@ -708,15 +287,6 @@ make test-one T=VcfManagerTest  # single class
 make cli-test                   # the CLI against a running server; needs dist/catgenome-h2.jar
 ```
 
-And the three checks the unit suite cannot give you, each against a running server — see
-`README.md`, "Three checks the unit suite cannot give you":
-
-```bash
-make verify-tracks              # every track type, through the parsers
-make verify-lucene              # every Lucene read path
-make up-cloud && make verify-cloud
-```
-
 HTML reports land in `server/catgenome/build/reports/tests/test/index.html`, XML in
-`server/catgenome/build/test-results/`. Note that both suites write to the same directory, so
-whichever ran last is what you are reading.
+`server/catgenome/build/test-results/`. Note that both database flavours write to the same
+directory, so whichever ran last is what you are reading.
