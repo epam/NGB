@@ -106,6 +106,11 @@ $ NGB_SERVER_OPTS="-Xmx8g" bin/ngb-server
 Everything under [Configuring NGB instance](#configuring-ngb-instance) applies unchanged: data and
 the `config/` directory are relative to the working directory the launcher is started from.
 
+The bundled runtime is a Temurin 21 build, which needs **glibc 2.17 or newer** — RHEL/CentOS 7,
+Ubuntu 16.04 and anything more recent. On an older distribution, install a Java 21 of your own and
+run the plain jar instead. The Windows archive has not been started on a Windows host for this
+release; the Linux one is exercised in CI, in a container with no Java installed at all.
+
 ## Configuring NGB instance
 
 By default NGB will run on port 8080 and locate all the data (files and database) in the runtime folder.
@@ -124,7 +129,8 @@ You can provide an external file **catgenome.properties** to specify data locati
 * **database.max.pool.size=25** NGB database connection pool configuration
 * **database.initial.pool.size=5** NGB database connection pool configuration
 
-The bundled H2 is 2.3.232 and the supported PostgreSQL range is 9.6 to 17. None of these
+The bundled H2 is 2.3.232 and the supported PostgreSQL range is 9.6 to 17 — of which **16 is the
+version NGB is tested against**; the rest of the range is the JDBC driver's. None of these
 property values changed in this release, but an H2 or PostgreSQL database created by an
 earlier NGB release needs a one-time conversion before this version can open it — see
 [Upgrading the NGB database](database-upgrade.md). The search indexes under
@@ -183,6 +189,23 @@ together with your IDP's signing certificate.
  * **saml.authn.request.binding=urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect**
  * **saml.authorities.attribute.names=http://schemas.xmlsoap.org/ws/2005/05/identity/claims/tokenGroups**
  * **saml.user.attributes=Email=http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress,Name=http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name**
+ * **saml.base.url=https://localhost:8080/catgenome** the base URL the outside world reaches NGB at.
+   The absolute locations published in the SP metadata — the assertion consumer service and the single
+   logout service — are built from it; if it is not set, `server.ssl.endpoint.id` is used instead.
+
+> **Note**: with TLS terminated in front of NGB, by a reverse proxy or a load balancer,
+> `saml.base.url` (or `server.ssl.endpoint.id`) **must** be the externally visible URL. Nothing
+> derives it from the incoming request any more: the properties that used to do that —
+> `saml.lb.enabled`, `saml.lb.scheme`, `saml.lb.server.name`, `saml.lb.server.port`,
+> `saml.lb.include.port.in.request`, `saml.lb.context.path` and `saml.validate.url.without.scheme` —
+> are gone, and an unrecognised property is ignored in silence, so leaving them in place looks like
+> it is still working. Set `server.forward-headers-strategy=NATIVE` as well if anything else in the
+> deployment needs the forwarded scheme and host; NGB ships no default for it.
+
+> **Note**: single logout — ending the identity provider's session as well as NGB's — is
+> `POST /saml/logout`. A `GET` on that URL clears the NGB session only, and the next request
+> silently re-authenticates against the still-open IdP session. The bundled web client submits the
+> POST itself; a link or a script of yours that used `GET /saml/logout` has to be changed.
 
 With SAML authentication enabled, **ngb-cli** won't have access to the application. If you need CLI access, enable JWT security alongside with SAML, as described above.
 You can use a third-party JWT tokens or let NGB generate them for you.
@@ -199,7 +222,16 @@ You should put **catgenome.properties** in **config** folder in the runtime fold
 ```
 $ java --enable-native-access=ALL-UNNAMED -jar catgenome.jar --conf=/folder/with/properties
 ```
- 
+
+> **Note**: `--conf` is the only command-line option that affects the properties above. NGB reads
+> a good many of its own settings — `ngs.data.root.path`, `file.browsing.allowed`,
+> `url.browsing.allowed`, `blat.search.*`, `files.download.*`, `saml.user.attributes`,
+> `jwt.token.expiration.seconds`, `search.features.max.results` and about thirty more — out of
+> **catgenome.properties** itself rather than out of Spring's environment. Passing one of them as
+> `--ngs.data.root.path=/data`, or putting it in `application.properties`, is ignored silently: no
+> warning, and the default stays in force. Put them in the file. The Spring Boot settings in the
+> next section behave the other way round and *can* be given on the command line.
+
 ### Configure Embedded Tomcat
 
 NGB uses Spring Boot so it supports a full stack of Spring Boot Application properties.
@@ -267,14 +299,25 @@ Set the following AWS environment variables:
 ```
 $ export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
 $ export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-$ export AWS_DEFAULT_REGION=us-east-1
+$ export AWS_REGION=us-east-1
 ```
 Where:
 - `AWS_ACCESS_KEY_ID` – specifies an AWS access key
 - `AWS_SECRET_ACCESS_KEY` – specifies the secret key associated with the access key
-- `AWS_DEFAULT_REGION` – specifies the AWS region
+- `AWS_REGION` – specifies the AWS region
 
-> **Note**: Do not forget to replace values of *AWS_ACCESS_KEY_ID* and *AWS_SECRET_ACCESS_KEY* variables with your own AWS access key and AWS secret key. And replace value of *AWS_DEFAULT_REGION* variable, if needed.
+> **Note**: Do not forget to replace values of *AWS_ACCESS_KEY_ID* and *AWS_SECRET_ACCESS_KEY* variables with your own AWS access key and AWS secret key. And replace value of *AWS_REGION* variable, if needed.
+
+> **Note**: earlier versions of this page said `AWS_DEFAULT_REGION`. That is an AWS *CLI* variable,
+> and the AWS SDK NGB uses has never read it — neither the current v2 nor the v1 of previous
+> releases. Anyone who set it was falling through to `region` in `$HOME/.aws/config` (above), or
+> to the instance metadata. A region has to come from one of those three places: without it, S3
+> access fails at startup with *"Unable to create S3 client, S3 services will be unavailable."*
+>
+> One variable was genuinely renamed by the SDK: the profile file is now pointed at with
+> `AWS_SHARED_CREDENTIALS_FILE` instead of `AWS_CREDENTIAL_PROFILES_FILE`. Everything else —
+> `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `~/.aws/credentials`, `~/.aws/config` — is read
+> exactly as before.
 
 After that you may run **catgenome.jar** file to start NGB instance as usually.
 

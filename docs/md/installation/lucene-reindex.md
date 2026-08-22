@@ -109,7 +109,7 @@ ones the standalone JAR ships with. `<base>` is `files.base.directory.path`.
 | `targets/dgidb.*` (1) | `targets.index.directory` | `<base>/targets/` | `PUT /restapi/target/import/dgidb?path=<file>` |
 | `targets/pharmgkb.*` (4) | `targets.index.directory` | `<base>/targets/` | `PUT /restapi/target/import/pharmGKB?genePath=&drugPath=&drugAssociationPath=&diseaseAssociationPath=` |
 | `targets/ttd.*` (2) | `targets.index.directory` | `<base>/targets/` | `PUT /restapi/target/import/ttd?drugsPath=&targetsPath=&diseasesPath=` |
-| `targets/genes`, `targets/gene.fields` | `targets.index.directory` | `<base>/targets/` | `POST /restapi/target/genes/import/{targetId}` — **see [the exception](#targets-uploaded-gene-lists) below** |
+| `targets/genes`, `targets/gene.fields` | `targets.index.directory` | `<base>/targets/` | `POST /restapi/target/genes/import/{targetId}` — **see [the exception](#targetsgenes-uploaded-gene-lists) below** |
 | `ncbi/gene.ids` | `ncbi.index.directory` | `<base>/ncbi/` | `PUT /restapi/externaldb/ncbi/genes/import?path=<gene2ensembl>` |
 | `ncbi/gene.info` | `ncbi.index.directory` | `<base>/ncbi/` | `PUT /restapi/externaldb/ncbi/genes/info/import?path=<gene_info>` |
 

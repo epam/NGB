@@ -103,9 +103,12 @@ This can be achieved by mounting of host folders into a container, using paths t
 * /opt/ngb/H2
 * /opt/ngb/contents
 
-*Note: these were `/opt/catgenome/H2` and `/opt/catgenome/contents` up to NGB 2.7.1. The image works
-out of `/opt/ngb` from 3.0.0 on; a volume mounted at the old path will be ignored, and the container
-will quietly start with an empty database.*
+*Note: earlier versions of this page named `/opt/catgenome/H2` and `/opt/catgenome/contents`, and
+that was simply wrong — the image has worked out of `/opt/ngb` since 2.7.1, and no release ever used
+`/opt/catgenome` inside the container. A volume mounted at the old path is an unused empty directory:
+the database and the file cache stay inside the container and go with `docker rm`. If that is how your
+instance was set up, you have nothing persisted to upgrade, and nothing to migrate — start from the
+paths above.*
 
 *Note: these options shall be specified to a `docker run` command at start time*
 

@@ -8,7 +8,7 @@ NGB instance that already has a database.
 |---|---|---|
 | H2 | 1.3.176 | 2.3.232 |
 | PostgreSQL JDBC driver | 9.4-1206 | 42.7.x |
-| Supported PostgreSQL | 9.6 (older Flyway refused to connect to anything newer) | 9.6 – 17 |
+| Supported PostgreSQL | 9.6 (older Flyway refused to connect to anything newer) | 9.6 – 17, tested on 16 |
 | Flyway (schema versioning) | 3.2.1 | 11.7.2 |
 
 Two of those upgrades cannot be done by NGB on its own, because they change the on-disk
@@ -25,7 +25,39 @@ start converts the schema history in place, as described under
 [what NGB does on first start](#what-ngb-does-on-first-start).
 
 **Back up first.** Stop NGB, then copy the whole database aside before doing anything
-here. Every procedure below is one-way.
+here. Every procedure below is one-way. Rehearse it on the copy if you can: the conversion has
+been exercised against a purpose-built pre-3.0.0 database with real content, but not against a
+production-sized one, so how long it takes at your scale is not known.
+
+## Before you convert: files registered from HDFS or GA4GH
+
+`hdfs://` paths and GA4GH datasets are no longer supported resource types (see the
+[release notes](../release-notes/3.0.0/3.0.0.md#removed)). The two ids they were stored under
+stay reserved in the database, and a row that still holds one is now rejected as it is read:
+
+```
+Biological data item resource type 5 (HDFS) is no longer supported. Files registered with it
+have to be unregistered and, if still needed, re-registered from a supported resource type.
+```
+
+The rejection happens in the row mapper, so it fails the whole request — opening *any* dataset
+that contains such a file, not only that file. Check whether you have any, while the old version
+is still running:
+
+```sql
+SELECT bio_data_item_id, name, path, type
+FROM catgenome.biological_data_item
+WHERE type IN (5, 6);   -- 5 = HDFS, 6 = GA4GH
+```
+
+The usual answer is no rows, and then there is nothing to do here. Otherwise, for each row:
+remove the file from every dataset that holds it (`ngb remove_dataset <dataset> <file>`), then
+unregister it (`ngb del_file <id>`). If the data is still wanted, re-register it afterwards from
+a supported location — local, `http(s)://`, `s3://`, `sws://` or `az://`.
+
+**Do this on the old release**, before converting. It is the last version that can read those
+rows, so once you have upgraded they can no longer be removed through the API or the UI and the
+only way back is the backup.
 
 ## H2
 
@@ -97,6 +129,11 @@ Nothing in this release *forces* a PostgreSQL server upgrade — the new driver 
 to 9.6. But the old Flyway was the only reason NGB was held at 9.6, and 9.6 has been out
 of support since November 2021, so this is the moment to move.
 
+**Move to 16.** That is the version this release is built and tested against — in CI, in the
+containerised development environment, and in the 9.6 → 16 upgrade this page describes. 17 is
+inside the JDBC driver's supported range, which is where the "9.6 – 17" above comes from, but NGB
+has not been run against it.
+
 If you are staying on your current server, skip to
 [what NGB does on first start](#what-ngb-does-on-first-start); there is nothing to do here.
 
@@ -146,7 +183,14 @@ administrators:
 
   If any of your users held `ROLE_MAF_MANAGER`, decide before upgrading how those people
   should keep working — normally by granting the relevant permissions on the MAF datasets
-  directly.
+  directly. And grant `ROLE_WIG_MANAGER` to whoever was supposed to have had it: until now,
+  on PostgreSQL, only an administrator could manage WIG files.
+
+  **The numeric ids of two surviving roles change** as the deleted ones make way:
+  `ROLE_SEG_MANAGER` moves from 10 to 9 and `ROLE_TARGET_MANAGER` from 11 to 10, with their
+  grants carried across. Nothing inside NGB refers to a role by number — the UI and
+  `DefaultRoles` both go by name — but a script of your own that assigns roles by id through
+  the API is now naming a different role, so check for one before you start.
 
 * `VCF.MULTI_SAMPLE` becomes nullable, and `TASK_ORGANISM.ORGANISM` /
   `TASK_EXCL_ORGANISM.ORGANISM` change from `VARCHAR(250)` to `BIGINT`. Neither is visible
