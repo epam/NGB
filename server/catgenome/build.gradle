@@ -137,6 +137,25 @@ dependencyManagement {
         mavenBom "software.amazon.awssdk:bom:$versionAwsSdk"
         mavenBom "com.azure:azure-sdk-bom:$versionAzureSdk"
     }
+    // Bouncy Castle is the one library with an outstanding advisory that no BOM here manages, so it
+    // cannot be moved by a property. It is nobody's declared dependency either: 1.72 arrives from
+    // opensaml-security-api:4.3.2 (bcprov and bcpkix) and cryptacular:1.2.5 (bcprov 1.71), both
+    // under spring-security-saml2-service-provider, so managing it is the way to move it without
+    // adding a declaration for a library NGB does not call itself. 1.72 is from 2022 and carries
+    // CVE-2025-14813 (the only new CRITICAL in the review) plus nine MEDIUMs; see §4.2.
+    //
+    // All three artifacts have to move together. bcpkix and bcutil are compiled against bcprov's
+    // internals and are released in lockstep with it, so a 1.84 bcprov under a 1.72 bcpkix is a
+    // NoSuchMethodError on the first signature - which for NGB is the SAML metadata/AuthnRequest
+    // signing path, i.e. login. bcutil is included even though nothing declares it directly: it is
+    // bcpkix's own dependency, and leaving it managed-but-unlisted is how the versions drift apart.
+    dependencies {
+        dependencySet(group: "org.bouncycastle", version: "1.84") {
+            entry "bcprov-jdk18on"
+            entry "bcpkix-jdk18on"
+            entry "bcutil-jdk18on"
+        }
+    }
 }
 
 // >>>>> repositories that should be used to find any external dependencies
