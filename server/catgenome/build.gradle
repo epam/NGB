@@ -197,6 +197,17 @@ configurations {
     // transitive dependency dragged in the slf4j-1.x binding as well, both would register and slf4j
     // would pick one at random.
     all*.exclude module: 'log4j-slf4j-impl'
+    // log4j **1**.2.17, end-of-life since 2015 and carrying seven advisories (three of them
+    // CRITICAL: CVE-2019-17571, CVE-2022-23305, CVE-2022-23307 - see
+    // .devenv/JAVA21-VULNERABILITY-REVIEW.md §4.3). Nothing here declares it; it arrives from
+    // com.indeed:util-mmap:1.0.35, under org.jetbrains.bio:big:0.9.1, and it is the only jar on the
+    // classpath that provides org.apache.log4j.*. Two libraries need those classes to exist -
+    // util-mmap on the BigWig/BigBed read path and com.github.igvteam:igv:v2.6.3 on the GenePred
+    // one, the latter with no declared log4j dependency of its own - so this exclusion is only safe
+    // paired with the log4j-1.2-api bridge declared below, which reimplements the same package on
+    // top of log4j 2. Excluding it on its own is a NoClassDefFoundError the first time either path
+    // is taken.
+    all*.exclude group: 'log4j', module: 'log4j'
 }
 
 // >>>>> external dependencies used to compile and/or run application
@@ -327,6 +338,13 @@ dependencies {
     // Consequence: the five log4j-1-format `log4j.xml` files were rewritten as log4j2.xml.
     implementation("org.springframework.boot:spring-boot-starter-log4j2")
     implementation group: "org.slf4j", name: "slf4j-api"
+    // The org.apache.log4j.* package, reimplemented on top of log4j 2, for the two libraries that
+    // still compile against log4j 1: com.indeed:util-mmap (BigWig/BigBed) and
+    // com.github.igvteam:igv (GenePred). It replaces the log4j 1.2.17 jar excluded above - see the
+    // note there - so their Logger calls now go through the same configuration as everything else
+    // instead of into an unconfigured second logging framework. No version: spring-boot-dependencies
+    // imports log4j-bom at ${log4j2.version}, so this follows the override at the top of the file.
+    implementation group: "org.apache.logging.log4j", name: "log4j-1.2-api"
     // Samtools. 5.0.0 (was 2.2.4, 2016) - migration Phase 7, which also deleted the fork of four
     // htsjdk reader classes that used to live in util/feature/reader. 5.0.0 needs Java 17+ (class
     // file 61) and drops SRA support, which is the only thing it removes that 4.x had; NGB imports
