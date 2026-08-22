@@ -136,7 +136,7 @@ public final class Utils {
     /**
      * Makes time for S3 URL access
      *
-     * <p>A {@link Duration} rather than the expiry {@code Date} it was until Phase 8: AWS SDK v2's
+     * <p>A {@link Duration} rather than the expiry {@code Date} this used to return: AWS SDK v2's
      * presigner signs for a lifetime, not until an instant.
      *
      * @return a {@link Duration} object, representing how long an S3 URL stays valid for

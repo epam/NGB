@@ -25,9 +25,9 @@ FORCE="${FORCE:-0}"
 # SAMLSecurityConfiguration also reads to load the SAML signing and decryption keys. Either format
 # would work now that JKSKeyManager is gone; changing it means changing both places.
 #
-# The image's default JDK, which is 21 from migration Phase 9 (it was 8 before, and this line named
-# JDK 8 explicitly). Its keytool writes JKS perfectly well but prints one warning per invocation
-# recommending PKCS12 - that warning is expected, and is the only thing on stderr here.
+# The image's default JDK, whichever it is, rather than a hardcoded path. Its keytool writes JKS
+# perfectly well but prints one warning per invocation recommending PKCS12 - that warning is
+# expected, and is the only thing on stderr here.
 KEYTOOL="${JAVA_HOME:-/opt/java/openjdk}/bin/keytool"
 
 log() { echo "[certs] $*"; }

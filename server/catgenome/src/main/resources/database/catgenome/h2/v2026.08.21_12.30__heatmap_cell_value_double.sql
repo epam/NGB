@@ -1,5 +1,5 @@
 -- Types CATGENOME.HEATMAP's cell-value bounds as what the application actually stores in
--- them (Java 21 migration, phase 5).
+-- them.
 --
 -- v2021.09.14_12.00__heatmap.sql declared MIN_CELL_VALUE and MAX_CELL_VALUE as bare DECIMAL.
 -- Heatmap.minCellValue / .maxCellValue are Double and HeatmapDao reads them with

@@ -68,7 +68,7 @@ services:
         condition: service_completed_successfully
     environment:
       AUTH_MODE: ${AUTH_MODE:-none}
-      JAVA_VERSION: ${NGB_JAVA_VERSION:-21}  # 21 only since Phase 3 - the jar is Java 21 bytecode
+      JAVA_VERSION: ${NGB_JAVA_VERSION:-21}  # 21 only - the jar is Java 21 bytecode
       JAVA_EXTRA_OPTS: ${JAVA_EXTRA_OPTS:-}
       NGB_HEAP: ${NGB_HEAP:-2g}
       NGB_JAR: /dist/catgenome-h2.jar
@@ -112,7 +112,7 @@ services:
         condition: service_healthy
     environment:
       AUTH_MODE: ${AUTH_MODE:-none}
-      JAVA_VERSION: ${NGB_JAVA_VERSION:-21}  # 21 only since Phase 3 - the jar is Java 21 bytecode
+      JAVA_VERSION: ${NGB_JAVA_VERSION:-21}  # 21 only - the jar is Java 21 bytecode
       JAVA_EXTRA_OPTS: ${JAVA_EXTRA_OPTS:-}
       NGB_HEAP: ${NGB_HEAP:-2g}
       NGB_JAR: /dist/catgenome-psql.jar
@@ -144,11 +144,10 @@ services:
         aliases: [ngb-pg.dev.local]
 
   # ---------------------------------------------------------------- postgres --
-  # 16 since migration Phase 5 (Flyway 11.7.2 + driver 42.7.x); it was pinned to 9.6 because
-  # Flyway 3.2.1 refused to run against anything newer. Between Phases 5 and 9 the fallback below
-  # stayed at 9.6 so that a .env predating Phase 5 still got the server it was written for; now
-  # that the migration has landed, an unset PG_VERSION means 16 like everything else.
-  # Changing PG_VERSION needs `make reset-pg`: a 9.6 data directory is unreadable by 16.
+  # 16 is the version NGB is built and tested against; the fallback below matches PG_VERSION in
+  # .env.example so that an unset variable does not silently give a different server.
+  # Changing PG_VERSION needs `make reset-pg`: a data directory written by one major version is
+  # unreadable by the next, and reset-pg destroys the cluster rather than migrating it.
   postgres:
     image: postgres:${PG_VERSION:-16}
     container_name: ngb-postgres
@@ -186,7 +185,7 @@ services:
       GRADLE_USER_HOME: /cache/gradle
       npm_config_cache: /cache/npm
     command:
-      # No `with-java21` prefix: JDK 21 is the image default from migration Phase 9.
+      # No `with-java21` prefix: JDK 21 is the image default.
       - "./gradlew"
       - "-p"
       - "server/catgenome"
@@ -195,9 +194,9 @@ services:
 
   # ------------------------------------------------------------------- minio --
   # An S3-compatible object store, so that NGB's s3:// and sws:// read paths can be exercised
-  # on a machine with no AWS account. Added in migration Phase 8, which moved the AWS SDK from
-  # v1 to v2: `sws://` was already endpoint-overridable (swift.stack.endpoint.url), and v2 added
-  # AWS_ENDPOINT_URL_S3 / -Daws.endpointUrlS3 for the plain `s3://` client. See `make up-cloud`.
+  # on a machine with no AWS account. Both are endpoint-overridable: `sws://` through
+  # swift.stack.endpoint.url, and the plain `s3://` client through AWS SDK v2's
+  # AWS_ENDPOINT_URL_S3 / -Daws.endpointUrlS3 (v1 had no such switch). See `make up-cloud`.
   #
   # MINIO_DOMAIN is the load-bearing setting here. SDK v2 has no system property or environment
   # variable for forcing path-style addressing - only S3Configuration.pathStyleAccessEnabled in
@@ -206,12 +205,12 @@ services:
   # Host header, and the aliases below make those hosts resolve. Both addressing styles are then
   # served at once, which is what NGB needs: path-style for sws://, virtual-host for s3://.
   #
-  # Between Phase 8 and Phase 9 it also answered to s3.amazonaws.com, and `make up-cloud` pointed NGB
-  # at that name rather than at `minio`, because one NGB code path keyed off the hostname:
+  # This service used to need an s3.amazonaws.com alias, with `make up-cloud` pointing NGB at that
+  # name rather than at `minio`, because one NGB code path keyed off the hostname:
   # EnhancedUrlHelper decided whether to tolerate a 403 on HEAD by matching the host against
   # `.*s3.*\.amazonaws\.com`, and a pre-signed URL is signed for GET only - so under the honest name
-  # the pre-signed read path read every object as empty. Phase 9 keyed that tolerance to the URL's
-  # own SigV4 signature, the alias is gone, and `make verify-cloud` reading a track through a
+  # the pre-signed read path read every object as empty. That tolerance is keyed to the URL's own
+  # SigV4 signature now, the alias is gone, and `make verify-cloud` reading a track through a
   # pre-signed http://<bucket>.minio:9000/... URL is what proves it. (verify-tracks.sh still hijacks
   # the name for its own staged-403 probe, on a container of its own - that exercises the
   # amazonaws.com clause EnhancedUrlHelper deliberately keeps, and it would collide with an alias
@@ -350,10 +349,9 @@ services:
     environment:
       GRADLE_USER_HOME: /cache/gradle
       npm_config_cache: /cache/npm
-      # 17 by default from Phase 2 on: the CLI is built by a JDK 17 toolchain, and Phase 3 left it
-      # there - only the server module moved to 21. Deliberately not NGB_JAVA_VERSION: that one
-      # selects the JDK the *server* jar runs on, and which JDK the CLI needs is decided by how the
-      # CLI was compiled, not by the server.
+      # 17 by default: the CLI is built by a JDK 17 toolchain, where only the server module is on
+      # 21. Deliberately not NGB_JAVA_VERSION - that one selects the JDK the *server* jar runs on,
+      # and which JDK the CLI needs is decided by how the CLI was compiled, not by the server.
       JAVA_VERSION: ${CLI_JAVA_VERSION:-17}
       NGB_SERVER_URL: ${CLI_SERVER_URL:-http://ngb.dev.local:8080/catgenome}
       NGB_TOKEN: ${CLI_TOKEN:-}

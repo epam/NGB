@@ -12,9 +12,9 @@
  *
  * Why it exists: a log4j2 configuration attribute that the running version does not know is not a
  * build failure and not a startup failure - it is silently ignored, and the appender comes up with
- * that attribute unset. So a log4j2 upgrade whose fix *is* an attribute rename (CVE-2026-34478,
- * closed in 2.25.4; see JAVA21-VULNERABILITY-REVIEW.md §4.1) cannot be verified by starting the
- * server and reading the log. This prints the parsed values so they can be compared with the file.
+ * that attribute unset. So a log4j2 upgrade whose fix *is* an attribute rename - CVE-2026-34478,
+ * closed in 2.25.4, is one - cannot be verified by starting the server and reading the log. This
+ * prints the parsed values so they can be compared with what the file says.
  *
  * Run it from a scratch directory: starting a configuration creates the files its RollingFile
  * appenders name, and the dev and jar profiles name them relative to the working directory.

@@ -60,8 +60,8 @@ public final class UrlTestingUtils {
      * A local HTTP file server over {@code classpath:templates}, used by the tests that register a
      * track from a URL rather than from a path.
      *
-     * <p>Written against Jetty's {@code AbstractHandler} until Phase 3 of the Java 21 migration. Jetty
-     * 12, which Boot 3.5 manages, deleted that class along with the rest of the servlet API in
+     * <p>This used to be written against Jetty's {@code AbstractHandler}. Jetty 12, which Boot 3.5
+     * manages, deleted that class along with the rest of the servlet API in
      * {@code jetty-server}: core handlers now see Jetty's own {@code Request}/{@code Response}/{@code
      * Callback}, and anything that wants {@code HttpServletRequest} goes through
      * {@code org.eclipse.jetty.ee10.servlet}. Since the body only ever needed the request URI and the

@@ -57,8 +57,8 @@ RUN set -eu; \
     fi
 
 # What used to follow was a download of ngb-demo-index-cache.tar.gz, built against NGB 2.6.0. The
-# on-disk index cache it warmed is gone (decision D10 of the Java 21 migration): the EhCache-backed
-# EhCacheBasedIndexCache was removed with EhCache 2, and the Lucene indexes it complemented are 9.x
+# on-disk index cache it warmed is gone: the EhCache-backed EhCacheBasedIndexCache was removed
+# along with EhCache 2, and the Lucene indexes it complemented are 9.x
 # and would have rejected the 2.6.0 files anyway. Nothing reads that directory now.
 
 # ENTRYPOINT, EXPOSE, WORKDIR and CMD are inherited from the core image, which is where the JVM flags

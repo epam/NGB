@@ -11,10 +11,10 @@
       not exclude AbstractNaming - and that rule no longer exists in PMD 6, so the two are now
       identical apart from the server's file patterns.
 
-      Moved to PMD 7.26.0 in Phase 3, along with the server. Two rule references had to change and
-      the server ruleset explains both: BooleanInstantiation was removed in 7 and is replaced by
-      codestyle.xml/UnnecessaryBoxing, and AvoidCatchingGenericException moved from design.xml to
-      errorprone.xml. Everything else below is unchanged.
+      This ruleset then moved to PMD 7.26.0, along with the server's. Two rule references had to
+      change and the server ruleset explains both: BooleanInstantiation was removed in 7 and is
+      replaced by codestyle.xml/UnnecessaryBoxing, and AvoidCatchingGenericException moved from
+      design.xml to errorprone.xml. Everything else below is unchanged.
     -->
 
     <!-- was rulesets/java/basic.xml -->

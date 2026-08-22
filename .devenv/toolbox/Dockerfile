@@ -6,8 +6,8 @@
 # `org.gradle.java.installations.auto-download=false` in the root gradle.properties means Gradle
 # must *find* a 17 installation rather than fetch one. It discovers /opt/java/jdk17 as a "Common
 # Linux Location", so no configuration is needed beyond installing it. `with-java17` /
-# `with-java21` (or `use-java 17|21` in a shell) switch per command; the JDK 8 that used to be
-# here for the Gradle 3.3 wrapper went with migration Phase 9.
+# `with-java21` (or `use-java 17|21` in a shell) switch per command; nothing in the build needs
+# any other JDK, so no other JDK is installed.
 #
 # The same image is used for the builder, the app runtime and the CLI, so a jar built
 # here runs on exactly the JDK you point at it, with no second image to keep in sync.
@@ -99,8 +99,8 @@ RUN printf '%s\n' \
   > /etc/profile.d/ngb-java.sh
 
 # JDK 21 is the default: it is what Gradle 8.14.5 runs on, what the server module's toolchain
-# asks for and what the jar's class files need. Until migration Phase 9 this was JDK 8, which is
-# why every Gradle invocation in the Makefile had to be prefixed with `with-java21`.
+# asks for and what the jar's class files need. Because it is the default, no Gradle invocation
+# in the Makefile needs a `with-java*` prefix.
 ENV JAVA_HOME=$JAVA_HOME_21
 ENV PATH=$JAVA_HOME/bin:$PATH
 

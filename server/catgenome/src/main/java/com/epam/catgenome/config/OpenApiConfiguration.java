@@ -34,8 +34,8 @@ import io.swagger.v3.oas.models.info.License;
 
 /**
  * Replaces {@code SwaggerConfig}, which drove {@code com.mangofactory:swagger-springmvc} 1.0.2 and
- * was deleted in Phase 3 of the Java 21 migration (it cannot work past Boot 2.6 - see the migration
- * plan's Phase 2 findings). springdoc-openapi needs no plugin bean: it discovers the controllers by
+ * had to go: that plugin cannot work past Boot 2.6, whose {@code PathPatternParser} it does not
+ * understand. springdoc-openapi needs no plugin bean: it discovers the controllers by
  * itself and serves the document at {@code /v3/api-docs} and the UI at {@code /swagger-ui/index.html}.
  * All this class still has to say is the descriptive metadata that used to come out of
  * {@code SwaggerConfig.apiInfo()}, carried over verbatim.

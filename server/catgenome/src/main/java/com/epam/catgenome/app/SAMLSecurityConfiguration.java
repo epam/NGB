@@ -180,9 +180,9 @@ public class SAMLSecurityConfiguration {
     private static final String KEY_STORE_TYPE = "JKS";
 
     /**
-     * {@code /api-docs/**} in the pre-migration list was Swagger 1's path. Phase 3 replaced
-     * swagger-springmvc with springdoc-openapi, which serves {@code /v3/api-docs} and
-     * {@code /swagger-ui/**}; the old entry would have left the API documentation behind SSO.
+     * These are springdoc-openapi's paths. {@code /api-docs/**}, which this list used to carry, was
+     * Swagger 1's; springdoc serves {@code /v3/api-docs} and {@code /swagger-ui/**} instead, and the
+     * old entry would have left the API documentation behind SSO.
      */
     private static final String[] UNSECURED_RESOURCES = {
         "/swagger-ui/**", "/v3/api-docs/**", "/error-401.html"

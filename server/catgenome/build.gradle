@@ -48,12 +48,12 @@ java {
 }
 
 test {
-    // Per D13 the 129 JUnit 4 test classes are not converted; they run on the JUnit 5 platform
+    // The 129 JUnit 4 test classes are deliberately not converted; they run on the JUnit 5 platform
     // through the vintage engine, because Boot 3.5's spring-boot-starter-test is JUnit 5 only and
     // Gradle's JUnit 4 provider would leave the platform's own tests unrun.
     useJUnitPlatform()
 
-    // The four --add-opens that used to be here are gone with EhCache 2 (D11): they existed only so
+    // The four --add-opens that used to be here went out with EhCache 2: they existed only so
     // that its maxBytesLocalHeap sizing could walk the cached object graph with
     // Field.setAccessible, which JDK 16+ refuses for java.base. Caffeine bounds by entry count and
     // reflects on nothing. The same four went out of JAVA_REQUIRED_OPTS in
@@ -68,9 +68,9 @@ test {
     // a local `make test` does not, so the two stay visible to whoever is working here.
     //
     // Deliberately NOT excluded: BlatSearchManagerTest. It used to call UCSC too, but that was a
-    // defect in the test - see "Two of the four baseline failures were not live-data failures at
-    // all" in .devenv/JAVA21-MIGRATION-PLAN.md. It runs against its own fixture now, and if the
-    // mock is ever unwired again CI is exactly where that should surface.
+    // defect in the test rather than a live-data dependency - its mock had come unwired from the
+    // manager under test, so the real request went out. It runs against its own fixture now, and if
+    // the mock is ever unwired again CI is exactly where that should surface.
     if (project.hasProperty("excludeNetworkTests")) {
         filter {
             excludeTestsMatching "com.epam.catgenome.manager.GffManagerTest.testLoadGenesTranscript"
@@ -87,19 +87,18 @@ ext {
     versionUnitils = "3.4.2"
     // 9.12.3, not 10.x. Both refuse a Lucene 6 index (Version.MIN_SUPPORTED_MAJOR is 8 and 9
     // respectively), so both cost the operator exactly one full reindex — but 10.x can read a 9.x
-    // index, so bumping 9 -> 10 later is free. See "Phase 6 execution findings" in
-    // .devenv/JAVA21-MIGRATION-PLAN.md. The Boot 3.5.16 BOM does not manage Lucene, so this pin
-    // is ours to keep.
+    // index, so bumping 9 -> 10 later is free. The Boot 3.5.16 BOM does not manage Lucene, so this
+    // pin is ours to keep.
     versionLucene = "9.12.3"
     // 1.16.16 cannot run on any JDK past 8 (it reaches into com.sun.tools.javac internals that
     // JEP 396 closed). Lombok is a compile-time-only dependency, so the version is ours to pick
     // rather than the Boot BOM's.
     versionLombok = "1.18.46"
-    // AWS SDK v2, migration Phase 8. The BOM is imported below rather than each artifact being
+    // AWS SDK v2. The BOM is imported below rather than each artifact being
     // pinned: v2 is 477 co-released modules and mixing versions across them does not work.
     versionAwsSdk = "2.54.1"
-    // The Azure SDK's own "client library" BOM, migration Phase 8, for the same reason as the AWS
-    // one: azure-storage-blob and azure-identity share azure-core, azure-core-http-netty and
+    // The Azure SDK's own "client library" BOM, for the same reason as the AWS one:
+    // azure-storage-blob and azure-identity share azure-core, azure-core-http-netty and
     // azure-json, those are co-released, and mixing versions across them is how you get a
     // NoSuchMethodError inside the SDK. 1.3.8 gives azure-storage-blob 12.35.0 (was 12.14.0, 2021)
     // and azure-identity 1.18.4 (was 1.4.4). It contains only com.azure artifacts, and only GA ones
@@ -111,9 +110,9 @@ ext {
 // outstanding advisory. Each name is a property spring-boot-dependencies declares, so setting it
 // here moves every artifact in that family at once (and, for netty/log4j2/jackson, the imported
 // sub-BOM); a name that is *not* one of the BOM's properties fails silently, so each of these was
-// checked against the resolved runtimeClasspath and not just against Boot's documentation. See
-// .devenv/JAVA21-VULNERABILITY-REVIEW.md §4.1 for the advisories, and §7 for the resolved
-// before/after. Note that ngb-cli has no BOM over it and repeats log4j2 and jackson by hand in its
+// checked against the resolved runtimeClasspath and not just against Boot's documentation.
+// .devenv/SECURITY-SCAN.md says how to re-run the scan and what it reports today.
+// Note that ngb-cli has no BOM over it and repeats log4j2 and jackson by hand in its
 // own `ext` block - it has to move in the same commit or it keeps the vulnerable versions.
 ext['netty.version'] = '4.1.137.Final'          // 4.1.136 closes 11 of 12; CVE-2026-59903 needs .137
 ext['log4j2.version'] = '2.25.5'                // also moves the log4j-bom this BOM imports
@@ -142,7 +141,7 @@ dependencyManagement {
     // opensaml-security-api:4.3.2 (bcprov and bcpkix) and cryptacular:1.2.5 (bcprov 1.71), both
     // under spring-security-saml2-service-provider, so managing it is the way to move it without
     // adding a declaration for a library NGB does not call itself. 1.72 is from 2022 and carries
-    // CVE-2025-14813 (the only new CRITICAL in the review) plus nine MEDIUMs; see §4.2.
+    // CVE-2025-14813 (CRITICAL) plus nine MEDIUMs.
     //
     // All three artifacts have to move together. bcpkix and bcutil are compiled against bcprov's
     // internals and are released in lockstep with it, so a 1.84 bcprov under a 1.72 bcpkix is a
@@ -155,7 +154,7 @@ dependencyManagement {
             entry "bcpkix-jdk18on"
             entry "bcutil-jdk18on"
         }
-        // 0.4 is from 2013 and has CVE-2024-36124 against it (§4.3). Not to be confused with
+        // 0.4 is from 2013 and has CVE-2024-36124 against it. Not to be confused with
         // org.xerial.snappy:snappy-java, which htsjdk brings and which is a different project at a
         // current version - both are on the classpath. This one arrives under
         // org.jetbrains.bio:big:0.9.1, which is what reads BigWig/BigBed, and 0.5 is the last release
@@ -170,13 +169,12 @@ repositories {
     maven {
         url "https://jitpack.io"
     }
-    // Shibboleth's own repository, for OpenSAML. Phase 3 removed it on the assumption that the
-    // Spring Security 6 SAML support resolves entirely from Central; it does not.
+    // Shibboleth's own repository, for OpenSAML — and it is not optional, though Spring Security's
+    // SAML support looks as if it should resolve entirely from Central.
     // spring-security-saml2-service-provider 6.5.x depends on org.opensaml:opensaml-saml-{api,impl}
     // 4.3.2, and Central's org/opensaml/ directories stop at 4.0.1 — Shibboleth published 4.0.x to
-    // Central and then went back to publishing only here. So the repository comes back for
-    // OpenSAML 4, for a different reason than it was there for OpenSAML 2. Scoped by group so it
-    // cannot shadow Central for anything else.
+    // Central and then went back to publishing only here. Scoped by group so it cannot shadow
+    // Central for anything else.
     maven {
         url "https://build.shibboleth.net/maven/releases/"
         content {
@@ -204,12 +202,11 @@ configurations {
     // would pick one at random.
     all*.exclude module: 'log4j-slf4j-impl'
     // log4j **1**.2.17, end-of-life since 2015 and carrying seven advisories (three of them
-    // CRITICAL: CVE-2019-17571, CVE-2022-23305, CVE-2022-23307 - see
-    // .devenv/JAVA21-VULNERABILITY-REVIEW.md §4.3). Nothing here declares it; it arrives from
-    // com.indeed:util-mmap:1.0.35, under org.jetbrains.bio:big:0.9.1, and it is the only jar on the
-    // classpath that provides org.apache.log4j.*. Two libraries need those classes to exist -
-    // util-mmap on the BigWig/BigBed read path and com.github.igvteam:igv:v2.6.3 on the GenePred
-    // one, the latter with no declared log4j dependency of its own - so this exclusion is only safe
+    // CRITICAL: CVE-2019-17571, CVE-2022-23305, CVE-2022-23307). Nothing here declares it; it
+    // arrives from com.indeed:util-mmap:1.0.35, under org.jetbrains.bio:big:0.9.1, and it is the
+    // only jar on the classpath that provides org.apache.log4j.*. Two libraries need those classes
+    // to exist - util-mmap on the BigWig/BigBed read path and com.github.igvteam:igv:v2.6.3 on the
+    // GenePred one, the latter with no declared log4j dependency of its own - so this is only safe
     // paired with the log4j-1.2-api bridge declared below, which reimplements the same package on
     // top of log4j 2. Excluding it on its own is a NoClassDefFoundError the first time either path
     // is taken.
@@ -230,8 +227,8 @@ dependencies {
     implementation group: "org.springframework.security", name: "spring-security-config"
     implementation group: 'org.springframework.security', name: 'spring-security-acl'
 
-    // Replaces spring-security-saml2-core 1.0.10.RELEASE (the OpenSAML 2 extension), which Phase 3
-    // removed: it was built on Spring Security 5's WebSecurityConfigurerAdapter/SAMLEntryPoint
+    // Replaces spring-security-saml2-core 1.0.10.RELEASE (the OpenSAML 2 extension), which could
+    // not stay: it was built on Spring Security 5's WebSecurityConfigurerAdapter/SAMLEntryPoint
     // filter model and on OpenSAML 2, neither of which exists in Spring Security 6, and OpenSAML 2
     // itself has been end-of-life since 2016. This is Spring Security's own SAML 2 service-provider
     // support, version-managed by the Boot BOM; it brings OpenSAML 4.3.2 from build.shibboleth.net
@@ -250,24 +247,24 @@ dependencies {
     implementation group: "com.fasterxml.jackson.core", name: "jackson-annotations"
     implementation group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-xml"
     // Retrofit is declared only through its Jackson converter; the core artifact and OkHttp come with
-    // it. 2.7.2 (2020) until Phase 8, now 3.0.0, which is what moves OkHttp - the reason for the bump.
+    // it. Was 2.7.2 (2020); 3.0.0 is what moves OkHttp, which is the reason it is at 3.0.0 at all.
     // 2.7.2 pins okhttp 3.14.7 and okio 1.17.2, i.e. CVE-2021-0341 (hostname verification) and
     // CVE-2023-3635 (okio GzipSource); 3.0.0 asks for okhttp 4.12.0 and okio 3.x, which fix both.
     // Retrofit's own surface is unchanged for NGB - retrofit2.Call/Response, the retrofit2.http
     // annotations, Retrofit.Builder and JacksonConverterFactory.create are all as they were.
     implementation group: "com.squareup.retrofit2", name: "converter-jackson", version: "3.0.0"
 
-    // JAXB left the JDK in Java 11, and ~288 imports here depend on it. Phase 2 stayed on the
-    // `javax.xml.bind` package names because jakarta.xml.bind-api 2.3.x still *was* that package;
-    // Boot 3.5 manages 4.0.x, where it is `jakarta.xml.bind`, so Phase 3 renamed the imports.
+    // JAXB left the JDK in Java 11, and ~288 imports here depend on it. Those imports read
+    // `jakarta.xml.bind` because Boot 3.5 manages jakarta.xml.bind-api 4.0.x, where that is the
+    // package name; in 2.3.x the same artifact still *was* `javax.xml.bind`.
     implementation group: "jakarta.xml.bind", name: "jakarta.xml.bind-api"
     runtimeOnly group: "org.glassfish.jaxb", name: "jaxb-runtime"
 
     // ...and the javax JAXB stack stays as well, for the dependencies whose *own* class files are
     // annotated with javax.xml.bind: org.sbgn:libsbgn:0.2 (2011; its POM declares no dependencies at
     // all - it expected JAXB to be part of the JDK, as it was until Java 11) and sbgn-converter, which
-    // marshals through libsbgn. (Phase 3 counted biojava-structure here too; Phase 8 removed that
-    // dependency, so only the two SBGN ones are left, and both are frozen by decision D6.) A jakarta
+    // marshals through libsbgn. (Those are the only two such dependencies left, and both stay:
+    // BioPAX/SBGN pathway support is a feature NGB keeps.) A jakarta
     // JAXBContext cannot bind them: it reads jakarta.xml.bind annotations only, so it sees those
     // classes as unannotated POJOs. The two
     // stacks share no package and no service file, so they coexist; ours is jakarta, theirs is javax
@@ -281,8 +278,8 @@ dependencies {
 
     // Jettison. Used directly by HttpDataManager, NCBIDataManager, PdbEntriesManager and
     // OpenTargetsManager - all four only for `new JSONObject(String)` over an external service's
-    // response. Until Phase 1 it arrived transitively through hadoop-client, so it sat at the version
-    // Hadoop 2.2.0 resolved, 1.1 (2009); Phase 8 moved it to the current release. 1.1 is affected by
+    // response. It used to arrive transitively through hadoop-client, so it sat at the version
+    // Hadoop 2.2.0 resolved, 1.1 (2009); it is declared here now. 1.1 is affected by
     // the 2022-23 unbounded-recursion/allocation reports (CVE-2022-40149/40150, CVE-2022-45685/45693,
     // CVE-2023-1436), all of which are parser-side and so on exactly the path NGB uses. The fix that
     // closes them caps parse nesting at 500 levels by default (JSONObject.setGlobalRecursionDepthLimit
@@ -291,17 +288,17 @@ dependencies {
     implementation group: "org.codehaus.jettison", name: "jettison", version: "1.5.7"
 
     // Apache Commons
-    // 2.4 (2012) until Phase 7, then exactly 2.15.1 - the version commons-compress 1.26.0 (which
-    // htsjdk 5 brings, and which is the first commons-compress to depend on commons-io at compile
-    // scope) asks for, held there because 2.16.0 deprecates
-    // org.apache.commons.io.input.CountingInputStream. Phase 8 removed that usage - the counting
-    // moved into FeatureSeekableStream itself, see its javadoc - so the pin is free to move again.
+    // Was 2.4 (2012), then held for a while at exactly 2.15.1 - the version commons-compress 1.26.0
+    // (which htsjdk 5 brings, and which is the first commons-compress to depend on commons-io at
+    // compile scope) asks for - because 2.16.0 deprecates
+    // org.apache.commons.io.input.CountingInputStream. Nothing uses that class any more: the
+    // counting moved into FeatureSeekableStream itself, see its javadoc, so the pin can move again.
     // It still has to stay at or above what commons-compress asks for, or commons-compress hits
     // NoClassDefFoundError on the CRAM bzip2/lzma paths. (commons-compress itself resolves to 1.28.0
     // since the POI bump below - POI asks for a newer one than htsjdk does - and 1.28.0 wants
     // commons-io 2.20.0, so 2.22.0 clears it.)
     implementation group: "commons-io", name: "commons-io", version: "2.22.0"
-    // commons-lang3 carried an explicit `version: "3.0"` (2011) until Phase 3; the BOM manages it, so
+    // commons-lang3 used to carry an explicit `version: "3.0"` (2011); the BOM manages it, so
     // the pin is gone. It also had to go: 12 files imported commons-lang **2** (`org.apache.commons.lang`),
     // which was never declared here at all - it arrived transitively through the mangofactory Swagger
     // stack, and disappeared with it. Those imports moved to the lang3 equivalents (StringUtils,
@@ -310,7 +307,7 @@ dependencies {
     // ThreadLocalRandom in the two tests that used it, and `org.bouncycastle.util.Strings.toLowerCase`
     // - another accidental transitive, from OpenSAML - became Locale.ROOT lowercasing in GenePredUtils.
     implementation group: "org.apache.commons", name: "commons-lang3"
-    // 4.1 (2015) until Phase 8. Bumped with POI rather than with the rest of the version backlog
+    // Was 4.1 (2015). It has to move with POI rather than on its own schedule,
     // because POI 5.5.1 asks for 4.5.0, and the io.spring.dependency-management plugin resolves like
     // Maven - a version declared here wins over a transitive request even when the transitive one is
     // newer - so leaving 4.1 in place would have quietly run POI against a library four minor
@@ -318,10 +315,10 @@ dependencies {
     // used here, all unchanged.
     // Six files here (and three in ngb-cli) imported CollectionUtils from commons-collections **3**
     // instead, which was never declared in either module - it arrives transitively under
-    // commons-validator and opencsv. Phase 8 moved them all to collections4; isEmpty/isNotEmpty/union
+    // commons-validator and opencsv. All nine were moved to collections4; isEmpty/isNotEmpty/union
     // are the only methods involved and behave identically.
     implementation group: "org.apache.commons", name: "commons-collections4", version: "4.6.0"
-    // Deliberately NOT bumped in Phase 8, and the one dependency here that is knowingly left behind.
+    // Deliberately NOT bumped, and the one dependency here that is knowingly left behind.
     // The only usage is UrlShorterManager's `new UrlValidator(ALLOW_LOCAL_URLS)`, which gates what
     // POST /generateShortUrl will store - and what GET /navigate?alias= then 301-redirects to.
     // 1.7 tightened the query-string charset to what RFC 3986 actually allows, so from 1.7 on
@@ -331,17 +328,17 @@ dependencies {
     // CLI URL - and the hand-written embedding URLs in docs/md/user-guide/embedding-url.md - would
     // start failing with "Invalid url format". The fix is to percent-encode the query value at the
     // point it is built, which changes a documented URL format and belongs with the client, not in a
-    // dependency bump; see the Phase 8 findings in .devenv/JAVA21-MIGRATION-PLAN.md. No CVE is
+    // dependency bump. UrlShorterManagerTest holds the tripwire. No CVE is
     // outstanding against 1.5.0, and its commons-beanutils 1.9.2 request is overridden to 1.11.0 by
     // opencsv below.
     implementation group: "commons-validator", name: "commons-validator", version: "1.5.0"
     implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     // Logging.
-    // Until Phase 3 this was `org.apache.logging.log4j:log4j:2.17.1` (the aggregator POM) plus
+    // This used to be `org.apache.logging.log4j:log4j:2.17.1` (the aggregator POM) plus
     // slf4j-log4j12, i.e. slf4j bound to log4j *1.2.17*, with the log4j 2 artifacts sitting on the
     // classpath unused. slf4j-log4j12 does not exist for slf4j 2.x, which Boot 3 requires, so the
     // standard starter takes over: log4j-api + log4j-core + log4j-slf4j2-impl, versions from the BOM.
-    // Consequence: the five log4j-1-format `log4j.xml` files were rewritten as log4j2.xml.
+    // Consequence: the five configuration files are log4j2.xml, not the log4j 1 `log4j.xml` format.
     implementation("org.springframework.boot:spring-boot-starter-log4j2")
     implementation group: "org.slf4j", name: "slf4j-api"
     // The org.apache.log4j.* package, reimplemented on top of log4j 2, for the two libraries that
@@ -351,26 +348,26 @@ dependencies {
     // instead of into an unconfigured second logging framework. No version: spring-boot-dependencies
     // imports log4j-bom at ${log4j2.version}, so this follows the override at the top of the file.
     implementation group: "org.apache.logging.log4j", name: "log4j-1.2-api"
-    // Samtools. 5.0.0 (was 2.2.4, 2016) - migration Phase 7, which also deleted the fork of four
-    // htsjdk reader classes that used to live in util/feature/reader. 5.0.0 needs Java 17+ (class
+    // Samtools. 5.0.0, was 2.2.4 (2016). The bump also retired a fork of four htsjdk reader classes
+    // that used to live in util/feature/reader. 5.0.0 needs Java 17+ (class
     // file 61) and drops SRA support, which is the only thing it removes that 4.x had; NGB imports
     // none of it, and dropping it takes ngs-java and nashorn-core off the classpath with it.
     // snappy-java is no longer pinned here: the 1.0.3-rc3 pin was from 2011 and had no arm64
     // native. htsjdk manages 1.1.10.5, which does.
     implementation group: "com.github.samtools", name: "htsjdk", version: "5.0.0"
     // API docs. springdoc replaces com.mangofactory:swagger-springmvc:1.0.2 (Swagger 1.x, dead since
-    // 2015, and broken outright by Boot 2.6's PathPatternParser - see the Phase 2 findings) and the
+    // 2015, and broken outright by Boot 2.6's PathPatternParser) and the
     // org.webjars:swagger-ui:2.0.24 webjar, whose UI was also committed under src/main/resources and
     // src/main/webapp. springdoc ships its own UI in a jar; see config/OpenApiConfiguration.java.
     implementation group: "org.springdoc", name: "springdoc-openapi-starter-webmvc-ui", version: "2.8.17"
     // No swagger-annotations declaration is needed: springdoc-openapi-starter-common brings
     // io.swagger.core.v3:swagger-annotations-jakarta (2.2.47), which is the jar the controllers'
-    // io.swagger.v3.oas.annotations imports resolve against. Phase 3 left 41 files on
-    // com.wordnik:swagger-annotations:1.3.11 as compileOnly - unread at runtime, but preserving the
-    // documentation text for Phase 8 to translate; Phase 8 translated it and dropped the jar.
+    // io.swagger.v3.oas.annotations imports resolve against. com.wordnik:swagger-annotations:1.3.11
+    // is gone: the 41 files that were on it had their documentation text translated to the
+    // io.swagger.v3 annotations, so nothing needs the old jar even as compileOnly.
     // H2 Database Engine & Connection pool.
-    // h2, postgresql and flyway-core were pinned to 1.3.176 / 9.4-1206-jdbc4 / 3.2.1 until Phase 5
-    // of the Java 21 migration; they now take the Boot 3.5.16 BOM's 2.3.232 / 42.7.11 / 11.7.2.
+    // h2, postgresql and flyway-core used to be pinned to 1.3.176 / 9.4-1206-jdbc4 / 3.2.1; they now
+    // take the Boot 3.5.16 BOM's 2.3.232 / 42.7.11 / 11.7.2.
     // Three things that upgrade needed and that are easy to undo by accident:
     //   - H2 2.x made USER, VALUE and END reserved words, and this schema uses all three. The
     //     DataSource carries `SET NON_KEYWORDS END,USER,VALUE` as its connection-init SQL rather
@@ -380,8 +377,8 @@ dependencies {
     //   - Flyway 10 removed the setter API the XML bean used, and changed the checksum algorithm
     //     and the schema-history table shape. FlywayMigrator handles both.
     //
-    // c3p0 0.9.5.1 is gone (D9): it was last released in 2015, and HikariCP is what Boot manages,
-    // tests and supports. The version comes from the BOM. See
+    // The pool is HikariCP, not c3p0: c3p0 0.9.5.1 was last released in 2015, and HikariCP is what
+    // Boot manages, tests and supports. The version comes from the BOM. See
     // conf/catgenome/applicationContext-database.xml for the property-name mapping.
     implementation group: "com.zaxxer", name: "HikariCP"
     implementation group: "com.h2database", name: "h2"
@@ -396,7 +393,7 @@ dependencies {
     implementation group: "org.flywaydb", name: "flyway-core"
     implementation group: "org.flywaydb", name: "flyway-database-postgresql"
     //Amazon s3
-    // SDK v2 since Phase 8; it was aws-java-sdk-s3/-sts 1.12.797, the last v1 release, and v1 went
+    // SDK v2. It was aws-java-sdk-s3/-sts 1.12.797, the last v1 release, and v1 went
     // end-of-support in December 2025. Three things to know about the v2 dependency shape:
     //   - the HTTP client is not bundled into the SDK core, but every v2 service module inherits
     //     apache5-client and netty-nio-client at runtime scope from its `services` parent POM, so
@@ -435,33 +432,34 @@ dependencies {
     implementation group: "com.azure", name: "azure-identity"
     // io.projectreactor:reactor-core is deliberately NOT declared here. It was pinned in 2021 (at
     // 3.4.11, later 3.5.3) when the Azure SDK was moved from com.microsoft.azure to com.azure, to
-    // force a reactor newer than azure-core asked for. Since Phase 3 the Boot BOM manages reactor at
-    // 3.7.19, so the pin had inverted into a *downgrade*: this build script's declared version beats
+    // force a reactor newer than azure-core asked for. The Boot BOM now manages reactor at
+    // 3.7.19, so that pin had inverted into a *downgrade*: this build script's declared version beats
     // a newer transitive request, because io.spring.dependency-management resolves the Maven way.
 
-    // Caching. EhCache 2.10.1 is gone (D11): Spring 6 removed org.springframework.cache.ehcache
+    // Caching. Caffeine, not EhCache 2.10.1: Spring 6 removed org.springframework.cache.ehcache
     // outright, and EhCache 2's heap-size accounting needs --add-opens on java.base to reflect over
     // the cached object graph. Caffeine is what Spring Boot 3 supports out of the box; the version
-    // comes from the BOM. Three places were on EhCache - conf/catgenome/applicationContext-cache.xml,
-    // app/AclSecurityConfiguration and util/feature/reader/EhCacheBasedIndexCache - and
-    // conf/catgenome/ehcache.xml is deleted with it.
+    // comes from the BOM. Three places used to be on EhCache -
+    // conf/catgenome/applicationContext-cache.xml, app/AclSecurityConfiguration and
+    // util/feature/reader/EhCacheBasedIndexCache - and there is no conf/catgenome/ehcache.xml.
     implementation group: "com.github.ben-manes.caffeine", name: "caffeine"
     // Lucene. Four artifacts, down from six:
     //   lucene-analyzers-common was renamed lucene-analysis-common in 9.0;
     //   lucene-grouping was never imported (`lucene.index.max.size.grouping` is NGB's own
     //     batching knob, not Lucene's GroupingSearch);
     //   lucene-backward-codecs is deliberately absent - it lets 9.x read an 8.x index, which
-    //     nothing here has, and we *want* the older formats to be rejected so the D8 guard
+    //     nothing here has, and we *want* the older formats to be rejected so the startup guard
     //     fires instead of a silent half-read. See app/LuceneIndexVersionCheck.
     implementation group: "org.apache.lucene", name:"lucene-core", version: versionLucene
     implementation group: "org.apache.lucene", name:"lucene-queryparser", version: versionLucene
     implementation group: "org.apache.lucene", name:"lucene-analysis-common", version: versionLucene
     implementation group: "org.apache.lucene", name:"lucene-facet", version: versionLucene
 
-    // Was com.auth0:java-jwt:3.1.0 (2016) until Phase 3 took the JWT stack out of the build; used by
-    // security/jwt/{JwtTokenGenerator,JwtTokenVerifier} only. 4.x is a compatible upgrade for
-    // everything those two call — the one semantic change is Claim.isNull(), see the Phase 4
-    // findings in .devenv/JAVA21-MIGRATION-PLAN.md. Boot does not manage this artifact.
+    // Was com.auth0:java-jwt:3.1.0 (2016); used by security/jwt/{JwtTokenGenerator,JwtTokenVerifier}
+    // only. 4.x is a compatible upgrade for everything those two call — the one semantic change is
+    // Claim.isNull(), which a missing claim used to answer true in 3.x and which in 4.x means
+    // "present and JSON null" - see JwtTokenVerifier.isPresent, which therefore also asks isMissing().
+    // Boot does not manage this artifact.
     implementation group: "com.auth0", name: "java-jwt", version: "4.6.0"
 
     // lombok
@@ -474,7 +472,7 @@ dependencies {
         exclude group: "com.github.samtools", module: "htsjdk"
     }
 
-    // biojava. 4.2.0 (2016) until Phase 8. Only two packages are used: org.biojava.nbio.core.sequence
+    // biojava. Was 4.2.0 (2016). Only two packages are used: org.biojava.nbio.core.sequence
     // (the Genbank reader/writer trio in manager/genbank and one DNASequence in ReferenceManager) and
     // org.biojava.nbio.genome.parsers.gff (GenbankManager's Location, and GFF3Reader in
     // GenePredManagerTest). biojava-structure was declared here too and imported nowhere at all -
@@ -487,8 +485,8 @@ dependencies {
     // removes the warning as well as the failure. NGB did reach into forester, but for one thing only:
     // HeatmapManager statically imported org.forester.io.parsers.util.ParserUtils.createReader, a
     // convenience factory whose whole body is a File/InputStream/CharSequence switch over
-    // BufferedReader constructors. Phase 8 inlined the two branches it used - the newick parsing itself
-    // has always been libnewicktree's (net.sourceforge.olduvai), not forester's.
+    // BufferedReader constructors. The two branches it used are inlined there now - the newick parsing
+    // itself has always been libnewicktree's (net.sourceforge.olduvai), not forester's.
     implementation(group: "org.biojava", name: "biojava-genome", version: "7.2.6") {
         exclude group: "org.biojava.thirdparty", module: "forester"
     }
@@ -508,30 +506,29 @@ dependencies {
     implementation group: "pathwaycommons", name: "chilay-sbgn", version: "3.0.0"
 
     //LLM
-    // 1.0.0-beta.2 (2023) until Phase 8, now 1.0.0-beta.16 - the latest, and still a beta: this
-    // library has never had a GA release and the last one was published in March 2025, so the pin is
-    // explicit rather than coming from the azure-sdk-bom above (which carries GA libraries only).
-    // The bump has to happen with the storage one, not after it: beta.2 was built against azure-core
-    // 1.40.0, and the BOM moves azure-core to 1.58.1 under it.
+    // Was 1.0.0-beta.2 (2023). 1.0.0-beta.16 is the latest, and still a beta: this library has never
+    // had a GA release and the last one was published in March 2025, so the pin is explicit rather
+    // than coming from the azure-sdk-bom above (which carries GA libraries only).
+    // It has to move together with azure-storage-blob, not after it: beta.2 was built against
+    // azure-core 1.40.0, and the BOM moves azure-core to 1.58.1 under it.
     // The API changed shape in beta.6: a chat request message went from one settable-role
     // ChatMessage class to a class per role, and NonAzureOpenAIKeyCredential (api.openai.com rather
     // than an Azure deployment) was folded into azure-core's KeyCredential. Both land in
     // manager/llm/OpenAIClient, which is the only file that touches this SDK. The second of the two
     // does change behaviour for llm.custom.type=openai - beta.2 ignored the configured URL, beta.16
-    // honours it and switches to the api-key header - see the Phase 8 findings in
-    // .devenv/JAVA21-MIGRATION-PLAN.md.
+    // honours it and switches to the api-key header.
     implementation group: "com.azure", name: "azure-ai-openai", version: "1.0.0-beta.16"
 
-    // gson carried an explicit `2.10.1` here until Phase 8. No Java file in either module imports
-    // com.google.gson; it is only ever used through the two google-api artifacts below, which bring
-    // it themselves. Worse than redundant: because io.spring.dependency-management resolves like
-    // Maven, a version declared here beat both the BOM's managed 2.13.2 and what those artifacts
-    // asked for, so the declaration was a downgrade.
+    // gson is deliberately not declared here, though it used to be, at 2.10.1. No Java file in
+    // either module imports com.google.gson; it is only ever used through the two google-api
+    // artifacts below, which bring it themselves. Worse than redundant: because
+    // io.spring.dependency-management resolves like Maven, a version declared here beats both the
+    // BOM's managed 2.13.2 and what those artifacts ask for, so the declaration was a downgrade.
     implementation group: 'com.google.apis', name: 'google-api-services-customsearch', version: 'v1-rev20240103-2.0.0'
     implementation group: 'com.google.http-client', name: 'google-http-client-jackson2', version: '1.44.1'
 
     //Excel
-    // 3.16 (2017) until Phase 8. POI 4 removed Cell.getCellTypeEnum() - the interim name POI 3.15 gave
+    // Was 3.16 (2017). POI 4 removed Cell.getCellTypeEnum() - the interim name POI 3.15 gave
     // the typed getter while getCellType() still returned an int - and renamed it back to
     // getCellType(); those two call sites in TargetGeneManager were the only API break in NGB.
     // Transitives change more than the API does: poi-ooxml-schemas 3.16 + xmlbeans 2.6.0 (2011) give
@@ -541,9 +538,9 @@ dependencies {
     implementation group: "org.apache.poi", name: "poi-ooxml", version: "5.5.1"
 
 //    CSV
-    // 5.8 (2023) until Phase 8. Only CSVReader and CsvValidationException are used, in
-    // TargetGeneManager and the two classes that propagate its exception; neither changed. The bump
-    // is for the transitives - opencsv is what puts commons-beanutils on the runtime classpath, and
+    // Was 5.8 (2023). Only CSVReader and CsvValidationException are used, in
+    // TargetGeneManager and the two classes that propagate its exception; neither changed. The
+    // version is for the transitives - opencsv is what puts commons-beanutils on the classpath, and
     // 5.8 asks for 1.9.4, which CVE-2025-48734 covers; 5.12.0 asks for 1.11.0, which is the fix.
     implementation group: "com.opencsv", name: "opencsv", version: "5.12.0"
 
@@ -551,7 +548,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     // spring-boot-starter-test dropped JUnit 4 in Boot 2.2 in favour of JUnit 5; all 129 test
     // classes here are JUnit 4, so it comes back as an explicit dependency rather than through the
-    // starter, and the vintage engine runs it on the JUnit 5 platform (see `test` above, and D13).
+    // starter, and the vintage engine runs it on the JUnit 5 platform (see `test` above).
     testImplementation group: "junit", name: "junit", version: "4.13.2"
     testRuntimeOnly group: "org.junit.vintage", name: "junit-vintage-engine"
     // Declared rather than left to Gradle to inject: Gradle 8 still adds the launcher implicitly but
@@ -613,9 +610,9 @@ pmd {
     // nearly every PMD rule is rule-chain based, so the patterns were ignored and every shared rule
     // ran twice (116 reported violations for 58 actual ones). It is also no longer needed -
     // FeatureIndexManager only catches IOException now, and the one place that does still need the
-    // exemption, util/TestUtils.assertFail, carries a @SuppressWarnings for that single rule. (Phase
-    // 2 recorded that util/TestUtils.java was out of reach because it is under src/test; true of
-    // pmdMain, but pmdTest scans it, and Phase 3 is where pmdTest was first run.)
+    // exemption, util/TestUtils.assertFail, carries a @SuppressWarnings for that single rule. (That
+    // file is under src/test, so pmdMain never sees it - but pmdTest does, which is why the
+    // annotation is needed rather than the file being simply out of reach.)
     ruleSetFiles = files("config/pmd/pmd-ruleset.xml")
 }
 

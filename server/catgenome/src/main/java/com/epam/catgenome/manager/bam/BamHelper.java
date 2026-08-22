@@ -520,9 +520,9 @@ public class BamHelper {
     }
 
     private byte[] fetchAZBamIndex(BiologicalDataItem indexFile) throws IOException {
-        // The index used to be cached in memory; Java 21 migration Phase 7 (decision D10) dropped
-        // the cache, so it is fetched on every request. The old uncached branch fetched an az://
-        // path through S3Client, which could only ever have failed.
+        // The index used to be cached in memory; that cache is gone, so it is fetched on every
+        // request. The old uncached branch fetched an az:// path through S3Client, which could
+        // only ever have failed.
         final String indexPath = indexFile.getPath();
         final long start = System.currentTimeMillis();
         final byte[] indexBuffer = IOUtils.toByteArray(azureBlobClient.loadFully(indexPath));
@@ -538,7 +538,7 @@ public class BamHelper {
     }
 
     private byte[] fetchS3BamIndex(BiologicalDataItem indexFile) throws IOException {
-        // Uncached since Phase 7 / decision D10 - see fetchAZBamIndex.
+        // Not cached - see fetchAZBamIndex.
         final String indexPath = indexFile.getPath();
         try (InputStream indexStream = S3Client.getInstance().loadFully(indexPath)) {
             final long start = System.currentTimeMillis();

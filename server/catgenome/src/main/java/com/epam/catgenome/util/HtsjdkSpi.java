@@ -41,9 +41,9 @@ import org.springframework.stereotype.Component;
  * Installs NGB's three htsjdk service-provider hooks. All three are process-global statics inside
  * htsjdk, so this happens once, at context refresh, before any track can be requested.
  *
- * <p>Until Java 21 migration Phase 7 the same three concerns were spread over a fork of four
- * htsjdk reader classes in {@code util.feature.reader}. The fork is gone; what it did that stock
- * htsjdk cannot is now expressed through the SPIs htsjdk publishes for exactly this purpose:
+ * <p>The same three concerns used to be spread over a fork of four htsjdk reader classes in
+ * {@code util.feature.reader}. The fork is gone; what it did that stock htsjdk cannot is now
+ * expressed through the SPIs htsjdk publishes for exactly this purpose:
  *
  * <ol>
  *   <li>{@link ParsingUtils#setURLHelperFactory} with {@link EnhancedUrlHelper} — so a pre-signed

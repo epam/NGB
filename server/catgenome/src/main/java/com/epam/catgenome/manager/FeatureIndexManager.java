@@ -128,7 +128,7 @@ public class FeatureIndexManager {
     private VcfFileManager vcfFileManager;
 
     // @Lazy breaks a bean-creation cycle that Boot 2.6+ refuses to start with
-    // (VcfManager -> FeatureIndexManager -> VcfManager). The cycle predates the migration; deferring
+    // (VcfManager -> FeatureIndexManager -> VcfManager). The cycle is long-standing; deferring
     // resolution of this one edge to first use is the smallest change that removes it.
     @Autowired
     @Lazy

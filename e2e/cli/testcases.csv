@@ -155,8 +155,8 @@
 
 @ URL comand
 @ Ten rows in this file - the seven below plus the three noted above - needed their expected
-@ output changed when the suite was made runnable again in migration Phase 9, for reasons that
-@ all predate that migration: the file was last edited in December 2018 (a7d81db9), the fixtures
+@ output changed when the suite was made runnable again, for reasons that all predate the
+@ change that fixed it: the file was last edited in December 2018 (a7d81db9), the fixtures
 @ it needs were hosted on ngb.opensource.epam.com, and once that domain stopped resolving nobody
 @ could run the suite to notice develop moving under it. Each changed expectation names the
 @ commit that changed the behaviour.

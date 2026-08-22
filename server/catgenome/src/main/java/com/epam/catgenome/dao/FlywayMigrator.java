@@ -45,7 +45,7 @@ import org.springframework.beans.factory.InitializingBean;
  * Runs the Flyway migration of the NGB schema at context startup.
  *
  * <p>Replaces the {@code <bean class="org.flywaydb.core.Flyway" init-method="migrate"/>} that
- * {@code applicationContext-flyway.xml} used until Phase 5 of the Java 21 migration. Flyway 10
+ * {@code applicationContext-flyway.xml} used to declare. Flyway 10
  * removed the JavaBean setter API that bean relied on, so the configuration now goes through
  * {@link Flyway#configure()} and this class exists to hold it. Everything the XML used to set is
  * still a property here, and the file is still copied in per database flavour from

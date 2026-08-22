@@ -61,8 +61,8 @@ public class RoleManager {
     private UserDao userDao;
 
     // @Lazy breaks a bean-creation cycle that Boot 2.6+ refuses to start with
-    // (RoleManager -> GrantPermissionManager -> RoleManager). The cycle predates the migration; deferring
-    // resolution of this one edge to first use is the smallest change that removes it.
+    // (RoleManager -> GrantPermissionManager -> RoleManager). The cycle is long-standing;
+    // deferring resolution of this one edge to first use is the smallest change that removes it.
     @Autowired
     @Lazy
     private GrantPermissionManager permissionManager;

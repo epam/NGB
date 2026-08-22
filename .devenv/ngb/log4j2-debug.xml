@@ -4,10 +4,10 @@
      all - which is exactly what you need when SAML or a filter order is misbehaving. Activate with
      JAVA_EXTRA_OPTS="-Dlogging.config=file:/opt/ngb/bin/log4j2-debug.xml"; see README.md.
 
-     log4j2 dialect since Phase 3 of the Java 21 migration: Boot 3 requires slf4j 2.x, for which no
-     slf4j-log4j12 exists, so NGB's logging goes through spring-boot-starter-log4j2. Note the switch
-     changed too - `-Dlog4j.configuration` was log4j 1's; use Boot's own `logging.config`, which
-     overrides the packaged configuration whatever the backend. -->
+     The dialect is log4j2, not log4j 1.2: Boot 3 requires slf4j 2.x, for which no slf4j-log4j12
+     exists, so NGB's logging goes through spring-boot-starter-log4j2. Note that the switch differs
+     too - `-Dlog4j.configuration` was log4j 1's; use Boot's own `logging.config`, which overrides
+     the packaged configuration whatever the backend. -->
 <Configuration>
     <Appenders>
         <Console name="stdout" target="SYSTEM_OUT">

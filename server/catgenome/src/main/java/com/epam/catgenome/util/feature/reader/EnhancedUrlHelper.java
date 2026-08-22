@@ -95,10 +95,10 @@ public class EnhancedUrlHelper implements URLHelper {
      * <p>What is actually being recognised is a pre-signature, so that is what is looked for: an
      * {@code X-Amz-Signature} query parameter, which every SigV4 query-signed URL carries and which
      * is put there by whoever signed the URL - {@code S3Manager.generateSignedUrl} for the ones NGB
-     * makes itself. Until migration Phase 9 this matched the *host* against
-     * {@code .*s3.*\.amazonaws\.com} instead, which silently excluded every S3-compatible store that
-     * is not AWS: a pre-signed URL from MinIO, Ceph RGW or SwiftStack got stock htsjdk, whose HEAD
-     * the signature does not cover, and the file read back as empty.
+     * makes itself. This used to match the *host* against {@code .*s3.*\.amazonaws\.com} instead,
+     * which silently excluded every S3-compatible store that is not AWS: a pre-signed URL from
+     * MinIO, Ceph RGW or SwiftStack got stock htsjdk, whose HEAD the signature does not cover, and
+     * the file read back as empty.
      *
      * <p>The host test is kept as a second clause rather than replaced. It is nearly dead - S3 maps
      * HeadObject onto the same {@code s3:GetObject} permission as GetObject, so a URL that can be

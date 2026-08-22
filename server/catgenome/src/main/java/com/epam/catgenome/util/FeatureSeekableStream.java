@@ -35,10 +35,10 @@ import java.io.InputStream;
  * seek. {@link #position()} is that inner stream's start offset plus however much of it has been
  * consumed.
  *
- * <p>The consumed count used to come from a decorator: {@code CountingInputStream}, from
- * commons-compress until migration Phase 7, then from commons-io. Phase 8 counts here instead, in
- * the two {@code read} methods. That removes a wrapper from every cloud read, and it removes the
- * only reason commons-io had to stay pinned at 2.15.1 - 2.16.0 deprecates its
+ * <p>The consumed count used to come from a decorator: {@code CountingInputStream}, first from
+ * commons-compress and then from commons-io. It is counted here instead, in the two {@code read}
+ * methods. That removes a wrapper from every cloud read, and it removes the only reason commons-io
+ * had to stay pinned at 2.15.1 - 2.16.0 deprecates its
  * {@code CountingInputStream} in favour of {@code BoundedInputStream}, which does not count skipped
  * bytes. Nothing is lost by counting here: skipping is not something this class delegates, so a
  * {@code skip} on it goes through {@link InputStream#skip(long)}, which reads into a throwaway

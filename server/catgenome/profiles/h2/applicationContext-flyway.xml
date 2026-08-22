@@ -28,7 +28,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <!-- Registers & configures Flyway, used for embedded database update purposes.
-         Went through com.epam.catgenome.dao.FlywayMigrator in Phase 5 of the Java 21 migration:
+         It goes through com.epam.catgenome.dao.FlywayMigrator rather than Flyway itself:
          Flyway 10 removed the setter API this used to configure org.flywaydb.core.Flyway with
          directly, and an existing database also needs its Flyway 3 schema-history table converting
          before the first migration can be recorded. The class javadoc has the detail. -->

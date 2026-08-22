@@ -2,10 +2,9 @@
 #
 # Exercise every Lucene-backed read path in NGB against a running server.
 #
-# Written for migration Phase 6 (Lucene 6.6.0 -> 9.12.x): it is the same script that
-# recorded the pre-migration baseline and that verifies the post-reindex behaviour, so the
-# two runs are directly comparable. Every request below reads a Lucene index; none of them
-# touch the network.
+# The 18 probes below cover every Lucene read path there is, and the recorded outputs in
+# fixtures/pre-migration/lucene6/ are what a Lucene bump has to keep reproducing: run this before
+# and after, and diff. Every request reads a Lucene index; none of them touch the network.
 #
 #   ./verify-lucene.sh                                  # http://localhost:8080/catgenome
 #   ./verify-lucene.sh http://localhost:8090/catgenome  # the PostgreSQL instance

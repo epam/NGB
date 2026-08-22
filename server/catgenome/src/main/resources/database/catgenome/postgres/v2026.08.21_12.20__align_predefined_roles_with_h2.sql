@@ -1,5 +1,4 @@
--- Converges CATGENOME.ROLE's predefined rows with the h2 script set (Java 21 migration,
--- phase 5).
+-- Converges CATGENOME.ROLE's predefined rows with the h2 script set.
 --
 -- v2018.09.17_11.03__ACL_tables.sql seeded a different set on each flavour:
 --     h2:       ... 7 ROLE_BED_MANAGER, 8 ROLE_WIG_MANAGER,       9 ROLE_SEG_MANAGER

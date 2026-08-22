@@ -6,7 +6,7 @@
     <description>CatGenome Java ruleset</description>
 
     <!--
-      Rewritten for PMD 6 in migration Phase 2. PMD 6 deleted the old aggregate rulesets
+      Rewritten for PMD 6 from a PMD 5 ruleset. PMD 6 deleted the old aggregate rulesets
       (rulesets/java/basic.xml, unusedcode.xml, imports.xml, strings.xml, braces.xml, empty.xml,
       finalizers.xml, naming.xml, strictexception.xml) and redistributed their rules across eight
       categories, so the same policy has to be spelled out rule by rule. Every rule the nine old
@@ -43,7 +43,7 @@
       excluded files with AvoidCatchingGenericException switched off, are gone; see the pmd block in
       build.gradle for why they never worked and are no longer needed.
 
-      Moved to PMD 7.26.0 in Phase 3 (7.x needs Gradle 8.6+; 6.55.0 was as far as Gradle 7.6 could
+      It then moved to PMD 7.26.0 (7.x needs Gradle 8.6+; 6.55.0 was as far as Gradle 7.6 could
       go). Beyond the two rule references above, every category path below is unchanged. PMD 7 also
       warns that four of the rules kept here - codestyle/GenericsNaming,
       errorprone/AvoidCatchingThrowable, errorprone/AvoidCatchingNPE and

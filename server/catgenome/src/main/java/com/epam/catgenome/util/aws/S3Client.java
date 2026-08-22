@@ -34,8 +34,8 @@ import static com.epam.catgenome.util.QueryUtils.buildContentDispositionHeader;
 /**
  * Class provides configuration of AWS client and utility methods for S3
  *
- * <p>Moved from AWS SDK v1 to v2 in migration Phase 8. Three consequences are worth knowing about
- * before editing this class:
+ * <p>Written against AWS SDK v2, having been moved off v1. Three consequences are worth knowing
+ * about before editing this class:
  *
  * <ul>
  *   <li>the SDK's own client type is {@code software.amazon.awssdk.services.s3.S3Client} - the same

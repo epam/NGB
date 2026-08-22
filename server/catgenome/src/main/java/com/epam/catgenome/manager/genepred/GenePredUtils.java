@@ -48,9 +48,9 @@ public final class GenePredUtils {
     }
 
     // This used to call org.bouncycastle.util.Strings.toLowerCase, which was on the classpath only
-    // because spring-security-saml2-core dragged Bouncy Castle in transitively; Phase 3 of the Java
-    // 21 migration took that dependency out. Locale.ROOT is what the Bouncy Castle helper did - a
-    // locale-independent lowercase - so a file called ".GP" still matches under a Turkish locale.
+    // because spring-security-saml2-core dragged Bouncy Castle in transitively; Bouncy Castle is no
+    // longer in the build. Locale.ROOT is what the Bouncy Castle helper did - a locale-independent
+    // lowercase - so a file called ".GP" still matches under a Turkish locale.
     public static boolean isGenePred(String path) {
         return GENE_PRED_EXTENSION.stream().anyMatch(path.toLowerCase(Locale.ROOT)::endsWith);
     }

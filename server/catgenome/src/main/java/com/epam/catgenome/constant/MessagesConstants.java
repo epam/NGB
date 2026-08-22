@@ -95,7 +95,7 @@ public final class MessagesConstants {
 
     public static final String INFO_INDEX_NOT_FOUND = "info.index.not.found";
 
-    // Lucene index version guard - see decision D8 in .devenv/JAVA21-MIGRATION-PLAN.md
+    // Lucene index version guard - see docs/md/installation/lucene-reindex.md
     public static final String ERROR_LUCENE_INDEX_VERSION = "error.lucene.index.version";
     public static final String ERROR_LUCENE_INDEX_VERSION_STARTUP = "error.lucene.index.version.startup";
     public static final String INFO_LUCENE_INDEX_REBUILD_FILE = "info.lucene.index.rebuild.file";

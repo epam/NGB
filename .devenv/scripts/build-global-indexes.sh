@@ -3,8 +3,8 @@
 # Build (or rebuild) NGB's global Lucene indexes from the fixtures in the repo's test
 # resources. Two uses:
 #
-#   * it is how .devenv/fixtures/pre-migration/lucene6/ was populated on the pre-Phase-6
-#     tree, so a Lucene 6 index existed to test the D8 guard against;
+#   * it is how .devenv/fixtures/pre-migration/lucene6/ was populated, on a checkout old enough
+#     to write Lucene 6, so that the index-version guard has something to be tested against;
 #   * it is the "rebuild every global index" half of the reindex procedure documented in
 #     docs/md/installation/lucene-reindex.md — run it after deleting the index directories.
 #

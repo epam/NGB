@@ -58,8 +58,8 @@ import com.epam.catgenome.exception.LuceneIndexVersionException;
 /**
  * The two things every NGB index goes through {@link LuceneIndexUtils} for.
  *
- * <p>One is the lazy half of the Lucene upgrade guard (decision D8 of the Java 21 migration): a
- * per-file feature index is not checked at startup - there can be thousands - so the first read of
+ * <p>One is the lazy half of the Lucene upgrade guard: a per-file feature index is not checked at
+ * startup - there can be thousands - so the first read of
  * a stale one has to name the file and the single call that rebuilds it, and the server has to keep
  * serving everything else.
  *

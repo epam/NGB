@@ -11,15 +11,15 @@
     <cache:annotation-driven />
 
     <!--
-      Caffeine, since Phase 3 of the Java 21 migration. Spring 6 removed the whole
+      Caffeine, not EhCache. Spring 6 removed the whole
       org.springframework.cache.ehcache package, so the three beans that used to stand here
       (EhCacheCacheManager, EhCacheManagerFactoryBean over conf/catgenome/ehcache.xml, and an unused
-      EhCacheFactoryBean named "cache") have no Spring 6 equivalent; ehcache.xml is deleted with them.
+      EhCacheFactoryBean named "cache") have no Spring 6 equivalent; there is no ehcache.xml either.
 
       One cache region is left to declare. ehcache.xml configured two, but "indexCache" was never
-      reached through this manager - EhCacheBasedIndexCache used it programmatically, and Phase 7
-      deleted that class outright (decision D10: feature-file headers and Tribble/Tabix indexes are
-      no longer cached in memory at all). "proteinTrack" is the one @Cacheable region
+      reached through this manager - EhCacheBasedIndexCache used it programmatically, and that class
+      is gone: feature-file headers and Tribble/Tabix indexes are no longer cached in memory at
+      all. "proteinTrack" is the one @Cacheable region
       (ProteinSequenceManager.loadProteinSequence): 1,000 entries, 5 s time-to-idle. Both carry over
       exactly; the FIFO eviction policy does not, because Caffeine is Window-TinyLFU and has no FIFO
       mode - for a region bounded by a 5-second idle timeout the replacement policy never binds.

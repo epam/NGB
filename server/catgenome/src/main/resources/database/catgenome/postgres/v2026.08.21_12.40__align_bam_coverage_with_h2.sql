@@ -1,5 +1,4 @@
--- Converges CATGENOME.BAM_COVERAGE.COVERAGE with the h2 script set (Java 21 migration,
--- phase 5).
+-- Converges CATGENOME.BAM_COVERAGE.COVERAGE with the h2 script set.
 --
 -- v2022.02.16_16.00__coverage.sql declared it as
 --     postgres: COVERAGE NUMERIC NOT NULL

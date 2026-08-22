@@ -151,11 +151,10 @@ public class BamCoverageManager {
      * Recomputes the coverage Lucene index from the BAM files it was built from - one registered
      * coverage track, or all of them when {@code coverageId} is null.
      *
-     * <p>Until Phase 6 of the Java 21 migration this index had no rebuild path: intervals are
-     * written only by {@link #create}, so the only way to recreate them was to delete the coverage
-     * track and add it again, which changes its id. The Lucene upgrade makes one full reindex
-     * mandatory, so the gap had to be closed - see
-     * {@code docs/md/installation/lucene-reindex.md}.
+     * <p>This index used to have no rebuild path: intervals are written only by {@link #create}, so
+     * the only way to recreate them was to delete the coverage track and add it again, which changes
+     * its id. The Lucene 9 upgrade makes one full reindex mandatory, so the gap had to be closed -
+     * see {@code docs/md/installation/lucene-reindex.md}.
      *
      * <p>This is the expensive one of the two rebuilds this release adds: the intervals are not
      * stored anywhere but in the index, so they have to be recomputed by walking every locus of

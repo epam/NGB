@@ -4,7 +4,7 @@
     Checkstyle-Configuration: checkstyle for CatGenome
     Description: none
 
-    Migration Phase 2 moved this from Checkstyle 7.2 to 11.1.0. Three edits were needed:
+    This config was carried up from Checkstyle 7.2 to 11.1.0. Three edits were needed on the way:
       - the public identifier: the Puppy Crawl one is what a pre-8 config used. Checkstyle resolves
         both from the jar, so neither needs network access, but the old one is the deprecated spelling.
       - LineLength is a Checker child since Checkstyle 8.24; left under TreeWalker it aborts the run

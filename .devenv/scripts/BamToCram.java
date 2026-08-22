@@ -1,12 +1,12 @@
 /*
  * BAM -> CRAM + .crai, using the same htsjdk the server is built against.
  *
- * Written for migration Phase 7. The repo ships no CRAM fixture anywhere, and NGB's BAM path
- * accepts `.cram` (BamHelper.BAM_EXTENSIONS) and decodes it through a ReferenceSource backed by
- * NGB's own registered reference - so "does CRAM still work" is a question no test in the suite
- * answers. The toolbox image has no samtools, and pulling one in would put a second htsjdk
- * implementation in the loop; converting with the jar's own htsjdk means the fixture is written
- * and read by the same version the phase is verifying.
+ * The repo ships no CRAM fixture anywhere, and NGB's BAM path accepts `.cram`
+ * (BamHelper.BAM_EXTENSIONS) and decodes it through a ReferenceSource backed by NGB's own
+ * registered reference - so "does CRAM still work" is a question no test in the suite answers.
+ * The toolbox image has no samtools, and pulling one in would put a second htsjdk implementation
+ * in the loop; converting with the jar's own htsjdk means the fixture is written and read by the
+ * exact version the server ships, which is the point of the check.
  *
  *   java -cp '<jar dir>/*' BamToCram.java <in.bam> <reference.fa> <out.cram>
  *

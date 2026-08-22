@@ -31,9 +31,9 @@ import java.io.IOException;
  * version this server is linked against, instead of letting Lucene's own
  * {@code IndexFormatTooOldException} escape.
  *
- * <p>NGB 2.8 and earlier wrote Lucene 6 indexes; from the Java 21 migration onwards it uses
- * Lucene 9, whose {@code Version.MIN_SUPPORTED_MAJOR} is 8. There is no in-place upgrade path
- * (see decision D8 in {@code .devenv/JAVA21-MIGRATION-PLAN.md}) — every index has to be
+ * <p>NGB 2.8 and earlier wrote Lucene 6 indexes; this release uses Lucene 9, whose
+ * {@code Version.MIN_SUPPORTED_MAJOR} is 8. There is no in-place upgrade path
+ * (see {@code docs/md/installation/lucene-reindex.md}) — every index has to be
  * rebuilt once. An operator who hits that deserves a sentence telling them which directory is
  * stale and what to run, not a stack trace, so the message carries both and
  * {@code ExceptionHandlerAdvice} passes it straight through to the client.

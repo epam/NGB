@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Translated from the log4j 1.2 `log4j.xml` this file replaces, in Phase 3 of the Java 21 migration.
+  Translated from the log4j 1.2 `log4j.xml` this file replaces.
   NGB used to bind slf4j to log4j 1.2.17 through slf4j-log4j12; there is no slf4j-log4j12 for the
   slf4j 2.x that Spring Boot 3 requires, so logging now goes through spring-boot-starter-log4j2 and
   the configuration has to be in log4j2's own dialect.
@@ -21,8 +21,8 @@
    - `MaxBackupIndex=30` on requests-debug-appender. log4j 1's DailyRollingFileAppender has no such
      property (it is RollingFileAppender's), so DOMConfigurator warned and ignored it: the file was
      never capped, and adding a cap here would be a behaviour change, not a translation.
-   - the `com.mchange` logger, which existed to quieten c3p0's very chatty INFO output. c3p0 is out
-     of the build (D9); HikariCP logs two lines at startup and needs no muzzle.
+   - the `com.mchange` logger, which existed to quieten c3p0's very chatty INFO output. c3p0 is not
+     in the build; HikariCP logs two lines at startup and needs no muzzle.
 -->
 <Configuration>
     <Appenders>
@@ -67,7 +67,7 @@
         <Logger name="org.springframework.aop.framework.CglibAopProxy" level="ERROR"/>
         <Logger name="org.apache.http.wire" level="ERROR"/>
         <Logger name="org.apache.http" level="ERROR"/>
-        <!-- was com.amazonaws until Phase 8 put the AWS SDK on v2 -->
+        <!-- was com.amazonaws under AWS SDK v1 -->
         <Logger name="software.amazon.awssdk" level="ERROR"/>
         <!-- org.apache.hc is httpclient 5, which is what the v2 SDK's apache5-client transport
              speaks. The org.apache.http muzzles above are still needed - NGB's own REST calls go

@@ -15,10 +15,9 @@ SHELL := /bin/bash
 COMPOSE ?= $(shell docker compose version >/dev/null 2>&1 && echo "docker compose" || echo "docker-compose")
 
 # The toolbox's default JDK is 21, which is what Gradle 8.14.5 and the server module's toolchain
-# need, so nothing here has to select a JDK any more; until migration Phase 9 the image defaulted
-# to 8 and every line below was prefixed with `with-java21`. `server/ngb-cli` still declares a 17
-# toolchain, and Gradle finds that JDK itself among the image's installations, so one launcher JDK
-# covers both modules.
+# need, so nothing here has to select a JDK. `server/ngb-cli` still declares a 17 toolchain, and
+# Gradle finds that JDK itself among the image's installations, so one launcher JDK covers both
+# modules - no `with-java21` prefix anywhere below.
 GRADLE     := ./gradlew --no-daemon
 EXEC_BUILD := $(COMPOSE) exec -T builder
 SERVER     := -p server/catgenome
@@ -28,7 +27,7 @@ SERVER     := -p server/catgenome
 NGB_SAML_URL := https://ngb.dev.local:8443/catgenome
 
 # MinIO stands in for S3 so that the s3:// and sws:// read paths can be verified on a machine
-# with no AWS account (migration Phase 8). Exported because docker-compose.yml substitutes them.
+# with no AWS account. Exported because docker-compose.yml substitutes them.
 # The root credentials are dev-only; override them in .env if you care.
 export MINIO_USER     ?= ngbminio
 export MINIO_PASSWORD ?= ngbminio-secret
@@ -139,10 +138,10 @@ cli-test: builder ## CLI<->server integration suite: every row of e2e/cli/testca
 	# starts its own server on port 8080 (three rows have that URL written into them), so stop
 	# any running instance first: `make stop`.
 	#
-	# Until migration Phase 9 this target could not pass at all: the fixtures were wget'd from
-	# http://ngb.opensource.epam.com/, which stopped resolving. e2e/cli/prepare_test_data.sh
-	# generates them from the server module's own test resources instead, so the suite needs no
-	# network.
+	# The fixtures used to be wget'd from http://ngb.opensource.epam.com/, which stopped
+	# resolving, and the suite was unrunnable for years as a result.
+	# e2e/cli/prepare_test_data.sh generates them from the server module's own test resources
+	# instead, so the suite needs no network - keep it that way.
 	#
 	# NGB_E2E_JAR is named explicitly rather than left at the script's default of
 	# dist/catgenome.jar, which is whichever flavour was built last.
@@ -182,17 +181,17 @@ cloud: ## Start MinIO and upload the track fixtures the cloud checks read
 # Everything NGB needs in order to reach MinIO instead of AWS goes in on the command line:
 #   swift.stack.*  Spring properties, read by Application into S3Client.configure. System
 #                  properties outrank catgenome.properties, so no override.properties is involved.
-#   aws.*          AWS SDK v2 settings. endpointUrlS3 is v2-only - v1 had no such switch, which is
-#                  why this target could not have existed before migration Phase 8 - and
+#   aws.*          AWS SDK v2 settings. endpointUrlS3 is v2-only - the v1 SDK had no such switch,
+#                  so pointing NGB at a non-AWS endpoint was not possible at all - and
 #                  sharedCredentialsFile points at the file written below, which carries both the
 #                  [default] profile the s3:// client resolves through the default provider chain
 #                  and the [sws] one S3Client asks for by name.
 #
-# MinIO is addressed by its own name. Between Phase 8 and Phase 9 it had to be addressed as
-# s3.amazonaws.com instead, because EnhancedUrlHelper decided whether to tolerate a 403 on HEAD by
-# matching the host against `.*s3.*\.amazonaws\.com` and a pre-signed URL is signed for GET only -
-# so under the honest name the pre-signed read path read every object as empty. Phase 9 keyed that
-# tolerance to the URL's signature instead, which is what makes this line the proof of the fix:
+# MinIO is addressed by its own name, and that is deliberate. EnhancedUrlHelper used to decide
+# whether to tolerate a 403 on HEAD by matching the host against `.*s3.*\.amazonaws\.com`, and a
+# pre-signed URL is signed for GET only - so under any honest name the pre-signed read path read
+# every object as empty, and this target had to alias MinIO as s3.amazonaws.com to work. That
+# tolerance is keyed to the URL's signature now, which is what makes this line the proof of the fix:
 # `make verify-cloud` reads a track through a pre-signed http://<bucket>.minio:9000/... URL.
 MINIO_ENDPOINT  := http://minio:9000
 MINIO_JAVA_OPTS := -Dswift.stack.endpoint.url=$(MINIO_ENDPOINT) \
@@ -215,8 +214,8 @@ up-cloud: certs cloud ## Run NGB with s3:// and sws:// pointed at MinIO
 # Three checks that a green unit suite does not give you, because the suite never boots a server:
 # it drives the managers directly, with a Spring test context and a temporary contents directory.
 # Each one registers data over REST against a *running* instance and prints what came back. They
-# were written for migration Phases 6, 7 and 8 respectively, and they are kept: they are the only
-# thing that exercises the parsers, the Lucene indexes and the S3 client end to end.
+# are kept because they are the only thing that exercises the parsers, the Lucene indexes and the
+# S3 client end to end.
 #
 # All three take the base URL as their first argument, so `bash scripts/verify-lucene.sh
 # http://localhost:8090/catgenome` points one at the PostgreSQL instance instead.

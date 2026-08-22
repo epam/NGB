@@ -1,10 +1,10 @@
 # Appended to catgenome.properties when AUTH_MODE=saml.
 #
 # Note on the mode combination: SAML guards the browser and JWT guards /restapi/**, and both are
-# switched on here. They are independent as of migration Phase 4 - the JWT chain no longer needs
-# any SAML bean, only the URL to redirect /restapi/navigate to - so jwt.security.enable=true with
-# saml.security.enable=false now starts, and returns 401 instead of redirecting. Enabling both is
-# still what the docs recommend, so that ngb-cli keeps working while the UI uses SSO.
+# switched on here. They are independent - the JWT chain needs no SAML bean, only the URL to
+# redirect /restapi/navigate to - so jwt.security.enable=true with saml.security.enable=false
+# starts, and returns 401 instead of redirecting. Enabling both is still what the docs recommend,
+# so that ngb-cli keeps working while the UI uses SSO.
 #
 # SamlUserDetailsService is @ConditionalOnProperty(security.acl.enable=true) and
 # SAMLSecurityConfiguration requires it, so ACL has to be on whenever SAML is.
@@ -23,9 +23,9 @@ server.ssl.keyAlias=${HTTPS_KEY_ALIAS}
 
 # SAML service provider identity.
 #
-# saml.sign.key signs outgoing <AuthnRequest>s and, since Phase 4, the published SP metadata as
-# well - Spring Security keeps one credential list for both, where the OpenSAML 2 extension signed
-# messages with this key but signed and advertised metadata with server.ssl.keyAlias. That key is
+# saml.sign.key signs outgoing <AuthnRequest>s and the published SP metadata as well - Spring
+# Security keeps one credential list for both, where NGB used to sign messages with this key but
+# sign and advertise metadata with server.ssl.keyAlias, telling an IdP the wrong one. That key is
 # now used only for decryption, and the metadata at /catgenome/saml/metadata advertises ngb-saml,
 # which is the key an IdP actually needs to validate what NGB sends it.
 saml.sign.key=${SAML_SIGN_KEY}

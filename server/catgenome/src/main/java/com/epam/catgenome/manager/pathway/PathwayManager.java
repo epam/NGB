@@ -205,10 +205,10 @@ public class PathwayManager {
     /**
      * Rebuilds the whole pathway Lucene index from the database and the registered pathway files.
      *
-     * <p>Until Phase 6 of the Java 21 migration this index had no rebuild path at all: it is
-     * written a document at a time by {@link #createPathway}, so the only way to recreate it was to
-     * delete and re-register every pathway. That became a gap worth closing when the Lucene upgrade
-     * made one full reindex mandatory - see {@code docs/md/installation/lucene-reindex.md}.
+     * <p>This index used to have no rebuild path at all: it is written a document at a time by
+     * {@link #createPathway}, so the only way to recreate it was to delete and re-register every
+     * pathway. That became a gap worth closing when the Lucene 9 upgrade made one full reindex
+     * mandatory - see {@code docs/md/installation/lucene-reindex.md}.
      *
      * <p>Everything the index holds is either in the database ({@code pathway} joined with
      * {@code pathway_organism}) or in the pathway file on disk, which is why this needs no
@@ -408,8 +408,8 @@ public class PathwayManager {
      * Reads an SBGN document through the *javax* JAXB API, on purpose: the classes being bound -
      * {@code org.sbgn.bindings.*} from libsbgn 0.2 - carry javax.xml.bind annotations, and a
      * jakarta JAXBContext reads jakarta annotations only, so it would treat them as unannotated
-     * POJOs. Everything else in the server was moved to jakarta.xml.bind in Phase 3 of the Java 21
-     * migration; this method follows the library, and follows it back once libsbgn does.
+     * POJOs. Everything else in the server uses jakarta.xml.bind; this method follows the library,
+     * and follows it back once libsbgn does.
      */
     private static Sbgn readFromFile(final File f) throws JAXBException {
         JAXBContext context = JAXBContext.newInstance("org.sbgn.bindings");

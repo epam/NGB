@@ -154,8 +154,9 @@ public class FeatureIndexDao {
     private BookmarkManager bookmarkManager;
 
     // @Lazy breaks a bean-creation cycle that Boot 2.6+ refuses to start with
-    // (VcfManager -> FeatureIndexManager -> FeatureIndexDao -> VcfManager). The cycle predates the migration; deferring
-    // resolution of this one edge to first use is the smallest change that removes it.
+    // (VcfManager -> FeatureIndexManager -> FeatureIndexDao -> VcfManager). The cycle is
+    // long-standing; deferring resolution of this one edge to first use is the smallest change
+    // that removes it.
     @Autowired
     @Lazy
     private VcfManager vcfManager;

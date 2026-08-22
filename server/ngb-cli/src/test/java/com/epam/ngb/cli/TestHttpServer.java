@@ -542,8 +542,8 @@ public class TestHttpServer extends AbstractCliTest{
                 // One entry of what /dataitem/formats really answers: the server maps every extension
                 // in conf/catgenome/format/bed/formats.json to BED, so the map is never empty.
                 //
-                // This was Collections.singletonMap(null, null) until migration Phase 9, which only
-                // ever worked by accident. JsonMapper serializes with Include.NON_EMPTY, and from
+                // This was Collections.singletonMap(null, null), which only ever worked by
+                // accident. JsonMapper serializes with Include.NON_EMPTY, and from
                 // jackson 2.9 setSerializationInclusion applies that to a map's *contents* as well as
                 // to the property; a map whose only entry has a null value is then empty, so the
                 // whole `payload` disappeared from the response and fetchAdditionalFormats threw

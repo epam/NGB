@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """A range-serving static file server that answers HEAD with 403 when addressed as S3.
 
-Written for migration Phase 7 (htsjdk 2.2.4 -> 5.0.0), to exercise the one piece of NGB's
-htsjdk fork that had to survive the upgrade: EnhancedUrlHelper. Its S3Helper exists because a
-pre-signed S3 GET URL answers HEAD with 403, and htsjdk's stock HTTPHelper.exists() treats
-anything but 200 as "not there" - so without it, every pre-signed-URL track is refused before a
-byte is read. There are no S3 credentials in the dev environment, so the situation is staged
-instead:
+It exists to exercise the one piece of NGB's htsjdk fork that no unit test covers:
+EnhancedUrlHelper. Its S3Helper is there because a pre-signed S3 GET URL answers HEAD with 403,
+and htsjdk's stock HTTPHelper.exists() treats anything but 200 as "not there" - so without it,
+every pre-signed-URL track is refused before a byte is read. There are no S3 credentials in the
+dev environment, so the situation is staged instead:
 
   * the container running this gets two network aliases on the ngb-dev network, `p7-files` and
     `s3.amazonaws.com`; only the second matches EnhancedUrlHelper's S3_PATTERN;

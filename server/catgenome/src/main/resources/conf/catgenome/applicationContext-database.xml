@@ -12,8 +12,8 @@
     <!-- Configures database connection pool used to establish and manage connections to a content
          database. It is required to support interaction between database server and application
 
-         HikariCP since Phase 3 of the Java 21 migration (D9); it was c3p0's ComboPooledDataSource,
-         last released in 2015. Every `database.*` property name is unchanged - only the pool's own
+         The pool is HikariCP; it used to be c3p0's ComboPooledDataSource, last released in 2015.
+         Every `database.*` property name is unchanged - only the pool's own
          setter names differ:
              user               -> username
              jdbcUrl            -> jdbcUrl              (same)
@@ -33,8 +33,8 @@
         <property name="driverClassName" value="${database.driver.class}"/>
         <property name="maximumPoolSize" value="${database.max.pool.size}"/>
         <property name="minimumIdle" value="${database.initial.pool.size}"/>
-        <!-- H2 2.x (Phase 5 of the Java 21 migration) promoted USER, VALUE and END to reserved
-             words, and this schema uses all three: the table CATGENOME.USER, catgenome.metadata's
+        <!-- H2 2.x promoted USER, VALUE and END to reserved words, where 1.x had not, and this
+             schema uses all three: the table CATGENOME.USER, catgenome.metadata's
              VALUE column and catgenome.session's END column. `SET NON_KEYWORDS` restores 1.x
              behaviour for exactly those three identifiers and nothing else, which is far less
              invasive than renaming them across 59 migration scripts and 42 DAO definitions.

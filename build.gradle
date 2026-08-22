@@ -14,8 +14,8 @@ def buildNumber = hasProperty("buildNumber") ? buildNumber : ""
 def profile = hasProperty("profile") ? profile : "release"
 
 allprojects {
-    // 3.0.0, not 2.8.1: the Java 21 migration replaced the whole stack under this tree - JDK 8 to
-    // 21, Spring Boot 1.5 to 3.5, javax to jakarta, Flyway 3 to 11, H2 1.3 to 2.3, Lucene 6 to 9,
+    // 3.0.0, not 2.8.1: this release replaced the whole stack under this tree - JDK 8 to 21,
+    // Spring Boot 1.5 to 3.5, javax to jakarta, Flyway 3 to 11, H2 1.3 to 2.3, Lucene 6 to 9,
     // htsjdk 2 to 5, AWS SDK v1 to v2, OpenSAML 2 to 4 - and two of those are breaking for whoever
     // is running NGB: an existing H2 or PostgreSQL database needs the documented upgrade
     // (docs/md/installation/database-upgrade.md) and every Lucene index has to be rebuilt
@@ -48,7 +48,7 @@ task ui(type: Copy) {
         delete fileTree(uiFilesDestination) {
             // 'swagger-ui/**' used to be here to protect the committed Swagger 1.x UI in
             // src/main/resources/static from this delete. springdoc serves its own UI out of a jar
-            // from Phase 3 on, and that directory is deleted, so there is nothing left to preserve.
+            // and that directory no longer exists, so there is nothing left to preserve.
             exclude ('blast**', 'tblast**', 'docs/**', 'miew/**')
         }
     }

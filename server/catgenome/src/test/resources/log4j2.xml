@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Translated from log4j 1.2 in Phase 3 of the Java 21 migration; see profiles/dev/log4j2.xml for
-     the mapping and for the two log4j-1 declarations that are deliberately not carried over. -->
+<!-- Translated from log4j 1.2; see profiles/dev/log4j2.xml for the mapping and for the two
+     log4j-1 declarations that are deliberately not carried over. -->
 <Configuration>
     <Appenders>
         <Console name="stdout" target="SYSTEM_OUT">

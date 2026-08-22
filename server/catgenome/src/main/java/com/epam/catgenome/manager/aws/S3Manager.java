@@ -92,8 +92,8 @@ public class S3Manager {
     }
 
     /**
-     * An {@link S3Presigner} rather than the {@code AmazonS3} this returned until Phase 8: on AWS
-     * SDK v2 signing a URL is no longer something the S3 client itself does. Like the client it
+     * An {@link S3Presigner} rather than the {@code AmazonS3} this used to return: on AWS SDK v2
+     * signing a URL is no longer something the S3 client itself does. Like the client it
      * replaces it is built per call and closed by the caller, and it resolves its region and
      * credentials from the default provider chain.
      */

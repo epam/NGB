@@ -1,8 +1,8 @@
 import org.gradle.internal.os.OperatingSystem
 
 // The build used to apply `com.moowork.node` 1.1.1, which is not Gradle-7-compatible, and to
-// download its own Node when the one on PATH was too old. Node is pinned by decision (D12) and
-// provided by the environment (see .devenv/toolbox/Dockerfile), so these are plain Exec tasks
+// download its own Node when the one on PATH was too old. Node is pinned below and installed by
+// the environment (see .devenv/toolbox/Dockerfile), so these are plain Exec tasks
 // against the `npm` on PATH. Task names are unchanged — the root build depends on `:client:buildUI`.
 
 def clientPath = hasProperty("clientPath") ? clientPath : "/catgenome"

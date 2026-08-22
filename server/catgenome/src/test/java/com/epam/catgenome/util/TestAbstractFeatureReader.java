@@ -35,9 +35,9 @@ import static org.junit.Assert.*;
 /**
  * Copied from HTSJDK library and added tests for cases of load indexes and constructors.
  *
- * <p>Until Java 21 migration Phase 7 this exercised NGB's fork of the reader classes in
- * {@code util.feature.reader}, with an {@code EhCacheBasedIndexCache} threaded through every call.
- * The fork and the cache are both gone (decisions D9 and D10), so it now exercises stock
+ * <p>This used to exercise NGB's fork of the reader classes in {@code util.feature.reader}, with an
+ * {@code EhCacheBasedIndexCache} threaded through every call. The fork and the cache are both gone,
+ * so it now exercises stock
  * {@code htsjdk.tribble} - which is the point: every constructor and factory overload the fork used
  * to provide has a stock equivalent, and this is where that is checked.
  *

@@ -3,10 +3,10 @@
 # Load a track of every type NGB can read through a running server, and print the data that came
 # back.
 #
-# Written for migration Phase 7 (htsjdk 2.2.4 -> 5.0.0). The unit suite reads the same fixtures,
-# but through the managers with a Spring test context; it never boots the server, and a green
-# suite says nothing about whether an actual instance still parses a BAM. This does the second
-# pass: register each fixture over REST, ask for a window, and show a real record from it.
+# The unit suite reads the same fixtures, but through the managers with a Spring test context; it
+# never boots the server, and a green suite says nothing about whether an actual instance still
+# parses a BAM. This does the second pass: register each fixture over REST, ask for a window, and
+# show a real record from it. Run it after anything that touches htsjdk or a parser.
 #
 #   ./prepare-track-fixtures.sh                            # stages the fixtures into /ngs/tracks
 #   ./verify-tracks.sh                                     # http://localhost:8080/catgenome
@@ -30,8 +30,8 @@
 # The remote probes need docker: they start a container serving .devenv/data/ngs over HTTP with
 # two aliases on the ngb-dev network, one of which looks like S3 to NGB and refuses HEAD - see
 # fake-remote-files.py. Without docker they are skipped, and the script says so. The S3-looking
-# alias is what exercises the hostname clause of EnhancedUrlHelper.headMayBeRefused, which Phase 9
-# kept alongside the signature clause; `make verify-cloud` covers the signature clause.
+# alias is what exercises the hostname clause of EnhancedUrlHelper.headMayBeRefused, which is kept
+# alongside the signature clause for real AWS; `make verify-cloud` covers the signature clause.
 #
 # MAF has no REST surface at all: MafController and MafSecurityService were deleted in 562b6a6d
 # (Dec 2018), leaving MafManager reachable only from Java. It cannot be verified here, and

@@ -1,5 +1,5 @@
 -- Converges CATGENOME.TASK_ORGANISM.ORGANISM and CATGENOME.TASK_EXCL_ORGANISM.ORGANISM with
--- the h2 script set (Java 21 migration, phase 5).
+-- the h2 script set.
 --
 -- v2021.05.12_12.00__task.sql declared the column as
 --     postgres: ORGANISM VARCHAR(250) NOT NULL

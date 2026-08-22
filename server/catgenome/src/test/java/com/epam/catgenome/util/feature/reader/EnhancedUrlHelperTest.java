@@ -35,10 +35,10 @@ import static org.junit.Assert.assertTrue;
 /**
  * Which URLs get the pre-signed-URL tolerance, and which do not.
  *
- * <p>The question this answers is whether the tolerance follows the *signature* or the *host*. Until
- * migration Phase 9 it followed the host, so a pre-signed URL from any S3-compatible store that is
- * not AWS - MinIO, Ceph RGW, SwiftStack - was routed to stock htsjdk, which measures a resource with
- * a HEAD that the signature does not cover, and the file read back as empty.
+ * <p>The question this answers is whether the tolerance follows the *signature* or the *host*. It
+ * used to follow the host, so a pre-signed URL from any S3-compatible store that is not AWS -
+ * MinIO, Ceph RGW, SwiftStack - was routed to stock htsjdk, which measures a resource with a HEAD
+ * that the signature does not cover, and the file read back as empty.
  */
 public class EnhancedUrlHelperTest {
 

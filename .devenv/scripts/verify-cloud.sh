@@ -3,10 +3,10 @@
 # Read tracks out of an S3-compatible object store through a running server, and compare what
 # comes back with the same file read from disk.
 #
-# Written for migration Phase 8 (AWS SDK v1 -> v2). The unit suite barely touches S3 - S3ManagerTest
-# and S3ObjectChunkInputStreamTest are all of it, and both stub the client away - so a green suite
-# says nothing about whether the v2 client, the v2 pre-signer or the v2 URI parser actually work.
-# This does that pass against MinIO, which needs no AWS account:
+# The unit suite barely touches S3 - S3ManagerTest and S3ObjectChunkInputStreamTest are all of it,
+# and both stub the client away - so a green suite says nothing about whether the SDK client, the
+# pre-signer or the URI parser actually work. This does that pass against MinIO, which needs no
+# AWS account:
 #
 #   cd .devenv
 #   make up-cloud            # MinIO + fixtures + NGB restarted with s3:// and sws:// pointed at it
@@ -22,18 +22,17 @@
 #                                  addressed virtual-host style (aws.endpointUrlS3)
 #   2. a registered sws:// file  - the same, path-style, through the swift-stack client and its
 #                                  own credentials profile (swift.stack.*)
-#   3. /dataitem/{id}/downloadUrl - S3Presigner, which is what v1's AmazonS3.generatePresignedUrl
-#                                  became. The URL is fetched from inside the docker network, and
-#                                  HEAD on it is expected to be refused with 403 - that is the
-#                                  condition IOHelper.getContentLength exists for.
+#   3. /dataitem/{id}/downloadUrl - S3Presigner. The URL is fetched from inside the docker
+#                                  network, and HEAD on it is expected to be refused with 403 -
+#                                  that is the condition IOHelper.getContentLength exists for.
 #   4. a track read by fileUrl=  - not registered, so Utils.processUrl pre-signs the s3:// URI and
 #                                  the read happens over https through UrlSeekableStream. NGB is
 #                                  pointed at MinIO under the name `minio`, so this is also what
 #                                  proves EnhancedUrlHelper keys its 403 tolerance to the
-#                                  pre-signature and not to an amazonaws.com hostname (Phase 9).
+#                                  pre-signature and not to an amazonaws.com hostname.
 #   5. a registered sws:// VCF   - a *bgzip'd* file, which reads the object right up to its last
-#                                  byte and then asks for one more. Until Phase 9 that returned
-#                                  0xff instead of an end of stream and BGZF rejected the trailing
+#                                  byte and then asks for one more. That read used to return 0xff
+#                                  instead of an end of stream, and BGZF rejected the trailing
 #                                  block with "invalid uncompressedLength: -1".
 
 set -uo pipefail
@@ -254,7 +253,7 @@ done
 # ------------------------------------------------------- a bgzip'd feature file
 
 # Registering a feature file reads its header, which means reading the object to its exact end.
-# Until Phase 9 this is where every bgzip'd file in cloud storage failed - see path 5 in the header.
+# This is where every bgzip'd file in cloud storage used to fail - see path 5 in the header.
 step "registered sws:// VCF  (bgzip, read to the last byte)"
 register vcf_sws "register sws://$BUCKET/tracks/$VCF" /vcf/register \
     "{\"path\":\"sws://$BUCKET/tracks/$VCF\",\"indexPath\":\"sws://$BUCKET/tracks/$VCF.tbi\",\"type\":\"S3\",\"indexType\":\"S3\",\"referenceId\":$REF_DM6,\"name\":\"p8c_vcf_sws\"}"

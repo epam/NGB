@@ -8,8 +8,9 @@
 #
 #   JAVA_VERSION=17|21    which JDK to run the CLI on. Defaults to 17, the toolchain
 #   server/ngb-cli/build.gradle declares, so the tarball runs here on exactly the JRE it targets.
-#   21 works too - Java 17 bytecode runs on 21. Before Phase 9 the image's default was JDK 8, on
-#   which the CLI got as far as UnsupportedClassVersionError, which is why this is set explicitly.
+#   21 works too - Java 17 bytecode runs on 21. It is set explicitly rather than left to the
+#   image default, so that a change to that default cannot silently pick a JDK the tarball
+#   will not load on (anything older than 17 is an UnsupportedClassVersionError).
 set -euo pipefail
 
 CLI_HOME=/opt/ngb-cli

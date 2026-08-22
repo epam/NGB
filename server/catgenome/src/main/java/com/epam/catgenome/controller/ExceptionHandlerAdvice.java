@@ -65,7 +65,7 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
     /**
      * A Lucene index this release cannot read is an operator's problem with a known fix, not a
      * server defect: the message already names the directory and the call that rebuilds it (see
-     * {@code LuceneIndexUtils}, decision D8 of the Java 21 migration). It is handled separately
+     * {@code LuceneIndexUtils}). It is handled separately
      * from {@link #handleUncaughtException} so that the log carries that sentence rather than an
      * {@code IndexFormatTooOldException} stack trace from whichever manager happened to touch the
      * index first - the trace stays available at DEBUG. Per-file feature indexes reach the API

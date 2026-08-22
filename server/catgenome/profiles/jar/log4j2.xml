@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Translated from log4j 1.2 in Phase 3 of the Java 21 migration; see profiles/dev/log4j2.xml for
-     the mapping and for the two log4j-1 declarations that are deliberately not carried over. -->
+<!-- Translated from log4j 1.2; see profiles/dev/log4j2.xml for the mapping and for the two
+     log4j-1 declarations that are deliberately not carried over. -->
 <Configuration>
     <Appenders>
         <Console name="stdout" target="SYSTEM_OUT">
@@ -9,8 +9,8 @@
         </Console>
 
         <!-- The console above only passes ERROR, which is right for steady-state running but hides
-             the one-off upgrade notices FlywayMigrator writes at WARN (Phase 5 of the Java 21
-             migration) and the Lucene index version guard writes at INFO/WARN (Phase 6).
+             the one-off upgrade notices FlywayMigrator writes at WARN and the Lucene index version
+             guard writes at INFO/WARN.
              Converting a Flyway 3 schema history is irreversible and happens exactly once, on the
              first start after the upgrade, so an operator has to be able to see that it happened -
              docs/md/installation/database-upgrade.md tells them to look for it, and
@@ -49,11 +49,11 @@
 
         <!-- additivity="false" keeps its WARNs off the ERROR-only appenders (which would drop them
              anyway); error-appender is listed so that anything it ever logs at ERROR is still filed. -->
-        <!-- The Lucene index version guard (Phase 6 of the Java 21 migration). The check writes
-             one INFO line per start saying how many index directories it read and WARNs when it
-             cannot read one at all; LuceneIndexUtils WARNs once when a rebuild discards an
-             unreadable index. All of it is one-off upgrade information an operator has to be able
-             to see, and none of it would pass the ERROR-only console above.
+        <!-- The Lucene index version guard. The check writes one INFO line per start saying how
+             many index directories it read, and WARNs when it cannot read one at all;
+             LuceneIndexUtils WARNs once when a rebuild discards an unreadable index. All of it is
+             one-off upgrade information an operator has to be able to see, and none of it would
+             pass the ERROR-only console above.
              A refusal to start is logged at ERROR by Spring Boot itself, through
              LuceneIndexVersionFailureAnalyzer, so it needs no appender here. -->
         <Logger name="com.epam.catgenome.app.LuceneIndexVersionCheck" level="INFO" additivity="false">

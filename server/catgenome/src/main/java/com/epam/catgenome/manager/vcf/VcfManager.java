@@ -154,8 +154,8 @@ public class VcfManager {
     // refuses to start with: VcfManager -> GeneTrackManager -> FeatureIndexManager -> VcfManager
     // (and the shorter VcfManager -> FeatureIndexManager -> VcfManager). GeneTrackManager takes
     // FeatureIndexManager through its constructor, so that edge cannot be deferred; cutting on
-    // VcfManager's side leaves it out of every cycle in this group. The cycle predates the
-    // migration - Boot 1.5 resolved it silently through early bean references.
+    // VcfManager's side leaves it out of every cycle in this group. The cycle is long-standing -
+    // Boot 1.5 resolved it silently through early bean references.
     @Autowired
     @Lazy
     private GeneTrackManager geneTrackManager;

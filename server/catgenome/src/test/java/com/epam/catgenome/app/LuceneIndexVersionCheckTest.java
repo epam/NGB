@@ -41,9 +41,9 @@ import com.epam.catgenome.exception.LuceneIndexVersionException;
 import com.epam.catgenome.util.StaleLuceneIndex;
 
 /**
- * The startup half of the Lucene upgrade guard (decision D8 of the Java 21 migration): NGB refuses
- * to start when a global index directory holds an index this release cannot read, and the refusal
- * names every such directory together with what rebuilds it.
+ * The startup half of the Lucene upgrade guard: NGB refuses to start when a global index directory
+ * holds an index this release cannot read, and the refusal names every such directory together with
+ * what rebuilds it.
  *
  * <p>What is being protected here is the message, not the detection — an operator upgrading from
  * NGB 2.8 will see it, and it is the whole difference between a support incident and a documented
@@ -113,7 +113,8 @@ public class LuceneIndexVersionCheckTest {
      * {@code targets.index.directory} and {@code ncbi.index.directory} are parents of several leaf
      * indexes rather than indexes themselves, so the check walks them - and has to report the leaf,
      * because the leaf is what determines the rebuild call. This is the shape of a real upgrade: on
-     * the migration fixture it is 14 leaves under 6 roots.
+     * the Lucene 6 fixture in {@code .devenv/fixtures/pre-migration/lucene6/} it is 14 leaves under
+     * 6 roots.
      */
     @Test
     public void reportsEveryStaleLeafOfAMultiIndexRootWithItsOwnRebuildCall() throws IOException {

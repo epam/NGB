@@ -51,8 +51,7 @@ import com.epam.catgenome.util.LuceneIndexUtils;
 
 /**
  * Refuses to start NGB when one of the global Lucene index directories holds an index this
- * release cannot read, and says which directories they are and what rebuilds each one
- * (decision D8 of the Java 21 migration).
+ * release cannot read, and says which directories they are and what rebuilds each one.
  *
  * <p>NGB 2.8 and earlier wrote Lucene 6 indexes; this release links Lucene 9, which cannot read
  * that format and has no in-place upgrade. Left unguarded, the first request that touched such a

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Starts an NGB server inside the dev environment.
 #
-#   JAVA_VERSION=17|21    which JDK to run the jar on. Only 21 works: since migration Phase 3 the
-#                         jar is Java 21 bytecode. The switch survives Phase 9 (which dropped JDK 8
-#                         from the image) only so that "wrong JDK" fails with an explicit message
-#                         rather than an UnsupportedClassVersionError.
+#   JAVA_VERSION=17|21    which JDK to run the jar on. Only 21 works - the jar is Java 21
+#                         bytecode. The switch is kept so that a wrong JDK fails with an explicit
+#                         message rather than an UnsupportedClassVersionError, and because the
+#                         image carries a 17 for server/ngb-cli.
 #   AUTH_MODE=none|saml   no security, or Keycloak SAML SSO + JWT for the CLI.
 #
 # Config is rendered into /opt/ngb/config/catgenome.properties, which the app picks up
@@ -41,19 +41,19 @@ java -version 2>&1 | sed 's/^/[ngb-entrypoint]   /'
 # java.util.concurrent.atomic,java.io}, which EhCache 2.10.1 needed to size the `indexCache`
 # entries (maxBytesLocalHeap="100M" in conf/catgenome/ehcache.xml): it walked the object graph
 # reflectively, which JDK 16+ refuses for java.base fields, and every cache put threw
-# InaccessibleObjectException. D11 (Phase 3) replaced EhCache with Caffeine, which bounds the cache
-# by entry count and reflects into nothing, so the flags went with it - here and in
+# InaccessibleObjectException. EhCache was replaced by Caffeine, which bounds the cache by entry
+# count and reflects into nothing, so the flags went with it - here and in
 # server/catgenome/build.gradle's test { jvmArgs }. Boot 3 on JDK 21 needs no --add-opens of its
 # own; a new one appearing here would mean a stale dependency.
 #
-# --enable-native-access=ALL-UNNAMED is Phase 6. Lucene 9's MMapDirectory reads segments through
+# --enable-native-access=ALL-UNNAMED is for Lucene 9: MMapDirectory reads segments through
 # java.lang.foreign.MemorySegment, and calling a restricted method from the unnamed module makes
 # the JVM print three WARNING lines on stderr at every start. The flag suppresses them and nothing
 # else - the access is intended, and refusing it is what a future JDK would do by default. It is
 # not the same as the manifest attribute (Enable-Native-Access), which only exists from JDK 24, so
-# on 21 it has to be on the command line. Phase 9 put the same flag in docker/core/Dockerfile and in
-# the generated start scripts; this is the .devenv copy of that decision. A launcher that loses it
-# still works, so check a start's output for those three warnings rather than its exit code.
+# on 21 it has to be on the command line. docker/core/Dockerfile and the generated start scripts
+# carry the same flag; this is the .devenv copy of it. A launcher that loses it still works, so
+# check a start's output for those three warnings rather than its exit code.
 JAVA_REQUIRED_OPTS="--enable-native-access=ALL-UNNAMED"
 
 # --- the jar ----------------------------------------------------------------

@@ -40,11 +40,11 @@ import org.apache.lucene.store.IndexOutput;
 
 /**
  * Builds an index directory that this release's Lucene refuses to open, so that the upgrade guard
- * (decision D8 of the Java 21 migration) can be tested without a checked-in binary fixture.
+ * can be tested without a checked-in binary fixture.
  *
- * <p>A real Lucene 6 index cannot be committed to the test tree: this very phase is what would
- * invalidate it, and the next Lucene upgrade would leave a fixture nobody can regenerate. It also
- * does not need to be real. Every caller of the guard reaches the failure through
+ * <p>A real Lucene 6 index cannot be committed to the test tree: nothing in the build can write one
+ * any more, and the next Lucene upgrade would leave a fixture nobody can regenerate. It also does
+ * not need to be real. Every caller of the guard reaches the failure through
  * {@code SegmentInfos}, which reads the commit point before anything else and rejects it on the
  * format version in its header — so a {@code segments_1} holding nothing but that header fails in
  * exactly the same place, with exactly the same exception, as the 21 MB of Lucene 6 index in

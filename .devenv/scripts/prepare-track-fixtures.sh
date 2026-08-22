@@ -9,11 +9,10 @@
 # Requires: `docker-compose` from .devenv/ (for the CRAM step only), and a built
 # dist/catgenome-psql.jar or dist/catgenome-h2.jar to take htsjdk from.
 #
-# Written for migration Phase 7 (htsjdk 2.2.4 -> 5.0.0). The unit suite reads these same
-# fixtures, but through the managers, with a Spring test context and a temporary contents
-# directory; it never boots the server. So the parser upgrade needs a second pass over a real
-# instance, and that needs the fixtures somewhere the containers can see - they mount only
-# ./data/ngs as /ngs, not /workspace.
+# The unit suite reads these same fixtures, but through the managers, with a Spring test context
+# and a temporary contents directory; it never boots the server. So anything that touches the
+# parsers wants a second pass over a real instance, and that needs the fixtures somewhere the
+# containers can see - they mount only ./data/ngs as /ngs, not /workspace.
 #
 # Three of the eleven files are not copies:
 #

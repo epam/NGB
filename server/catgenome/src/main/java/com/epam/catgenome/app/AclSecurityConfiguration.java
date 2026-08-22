@@ -58,8 +58,8 @@ import com.epam.catgenome.security.acl.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
- * Method-security and ACL wiring. Reworked for Spring Security 6 in Phase 3 of the Java 21
- * migration; three things about the shape of this class are consequences of that and not choices:
+ * Method-security and ACL wiring. Three things about the shape of this class are consequences of
+ * what Spring Security 6 requires, and not choices:
  *
  * <ul>
  *   <li>{@code GlobalMethodSecurityConfiguration} and {@code @EnableGlobalMethodSecurity} were

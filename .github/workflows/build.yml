@@ -1,9 +1,8 @@
 # NGB's build.
 #
-# This replaces .appveyor.yml, per decision D7 of the Java 21 migration
-# (.devenv/JAVA21-MIGRATION-PLAN.md). AppVeyor built on `image: Previous Ubuntu1604` with
-# `stack: jdk 8, python 3.9, node 14`; the server module has declared a Java 21 toolchain since
-# Phase 3 and Gradle is 8.14.5, so that image could not build this tree at all.
+# This replaces the .appveyor.yml the project used to build on. AppVeyor built on
+# `image: Previous Ubuntu1604` with `stack: jdk 8, python 3.9, node 14`; the server module
+# declares a Java 21 toolchain and Gradle is 8.14.5, so that image cannot build this tree at all.
 #
 # It also does something AppVeyor never did: run the tests. AppVeyor built with -PnoTest, set
 # `test: off`, and then ran `gradlew jacocoTestReport` over a build that had executed no test, so
@@ -122,7 +121,7 @@ jobs:
     services:
       # The credentials and database name are the ones in
       # server/catgenome/profiles/postgres/test-catgenome.properties, which the test profile reads
-      # as jdbc:postgresql://localhost:5432/ngb_test. PostgreSQL 16 is what .devenv runs (D3).
+      # as jdbc:postgresql://localhost:5432/ngb_test. PostgreSQL 16 is what .devenv runs.
       #
       # `make test-pg` has to be preceded by `make reset-pg` because Flyway will not migrate a
       # schema left behind by the previous run; a service container is new every time, so this job
@@ -155,7 +154,7 @@ jobs:
   build:
     name: build (artifacts + docker image)
     # Not ubuntu-latest, and this is the one job that cares: the client is frozen at AngularJS 1.5
-    # on a webpack 4 toolchain that needs Node 14 (decision D12), and 22.04 is the newest runner
+    # on a webpack 4 toolchain that needs Node 14, and 22.04 is the newest runner
     # image the .devenv toolbox - eclipse-temurin:21-jdk-jammy - is a match for. When GitHub retires
     # 22.04, moving this line is not the fix; the client toolchain is.
     runs-on: ubuntu-22.04
@@ -166,8 +165,8 @@ jobs:
         with:
           # Pinned, not "14.x": .devenv/toolbox/Dockerfile installs this exact version, client/
           # build.gradle checks for it, and the npm tree is resolved by a committed
-          # package-lock.json from that npm. D12 freezes all of it - the client is not part of the
-          # Java 21 migration. Nothing here should be bumped without doing the client with it.
+          # package-lock.json from that npm. All of it is frozen together: nothing here should be
+          # bumped without upgrading the client's own toolchain in the same change.
           node-version: 14.17.5
           cache: npm
           cache-dependency-path: client/package-lock.json
@@ -242,8 +241,8 @@ jobs:
       # dist/catgenome.jar is the H2 flavour (build.sh), which is the one this suite wants; the
       # script's own default points at it. The fixtures are generated from the server module's test
       # resources by e2e/cli/prepare_test_data.sh, so nothing is downloaded - which is the whole
-      # reason this job can exist. Before migration Phase 9 they came from a host that had stopped
-      # resolving, and the suite had been unrunnable for years.
+      # reason this job can exist. They used to be fetched from a host that has since stopped
+      # resolving, which left the suite unrunnable for years.
       #
       # No report artifact: integrationCliTest is a plain Gradle task, not a Test task, so there is
       # no HTML report to upload - it prints each row's command, output and verdict to stdout, and

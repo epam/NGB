@@ -1,4 +1,4 @@
--- Converges CATGENOME.VCF.MULTI_SAMPLE with the h2 script set (Java 21 migration, phase 5).
+-- Converges CATGENOME.VCF.MULTI_SAMPLE with the h2 script set.
 --
 -- v2021.12.03_12.00__multi_sample_vcf.sql added the column as
 --     postgres: MULTI_SAMPLE BOOLEAN DEFAULT FALSE NOT NULL

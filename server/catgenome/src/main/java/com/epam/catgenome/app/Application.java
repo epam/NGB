@@ -63,10 +63,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 // contributes a bean (the registration is @ConditionalOnBean(name = "springSecurityFilterChain"),
 // so with AUTH_MODE=none it still does nothing).
 //
-// FlywayAutoConfiguration is new to this list, and it is Phase 5 of the Java 21 migration that
-// made it necessary: it is @ConditionalOnClass(Flyway.class) but the class it looks for moved
-// package after Flyway 3, so against the old flyway-core 3.2.1 the auto-configuration was inert
-// and nobody had to think about it. With flyway-core 11 it activates, and its bean is named
+// FlywayAutoConfiguration is on this list because of the Flyway version: it is
+// @ConditionalOnClass(Flyway.class) but the class it looks for moved package after Flyway 3, so
+// against the old flyway-core 3.2.1 the auto-configuration was inert and nobody had to think about
+// it. With flyway-core 11 it activates, and its bean is named
 // "flyway" - the same name profiles/*/applicationContext-flyway.xml gives to NGB's own
 // FlywayMigrator - which is a hard startup failure now that bean overriding is off. Renaming
 // either bean would be the wrong fix: the auto-configuration guard is

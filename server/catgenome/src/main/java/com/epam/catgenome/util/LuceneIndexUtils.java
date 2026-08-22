@@ -60,7 +60,7 @@ import com.epam.catgenome.exception.LuceneIndexVersionException;
  * Every Lucene index directory in NGB is opened through here, so that the one failure an
  * operator is guaranteed to hit after upgrading — "this index was written by the old Lucene" —
  * comes out as a sentence they can act on rather than as an
- * {@code IndexFormatTooOldException} stack trace (decision D8).
+ * {@code IndexFormatTooOldException} stack trace.
  *
  * <p>NGB 2.8 and earlier wrote Lucene 6 indexes. This release links Lucene 9, whose
  * {@link Version#MIN_SUPPORTED_MAJOR} is 8, and there is no in-place upgrade: the format
