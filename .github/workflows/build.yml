@@ -7,7 +7,7 @@
 #
 # It also does something AppVeyor never did: run the tests. AppVeyor built with -PnoTest, set
 # `test: off`, and then ran `gradlew jacocoTestReport` over a build that had executed no test, so
-# every coverage upload was of an empty report. The 534 server tests and 135 CLI tests had no CI.
+# every coverage upload was of an empty report. The 545 server tests and 135 CLI tests had no CI.
 #
 # Jobs, and the local equivalent of each (.devenv/README.md):
 #   lint      make lint      checkstyle + pmd

@@ -91,11 +91,12 @@ resources by `e2e/cli/prepare_test_data.sh` — until migration Phase 9 they wer
 from a host that had stopped resolving, which is why the suite had been unrunnable for years.
 
 **Read [`TEST-BASELINE.md`](TEST-BASELINE.md) before you trust a red run.** `make lint` is
-green and so is `make cli-test`; the unit suite is 534 tests with **3 failures on each
-flavour**, all three of them reaching for the live internet (NCBI, UniProt, a PDB entry).
-That file records each one and why, so you can tell new breakage from old, and it lists the
-two preconditions the numbers depend on: `make test-pg` wants `make reset-pg` first, and
-`make test` wants an empty `../contents/`.
+green and so is `make cli-test` (129 passed, 0 failed, 16 skipped); the unit suite is 545 tests
+with **1 failure on each flavour** — `GffManagerTest.testLoadGenesTranscript`, which asserts on a
+biotype Ensembl returns over REST. A second failure in `PdbDataManagerTest.testParse` is also a
+pass: it reads a live PDB entry and flaps. That file records both and why, so you can tell new
+breakage from old, and it lists the two preconditions the numbers depend on: `make test-pg` wants
+`make reset-pg` first, and `make test` wants an empty `../contents/`.
 
 **Three checks the unit suite cannot give you**
 

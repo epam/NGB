@@ -5047,7 +5047,7 @@ to reproduce is `.appveyor.yml` plus the two scripts it called, `build.sh` and `
 **AppVeyor never ran a test.** `build.sh` builds with `-PnoTest`, the config says `test: off`, and
 the next line is `./gradlew jacocoTestReport` — a report over a build that executed nothing, so
 every coverage upload was of an empty report, pushed through the codecov bash uploader that has
-since been sunset. The 534 server tests had no CI at all, and neither did the CLI's, which nothing
+since been sunset. The server suite had no CI at all, and neither did the CLI's, which nothing
 in the repository ran: `-p server/ngb-cli test` is **135 tests, 0 failures, 0 skipped**, measured
 here for the first time. Both suites are now jobs, and the coverage report is generated after the
 tests that produce its execution data rather than before.
@@ -5194,6 +5194,193 @@ was checked against the generated HTML rather than guessed.
 as "built by the release workflow and attached to its run, or from source", which is accurate and
 weak. Publishing ~400 MB per release build to a public bucket, or attaching them to the GitHub
 release, is a maintainer decision and not one this migration should take unilaterally.
+
+#### The CLI e2e suite: one fixture defect, ten expectations that had rotted in the dark
+
+`make cli-test` was the phase's largest single piece of work and the only exit criterion that
+required writing new code rather than checking existing code. It had never run during this migration
+— `e2e/integration_tests.sh` fetched its 19 fixtures from
+`http://ngb.opensource.epam.com/distr/data/tests/` with `wget -r`, and that host is NXDOMAIN.
+
+**The test code was fine. The data was the problem, and so was the silence.** `e2e/cli/testcases.csv`
+was last touched in December 2018 (`a7d81db9`). With no fixtures, nobody could run the suite, so
+nobody noticed `develop` moving out from under it for seven years. That is the finding worth
+recording: an unrunnable test is worse than a deleted one, because it still looks like coverage.
+
+`e2e/cli/prepare_test_data.sh` (new) generates the whole set from
+`server/catgenome/src/test/resources/templates`. Two things about it were not obvious:
+
+- **The reference has to carry two contigs.** The fixtures the CSV names are labelled `X` (VCF,
+  bedGraph, SEG) and `A1`/`chrA1` (GTF, GFF, BED), and no single template FASTA has both. The
+  generated `dmel-all-chromosome-r6.06.cutted.fa` is 200 kB of `dm606.X.fa` under `>X` plus all of
+  `A3.fa` under `>A1`, which is what lets six template files be reused byte-for-byte. Feature
+  coordinates are not validated against chromosome length at registration time — the unit suite
+  registers this same GTF, whose features run to 500 kb, against a 10 kb chromosome — so the
+  reference can be small, which matters because ~130 rows register it as a precondition.
+- **Two fixtures must *not* exist**: `dmel-all-r6.06.sorted.cutted.gtf.tbi` and
+  `CantonS.09-28.trim_X.dm606.realign.vcf.tbi`. Two rows pass those paths to `rf` to test a missing
+  index; creating them would break both. Generating fixtures rather than mirroring a directory makes
+  that an explicit decision instead of an accident.
+
+**The one genuine defect was mine, and it was the GFF.** `templates/genes.gff.gz` is *plain* gzip —
+one of only two such files in that directory — and NGB builds a tabix index for any `.gz` it
+registers, so `FeatureIterator.createStream` refuses it with "Input file is not in valid block
+compressed format". The fixture has to be real BGZF. Neither the toolbox image nor a GitHub runner
+has htslib, so the script uses `bgzip` if present and otherwise 20 lines of `python3`: BGZF is gzip
+members each carrying a `BC` extra field holding `member length − 1`, plus a 28-byte empty member as
+the EOF marker. Verified by round-tripping the bytes, by `gzip -t`, and by the server actually
+registering it as `"format":"GENE"`.
+
+**The other ten failures were stale expectations, and none of them was caused by this migration.**
+Each was dated to the commit that changed the behaviour before the expectation was touched:
+
+| Rows | Broken by | What changed |
+|---|---|---|
+| "file does not exist" ×2 | `c8fa91a6` (2019-01-15) | BED/GTF indexing moved through `IndexUtils$FeatureIterator` + `IOHelper.openStream`, so the open failure surfaces instead of `FeatureIterator`'s "most likely the file doesn't exist" |
+| "wrong format" | `9cfbda67` (2021-07-09) | featureCounts support mapped `.txt` to `GENE`, so the CLI stopped refusing it and the server refused it later, differently |
+| six `url` rows | `c32a95f0` (2022-04-29) | `BiologicalDataItemManager.generateUrl` appends the dataset's reference, so every URL carries one track more than the command asked for |
+| "URL vcf wrong dataset" | `330bdca7` (2022-04-04) | a non-numeric dataset argument resolves by name, so `error.project.name.not.found` is the right message |
+
+Two judgement calls inside that. The missing-file rows now assert **the CLI's own refusal**
+(`Failed to register files … <name>`) rather than a third-party exception's text: htsjdk 5 *did*
+change that text again — `ParsingUtils.openInputStream` opens local paths through NIO now, so it is
+`NoSuchFileException` where it was `FileNotFoundException` — and pinning a library's exception string
+is what made the row fragile in the first place. And the wrong-format row keeps testing *the CLI's
+extension check* by changing the fixture to `.dat`, which `BiologicalDataItemFormat.EXTENSIONS_MAP`
+does not know, rather than being re-pointed at the server's message.
+
+**Three properties of the harness that constrain any future edit** (`e2e/cli/cli-tests.gradle`):
+
+1. Fields are `split(',')`, so **no expectation can contain a literal comma**. Existing rows use `.`
+   in place of every comma in JSON output, which is why the patterns look the way they do.
+2. Assertions are `payload.matches(expected)` — a **full-string** regex over the joined output, not
+   a search. A pattern that omits a trailing `.*` fails on output that merely has more after it.
+3. Lines that are empty or start with `@` are filtered out before counting; rows whose *name* starts
+   with `#` are counted and skipped. So `@` is a free-form comment marker — which is what the
+   provenance notes above each changed row use — and `#FAILS` rows are the 16 skips, all of them
+   from 2018.
+
+The two-track URL rows accept either order for the named tracks, because
+`loadBiologicalDataItemsByNamesStrictQuery` has no `ORDER BY`; only the appended reference is
+reliably last. Observed order was in fact the reverse of the command line.
+
+**Result: 145 rows, 129 passed, 0 failed, 16 skipped.** `integration_tests.sh` was rewritten around
+it — it fails on a missing jar instead of continuing, keeps its H2 database and file cache out of the
+repository root, waits on `/restapi/version` rather than on the UI, prints the server log when the
+wait fails, and cleans up. One thing it cannot do is pass its two required settings on the command
+line: `file.browsing.allowed` and `ngs.data.root.path` are read as `#{catgenome['…']}`, i.e. through
+`AppConfiguration`'s `PropertiesFactoryBean`, not through the Spring `Environment` — so
+`--ngs.data.root.path=…` is *silently ignored* and they have to go in a properties file named by
+`--conf`. (`UrlValidatorService` also treats a root of `/` as "browsing disabled" regardless of
+`file.browsing.allowed`, so the value cannot be `/`.) That distinction between `${…}` and
+`#{catgenome[…]}` properties is worth remembering generally: it is not documented anywhere and it
+makes half of NGB's settings immune to command-line override.
+
+A `cli-e2e` job was added to the workflow now that the suite passes, running on the `build` job's
+`dist/` artifact; `publish` waits on it.
+
+#### Task 5, the .devenv final pass: separating scaffolding from tooling
+
+The environment was built to keep a JDK 8 baseline buildable while a Java 21 toolchain was
+introduced beside it. Everything that existed only for that is gone: JDK 8 from the toolbox image,
+`with-java8`, `use-java 8`, the `8)` branches in the two entrypoints, `make probe-java21` and
+`scripts/probe-lombok.sh` (which demonstrated Gradle 3.3 and lombok 1.16.16 failing under JDK 21 —
+both are gone, so the target measured nothing). The image's default `JAVA_HOME` is now 21, which
+removes the `with-java21` prefix from every Gradle invocation in the Makefile and from `test-pg`'s
+command in `docker-compose.yml`. JDK 17 stays for exactly one reason, now written down in the
+Dockerfile: `server/ngb-cli` declares a 17 toolchain and
+`org.gradle.java.installations.auto-download=false` means Gradle has to *find* such an installation
+rather than fetch one.
+
+What is explicitly **not** scaffolding, and is documented as permanent in `.devenv/README.md`: the
+three `verify-*` scripts (`verify-tracks`, `verify-lucene`, `verify-cloud` — the last two of which
+had no Makefile target before this phase), the MinIO `cloud` profile, and `make cli-token`. They are
+the only things that exercise the parsers, the Lucene indexes, the S3 client and the JWT path against
+a *running* server; the unit suite drives managers directly and never boots one.
+
+**One thing the flip to JDK 21 exposed rather than caused.** Ubuntu's `/etc/profile` assigns `PATH`
+unconditionally for root, discarding whatever the image's `ENV` put there. So in any *login* shell —
+`make shell`, or any `bash -lc`, which several Makefile targets use — neither `java` nor `node` was
+on the `PATH`, and only running `use-java` repaired it. That was true before this phase too and was
+masked by every command carrying its own `with-javaN` prefix. `/etc/profile.d/ngb-java.sh` now
+re-exports `JAVA_HOME` and prepends both directories.
+
+Two smaller ones. `PG_VERSION`'s fallback in `docker-compose.yml` was still `9.6`, deliberately, so
+that a `.env` predating Phase 5 got the server it was written for; it is 16 now. And
+`certs/gen-secrets.sh` invoked **JDK 8's** `keytool` by explicit path — it now uses the image
+default, and the JKS it writes is unchanged (JDK 21's keytool warns once per invocation that PKCS12
+would be preferable, which is the only thing on its stderr).
+
+`JAVA_VERSION` survives in `ngb/entrypoint.sh` even though only `21` works, so that `JAVA_VERSION=8`
+fails with `must be 17 or 21` instead of pointing the launcher at a directory this phase deleted.
+
+`.devenv/fixtures/README.md` is now committed (`/.devenv/fixtures/*` + `!README.md`). The fixtures
+themselves are local binary state, but that file is the recipe for rebuilding them and
+`verify-lucene.sh` depends on the data it describes.
+
+#### The version number: 3.0.0
+
+Per decision A. The justification is not the size of the diff but that **two changes are breaking for
+whoever is running NGB**: an existing H2 or PostgreSQL database needs the documented upgrade
+(`docs/md/installation/database-upgrade.md`) and every Lucene index has to be rebuilt
+(`docs/md/installation/lucene-reindex.md`, and the server refuses to start until it is). A third is
+breaking for whoever is running the Docker image: `/opt/catgenome` moved to `/opt/ngb`, so an
+existing volume mount is silently ignored.
+
+Bumped in `build.gradle` (`allprojects { version }`, the single source `publish.sh` and the CLI's
+`--version` both read), `docs/mkdocs.yml`'s `site_name`, and `client/package.json` — which was still
+at **2.7.0**, out of step with the server since 2.8.0. Only the version field there and the matching
+line in `package-lock.json`; D12 freezes the client's dependency tree and this touches none of it.
+2.8.0 was cut but never released, so it keeps its release-notes page marked as such.
+
+#### Phase 9 verification, and the four things this environment cannot verify
+
+Everything below was run against the artifacts `build.sh` produced from `a6c02343`, i.e. version
+`3.0.0.a6c0234387a92d9023763fb1a1aa0183e437998f` — the five files a release publishes, built the way
+CI builds them.
+
+| Check | Result |
+|---|---|
+| `make lint` | **0 errors, 37 warnings in 14 files, pmd clean** — unchanged since Phase 3 |
+| `make test` (H2) | **545 tests, 1 failed, 21 skipped** — only `GffManagerTest.testLoadGenesTranscript` |
+| `make reset-pg && make test-pg` | **545 tests, 1 failed, 21 skipped** — the same one. The two flavours are now identical |
+| `make cli-test` | **145 rows: 129 passed, 0 failed, 16 skipped** (the 16 are 2018's `#FAILS` rows) |
+| `make smoke` | http 200, `/restapi/version` → `3.0.0.<sha>` |
+| `make up-saml && make smoke-saml` | SAML SSO OK — full browser-less login, session invalidation checked |
+| `make cli-token` | RS512 JWT, `ROLE_ADMIN`/`ROLE_USER`, `NGB_ADMINS` |
+| `scripts/verify-tracks.sh` | OK, every track type answered with data (1 skipped: MAF, no REST surface) |
+| `scripts/verify-lucene.sh` | OK, every Lucene read path answered |
+| `make up-cloud && make verify-cloud` | OK, 5 cloud read paths, 0 skipped, every result byte-identical to a local read |
+| `docker build` + `docker run`, core | 791 MB; `/restapi/version` 200 → 3.0.0, index page 200, bundled `ngb version` → `3.0.0`, `ngb list_ref` reaches its own server |
+| `docker build` + `docker run`, demo (`REFERENCES=dm6`) | 2.52 GB; registers its baked reference, and its demo BAM (1977 reads at `X:12584770-12585100`) and VCF (81 variations, first `12585001 DEL`) read back over REST |
+| `bundleLinux`, unpacked in `ubuntu:22.04` with no JDK | started; PID 1 is `/opt/ngb-server/jre/bin/java … --enable-native-access=ALL-UNNAMED -classpath …/lib/catgenome.jar org.springframework.boot.loader.launch.JarLauncher`, runtime `Temurin-21.0.12+8`, `command -v java` → nothing, no `/usr/lib/jvm`, `/restapi/version` → 3.0.0, index page 200 |
+| `bundleWindows`, inspected | `jre/bin/java.exe`, `lib/catgenome.jar`, `bin/ngb-server.bat`, **no** POSIX launcher; `set JAVA_HOME=%APP_HOME%\jre` at line 42, before the discovery block; all 95 lines CRLF |
+
+**Zero `restricted method … java.lang.foreign` warnings in every startup above** — the core image, the
+demo image, the `.devenv` server and the bundle. That is the positive check the exit criteria asked
+for: a launcher that has lost `--enable-native-access=ALL-UNNAMED` still starts and still works, so
+the flag has to be verified from the startup output, not from an exit code.
+
+**Four criteria could not be met in this environment.** Each is stated rather than reported green:
+
+1. **"The workflow runs green in CI" needs a push, and none has happened.** Every job's steps were
+   reproduced locally instead — `lint`, `test-h2` (with `-PexcludeNetworkTests`, the flag the workflow
+   passes: 543 tests, 0 failures, 21 skipped), `test-pg` (without it, 545/1/21, since the reset is what
+   the service container gives that job for free), `build` (`bash build.sh` in the builder, with
+   `BRANCH_NAME`/`BUILD_NUMBER`/`COMMIT_SHA`/`BUILD_DOCKER=''` set as the workflow sets them, plus the
+   docker build and its smoke test),
+   `cli-e2e`, `bundles` (both archives, the Linux one started, the Windows one inspected). The YAML
+   parses under PyYAML. **`build.yml` itself has never executed**; expect the first push to shake out
+   runner-specific problems (toolchain discovery and the Node 14 cache are the likely two).
+2. **The Windows bundle cannot be started** — no Windows host. Inspected as above.
+3. **`az://` track loading is unverified**, carried over from Phase 8: no Azure credentials, and
+   `AzureBlobClient` hard-codes `https://%s.blob.core.windows.net`, so Azurite cannot be substituted.
+   The `s3://`/`sws://` paths that share the reader stack are covered by `verify-cloud`.
+4. **The LLM completion round trip is unverified** — no API keys for any of the four providers.
+
+And one architecture caveat: the archives CI publishes are **x64**, this host is aarch64, so the
+bundle that was actually started is the one built with `-PbundleArch=aarch64`. The two differ only in
+which pinned Temurin archive is downloaded; the x64 launcher path is inspected, not executed.
 
 ---
 

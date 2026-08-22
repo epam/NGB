@@ -1,33 +1,33 @@
 # Test baseline for the Java 21 migration
 
-First recorded on 2026-08-20 at the end of **migration Phase 0**; re-measured at the end of
-**Phase 1**, of **Phase 2**, of **Phase 3**, of **Phase 4**, of **Phase 5**, of **Phase 6**, of
-**Phase 7** and of **Phase 8**,
-inside this environment. The first two recordings were on JDK 8 / Gradle 3.3 / Boot 1.5, the third
+First recorded on 2026-08-20 at the end of **migration Phase 0**; re-measured at the end of every
+phase since, and last at the end of **Phase 9**, which is the end of the migration.
+Inside this environment. The first two recordings were on JDK 8 / Gradle 3.3 / Boot 1.5, the third
 on JDK 17 / Gradle 7.6 / Boot 2.7.18, the next two on H2 1.3.176 / PostgreSQL 9.6; **the numbers
-below are Phase 8's, on JDK 21 / Gradle 8.14.5 / Boot 3.5.16 / Spring Security 6.5.11 / Flyway
-11.7.2 / Lucene 9.12.3 / htsjdk 5.0.0 / AWS SDK v2 2.54.1 / POI 5.5.1 / biojava 7.2.6, against
-H2 2.3.232 and PostgreSQL 16.15** (aarch64/colima).
-**These tests still fail on the current code.** From here on this list is the reference: a run that
-is green except for this list is a pass. Anything else is your own breakage.
+below are Phase 9's, i.e. NGB 3.0.0, on JDK 21 / Gradle 8.14.5 / Boot 3.5.16 / Spring Security
+6.5.11 / Flyway 11.7.2 / Lucene 9.12.3 / htsjdk 5.0.0 / AWS SDK v2 2.54.1 / POI 5.5.1 /
+biojava 7.2.6, against H2 2.3.232 and PostgreSQL 16.15** (aarch64/colima).
+**This one test still fails on the current code.** From here on this list is the reference: a run
+that is green except for this list is a pass. Anything else is your own breakage.
 
 | Suite | Command | Result |
 |---|---|---|
-| H2 | `make test` | 534 tests, **3–4 failed**, 21 skipped (~2.5 min) |
-| PostgreSQL | `make test-pg` | 534 tests, **3–4 failed**, 21 skipped (~4 min of tests; ~15 min including `make reset-pg` and the jar) |
-| Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings in 14 files / 0 errors (~30 s) |
-| CLI integration | `make cli-test` | **cannot run** — its fixture host no longer exists, see ["`make cli-test` is unrunnable"](#make-cli-test-is-unrunnable) |
+| H2 | `make test` | 545 tests, **1 failed**, 21 skipped (~4.5 min) |
+| PostgreSQL | `make test-pg` | 545 tests, **1 failed**, 21 skipped (~4 min on an idle host; 15 min at the Phase 9 recording, which shared the machine with a docker build and three running servers — the PostgreSQL suite is the one that notices) |
+| Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings in 14 files / 0 errors (~15 s) |
+| CLI integration | `make cli-test` | 145 rows, **129 passed, 0 failed, 16 skipped** (~5 min) — see ["`make cli-test` runs again"](#make-cli-test-runs-again) |
 
-**Every remaining failure on both flavours is a network test.** Phase 5 cleared the last of the
-code-and-schema ones — see ["What Phase 5 changed"](#what-phase-5-changed) — so the two flavours now
-differ only by `PdbDataManagerTest.testParse`, which flaps: at the two Phase 6 H2 runs it passed
-once and failed once, on the same code, minutes apart. The failures are
-`GffManagerTest.testLoadGenesTranscript` (live Ensembl), `BlatSearchManagerTest.testFind` /
-`testFindBlatReadSequence` (UCSC redirects HTTP to HTTPS, new since Phase 1) and that one. See
-["Live-data failures"](#live-data-failures).
+**One failure is left on each flavour, and it is a live-network test**:
+`GffManagerTest.testLoadGenesTranscript`, which asserts on a biotype Ensembl returns over REST. Phase
+5 cleared the last of the code-and-schema failures — see
+["What Phase 5 changed"](#what-phase-5-changed) — and Phase 9 cleared two of the three that were
+recorded here as live-data ones: `BlatSearchManagerTest.testFind` and `testFindBlatReadSequence` were
+never meant to touch the network at all and now do not, and `PdbDataManagerTest.testParse` has been
+passing since Phase 8 but flaps with RCSB's answer, so treat a 2nd failure there as external weather.
+See ["Live-data failures"](#live-data-failures).
 
 Which means: **a non-network failure is now always a regression.** There is no longer a documented
-schema or DAO failure to hide behind on either flavour.
+schema or DAO failure to hide behind on either flavour, and the two flavours no longer differ at all.
 
 Phase 0 took this from 19 H2 / 65 PostgreSQL / red lint. What it fixed is at the bottom.
 Phase 1 removed 9 tests along with the functionality they covered (GA4GH, HDFS, `person`),
@@ -46,7 +46,10 @@ Lucene version guard and changed no failure count — see
 (540 → 534), fixed two Phase 6 assertions that had never held, and changed no failure count — see
 ["What Phase 7 changed"](#what-phase-7-changed). Phase 8 replaced eleven libraries — AWS SDK v1 → v2,
 POI 3 → 5, biojava 4 → 7 among them — added and removed no tests, and changed no failure count on
-either flavour; see ["What Phase 8 changed"](#what-phase-8-changed).
+either flavour; see ["What Phase 8 changed"](#what-phase-8-changed). Phase 9 **added** 11 tests
+(534 → 545) for the two cloud defects Phase 8 handed over and for the URL format that pins
+commons-validator, and took both flavours from 3–4 failures to 1 by fixing two tests that had been
+calling UCSC since 2017 without meaning to — see ["What Phase 9 changed"](#what-phase-9-changed).
 
 **Two conditions the numbers depend on.** Get either wrong and you will see extra failures
 that are not yours:
@@ -82,13 +85,13 @@ that are not yours:
    rm -rf ../contents ../server/catgenome/contents "../server/catgenome/\${"*
    ```
 
-## H2: 1 documented failure (+2 live-data)
+## H2: 1 live-data failure, and 1 that flaps
 
 | Class | Cause | Survives the migration? |
 |---|---|---|
 | `GffManagerTest.testLoadGenesTranscript` | `expected:<protein_coding> but was:<protein_coding_CDS_not_defined>`. **Live external data, not a fixture problem** — see the note below. At one Phase 6 run it failed instead with `NullPointerException: Cannot invoke "java.util.List.isEmpty()" because the return value of …`, i.e. Ensembl answered with a field missing; same test, same cause, different weather. | Yes. Unaffected by every phase; only an Ensembl change or a decision about network tests will move it. |
-| `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | `ExternalDbUnavailableException: Unexpected HTTP status: 302 Found`. UCSC redirects `http://genome.cse.ucsc.edu/cgi-bin/hgBlat` to HTTPS and `HttpURLConnection` will not follow a cross-protocol redirect — see ["Live-data failures"](#live-data-failures). | Yes, until `blat.search.url` is changed to `https`. |
-| `PdbDataManagerTest.testParse` | `expected:<B> but was:<A>`. Live RCSB PDB data — see ["Live-data failures"](#live-data-failures). Passed at the Phase 2 H2 recording and failed at the PostgreSQL one; passed on both at Phase 3's. Expect it either way. | Yes, until network tests are dealt with. |
+| `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | Was `ExternalDbUnavailableException: Unexpected HTTP status: 302 Found` from UCSC. **Not a live-data failure at all** — the class stubs `HttpDataManager` and the stub never reached the bean, so both tests had been calling UCSC over the network since 2017. | **Fixed in Phase 9** (`02c55fe7`), at the cause: one `MockitoAnnotations.openMocks(this)` in `@Before`. Now offline and deterministic. |
+| `PdbDataManagerTest.testParse` | `expected:<B> but was:<A>`. Live RCSB PDB data — see ["Live-data failures"](#live-data-failures). Passed at the Phase 2 H2 recording and failed at the PostgreSQL one; passed on both at Phase 3's, failed at Phase 8's H2 one, passed on both at Phase 9's. | **Flaps.** Yes, until network tests are dealt with — a failure here is external drift, and 2 failures is still a pass. |
 
 `VcfManagerTest.testLoadSmallScaleVcfFileGa4GH` was here until Phase 1 deleted GA4GH; the test
 went with the feature. `UrlValidatorService.isRemotePath` was deliberately left untouched.
@@ -117,13 +120,25 @@ network-dependent assertions belong in the unit suite at all — the same questi
 ### Live-data failures
 
 `BlatSearchManagerTest.testFind` and `testFindBlatReadSequence` started failing during Phase 2 for a
-reason that has nothing to do with the migration: `blat.search.url` is
+reason that has nothing to do with the migration: `blat.search.url` was
 `http://genome.cse.ucsc.edu/cgi-bin/hgBlat` in seven property files, and UCSC now answers `302
 Found` pointing at `https://` (confirmed with `curl`; no JDK has ever let `HttpURLConnection` follow
-a cross-protocol redirect). `BlatSearchManager` turns the 302 into
-`ExternalDbUnavailableException: Unexpected HTTP status: 302 Found`. **This breaks BLAT search in
-production too**, not just the test. Fixing it means changing the default URL, which is a behaviour
-change and so belongs to a phase allowed to make one — recorded here rather than papered over.
+a cross-protocol redirect). `BlatSearchManager` turned the 302 into
+`ExternalDbUnavailableException: Unexpected HTTP status: 302 Found`.
+
+**Phase 9 established that these two were never supposed to reach the network, and fixed both halves
+of the problem separately.** The class ships `blat/data/testResponse.html` and stubs
+`HttpDataManager.fetchData`, but `MockitoTestExecutionListener` creates `@Mock` fields at listener
+order 1950 and `DependencyInjectionTestExecutionListener` overwrites the `@InjectMocks` field with the
+Spring bean at 2000 — so the stub was injected into an object that was then thrown away, and the tests
+had been calling UCSC since 2017. `MockitoAnnotations.openMocks(this)` in `@Before` fixes it; both are
+offline now. The default URL is separately wrong and is now `https://genome.ucsc.edu/cgi-bin/hgBlat`:
+scheme alone would not have worked, because the certificate on `genome.cse.ucsc.edu:443` does not
+carry that name in its SANs. **BLAT search against UCSC's public endpoint still does not work from any
+NGB version** — UCSC answers programmatic `hgBlat` queries with a Cloudflare Turnstile page, which
+`PSLRecordParser` reads as zero hits — so the feature needs `blat.search.url` pointed at a BLAT
+service that will answer. That is documented in the release notes and in
+`docs/md/installation/standalone.md` rather than left as a silent empty result.
 
 `PdbDataManagerTest.testParse` parses live RCSB PDB data. It asserted `expected:<B> but was:<A>`
 two baselines ago, passed at the Phase 0 recording, and is red again on both flavours at the
@@ -134,18 +149,19 @@ keep flipping. Treat a failure there as external drift, not regression — and d
 loosening the assertion, for the same reason as `GffManagerTest.testLoadGenesTranscript`: the
 real question is whether network-dependent assertions belong in the unit suite.
 
-## PostgreSQL: 1 documented failure (+2 live-data, +1 that flaps)
+## PostgreSQL: the same 1 live-data failure as H2
 
 The same one as on H2, and it is a network test. **Phase 5 fixed the eight that were real**, so
-PostgreSQL and H2 now have identical documented failures. The eight are kept below rather than
-deleted, because they are the specification for what the convergence migrations must keep true —
-if one comes back, a script set has drifted again.
+PostgreSQL and H2 have identical documented failures — and since Phase 9 the two suites are identical
+number for number, 545 / 1 / 21. The eight are kept below rather than deleted, because they are the
+specification for what the convergence migrations must keep true — if one comes back, a script set has
+drifted again.
 
 | Count | Class | Cause | Status |
 |---|---|---|---|
 | 1 | `GffManagerTest.testLoadGenesTranscript` | Same live-Ensembl failure as on H2. | **Still fails.** Yes, survives. |
-| 1 | `PdbDataManagerTest.testParse` | Same live-RCSB failure as on H2. Failed on PostgreSQL and passed on H2 at the Phase 5 recording; at the Phase 6 recording it passed on PostgreSQL, which is why that suite came in at 3 rather than 4. | **Flaps.** |
-| 2 | `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | Same UCSC HTTP→HTTPS drift as on H2. | **Still fails.** Until `blat.search.url` is changed. |
+| 1 | `PdbDataManagerTest.testParse` | Same live-RCSB failure as on H2. Failed on PostgreSQL and passed on H2 at the Phase 5 recording; at the Phase 6, 8 and 9 recordings it passed on PostgreSQL. | **Flaps.** |
+| 2 | `BlatSearchManagerTest.testFind`, `testFindBlatReadSequence` | Not the UCSC drift after all: a listener-ordering bug meant the `HttpDataManager` stub never reached the bean. | **Fixed in Phase 9** (`02c55fe7`) on both flavours. |
 | 4 | `BookmarkDaoTest.testSaveLoadBookmark`, `testAllItemTypes`, `VcfFileDaoTest.testSaveLoadVcfFile`, `testSaveLoadSamples` | `catgenome.vcf.multi_sample` was `NOT NULL` in the PostgreSQL script set and nullable in the H2 one; `VcfFileDao` inserts `null`. | **Fixed in Phase 5** by `v2026.08.21_12.00__align_vcf_multi_sample_with_h2.sql`. |
 | 2 | `BlastTaskDaoTest.testDeleteOrganisms`, `testDeleteExclOrganisms` | `task_organism.organism` / `task_excl_organism.organism` were `character varying` on PostgreSQL and numeric on H2, while `BlastTaskDao.deleteOrganisms` emits `where organism = 1`. `ERROR: operator does not exist: character varying = integer`. | **Fixed in Phase 5** by `v2026.08.21_12.10__align_task_organism_with_h2.sql`. |
 | 1 | `RoleDaoTest.testLoadRolesWithUsers` | `expected:<11> but was:<12>` — the two script sets seeded a different number of predefined roles. | **Fixed in Phase 5** by `v2026.08.21_12.20__align_predefined_roles_with_h2.sql`. |
@@ -199,25 +215,36 @@ the one PMD failure Phase 3 caused, in `FileManager`, was exactly that.
 
 Keep it green. A red static-analysis baseline would hide the real regressions in Phases 3–9.
 
-## `make cli-test` is unrunnable
+## `make cli-test` runs again
 
-Not a failure to inherit — the target cannot start. `e2e/integration_tests.sh` downloads its test
-data from `http://ngb.opensource.epam.com/distr/data/tests/`, and that host does not resolve:
+**145 rows: 129 passed, 0 failed, 16 skipped.** Fixed in Phase 9 (`b10efd26`), which is what that
+phase owed this file.
 
-```
-Resolving ngb.opensource.epam.com ... failed: Name or service not known.
-wget: unable to resolve host address 'ngb.opensource.epam.com'   (exit 4)
-```
+It had been unrunnable, not failing: `e2e/integration_tests.sh` downloaded its 19 fixtures from
+`http://ngb.opensource.epam.com/distr/data/tests/` with `wget -r`, and that host is NXDOMAIN from
+inside the container and from the host alike (`opensource.epam.com` itself resolves, so it is that one
+name that is gone). Nothing in the migration caused it. The fixtures are now **generated** from
+`server/catgenome/src/test/resources/templates` by `e2e/cli/prepare_test_data.sh`, so the suite needs
+no network at all and the `cli-e2e` job in `.github/workflows/build.yml` can run it too.
 
-NXDOMAIN from inside the container and from the host; `opensource.epam.com` itself resolves, so it
-is that one name that is gone. Nothing in the migration caused it and nothing in the migration can
-fix it — `cli-tests.gradle` and `e2e/cli/testcases.csv` are sound, and Groovy 3 parses them.
-**Phase 9 owns the fix** (host or generate the fixtures).
+The 16 skips are the rows whose names start with `#FAILS`, all marked that way in December 2018
+(`a7d81db9`); `cli-tests.gradle` counts them and skips them. Nothing in Phase 9 added to that set.
 
-Until then, verify the CLI by hand against a running server — this was done on JDK 17 at the end of
-Phase 2 and again at the end of Phase 3 (server on JDK 21, CLI still built and run on 17, on a
-database wiped with `make reset-ngb-data` so it exercises Flyway from nothing as well). It covers the
-same ground as `testcases.csv`:
+Ten expectations had to be changed to get to zero failures, and **none of them was migration
+fallout** — the file had not been edited since 2018 and nobody could run it, so `develop` moved out
+from under it unnoticed. Each is dated in `e2e/cli/testcases.csv` to the commit that changed the
+behaviour: `c8fa91a6` (BED/GTF open failures now surface from `IOHelper.openStream`), `9cfbda67`
+(`.txt` became a valid GENE extension, so the wrong-format row uses `.dat` now), `c32a95f0`
+(`generateUrl` appends the dataset's reference, so every URL carries one track more than the command
+asked for) and `330bdca7` (a non-numeric dataset argument resolves by name). One fixture was
+genuinely wrong rather than stale: `example.gff.gz` has to be **BGZF**, not plain gzip, because NGB
+tabix-indexes any `.gz` it registers. Details in `JAVA21-MIGRATION-PLAN.md`, Phase 9 findings.
+
+The by-hand walkthrough below is kept because it is still the quickest way to check a CLI change
+against a *stateful* server — `cli-test` runs `AUTH_MODE=none` against a throwaway H2 database. It was
+used on JDK 17 at the end of Phase 2 and again at the end of Phase 3 (server on JDK 21, CLI still
+built and run on 17, on a database wiped with `make reset-ngb-data` so it exercises Flyway from
+nothing as well):
 
 ```bash
 make up                              # server on JDK 21 since Phase 3
@@ -594,6 +621,70 @@ against 4.2.0 on the same Genbank fixture (GFF, FASTA and a full parse dump, all
 `https://%s.blob.core.windows.net`, so Azurite cannot be pointed at) and the LLM target summaries
 (no API keys). Both are called out in the plan with what *was* verified offline in their place.
 
+## What Phase 9 changed
+
+Packaging, CI, docs and the release: the Docker images on Temurin 21, JRE-bundled distributions that
+actually start, AppVeyor → GitHub Actions, the docs, this environment's own final pass, and
+**version 3.0.0**. The findings are in `JAVA21-MIGRATION-PLAN.md` ("Phase 9 execution findings").
+
+| Suite | Phase 8 | Phase 9 |
+|---|---|---|
+| H2 | 534 / 4 failed / 21 skipped | **545 / 1 / 21** — only `GffManagerTest.testLoadGenesTranscript` |
+| PostgreSQL | 534 / 3 / 21 | **545 / 1 / 21** — the same one; the two flavours are now identical |
+| `make lint` | 37 warnings in 14 files, pmd clean | **37 warnings in 14 files, pmd clean** |
+| `make cli-test` | could not run | **145 rows: 129 passed, 0 failed, 16 skipped** |
+
+**Two failures were fixed at the cause, and 11 tests were added.** The fixes are
+`BlatSearchManagerTest.testFind` and `testFindBlatReadSequence`, which this file had recorded as
+live-data failures and which turn out never to have been meant to touch the network — see
+["Live-data failures"](#live-data-failures). Nothing was excluded to get there, and
+`-PexcludeNetworkTests` (which CI passes) still names only the two tests it named before.
+
+The 11 new tests are the Phase 8 handover:
+
+| Tests | Class | What it pins |
+|---|---|---|
+| 6 | `S3ObjectChunkInputStreamTest` | `FeatureInputStream`'s EOF sentinel: v2's `ResponseInputStream` returns `-1` where v1's threw, and a reader that treats `-1` as data reads past the end of a chunk. |
+| 4 | `EnhancedUrlHelperTest` | The 403-tolerant `HEAD` path is keyed to **how the URL was produced** (a pre-signed URL NGB made itself) rather than to the host, which is what the Phase 8 defect got wrong. |
+| 1 | `UrlShorterManagerTest` (+4 rewritten) | The URL format that holds **commons-validator at 1.5.0** — 1.6+ rejects the `dev.local`-style hostnames the dev environment and several tests use. The bump was refused, and this test is why the pin can be trusted rather than remembered. |
+
+**A green suite is again not the evidence that carried the phase**, for the same reason as Phase 8: no
+test boots a server, builds an image or unpacks an archive. What was actually run, all of it against
+the 3.0.0 artifacts built by `build.sh`:
+
+```bash
+make lint && rm -rf ../contents && make test          # 545/1/21
+make reset-pg && make test-pg                         # 545/1/21
+make cli-test                                         # 145 rows, 129 passed, 0 failed
+make up && make smoke                                 # http 200, version 3.0.0.<sha>
+bash scripts/verify-tracks.sh                         # every track type, 1 skipped (MAF)
+bash scripts/verify-lucene.sh                         # every Lucene read path
+make up-cloud && make verify-cloud                    # 5 cloud read paths, 0 skipped, all byte-identical
+make up-saml && make smoke-saml && make cli-token     # SAML SSO OK, RS512 JWT with ROLE_ADMIN
+```
+
+plus, by hand: the core image (791 MB) and the demo image (2.52 GB, `REFERENCES=dm6`) built and
+**run** — `/restapi/version` answers `3.0.0.<sha>`, the client index page is 200, the bundled `ngb`
+reports `3.0.0` and talks to its own server, the demo image registers its baked reference and reads a
+BAM (1977 reads) and a VCF (81 variations, first `12585001 DEL`) back over REST; and the JRE-bundled
+Linux archive unpacked and started in a `ubuntu:22.04` container with no JDK anywhere.
+**Zero "restricted method … java.lang.foreign" warnings in every one of those startups** — that is the
+positive check on `--enable-native-access=ALL-UNNAMED`, which a launcher can lose without failing.
+
+**Four things could not be verified in this environment.** None is papered over:
+
+| | Why not | What was done instead |
+|---|---|---|
+| The workflow running green in CI | Needs a push to GitHub; there is no runner here. | Every job's steps were run locally in the containers — `lint`, `test-h2`, `test-pg`, `build` (via `build.sh`), `cli-e2e`, `bundles`. The YAML parses (PyYAML). **The workflow itself has never executed**, and the first push is expected to shake out runner-specific problems. |
+| The Windows bundle starting | No Windows host. | Layout and launcher inspected: `jre/bin/java.exe`, `lib/catgenome.jar`, `bin/ngb-server.bat` present, no POSIX launcher, `set JAVA_HOME=%APP_HOME%\jre` injected before the discovery block, all 95 lines CRLF. |
+| `az://` track loading | No Azure credentials, and `AzureBlobClient` hard-codes `https://%s.blob.core.windows.net`, so Azurite cannot be pointed at it. Carried over from Phase 8. | Nothing. The `s3://`/`sws://` paths that share the reader stack are covered by `verify-cloud`; the Azure client itself is **unverified against a live service**. |
+| LLM target summaries | No API keys for any of the four providers. | Nothing beyond compile-and-wire checks from Phase 8. **Unverified.** |
+
+Also worth carrying forward: **the `x86_64` bundles cannot be started here either.** The archives CI
+publishes are x64; this host is aarch64, so the bundle that was unpacked and started is the one built
+with `-PbundleArch=aarch64`. The two differ only in which Temurin archive is downloaded (all four
+checksums are pinned in `build.gradle`), but the x64 launcher path is inspected, not executed.
+
 ## Reproducing
 
 ```bash
@@ -601,6 +692,16 @@ make reset-pg && make test-pg   # PostgreSQL - the reset matters, see above
 rm -rf ../contents && make test # H2 - the clean scratch dir matters, see above
 make lint
 make test-one T=VcfManagerTest  # single class
+make cli-test                   # the CLI against a running server; needs dist/catgenome-h2.jar
+```
+
+And the three checks the unit suite cannot give you, each against a running server — see
+`README.md`, "Three checks the unit suite cannot give you":
+
+```bash
+make verify-tracks              # every track type, through the parsers
+make verify-lucene              # every Lucene read path
+make up-cloud && make verify-cloud
 ```
 
 HTML reports land in `server/catgenome/build/reports/tests/test/index.html`, XML in
