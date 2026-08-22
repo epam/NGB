@@ -27,7 +27,7 @@ session to know where it is.
 | 6 | Lucene + reindex procedure + startup guard | `c76ff2ee` | ☑ |
 | 7 | htsjdk latest, fork deleted, index cache dropped | `ac04780d` | ☑ |
 | 8 | Remaining libraries and API polish | `925d5cdb`..`0334569e` | ☑ |
-| 9 | Packaging, CI, docs, release | `16e00527`..`1decacfe` | ☑ |
+| 9 | Packaging, CI, docs, release | `16e00527`..`9e014daa` | ☑ |
 
 **The migration is complete.** NGB is 3.0.0 on JDK 21 / Gradle 8.14.5 / Spring Boot 3.5.16, the unit
 suite is 545 tests with one live-network failure on both flavours, and `make cli-test` runs for the
