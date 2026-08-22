@@ -27,7 +27,15 @@ session to know where it is.
 | 6 | Lucene + reindex procedure + startup guard | `c76ff2ee` | ☑ |
 | 7 | htsjdk latest, fork deleted, index cache dropped | `ac04780d` | ☑ |
 | 8 | Remaining libraries and API polish | `925d5cdb`..`0334569e` | ☑ |
-| 9 | Packaging, CI, docs, release | | ☐ |
+| 9 | Packaging, CI, docs, release | `16e00527`..`1decacfe` | ☑ |
+
+**The migration is complete.** NGB is 3.0.0 on JDK 21 / Gradle 8.14.5 / Spring Boot 3.5.16, the unit
+suite is 545 tests with one live-network failure on both flavours, and `make cli-test` runs for the
+first time since 2018. What was verified and what could not be — the workflow running in CI, the
+Windows bundle starting, `az://`, the LLM round trip — is in
+[`JAVA21-MIGRATION-PLAN.md`](JAVA21-MIGRATION-PLAN.md) under "Phase 9 verification" and in
+[`TEST-BASELINE.md`](TEST-BASELINE.md) under "What Phase 9 changed". Everything below this table is
+kept as the record of how the phases were run.
 
 ---
 
@@ -67,7 +75,7 @@ The default command timeout is 120 s and the ceiling is 600 s, but:
 | `make test` | ~3.5 min |
 | `make test-pg` | ~3.5 min, plus ~1 min if you `make reset-pg` first — and you should |
 | `make up` then `make smoke` | ~75 s of startup before the app answers |
-| `make cli-test` | **does not run at all** — `ngb.opensource.epam.com`, where it fetches its fixtures, is NXDOMAIN. Found in Phase 2; see `TEST-BASELINE.md`. Verify the CLI by hand instead: `make cli-token` (added in Phase 4) prints a JWT, and the truststore recipe is in `README.md` |
+| `make cli-test` | ~5 min, and it needs `dist/catgenome-h2.jar`. It did **not run at all** until Phase 9 — its fixtures came from `ngb.opensource.epam.com`, which is NXDOMAIN; they are generated from the server module's test resources now. For anything needing a JWT, `make cli-token` (added in Phase 4) prints one and the truststore recipe is in `README.md` |
 
 **A session that leaves the timeout at its default will read a timeout as a build failure and
 start "fixing" it.** This is the most likely source of wasted effort in the whole migration.
