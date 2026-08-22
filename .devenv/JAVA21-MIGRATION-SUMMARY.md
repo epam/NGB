@@ -48,15 +48,15 @@ surface.
 | Servlet API | `javax.servlet`, Tomcat 8, jar **or WAR** | `jakarta.servlet`, Tomcat 10, jar only |
 | Flyway | 3.2.1 | 11.7.2 |
 | H2 | 1.3.176 (2014) | 2.3.232 |
-| PostgreSQL | 9.6 (driver 42.x) | 16.15 (driver 42.7.11) |
+| PostgreSQL | 9.6 (driver 42.x) | 16.15 (driver 42.7.12) |
 | Connection pool / cache | c3p0 / EhCache 2.10.1 | HikariCP 6.3.3 / Caffeine |
 | Lucene | 6.6.0 | 9.12.3 |
 | htsjdk | 2.2.4 + a fork of four reader classes | stock 5.0.0 |
 | AWS SDK | v1 1.11.704 (EOL) | v2 2.54.1 (BOM) |
 | API docs | Swagger 1.x (mangofactory + `swagger-ui` 2.0.24 webjar) | springdoc-openapi 2.8.17 (OpenAPI 3.1) |
-| Logging | log4j 1.2.17 via `slf4j-log4j12`, `log4j.xml` | log4j2 2.24.3 via `log4j-slf4j2-impl`, `log4j2.xml` |
+| Logging | log4j 1.2.17 via `slf4j-log4j12`, `log4j.xml` | log4j2 2.25.5 via `log4j-slf4j2-impl`, `log4j2.xml`, plus `log4j-1.2-api` for the two libraries that still compile against log4j 1 |
 | CI | AppVeyor (`Previous Ubuntu1604`, `test: off`) | GitHub Actions, tests actually run |
-| Also bumped | POI 3.16, biojava, jackson, java-jwt, Checkstyle, PMD | POI 5.5.1, biojava 7.2.6, jackson 2.21.4, java-jwt 4.6.0, Checkstyle 11.1.0, PMD 7.26.0 |
+| Also bumped | POI 3.16, biojava, jackson, java-jwt, Checkstyle, PMD | POI 5.5.1, biojava 7.2.6, jackson 2.21.5, java-jwt 4.6.0, Checkstyle 11.1.0, PMD 7.26.0 |
 
 ### The phases
 
@@ -756,11 +756,25 @@ One line each, so a reviewer stops worrying.
   guard's failure mode less honest, not more useful.
 - **Two JAXB stacks are co-resident** deliberately: the tree has both generated bindings and runtime
   users, and separating them was out of scope.
-- **`commons-lang` 2 and Bouncy Castle disappeared** from the dependency tree — both were accidental
+- **NGB's own code no longer imports `commons-lang` 2 or Bouncy Castle** — both were accidental
   transitives (of the mangofactory Swagger stack and of OpenSAML), never declared, and 12 files plus
   `GenePredUtils` imported them anyway. The imports moved to the lang3 equivalents,
   `ThreadLocalRandom` and `Locale.ROOT` lowercasing — same methods, same semantics.
   *Evidence:* [`server/catgenome/build.gradle:247-255`](../server/catgenome/build.gradle).
+  **Neither library left the build, and an earlier version of this bullet claimed they had**
+  (corrected after [`JAVA21-VULNERABILITY-REVIEW.md`](JAVA21-VULNERABILITY-REVIEW.md) §6 found it):
+  - **Bouncy Castle is still on the server classpath**, under `opensaml-security-api:4.3.2` and
+    `cryptacular:1.2.5` — OpenSAML 4 supplies it under the renamed `jdk18on` artifact ids, which is
+    presumably how it was missed. It shipped at 1.72 with 1 CRITICAL and 9 MEDIUM advisories against
+    it until `1dc32276` pinned `bcprov`/`bcpkix`/`bcutil-jdk18on` to 1.84.
+  - **`commons-lang` 2 left the *server* tree only.** The CLI still resolves it at 2.6, under the
+    hand-declared `commons-configuration:1.10` (`server/ngb-cli/build.gradle:69`), and it carries
+    CVE-2025-48924 with no fix on the 2.x line — see the review's §3.2 and §7.7.
+- **`commons-collections-3.2.2.jar` is in the server fat jar as well as the CLI's.** The
+  `runtimeOnly` pin below is a CLI matter, but on the server the same artifact arrives as a
+  transitive and sits next to `commons-collections4-4.6.0.jar` and `collections-generic-4.01.jar`.
+  3.2.2 is the release that disables the serialisation gadget by default, so it is not a finding —
+  it is only invisible in a summary that discusses 3.2.2 as CLI-only.
 - **`commons-validator` is pinned at 1.5.0 (2016) knowingly.** 1.7 tightened the query-string charset
   to RFC 3986, and NGB's own generated URLs contain `{ } " |` unencoded — so `POST /generateShortUrl`
   and `ngb url --alias` would start rejecting the format documented in

@@ -28,6 +28,8 @@ session to know where it is.
 | 7 | htsjdk latest, fork deleted, index cache dropped | `ac04780d` | ☑ |
 | 8 | Remaining libraries and API polish | `925d5cdb`..`0334569e` | ☑ |
 | 9 | Packaging, CI, docs, release | `16e00527`..`78dffedc` | ☑ |
+| after | Vulnerability review of the shipped stack — epam/NGB#1241 row by row, plus Trivy | `9f98f4f0` | ☑ |
+| after | The review's §4 fixes: BOM property overrides, Bouncy Castle, the log4j 1 bridge, snappy | `ad1284a3`..`88482850` | ☑ |
 
 **The migration is complete.** NGB is 3.0.0 on JDK 21 / Gradle 8.14.5 / Spring Boot 3.5.16, the unit
 suite is 545 tests with one live-network failure on both flavours, and `make cli-test` runs for the
@@ -40,6 +42,11 @@ kept as the record of how the phases were run.
 What the migration means for someone who has to upgrade, deploy or use a 3.0.0 server — every
 behaviour change, in three buckets, with the evidence for each — is in
 [`JAVA21-MIGRATION-SUMMARY.md`](JAVA21-MIGRATION-SUMMARY.md).
+
+Where the shipped stack stands on vulnerabilities, and what the four post-migration commits above
+changed, is in [`JAVA21-VULNERABILITY-REVIEW.md`](JAVA21-VULNERABILITY-REVIEW.md) — §1–§6 are the
+review of `bb296f4a`, §7 is what was applied and re-scanned. The server jar goes from 44 findings
+to 2 and the CLI from 11 to 2; the four that remain are there deliberately (§7.7).
 
 ---
 
