@@ -16,6 +16,7 @@ that is green except for this list is a pass. Anything else is your own breakage
 | PostgreSQL | `make test-pg` | 545 tests, **1 failed**, 21 skipped (~4 min on an idle host; 15 min at the Phase 9 recording, which shared the machine with a docker build and three running servers — the PostgreSQL suite is the one that notices) |
 | Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings in 14 files / 0 errors (~15 s) |
 | CLI integration | `make cli-test` | 145 rows, **129 passed, 0 failed, 16 skipped** (~5 min) — see ["`make cli-test` runs again"](#make-cli-test-runs-again) |
+| CLI unit | `./gradlew -p server/ngb-cli test` | 135 tests, **0 failed**, 0 skipped (~10 s). No make target of its own: `make jar` runs them, because `buildCli` is a `clean build` unless `-PnoTest` is passed. CI runs them as a step of `test-h2`. |
 
 **One failure is left on each flavour, and it is a live-network test**:
 `GffManagerTest.testLoadGenesTranscript`, which asserts on a biotype Ensembl returns over REST. Phase
@@ -647,6 +648,18 @@ The 11 new tests are the Phase 8 handover:
 | 6 | `S3ObjectChunkInputStreamTest` | `FeatureInputStream`'s EOF sentinel: v2's `ResponseInputStream` returns `-1` where v1's threw, and a reader that treats `-1` as data reads past the end of a chunk. |
 | 4 | `EnhancedUrlHelperTest` | The 403-tolerant `HEAD` path is keyed to **how the URL was produced** (a pre-signed URL NGB made itself) rather than to the host, which is what the Phase 8 defect got wrong. |
 | 1 | `UrlShorterManagerTest` (+4 rewritten) | The URL format that holds **commons-validator at 1.5.0** — 1.6+ rejects the `dev.local`-style hostnames the dev environment and several tests use. The bump was refused, and this test is why the pin can be trusted rather than remembered. |
+
+**One CLI fixture was wrong and only a dependency bump exposed it.** The last Phase 8 handover item
+was ngb-cli's own dependency backlog, to be done *after* `make cli-test` could run; with the 145 rows
+green it was. Bumping jackson 2.7.5 → 2.21.4 turned 16 of the 135 CLI unit tests red with
+`Failed to load available DataItemFormats`, none of them a test about formats:
+`TestHttpServer.addGetFormatsRequest` stubbed `/dataitem/formats` with
+`Collections.singletonMap(null, null)`, and from jackson 2.9 the mapper's `Include.NON_EMPTY` applies
+to a map's contents too, so the only entry was suppressed, the map counted as empty and the whole
+`payload` key disappeared from the stubbed response. The fixture now returns
+`singletonMap("narrowPeak", BiologicalDataItemFormat.BED)` — one entry of what the real endpoint
+answers. 135 / 0 after, `make cli-test` re-run and still 129/0/16, `make lint` still green. The
+dependency story is in `JAVA21-MIGRATION-PLAN.md`, "ngb-cli's dependency backlog".
 
 **A green suite is again not the evidence that carried the phase**, for the same reason as Phase 8: no
 test boots a server, builds an image or unpacks an archive. What was actually run, all of it against

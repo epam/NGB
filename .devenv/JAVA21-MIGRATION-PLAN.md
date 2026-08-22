@@ -4852,9 +4852,11 @@ feeds it two real URLs from `embedding-url.md`, one with `?tracks=[{…}]` and o
 instead of turning the Share Link button into "Invalid url format" in production.
 
 **Finding 5 — ngb-cli's own dependency backlog** (jackson 2.7.5, httpclient 4.5.2,
-google-http-client-jackson2 1.22.0, commons-io 2.5, commons-lang3 3.5, slf4j 1.7.21, log4j2 2.17.1).
-Handled in the order the handover asked for: `make cli-test` first, the bump second. See the
-`make cli-test` findings below.
+google-http-client-jackson2 1.22.0, commons-io 2.5, commons-lang3 3.5, slf4j 1.7.21, log4j2 2.17.1):
+**done**, in the order the handover asked for — `make cli-test` first, the bump second. Six bumped to
+the versions the server resolves, one (google-http-client-jackson2) deleted as unused, and one test
+fixture that had been relying on jackson 2.7 serialization behaviour fixed. Two sections below,
+"ngb-cli's dependency backlog".
 
 #### Task 1, the Docker images: what the rebuild found
 
@@ -5278,6 +5280,73 @@ makes half of NGB's settings immune to command-line override.
 
 A `cli-e2e` job was added to the workflow now that the suite passes, running on the `build` job's
 `dist/` artifact; `publish` waits on it.
+
+#### ngb-cli's dependency backlog, in the order Phase 8 asked for: e2e first, bump second
+
+With the 145 rows green there was finally a way to tell whether bumping the CLI's 2016-vintage
+dependencies broke anything, so handover finding 5 was done.
+
+One of the seven was not bumped but **deleted**: `com.google.http-client:google-http-client-jackson2`.
+Nothing in the module imports `com.google.*` — `grep -rl 'com\.google' server/ngb-cli/src/` finds
+nothing, and the full import survey of `src/main/java` is `com.epam.ngb`, `com.fasterxml.jackson`,
+`io.github.classgraph`, `java.*`, `javax.net.ssl`, `lombok`, `org.apache.commons`, `org.apache.http`,
+`org.kohsuke.args4j`, `org.slf4j`. It was shipping three jars (itself, `google-http-client` 1.22.0 and
+`jsr305` 1.3.9) and asking for `httpclient` 4.0.1 for no reason at all.
+
+The other six now track what the server module resolves through the Boot BOM, kept in step by hand
+because nothing imposes a BOM on this module:
+
+| | was | now | why that number |
+|---|---|---|---|
+| slf4j-api | 1.7.21 | 2.0.18 | server's resolved version |
+| log4j2 | 2.17.1 | 2.24.3 | server's resolved version |
+| jackson | 2.7.5 | 2.21.4 | server's resolved version |
+| httpclient / httpmime | 4.5.2 | 4.5.14 | server's resolved version |
+| commons-io | 2.5 | 2.22.0 | server's resolved version |
+| commons-lang3 | 3.5 | 3.17.0 | server's resolved version |
+
+Three things had to change beyond the version strings.
+
+**`log4j-slf4j-impl` → `log4j-slf4j2-impl`.** The 1.7 binding implements the `StaticLoggerBinder`
+contract that slf4j 2.0 deleted; pairing it with slf4j-api 2 leaves the CLI on the NOP provider and
+prints "SLF4J: No SLF4J providers were found" on every invocation. Checked by running the built
+launcher: `ngb version` prints `3.0.0` and nothing else.
+
+**Jackson comes in through its own BOM now.** The three coordinates each carried a literal `2.7.5`,
+and copying `2.21.4` into all three does not resolve: `jackson-annotations` is released on the *minor*
+line only, so there is a `2.21` but no `2.21.4`, and the build fails with "Could not find
+com.fasterxml.jackson.core:jackson-annotations:2.21.4". `implementation platform(...jackson-bom...)`
+plus three versionless coordinates is the fix, and it is what the server gets from Boot.
+
+**One test fixture was wrong and had been wrong since 2016.** 16 of the 135 CLI tests failed on the
+bump, all with `ApplicationException: Failed to load available DataItemFormats.` from
+`AbstractHTTPCommandHandler.fetchAdditionalFormats`, none of them tests about formats. The cause is
+`TestHttpServer.addGetFormatsRequest`, which stubbed `/dataitem/formats` with
+`Collections.singletonMap(null, null)`. `JsonMapper` serializes with `Include.NON_EMPTY`, and from
+jackson 2.9 `setSerializationInclusion` applies the inclusion to a map's *contents* as well as to the
+property holding it — so the single null-valued entry is suppressed, `MapSerializer.isEmpty` then
+reports the map itself as empty, and the entire `payload` key vanishes from the response. The stub
+body under 2.21.4 is literally `{"status":"OK"}`. The handler treats a missing payload as fatal, and
+correctly so.
+
+The fixture now returns `singletonMap("narrowPeak", BiologicalDataItemFormat.BED)`, which is one entry
+of what the real endpoint answers: `DataItemManager.getFormats` maps every extension in
+`conf/catgenome/format/bed/formats.json` to `BED`, and that file ships with 29 of them, so the real
+map is never empty. Worth stating explicitly because the server *also* serializes with `NON_EMPTY`
+(`controller/JsonMapper.java:91`): if `formats.json` were ever emptied, the server would answer
+`{"status":"OK"}` and every `ngb reg_file` would die with "Failed to load available DataItemFormats".
+That is not a live defect — the 129 green e2e rows drive `reg_file` against a real server through
+exactly this code path — but it is a real coupling between a config file and the CLI.
+
+Verified: `./gradlew -p server/ngb-cli test` 135 tests / 0 failures, `make cli-test` 145 rows /
+129 passed / 0 failed / 16 skipped, `make lint` green, `ngb version` → 3.0.0 with no SLF4J noise. The
+distribution is 21 jars where it was 24, and `dist/ngb-cli.tar.gz` grew 8.5 MB → 9.7 MB — jackson
+2.21 and log4j 2.24 are bigger than their 2016 selves by more than the three deleted jars saved.
+
+Not touched, deliberately: `commons-configuration` 1.10 with its `runtimeOnly commons-collections`
+3.2.2 crutch (replacing it means commons-configuration2 and a rewrite of `ConfigurationLoader`),
+`args4j` 2.33 (last release 2016, no successor), `classgraph` 4.8.193 (done in Phase 8) and
+`jadler-all` 1.3.0 (test-only, and it works on slf4j 2 because it only ever calls the API).
 
 #### Task 5, the .devenv final pass: separating scaffolding from tooling
 
