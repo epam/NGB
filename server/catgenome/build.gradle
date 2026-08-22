@@ -107,6 +107,27 @@ ext {
     versionAzureSdk = "1.3.8"
 }
 
+// Overrides of versions the Boot 3.5.16 BOM manages, where the managed version carries an
+// outstanding advisory. Each name is a property spring-boot-dependencies declares, so setting it
+// here moves every artifact in that family at once (and, for netty/log4j2/jackson, the imported
+// sub-BOM); a name that is *not* one of the BOM's properties fails silently, so each of these was
+// checked against the resolved runtimeClasspath and not just against Boot's documentation. See
+// .devenv/JAVA21-VULNERABILITY-REVIEW.md §4.1 for the advisories, and §7 for the resolved
+// before/after. Note that ngb-cli has no BOM over it and repeats log4j2 and jackson by hand in its
+// own `ext` block - it has to move in the same commit or it keeps the vulnerable versions.
+ext['netty.version'] = '4.1.137.Final'          // 4.1.136 closes 11 of 12; CVE-2026-59903 needs .137
+ext['log4j2.version'] = '2.25.5'                // also moves the log4j-bom this BOM imports
+ext['jackson-bom.version'] = '2.21.5'
+ext['commons-lang3.version'] = '3.20.0'
+ext['postgresql.version'] = '42.7.12'           // the driver ships in both flavours, h2 included
+// Undoes a downgrade rather than a bump: awssdk:apache5-client:2.54.1 asks for httpcore5 5.4.3 and
+// httpclient5 5.6.4, and the BOM's older managed versions were winning (the dependency-management
+// plugin resolves like Maven - managed beats a newer transitive request). httpcore5 5.3 -> 5.4 is a
+// minor bump underneath Spring's HttpComponentsClientHttpRequestFactory, so it is the riskiest line
+// in this group; `make verify-cloud` reads a track over s3:// and sws:// to exercise it.
+ext['httpcore5.version'] = '5.4.3'              // carries httpcore5-h2 with it
+ext['httpclient5.version'] = '5.6.4'
+
 // The Boot BOM comes from the io.spring.dependency-management plugin; these add two more. Neither
 // manages anything outside its own vendor's coordinates - the AWS one is 477 software.amazon.awssdk
 // artifacts and the Azure one is 102 com.azure ones - so neither can move anything Boot manages
@@ -521,6 +542,12 @@ dependencies {
 // application's, so keep the app's managed version off it. A resolution rule rather than a `pmd`
 // dependency declaration: the Pmd plugin adds the tool itself through defaultDependencies, which
 // only fires while the configuration has no declared dependencies at all.
+//
+// As of the commons-lang3 3.17.0 -> 3.20.0 override above this rule is a no-op - the app's managed
+// version is what the rule forces, and `dependencyInsight --configuration pmd` resolves 3.20.0 with
+// the rule switched off. It stays as a floor for the analyser, which is a different requirement from
+// the application's: the two numbers coincide today and do not have to, so this one is deliberately
+// a literal and not a reference to ext['commons-lang3.version'].
 configurations.pmd {
     resolutionStrategy.eachDependency { details ->
         if (details.requested.group == "org.apache.commons" && details.requested.name == "commons-lang3") {

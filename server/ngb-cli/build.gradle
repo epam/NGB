@@ -24,9 +24,13 @@ ext {
     // by hand: `./gradlew -p server/catgenome dependencies --configuration runtimeClasspath` is the
     // source of truth. Before migration Phase 9 they were slf4j 1.7.21, log4j 2.17.1 and jackson
     // 2.7.5 - 2016 vintage, with a 2021 Log4Shell patch on top.
+    // log4j2 and jackson are ahead of the BOM's own managed versions on the server side too: both
+    // are overridden there in an `ext['<name>.version']` block for the advisories listed in
+    // .devenv/JAVA21-VULNERABILITY-REVIEW.md §4.1, so the numbers below are the overrides and not
+    // what a stock Boot 3.5.16 would give you.
     versionSlf4j = "2.0.18"
-    versionLog4j = "2.24.3"
-    versionJackson = "2.21.4"
+    versionLog4j = "2.25.5"
+    versionJackson = "2.21.5"
 }
 
 repositories  {
@@ -65,7 +69,7 @@ dependencies {
     implementation group: "com.fasterxml.jackson.core", name: "jackson-annotations"
 
     implementation group: 'commons-io', name: 'commons-io', version: '2.22.0'
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.20.0'
     implementation group: 'commons-configuration', name: 'commons-configuration', version: '1.10'
     // The three CollectionUtils.isEmpty call sites here used commons-collections **3** until
     // migration Phase 8, and now use collections4, which is what the server module uses; the two
