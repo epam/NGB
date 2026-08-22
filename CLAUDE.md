@@ -41,30 +41,22 @@ Never create a git worktree for work in this repo: `.devenv/docker-compose.yml` 
 `../:/workspace`, so a worktree elsewhere on disk is invisible to the containers and every
 `make` target would silently run against the original tree.
 
-## The Java 21 migration (branch `java_21`) — done, not yet merged
-
-NGB 3.0.0 moved off Java 8 / Spring Boot 1.5 across Phases 0–9 on `java_21`, followed by four
-vulnerability fixes. Nothing is left to execute; what remains is the merge into `develop`. Four
-documents in `.devenv` are the record, and comments in `build.gradle`, the CI workflow and a
-couple of source files cite them by name:
+## Where things are written down
 
 | Document | What it is |
 |---|---|
-| [`JAVA21-MIGRATION-SUMMARY.md`](.devenv/JAVA21-MIGRATION-SUMMARY.md) | why the diff is safe — every behaviour change an upgrader meets, in three buckets, with the evidence for each |
-| [`JAVA21-VULNERABILITY-REVIEW.md`](.devenv/JAVA21-VULNERABILITY-REVIEW.md) | the shipped stack's advisories (§1–§6) and what the four fixes closed (§7) |
-| [`JAVA21-MIGRATION-PLAN.md`](.devenv/JAVA21-MIGRATION-PLAN.md) | the specification — current-state inventory, the decision table D1–D14, Phases 0–9 and their findings |
-| [`JAVA21-MIGRATION-EXECUTION.md`](.devenv/JAVA21-MIGRATION-EXECUTION.md) | how the sessions were run — progress table, session settings, per-phase prompts and caveats |
+| [`.devenv/README.md`](.devenv/README.md) | the dev environment — services, targets, the stack, and which target exercises each part of it |
+| [`.devenv/TEST-BASELINE.md`](.devenv/TEST-BASELINE.md) | what a green run looks like, which failures are expected and why, and what a green run still does not tell you |
+| [`.devenv/SECURITY-SCAN.md`](.devenv/SECURITY-SCAN.md) | how to scan the built artefacts for known vulnerabilities, which findings are open and which must not be "fixed" |
+| [`.devenv/fixtures/README.md`](.devenv/fixtures/README.md) | the gitignored NGB 2.x databases and Lucene 6 indexes the upgrade path is tested against, and how to rebuild them |
+| [`ISSUES.md`](ISSUES.md) | known defects, each written up ready to be filed, deliberately not fixed |
+| `docs/md/` | the published documentation. Anything an operator has to do belongs here, not in these notes — `release-notes/`, `installation/database-upgrade.md`, `installation/lucene-reindex.md` |
 
-Two of the migration's rules outlive it:
+Two rules:
 
-1. The decisions in the plan's "Decisions already taken" table are binding — several dependency
-   pins, the CI workflow and `LuceneIndexVersionException`'s javadoc cite them by id, so changing
-   one is a documentation change too. If one turns out to be unworkable, stop and say so rather
-   than quietly choosing differently.
-2. Never re-baseline a failing test to make it green. Fix the cause, or explain why it is a
+1. **Never re-baseline a failing test to make it green.** Fix the cause, or explain why it is a
    deliberate documented exclusion and record it in
    [`.devenv/TEST-BASELINE.md`](.devenv/TEST-BASELINE.md).
-
-Upgrade instructions for operators are in the published docs, not here:
-`docs/md/release-notes/3.0.0/`, `docs/md/installation/database-upgrade.md` and
-`docs/md/installation/lucene-reindex.md`.
+2. **A pin in `build.gradle` with a comment on it is deliberate.** Several dependencies are held
+   at a version that is not the newest, and the comment says what breaks if you move it — read it
+   before bumping, and if it turns out to be wrong, say so rather than quietly changing it.

@@ -1,6 +1,6 @@
 # Known defects, not yet fixed
 
-Four defects found while preparing the 3.0.0 platform release and deliberately left alone there:
+Five defects found while preparing the 3.0.0 platform release and deliberately left alone there:
 each one is older than that release, none is a regression it introduced, and fixing any of them is a
 behaviour change that has nothing to do with moving to Java 21. They are written up here rather than
 fixed silently so that they can be filed, argued about and scheduled on their own.
@@ -12,6 +12,7 @@ the body. Line numbers are as of the 3.0.0 release.
 - [2. Properties read through `#{catgenome[…]}` cannot be overridden on the command line](#2-properties-read-through-catgenome-cannot-be-overridden-on-the-command-line)
 - [3. The OpenAI client sends the API key in a header named `bearer`](#3-the-openai-client-sends-the-api-key-in-a-header-named-bearer)
 - [4. `GOOGLE_MED_PALM2` is an accepted LLM provider with nothing behind it](#4-google_med_palm2-is-an-accepted-llm-provider-with-nothing-behind-it)
+- [5. Seven manager roles that `@PreAuthorize` requires are not created by any installation](#5-seven-manager-roles-that-preauthorize-requires-are-not-created-by-any-installation)
 - [Documentation errors, already corrected](#documentation-errors-already-corrected)
 
 ---
@@ -198,6 +199,57 @@ from it — offers four providers where there are three.
 **Suggested fix.** Delete the value. It is not persisted anywhere — no column holds an `LLMProvider`
 — so there is no migration; check the OpenAPI schema and the client's model list afterwards, both of
 which already list only the three real providers.
+
+---
+
+## 5. Seven manager roles that `@PreAuthorize` requires are not created by any installation
+
+**Where.** `server/catgenome/src/main/java/com/epam/catgenome/security/acl/SecurityExpressions.java`
+and `security/acl/customexpression/NGBMethodSecurityExpressionRoot.java:85-110` name the roles;
+`entity/user/DefaultRoles.java` and the seed scripts under
+`server/catgenome/src/main/resources/database/catgenome/{h2,postgres}/` decide which ones exist.
+
+**What happens.** A fresh installation of either flavour has ten predefined roles: `ROLE_ADMIN`,
+`ROLE_USER`, and the `REFERENCE`, `BAM`, `VCF`, `GENE`, `BED`, `WIG`, `SEG` and `TARGET` managers.
+The security expressions name seven more, and none of them is ever created:
+
+| Role | Named by | Guards |
+|---|---|---|
+| `ROLE_HEATMAP_MANAGER` | `SecurityExpressions` | all seven write/read methods of `HeatmapSecurityService` |
+| `ROLE_PATHWAY_MANAGER` | `SecurityExpressions` | pathway registration, deletion and `PUT /restapi/pathway/index` |
+| `ROLE_LINEAGE_TREE_MANAGER` | `SecurityExpressions` | lineage-tree registration and deletion |
+| `ROLE_PROJECT_MANAGER` | `SecurityExpressions` | most of `ProjectSecurityService` |
+| `ROLE_MAF_MANAGER`, `ROLE_BUCKET_MANAGER`, `ROLE_BOOKMARK_MANAGER` | `hasSpecificRole(AclClass)` | `GET /restapi/permissions` for those entity types |
+
+So every one of those expressions reduces to `ROLE_ADMIN` (plus, where the expression offers it, the
+entity's owner). `DefaultRoles` lists `ROLE_HEATMAP_MANAGER` with a `null` id, which is a code-level
+enumeration, not a seed — nothing inserts it.
+
+**Why it matters.** It is the same defect 3.0.0 already fixed once, in a narrower form: PostgreSQL
+never seeded `ROLE_WIG_MANAGER`, so on a PostgreSQL install nobody but an administrator could satisfy
+`WigSecurityService`'s checks, and that was treated as a production bug and fixed with a convergence
+migration. The seven above are the same thing on both flavours. Concretely, an operator cannot
+delegate heatmap, pathway, lineage-tree or project management to a non-administrator, and
+`docs/md/installation/lucene-reindex.md` tells them to use `ROLE_PATHWAY_MANAGER` for the pathway
+reindex call — a role that does not exist.
+
+**Reproduce.** On a fresh install, `GET /restapi/role/loadAll` returns ten roles and none of the
+seven. Grant a user every role there is and `POST /restapi/heatmap` still comes back denied.
+
+**Workaround, which nothing documents.** An administrator can create them:
+`POST /restapi/role/create?roleName=ROLE_PATHWAY_MANAGER` — `RoleManager.getValidName` adds the
+`ROLE_` prefix if it is left off — and then `POST /restapi/role/{id}/assign`. The expressions match
+by name, so a hand-created role works exactly like a predefined one.
+
+**Suggested fix.** Seed the seven as predefined roles in both script sets, the way
+`v2026.08.21_12.20__align_predefined_roles_with_h2.sql` seeded `ROLE_WIG_MANAGER` on PostgreSQL —
+one forward migration per flavour, ids allocated with `(SELECT MAX(id) + 1 FROM catgenome.role)`
+rather than hardcoded, since hardcoding an id is what made the two flavours diverge in the first
+place. Then add them to `DefaultRoles` and to the predefined-role table in
+`docs/md/user-guide/um-overview.md`, which currently lists only the roles that really exist. Decide
+per role whether the feature is meant to be delegable at all: `ROLE_MAF_MANAGER` guards a format
+whose REST controller was deleted in 2018, so dropping the `MAF` branch of `hasSpecificRole` is
+probably the better answer for that one.
 
 ---
 

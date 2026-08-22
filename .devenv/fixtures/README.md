@@ -1,4 +1,4 @@
-# `.devenv/fixtures/` — captured pre-migration databases (not committed)
+# `.devenv/fixtures/` — databases and indexes written by NGB 2.x (not committed)
 
 Everything under this directory is gitignored except this file (`/.devenv/fixtures/*` plus
 `!/.devenv/fixtures/README.md` in the repo's `.gitignore`). The contents are local state:
@@ -6,20 +6,20 @@ binary database files and a scratch Gradle project. This README is the recipe fo
 them, which is the part worth keeping — and `scripts/verify-lucene.sh` points at it for the
 data it expects, so it is committed.
 
-It exists for one exit criterion of migration Phase 5:
+They exist so that the one thing no unit test can cover is coverable: **taking a database and a
+`contents/` tree written by NGB 2.x and running the current jar against them**, which is what
+every operator upgrading to 3.0.0 does (`docs/md/installation/database-upgrade.md` and
+`docs/md/installation/lucene-reindex.md`).
 
-> **Upgrade path tested:** take an H2 database and a PostgreSQL database created by
-> pre-migration code and run the new jar against them.
-
-You cannot rebuild these from the post-Phase-5 tree — they have to be written by code that
-still uses Flyway 3.2.1, H2 1.3.176 and the PostgreSQL 9.4 driver. That means checking out a
-pre-Phase-5 commit **in place** (worktrees are invisible to the `.devenv` containers, see
-`CLAUDE.md`).
+None of it can be rebuilt from the current tree — the files have to be *written* by code that
+still uses Flyway 3.2.1, H2 1.3.176, the PostgreSQL 9.4 driver and Lucene 6.6.0. That means
+checking out a pre-3.0.0 commit **in place** (worktrees are invisible to the `.devenv`
+containers, see `CLAUDE.md`).
 
 ## `pre-migration/`
 
-Captured at `5680365b` (the last Phase 4 commit), with the containers stopped first so the H2
-file is compacted and lock-free.
+Captured at `5680365b`, the last commit before the Flyway/H2/PostgreSQL bump, with the
+containers stopped first so the H2 file is compacted and lock-free.
 
 | Path | What |
 |---|---|
@@ -30,9 +30,10 @@ file is compacted and lock-free.
 | `pg/pg96-datadir.tar.gz` | raw 9.6 `PGDATA`, kept so a 9.6 container can be resurrected |
 | `pg/ngb-pg-contents.tar.gz` | the matching `/opt/ngb/contents` tree |
 
-A second copy lives outside the repo at
-`~/ngb-phase5-fixtures/pre-migration-fixtures-5680365b.tar.gz`, because `make reset-pg`,
-`make reset-ngb-data` and changing `PG_VERSION` all destroy the live volumes.
+Keep a second copy **outside the repository** —
+`pre-migration-fixtures-5680365b.tar.gz` somewhere in your home directory — because
+`make reset-pg`, `make reset-ngb-data` and changing `PG_VERSION` all destroy the live volumes,
+and a `git clean -xdf` takes this directory with it.
 
 ### How they were made
 
@@ -62,29 +63,28 @@ history table as quoted lowercase, so `catgenome.schema_version` does **not** re
 
 ## `pre-migration/lucene6/`
 
-Captured at `6be43c24` (the last Phase 5 commit), the last commit whose Lucene is 6.6.0. It
-exists for one exit criterion of migration Phase 6:
+Captured at `6be43c24`, the last commit whose Lucene is 6.6.0. It is what the startup guard is
+tested against: starting the current jar on a `contents/` restored from here has to produce the
+clear "rebuild these indexes" message for both a global index and a per-file feature index —
+not an `IndexFormatTooOldException` stack trace.
 
-> Starting against a `contents/` restored from the Lucene 6 fixture produces the clear guard
-> message for both a global index and a per-file feature index — not a stack trace.
-
-That guard cannot be tested any other way. **Lucene 9 cannot write a 6.x index**, so once the
-dependency is bumped this fixture is the only Lucene 6 index that will ever exist again, and
-`make reset`, `make reset-ngb-data` and `rm -rf ../contents` all destroy the live copies.
+That guard cannot be tested any other way. **Lucene 9 cannot write a 6.x index**, so this
+fixture is the only Lucene 6 index that will ever exist again, and `make reset`,
+`make reset-ngb-data` and `rm -rf ../contents` all destroy the live copies.
 
 | Path | What |
 |---|---|
 | `ngb-h2-contents.tar.gz` | the whole `/opt/ngb/contents` tree — 21 MB, 16 Lucene 6 index directories, see below |
 | `ngb-h2-db.tar.gz` | the matching `/opt/ngb/H2/catgenome.mv.db`, taken after `docker-compose stop ngb-h2` so it is compacted and lock-free |
 | `contents-listing.txt` | `tar tzf` of the above, for grepping without unpacking |
-| `verify-lucene-6.6.0.txt` | output of `.devenv/scripts/verify-lucene.sh` against this data on Lucene 6.6.0 — the pre-migration baseline the post-reindex run has to match |
-| `verify-lucene-9.12.3-after-reindex.txt` | the same 18 probes after the upgrade and the documented reindex. **Byte-identical to the line above**, which is the Phase 6 exit criterion the suite cannot express |
-| `test-tree-lucene6-dirs.tgz` | the *test* suite's Lucene 6 indexes, from `server/catgenome/` — `contents/ncbi/` plus the six `${…index.directory}` directories the two test profiles used to leave in the source tree. 107 K. Removed from the tree in Phase 6, along with the cause; see precondition 2 in `TEST-BASELINE.md` |
+| `verify-lucene-6.6.0.txt` | output of `.devenv/scripts/verify-lucene.sh` against this data on Lucene 6.6.0 — the 2.x baseline the post-reindex run has to match |
+| `verify-lucene-9.12.3-after-reindex.txt` | the same 18 probes after the upgrade and the documented reindex. **Byte-identical to the line above** — that a rebuild returns the same answers, and not merely that it succeeds, is the thing the unit suite cannot express |
+| `test-tree-lucene6-dirs.tgz` | the *test* suite's Lucene 6 indexes, from `server/catgenome/` — `contents/ncbi/` plus the six `${…index.directory}` directories the two test profiles used to leave in the source tree. 107 K. Nothing writes them there any more; see the second condition in [`TEST-BASELINE.md`](../TEST-BASELINE.md) if an old tree of yours still has them |
 | `from-test-suite/` | an earlier, smaller capture: just `taxonomy/` and `targets/` as written by `make test`. Superseded by the tarballs; kept because it is 324 K and needs no unpacking |
 
-A second copy lives outside the repo at
-`~/ngb-phase5-fixtures/lucene6-fixture-6be43c24.tar.gz`, because a `git clean -xdf` would take
-this directory with it and there is no way to regenerate it after Phase 6.
+Keep a second copy outside the repository here too —
+`lucene6-fixture-6be43c24.tar.gz` — because a `git clean -xdf` would take this directory with it
+and, as above, there is no way to regenerate it.
 
 The database and the contents tree have to be restored **together**: the per-file feature
 index paths embed `BiologicalDataItem` ids, and the target/pathway/coverage rows in the
@@ -92,8 +92,8 @@ database are what the global indexes are keyed against.
 
 ### What is in it
 
-All seven index types the plan lists, i.e. every `*.index.directory` property in
-`server/catgenome/profiles/*/catgenome.properties` plus the per-file indexes under
+All seven index types NGB writes: every `*.index.directory` property in
+`server/catgenome/profiles/*/catgenome.properties`, plus the per-file indexes under
 `files.base.directory.path`:
 
 ```
@@ -118,11 +118,12 @@ That these really are Lucene 6 is checkable without a JVM — `xxd -l 96 taxonom
 
 `segments` format version `6` (`SegmentInfos.VERSION_53`), writer version `06 06 00` = 6.6.0,
 per-segment codec `Lucene62`. Lucene 9's `MIN_SUPPORTED_MAJOR` is 8, so it rejects this with
-`IndexFormatTooOldException` — which is exactly the throw the D8 guard has to pre-empt.
+`IndexFormatTooOldException` — which is exactly the throw NGB's own guard pre-empts, with
+`LuceneIndexVersionException` and a message naming the directory and what rebuilds it.
 
 ### How it was made
 
-The registered files come from the Phase 5 fixture recipe above (`test_ref`, `dm6`,
+The registered files come from the `pre-migration/` recipe above (`test_ref`, `dm6`,
 `demo_bam`, `demo_vcf`, `demo_genes`, `demo_vcf_dm6`, datasets `demo_ds` and `demo_ds_dm6`) —
 registering a VCF and a GTF into a dataset is what writes the per-file feature indexes. The
 global indexes on top of that are one script:
@@ -161,8 +162,9 @@ docker-compose up -d ngb-h2 && make logs
 
 ## `probe/`
 
-Scratch harness built during Phase 5 to answer the questions the plan marked VERIFY. Kept
-because re-deriving it is an hour's work and Phase 6+ may want the same trick.
+Scratch harness for questions that can only be answered by running two incompatible Flyway/H2
+versions side by side. Kept because re-deriving it is an hour's work and the next Flyway or H2
+bump will want the same trick.
 
 A one-file Gradle project with **two** configurations, `oldStack` and `newStack`, so that
 Flyway 3.2.1 + H2 1.3 and Flyway 11.7.2 + H2 2.3 can coexist without dependency resolution
@@ -185,13 +187,15 @@ cd .devenv && docker-compose exec builder bash -lc '
     repair revalidate migrate'
 ```
 
-The findings it produced are written up in `JAVA21-MIGRATION-PLAN.md` under "Phase 5
-execution findings" — that is the durable record; this directory is not.
+What it established, and so why `FlywayMigrator` is the shape it is: the two versions parse all
+118 migration filenames into identical version + description pairs, so **no script had to be
+renamed** — `diff-h2.txt` and `diff-postgres.txt` are empty because that was the answer. What did
+have to be handled in code is the Flyway 10 checksum algorithm and the new schema-history table
+shape, both of which `FlywayMigrator` converts in place on first start.
 
-What is left here is the harness plus the outputs it produced (`A.txt`/`B.txt` are the two
-parsers' verdicts on all 118 filenames; `diff-h2.txt` and `diff-postgres.txt` are empty
-because that was the answer; `schema-*.txt` are the pre/post-import H2 column dumps). The
-scratch working copies of the databases and of the migration script directories were deleted
-at the end of the phase on purpose: stale copies of `database/catgenome/{h2,postgres}` sitting
-next to the real ones are a trap, and every database here is re-derivable from
-`pre-migration/`. Copy a fixture again if you need one.
+What is left here is the harness plus those outputs (`A.txt`/`B.txt` are the two parsers'
+verdicts on all 118 filenames; `schema-*.txt` are the pre/post-import H2 column dumps). The
+scratch working copies of the databases and of the migration script directories were deleted on
+purpose: stale copies of `database/catgenome/{h2,postgres}` sitting next to the real ones are a
+trap, and every database here is re-derivable from `pre-migration/`. Copy a fixture again if you
+need one.

@@ -4,11 +4,10 @@ A self-contained environment for working on NGB, with no JDK, Node, Gradle or Py
 installed on the host. Everything runs in containers: the build toolchain, the application,
 both database flavours, a real SAML identity provider and an S3-compatible object store.
 
-It was written for the **Java 21 migration**, which has now landed — Phases 0–9 are in
-`JAVA21-MIGRATION-PLAN.md` and `JAVA21-MIGRATION-EXECUTION.md`, kept as the record of what
-was changed and why. What is left here is a working environment, not migration scaffolding:
-the JDK-switching, the two database flavours, the SAML stack, the MinIO profile and the three
-`verify-*` scripts are all things the ordinary loop needs.
+Two other documents live beside this one: [`TEST-BASELINE.md`](TEST-BASELINE.md), which is what a
+green run looks like and which failures are expected, and [`SECURITY-SCAN.md`](SECURITY-SCAN.md),
+which is how to scan the built artefacts for known vulnerabilities. Known open defects are in
+[`ISSUES.md`](../ISSUES.md) at the repository root.
 
 ```
 cd .devenv
@@ -24,14 +23,12 @@ make up            # run it -> http://ngb.dev.local:8080/catgenome
 
 Three facts about the current codebase drive the whole design:
 
-1. **The build's JDK is not the host's JDK.** The wrapper was pinned to Gradle 3.3 on JDK 8
-   when this environment was written; it is now Gradle 8.14.5, the server module builds on a
+1. **The build's JDK is not the host's JDK.** Gradle is 8.14.5, the server module builds on a
    **JDK 21** toolchain and `server/ngb-cli` on 17. The image's default is 21, so nothing has
    to select a JDK for ordinary work; it carries **two** (`with-java17` / `with-java21`, or
    `use-java 17|21` in a shell) because ngb-cli's toolchain is the older one. The app
    container picks its JDK at runtime via `NGB_JAVA_VERSION`, which defaults to 21 — the jar
-   is Java 21 bytecode and will not load on anything older. The JDK 8 that used to be here as
-   well, and be the default, went with migration Phase 9.
+   is Java 21 bytecode and will not load on anything older.
 2. **The database flavour is chosen at build time**, not at runtime
    (`-Pdatabase=h2|postgres` swaps `applicationContext-flyway.xml`), so there are two
    jars and two app services.
@@ -87,8 +84,8 @@ make cli-test                # CLI<->server integration suite, all 145 rows
 
 `make cli-test` needs `make jar cli-build` first and starts a server of its own on port 8080,
 so `make stop` before you run it. Its fixtures are generated from the server module's test
-resources by `e2e/cli/prepare_test_data.sh` — until migration Phase 9 they were downloaded
-from a host that had stopped resolving, which is why the suite had been unrunnable for years.
+resources by `e2e/cli/prepare_test_data.sh` — they used to be downloaded from a host that stopped
+resolving, which is why the suite had been unrunnable for years, so keep it network-free.
 
 **Read [`TEST-BASELINE.md`](TEST-BASELINE.md) before you trust a red run.** `make lint` is
 green and so is `make cli-test` (129 passed, 0 failed, 16 skipped); the unit suite is 545 tests
@@ -102,9 +99,8 @@ breakage from old, and it lists the two preconditions the numbers depend on: `ma
 
 The unit suite never boots a server: it drives the managers directly, against a Spring test
 context and a temporary contents directory. So there are three scripts that register data over
-REST against a **running** instance and print what came back. They were written for migration
-Phases 6, 7 and 8, and they are kept — they are the only thing that exercises the parsers, the
-Lucene indexes and the S3 client end to end.
+REST against a **running** instance and print what came back. They are the only thing that
+exercises the parsers, the Lucene indexes and the S3 client end to end.
 
 ```bash
 make verify-tracks    # a track of every type: BED, GFF/GTF, GenePred, VCF, BedGraph, BigWig,
@@ -128,19 +124,13 @@ NGB_JAVA_VERSION=17 make up    # UnsupportedClassVersionError: the jar is class 
 ```
 
 The switch is kept even though only one value works, because the image does carry a second
-JDK for `server/ngb-cli`, and because `JAVA_VERSION=8` now says so (`must be 17 or 21`)
-instead of pointing the launcher at a directory Phase 9 deleted.
+JDK for `server/ngb-cli`, and an unsupported value says so (`must be 17 or 21`) instead of
+pointing the launcher at a directory that does not exist.
 
 `JAVA_EXTRA_OPTS` in `.env` is **empty** and should stay that way. It used to carry four
-`--add-opens` for EhCache 2's reflective heap sizing; Phase 3 replaced EhCache with Caffeine and
-dropped them. A new `--add-opens` requirement appearing here is a signal — on Spring 6 it usually
-means a stale dependency, not a JDK problem.
-
-Historical note, since it is what this environment was built to demonstrate: the original JDK
-8-built jar does **not** boot on JDK 21 — Spring 4.3's cglib dies during context refresh with
-`InaccessibleObjectException: Unable to make protected final java.lang.Class
-java.lang.ClassLoader.defineClass(...) accessible` at `ReflectUtils.<clinit>`. That was the runtime
-wall on top of the two build walls. All three are behind us as of Phase 3.
+`--add-opens` for EhCache 2's reflective heap sizing; EhCache was replaced by Caffeine, which
+reflects on nothing. A new `--add-opens` requirement appearing here is a signal — on Spring 6 it
+usually means a stale dependency, not a JDK problem.
 
 **SAML SSO**
 
@@ -251,9 +241,9 @@ docker-compose exec \
   cli bash -lc "ngb set_srv https://ngb.dev.local:8443/catgenome && ngb set_token $token && ngb list_ref"
 ```
 
-That round trip is the check for the JWT half of the security stack. `make cli-token` is
-permanent tooling, not a migration artefact — it is the only way to get a token here without
-a browser, and `make cli-test` cannot stand in for it: that suite runs with `AUTH_MODE=none`.
+That round trip is the check for the JWT half of the security stack. `make cli-token` is the only
+way to get a token here without a browser, and `make cli-test` cannot stand in for it: that suite
+runs with `AUTH_MODE=none`.
 
 **Cloud storage: reading tracks over `s3://` and `sws://`**
 
@@ -278,23 +268,24 @@ Two things worth knowing before you extend it:
 
 - **Register with `"type":"S3","indexType":"S3"`.** The scheme in the path is not enough for a
   registration request; without the type NGB opens the path as a local file.
-- **NGB is pointed at MinIO under the honest name `minio`.** Phase 8 had to alias it as
-  `s3.amazonaws.com` instead, because `EnhancedUrlHelper` decided whether to tolerate the 403 on
-  `HEAD` by matching the hostname against `.*s3.*\.amazonaws\.com` — so under any other name every
-  pre-signed read came back empty. Phase 9 keyed that tolerance to the URL's own SigV4 signature;
-  path 4 above passing under the name `minio` is what proves it. `verify-tracks.sh` still stages a
-  fake `s3.amazonaws.com` in a container of its own, to exercise the hostname clause that is
-  deliberately kept for real AWS.
+- **NGB is pointed at MinIO under the honest name `minio`**, and that is itself part of the check.
+  `EnhancedUrlHelper` used to decide whether to tolerate the 403 on `HEAD` by matching the hostname
+  against `.*s3.*\.amazonaws\.com`, so under any other name every pre-signed read came back empty
+  and the profile had to alias MinIO as `s3.amazonaws.com` to work at all. That tolerance is keyed
+  to the URL's own SigV4 signature now; path 4 above passing under the name `minio` is what proves
+  it. `verify-tracks.sh` still stages a fake `s3.amazonaws.com` in a container of its own, to
+  exercise the hostname clause that is deliberately kept for real AWS.
 
-The two defects this profile exposed in Phase 8 — that pre-signed read returning an empty file,
-and every bgzip'd feature file in cloud storage failing to register with
-`invalid uncompressedLength: -1` — are fixed (`16e00527`); see "Finding 1" and "Finding 2" in
-the plan document for what they were.
+This profile is also what caught the two cloud defects fixed in `16e00527`: a pre-signed read
+returning an empty file, and every bgzip'd feature file in cloud storage failing to register with
+`invalid uncompressedLength: -1`. Neither was visible to the unit suite, which stubs the S3 client
+away.
 
 Azure has no equivalent and `az://` is **unverified**: `AzureBlobClient` hard-codes
 `https://<account>.blob.core.windows.net`, so Azurite cannot be pointed at it without changing
 NGB code, and there is no Azure account here. The code went through the same SDK-agnostic
-changes as the S3 paths, but nothing has read a byte over `az://`. See TEST-BASELINE.md.
+changes as the S3 paths, but nothing has read a byte over `az://` — see "Known gaps" in
+[`TEST-BASELINE.md`](TEST-BASELINE.md).
 
 ## Auth modes
 
@@ -303,12 +294,10 @@ changes as the S3 paths, but nothing has read a byte over `az://`. See TEST-BASE
 - `none` — no security. Fastest loop; use it for everything except auth work.
 - `saml` — Keycloak SSO for the browser **plus** JWT for the CLI.
 
-There is no JWT-only `AUTH_MODE`, but the two halves are no longer welded together: before
-migration Phase 4 `JWTSecurityConfiguration` autowired `SAMLAuthenticationProvider` and
-`SAMLEntryPoint`, so JWT alone would not start; now it needs nothing from the SAML side, and
-`jwt.security.enable=true` with `saml.security.enable=false` (via `ngb/override.properties`)
-boots and answers 401 instead of redirecting to an IdP. SAML mode still forces
-`security.acl.enable=true`, because `SamlUserDetailsService` is conditional on it.
+There is no JWT-only `AUTH_MODE`, but the two halves are not welded together — JWT needs nothing
+from the SAML side, so `jwt.security.enable=true` with `saml.security.enable=false` (via
+`ngb/override.properties`) boots and answers 401 instead of redirecting to an IdP. SAML mode does
+force `security.acl.enable=true`, because `SamlUserDetailsService` is conditional on it.
 
 ## Configuration
 
@@ -320,123 +309,99 @@ baked into the jar, so it wins.
 For ad-hoc tweaks without touching the templates, create **`ngb/override.properties`** —
 it is appended last. Restart the container to apply.
 
-## The schema bugs this environment found
+## If you touch the schema scripts
 
-Kept because they are the reason two migration scripts and three PostgreSQL forward
-migrations look the way they do, and because one of the findings is still open.
+There are two sets of them, `database/catgenome/h2/` and `database/catgenome/postgres/`, and
+nothing in the build compares them. They had silently diverged in three places — the seeded
+predefined roles, `VCF.MULTI_SAMPLE`'s nullability and `TASK_ORGANISM.ORGANISM`'s type — and one
+of those divergences meant **no PostgreSQL database could migrate past 2024.02.19 at all**, for two
+years, because a role was inserted at a hardcoded `id = 10` that PostgreSQL had already given to
+`ROLE_SEG_MANAGER`. They were converged on the H2 shape by the `v2026.08.21_12.*` scripts on the
+PostgreSQL side (H2 is the reference because `DefaultRoles`, `docs/md/user-guide/um-overview.md` and
+the DAO code all agree with it). Four rules came out of that:
 
-Bringing the environment up on **empty** databases — which no CI job and no developer with an
-existing `catgenome.h2.db` had done for a while — turned out to be the check nothing else was
-doing. Two committed migrations could not run:
+1. **Write the same change into both sets, and run `make test-pg` as well as `make test`.** The
+   PostgreSQL-only failures in [`TEST-BASELINE.md`](TEST-BASELINE.md) are the specification for what
+   convergence means: if one of them comes back, the sets have drifted again.
+2. **Never hardcode an id.** `(SELECT MAX(id) + 1 FROM catgenome.role)` and `COALESCE(MAX(x), 0)` —
+   an id that happens to be free on one flavour is taken on the other, and a `MAX()` over an empty
+   table is `NULL`.
+3. **Bring it up on an empty database.** `make reset-ngb-data` (H2) and `make reset-pg` (PostgreSQL)
+   then `make up`/`make up-pg` — a migration that only ever runs against a database that already has
+   rows is a migration nobody has tested. That is exactly how both of the bugs above were found, and
+   neither CI nor a developer with an existing `catgenome.h2.db` would have hit them.
+4. **Do not edit an already-applied migration.** Flyway fails validation with a checksum mismatch
+   wherever the old version ran. Fresh dev databases do not care; anywhere else needs a
+   `flyway repair` or a new schema. Add a forward script instead.
 
-1. `v2024.03.21_19.00__blast_task_id.sql` did
-   `ALTER SEQUENCE CATGENOME.S_TASK RESTART WITH (SELECT MAX(TASK_ID) + 1 FROM CATGENOME.TASK)`.
-   On a fresh H2 install `TASK` is empty, so the restart value is `NULL` and Flyway aborts;
-   on PostgreSQL it is worse, because a subquery in `RESTART WITH` is a syntax error on any
-   database, empty or not. Now `COALESCE(MAX(TASK_ID), 0)` on H2 and `setval(...)` on
-   PostgreSQL.
-2. `v2024.02.19_18.00__acl_target_manager_role.sql` inserted `ROLE_TARGET_MANAGER` at a
-   hardcoded `id = 10`, which is free on H2 and taken by `ROLE_SEG_MANAGER` on PostgreSQL — so
-   **no PostgreSQL database could migrate past 2024.02.19 at all.** Now
-   `(SELECT MAX(id) + 1 FROM catgenome.role)`; `DefaultRoles.ROLE_TARGET_MANAGER` carries a
-   `null` id, so no Java code depends on the number.
-
-The second one was a symptom: the two flavours' script sets had silently diverged in three
-places — the seeded predefined roles, `VCF.MULTI_SAMPLE`'s nullability and
-`TASK_ORGANISM.ORGANISM`'s type. Phase 5 converged them on the H2 shape with forward
-migrations on the PostgreSQL side (`v2026.08.21_12.*`), H2 being the reference because
-`DefaultRoles`, `docs/md/user-guide/um-overview.md` and the DAO code all agree with it. So
-`MAX(id) + 1` resolves to 10 on both flavours now, and all 59 migrations apply cleanly on both.
-
-**Still open, and wider than persistence:** one of those divergences was a production bug, not
-a test artefact — PostgreSQL never seeded `ROLE_WIG_MANAGER`, so on a PostgreSQL install
-nothing but an administrator could satisfy `WigSecurityService`'s `@PreAuthorize`. Phase 5
-fixed that role. It did not fix the rest of the pattern:
-`NGBMethodSecurityExpressionRoot.hasSpecificRole` also names MAF/BUCKET/PROJECT/BOOKMARK
-manager roles and `DefaultRoles` names `ROLE_HEATMAP_MANAGER`, none of which either flavour
-seeds, so those `@PreAuthorize` checks are unsatisfiable for everyone but an admin on every
-install. That is an authorisation question rather than a migration one, and it was left alone
-deliberately.
-
-One procedural note that outlives the migration: editing an already-applied migration makes
-Flyway fail validation with a checksum mismatch wherever the old version ran. Fresh dev
-databases do not care; anywhere else needs a `flyway repair` or a new schema.
+Note also that the manager roles the security expressions name are not all seeded — see
+[`ISSUES.md`](../ISSUES.md), issue 5. Adding a seed for one of them is a schema change on both
+flavours, with rule 2 applying.
 
 ## Notes and gotchas
 
-- **PostgreSQL is 16 since migration Phase 5** (`PG_VERSION` in `.env`); it was pinned to
-  9.6 because Flyway 3.2.1 refused to run against anything newer. Changing `PG_VERSION`
-  still needs `make reset-pg` — a 9.6 data directory is unreadable by 16, and `reset-pg`
-  destroys the cluster rather than migrating it. For a real database the procedure is
+- **PostgreSQL is 16** (`PG_VERSION` in `.env`). Changing it needs `make reset-pg` — a data
+  directory written by one major version is unreadable by the next, and `reset-pg` destroys
+  the cluster rather than migrating it. For a real database the procedure is
   `docs/md/installation/database-upgrade.md`.
-- **H2 is 2.3.232 since migration Phase 5**, and 2.x cannot open a 1.3.176 file: an
-  existing `catgenome.h2.db` needs the `SCRIPT TO` / `RUNSCRIPT FROM` round trip in the
-  same document. `make reset-ngb-data` sidesteps it by throwing the database away.
+- **H2 is 2.3.232**, and 2.x cannot open a 1.3.176 file: an existing `catgenome.h2.db` written
+  by NGB 2.x needs the `SCRIPT TO` / `RUNSCRIPT FROM` round trip in the same document.
+  `make reset-ngb-data` sidesteps it by throwing the database away.
 - **Memory.** `server/catgenome/build.gradle` sets `-XX:MaxDirectMemorySize=7937m` for
   the test JVM, and the app defaults to a 2 GB heap. Your colima VM currently has
   ~12 GB / 6 CPU; if the test task gets killed, give colima more memory
   (`colima stop && colima start --memory 16`) or lower `NGB_HEAP`.
 - **arm64.** All base images are multi-arch, but external BLAST binaries aren't. If one
-  misbehaves, add `platform: linux/amd64` to that single service. The `snappy-java 1.0.3-rc3`
-  pin that used to be the other example of this is gone since migration Phase 7 — htsjdk 5
-  manages snappy 1.1.10.5, which ships `native/Linux/aarch64`.
-- **Remote tracks re-read their index on every request** since migration Phase 7, which
-  dropped the index cache (decision D10). Measured: an 88 kB `.bai` behind an `http://` URL
-  costs 263 kB of index traffic *per* `bam/track/get`, and a local-vs-remote VCF track is
-  0.01 s vs 0.24 s. It scales with index size, not window size. See the Phase 7 findings in
-  `JAVA21-MIGRATION-PLAN.md` if you are deciding whether to reintroduce a cache.
+  misbehaves, add `platform: linux/amd64` to that single service. A Java dependency can have
+  the same problem: watch for a native library with no `aarch64` entry in its jar — htsjdk 5
+  manages snappy-java 1.1.10.5, which does ship `native/Linux/aarch64`, and a pin that drags
+  it back below that will fail here and nowhere else.
+- **Remote tracks re-read their index on every request.** There is no index cache. Measured:
+  an 88 kB `.bai` behind an `http://` URL costs 263 kB of index traffic *per* `bam/track/get`,
+  and a local-vs-remote VCF track is 0.01 s vs 0.24 s. It scales with index size, not window
+  size, so a human WGS `.bai` of 5–10 MB is paid on every pan. Local files are unaffected. If
+  you reintroduce a cache, that is where the numbers to beat come from.
 - **`muscle`** is installed if the distro has it for your architecture; target-
   identification alignment needs it.
 - **BLAST / LLM / NCBI** integrations point at external services (`blast.server.url`,
   `llm.*`, `ncbi.api.key`) and are left unset — add them to `override.properties` if a
   change touches those paths.
-- The first `make jar` downloads the Gradle distribution (8.14.5 since migration Phase 3), the
-  npm dependency tree and mkdocs into named volumes; later builds reuse them. `make reset`
-  throws those away too.
+- The first `make jar` downloads the Gradle distribution (8.14.5), the npm dependency tree and
+  mkdocs into named volumes; later builds reuse them. `make reset` throws those away too.
 
-## Migration checkpoints this environment was built to verify
+## The stack, and what exercises each part
 
-All five are done. Kept as an index: each one names the phase that closed it, what the version
-ended up being, and the target that re-checks it — which is the part still worth having.
+Versions live in `server/catgenome/build.gradle` — the `ext { … }` block and the dependency
+declarations, each non-obvious pin with a comment saying why it is what it is. The table below is
+the other map worth having: from a part of the stack to the target that will tell you if you broke
+it. Note how many of them need a **running** server — `make test` never starts one, so it cannot
+make those checks at all.
 
-1. ☑ Gradle 3.3 → 8.x (wrapper, `compile`→`implementation`, `bootRepackage`→`bootJar`),
-   lombok → ≥ 1.18.30. Nothing compiled on JDK 21 before this, and the two were
-   independent walls — fixing Gradle alone just exposed the lombok one. *Phases 2–3;
-   now Gradle 8.14.5, lombok 1.18.46, JDK 21 toolchain for the server module.*
-2. ☑ Spring Boot 1.5 → 3.x, Spring Security 4 → 6, `javax.*` → `jakarta.*`. *Phases 2–3;
-   now Boot 3.5.16 on Spring 6.2. `make up` + `make smoke` is the check.*
-3. ☑ `spring-security-saml2-core` (OpenSAML 2, EOL) → Spring Security's SAML2 support —
-   `SAMLSecurityConfiguration.java` is a full rewrite. *Phase 4; now
-   `spring-security-saml2-service-provider` on OpenSAML 4.3.2, and `com.auth0:java-jwt` 4.6.0
-   for the JWT half. All four externally visible endpoints keep the OpenSAML 2 extension's
-   URLs, so existing IdP registrations do not have to be re-pointed. `make up-saml` +
-   `make smoke-saml`, and `make saml-verify-signing` for the signing path, are the checks.*
-4. ☑ Flyway 3.2.1 → 10.x and H2 1.3.176 → 2.x (schema/SQL differences), then
-   `PG_VERSION=16`. Verify with `make test-pg` on both flavours. *Phase 5; now Flyway
-   11.7.2 (+ `flyway-database-postgresql`), H2 2.3.232, driver 42.7.x, PostgreSQL 16. The
-   upgrade of an existing database is not automatic on the H2/PostgreSQL side — see
-   `docs/md/installation/database-upgrade.md`. The Flyway schema history *is* converted
-   automatically, by `FlywayMigrator`.*
-5. ☑ Lucene 6.6 → 9.x, htsjdk, POI 3.16, and the Swagger annotations. *Phases 3 and 6–8,
-   four separate pieces:*
-   - *Swagger: Phase 3 replaced `mangofactory` with springdoc, at `/swagger-ui/index.html`
-     and `/v3/api-docs`; Phase 8 rewrote the 1.3-era `@ApiOperation`/`@ApiResponses`
-     annotations as OpenAPI 3 and dropped the last `com.wordnik` jar.*
-   - *Lucene: Phase 6, now 9.12.3. Every index NGB wrote before it has to be rebuilt — the
-     server refuses to start otherwise and says which directories and what rebuilds each, see
-     `docs/md/installation/lucene-reindex.md`. `make verify-lucene` checks all 18 read paths,
-     and `fixtures/pre-migration/lucene6/` holds the last Lucene 6 index that will ever exist,
-     for testing the upgrade against.*
-   - *htsjdk: Phase 7, now 5.0.0, with the forked reader package and the index cache deleted.
-     `make verify-tracks` loads a track of every type. Two consequences worth knowing: a
-     feature file on `s3://`/`sws://`/`az://` must now be bgzip+tabix, and remote index reads
-     are no longer cached (see the D10 note above).*
-   - *POI: Phase 8, 3.16 → 5.5.1, along with the AWS SDK v1 → v2 move that `make verify-cloud`
-     exists to check.*
+| Part | Version | Checked by |
+|---|---|---|
+| Build | Gradle 8.14.5, lombok 1.18.46; JDK 21 toolchain for the server, 17 for `ngb-cli` | `make jar`, `make lint` |
+| Application | Spring Boot 3.5.16 on Spring 6.2, Spring Security 6, embedded Tomcat 10, `jakarta.*` | `make up` + `make smoke` |
+| API docs | springdoc 2.8.17 — OpenAPI 3 at `/swagger-ui/index.html` and `/v3/api-docs` | `make smoke` |
+| Database | Flyway 11.7.2 (+ `flyway-database-postgresql`, both from the Boot BOM), H2 2.3.232, PostgreSQL 16 on driver 42.7.x | `make test`, `make test-pg`, and a start on an empty database |
+| SAML and JWT | `spring-security-saml2-service-provider` on OpenSAML 4.3.2, `com.auth0:java-jwt` 4.6.0 | `make up-saml` + `make smoke-saml`, `make saml-verify-signing`, `make cli-token` |
+| Search indexes | Lucene 9.12.3 | `make verify-lucene` — all 18 read paths |
+| File formats | htsjdk 5.0.0, POI 5.5.1, biojava 7.2.6 | `make verify-tracks` — one track of every type |
+| Cloud storage | AWS SDK v2 2.54.1 (S3 and Swift), azure-storage-blob 12.35.0 | `make verify-cloud` — `s3://` and `sws://`; `az://` has never been run against a live service |
 
-Phase 9 closed the migration off the checkpoint list: Docker images and the JRE-bundled
-distributions on Temurin 21, AppVeyor replaced by GitHub Actions, the docs brought forward, and
-the version set to 3.0.0. This environment's own migration scaffolding went with it — the JDK 8
-in the image, and `make probe-java21`, which demonstrated the first checkpoint's two walls by
-running Gradle 3.3 and lombok 1.16.16 under JDK 21 and failing. Both walls are gone, so the
-target measured nothing.
+Two properties of that stack that otherwise look like bugs:
+
+* **Lucene 9 cannot read an index written by Lucene 6**, and NGB refuses to start on one rather
+  than misreading it — it names the directories and says what rebuilds each. The operator
+  procedure is `docs/md/installation/lucene-reindex.md`. `fixtures/pre-migration/lucene6/` holds
+  the last Lucene 6 indexes that will ever exist, kept so that refusal and the rebuild path can be
+  tested against something real.
+* **A feature file in object storage must be bgzip-compressed and tabix-indexed.** A plain
+  VCF/BED/GFF/SEG/BEDGRAPH reads fine from a local path and over `http(s)://`, but not from
+  `s3://`, `sws://` or `az://`; `verify-cloud.sh` uses a bgzip'd VCF for exactly this reason, and
+  it is documented for operators under *Configure for working with AWS S3* in
+  `docs/md/installation/standalone.md`.
+
+The Flyway schema history itself *is* converted automatically, by `FlywayMigrator` — it handles
+both the Flyway 10 checksum algorithm and the new schema-history table shape. The H2 and
+PostgreSQL data files are not: that is the operator procedure in
+`docs/md/installation/database-upgrade.md`.
