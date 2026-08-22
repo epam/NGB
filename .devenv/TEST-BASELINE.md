@@ -28,8 +28,8 @@ CI passes `-PexcludeNetworkTests`, which drops exactly those two tests and nothi
 (`server/catgenome/build.gradle`), so the `test-h2` and `test-pg` jobs should read
 543 tests / 0 failed / 21 skipped. A red CI run is a real regression by construction.
 
-**Two conditions the numbers depend on.** Get either wrong and you will see extra failures that are
-not yours:
+**Three conditions the numbers depend on.** Get any of them wrong and you will see extra failures
+that are not yours:
 
 1. **`make test-pg` needs a clean database.** `ngb_test` lives in the persistent `pg-data` volume
    and several tests do not clean up after themselves, so a second run on a dirty volume shows
@@ -57,6 +57,16 @@ not yours:
    ```bash
    rm -rf ../contents ../server/catgenome/contents "../server/catgenome/\${"*
    ```
+
+3. **A database that already applied the 3.0.0 schema scripts needs resetting once.** The eight
+   scripts this release adds had their header comments reworded after they were first applied here,
+   which changes the checksum Flyway recorded for them. `migrate` validates before it runs, so the
+   next start of a database that holds the old checksums fails with `Migration checksum mismatch`.
+   No released NGB carries these scripts, so no installation is affected — only a working copy that
+   ran them before the rewording. `make reset-pg` clears it — both for a running PostgreSQL instance
+   and for the `ngb_test` database `make test-pg` uses, which condition 1 already says to reset;
+   `make reset-ngb-data` for a running H2 instance. `make test` is immune: its database is
+   `jdbc:h2:mem:test_catgenome`, built from the scripts on every run.
 
 ## H2: 1 live-data failure, and 1 that flaps
 
