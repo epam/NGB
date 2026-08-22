@@ -35,9 +35,7 @@ name: build
 
 on:
   push:
-    # `java_21` is here for the duration of the Java 21 migration, so that the branch doing the
-    # migration is the first thing this workflow is run against. Remove it when that branch merges.
-    branches: [develop, 'release/**', java_21]
+    branches: [develop, 'release/**']
   pull_request:
     branches: [develop, 'release/**']
   workflow_dispatch:

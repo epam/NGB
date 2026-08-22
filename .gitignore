@@ -43,3 +43,7 @@
 # scripts/verify-lucene.sh points at it for the data it expects, so that one is committed.
 /.devenv/fixtures/*
 !/.devenv/fixtures/README.md
+
+# per-machine Claude Code state: the permission decisions the CLI records as you approve them.
+# The instructions meant to be shared live in CLAUDE.md, which is committed.
+/.claude/settings.local.json

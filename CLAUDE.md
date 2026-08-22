@@ -17,8 +17,9 @@ Default branch is `develop`.
 ## Building and testing
 
 **Builds and tests run inside the `.devenv` containers, not on the host.** The toolchain is
-pinned (Gradle 3.3 needs JDK 8; the database flavour is a build-time switch) and the host is
-not set up for it. Start from [`.devenv/README.md`](.devenv/README.md); everything is a
+pinned (the toolbox image installs JDK 21 for the server and 17 for the CLI, Gradle comes from
+the wrapper at 8.14.5, and the database flavour is a build-time switch) and the host is not set
+up for it. Start from [`.devenv/README.md`](.devenv/README.md); everything is a
 `make` target run from `.devenv/`:
 
 ```
@@ -40,27 +41,30 @@ Never create a git worktree for work in this repo: `.devenv/docker-compose.yml` 
 `../:/workspace`, so a worktree elsewhere on disk is invisible to the containers and every
 `make` target would silently run against the original tree.
 
-## Java 21 migration in progress (branch `java_21`)
+## The Java 21 migration (branch `java_21`) — done, not yet merged
 
-A phased migration off Java 8 / Spring Boot 1.5 is underway. If you are working on it:
+NGB 3.0.0 moved off Java 8 / Spring Boot 1.5 across Phases 0–9 on `java_21`, followed by four
+vulnerability fixes. Nothing is left to execute; what remains is the merge into `develop`. Four
+documents in `.devenv` are the record, and comments in `build.gradle`, the CI workflow and a
+couple of source files cite them by name:
 
-- [`.devenv/JAVA21-MIGRATION-PLAN.md`](.devenv/JAVA21-MIGRATION-PLAN.md) is the
-  specification — current-state inventory, the binding decision table, Phases 0–9.
-- [`.devenv/JAVA21-MIGRATION-EXECUTION.md`](.devenv/JAVA21-MIGRATION-EXECUTION.md) is the
-  operating procedure — progress table, session settings, per-phase prompts and caveats.
+| Document | What it is |
+|---|---|
+| [`JAVA21-MIGRATION-SUMMARY.md`](.devenv/JAVA21-MIGRATION-SUMMARY.md) | why the diff is safe — every behaviour change an upgrader meets, in three buckets, with the evidence for each |
+| [`JAVA21-VULNERABILITY-REVIEW.md`](.devenv/JAVA21-VULNERABILITY-REVIEW.md) | the shipped stack's advisories (§1–§6) and what the four fixes closed (§7) |
+| [`JAVA21-MIGRATION-PLAN.md`](.devenv/JAVA21-MIGRATION-PLAN.md) | the specification — current-state inventory, the decision table D1–D14, Phases 0–9 and their findings |
+| [`JAVA21-MIGRATION-EXECUTION.md`](.devenv/JAVA21-MIGRATION-EXECUTION.md) | how the sessions were run — progress table, session settings, per-phase prompts and caveats |
 
-Standing rules while it runs:
+Two of the migration's rules outlive it:
 
-1. The decisions in the plan's "Decisions already taken" table are binding. If one turns out
-   to be unworkable, stop and say so rather than quietly choosing differently.
-2. Do one phase at a time. Do not start the next.
-3. A phase is done when its exit criteria have actually been run and passed — not when they
-   look like they would pass.
-4. Never re-baseline a failing test to make it green. Fix the cause, or explain why it is a
-   deliberate documented exclusion and record it in `TEST-BASELINE.md`.
-5. The plan marks items **VERIFY** because research could not settle them. Resolve each
-   against reality when you reach it, and if reality differs from the plan's assumption, say
-   so before working around it.
-6. Write findings and decisions into the plan document as you make them. These phases are
-   long enough to be compacted mid-flight; anything only in the conversation is lost.
-7. One commit per phase (sub-commits within a phase are fine), prefixed `[migration N]`.
+1. The decisions in the plan's "Decisions already taken" table are binding — several dependency
+   pins, the CI workflow and `LuceneIndexVersionException`'s javadoc cite them by id, so changing
+   one is a documentation change too. If one turns out to be unworkable, stop and say so rather
+   than quietly choosing differently.
+2. Never re-baseline a failing test to make it green. Fix the cause, or explain why it is a
+   deliberate documented exclusion and record it in
+   [`.devenv/TEST-BASELINE.md`](.devenv/TEST-BASELINE.md).
+
+Upgrade instructions for operators are in the published docs, not here:
+`docs/md/release-notes/3.0.0/`, `docs/md/installation/database-upgrade.md` and
+`docs/md/installation/lucene-reindex.md`.
