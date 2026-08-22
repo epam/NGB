@@ -155,6 +155,12 @@ dependencyManagement {
             entry "bcpkix-jdk18on"
             entry "bcutil-jdk18on"
         }
+        // 0.4 is from 2013 and has CVE-2024-36124 against it (§4.3). Not to be confused with
+        // org.xerial.snappy:snappy-java, which htsjdk brings and which is a different project at a
+        // current version - both are on the classpath. This one arrives under
+        // org.jetbrains.bio:big:0.9.1, which is what reads BigWig/BigBed, and 0.5 is the last release
+        // the project ever made, so this is as far as the coordinate goes.
+        dependency "org.iq80.snappy:snappy:0.5"
     }
 }
 
