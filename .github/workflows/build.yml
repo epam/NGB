@@ -14,10 +14,9 @@
 #   test-pg   make test-pg   the same server suite on PostgreSQL 16
 #   build     make jar       the five artifacts a release publishes, then the docker image
 #   cli-e2e   make cli-test  the CLI driven against a running server, all 145 rows
-#   bundles   -              the two JRE-bundled archives; release branches and manual runs only
 #   publish   -              dist/ to S3, and the image to Docker Hub on release/*
 #
-# Repository secrets. Nothing up to and including `bundles` needs any; `publish` is skipped unless
+# Repository secrets. Nothing up to and including `cli-e2e` needs any; `publish` is skipped unless
 # AWS_PUBLISH_ROLE_ARN is set, so a fork builds and tests without configuring anything.
 #   AWS_PUBLISH_ROLE_ARN  an IAM role whose trust policy names GitHub's OIDC provider and this
 #                         repository, permitted to write s3://ngb-oss-builds/public/builds/.
@@ -249,78 +248,6 @@ jobs:
       # the failure summary at the end names every row that failed. The job log is the report.
       - name: CLI integration suite
         run: bash e2e/integration_tests.sh
-
-  bundles:
-    name: bundles (JRE-bundled archives)
-    # 200 MB each, and only a release needs them. `workflow_dispatch` is here so they can be built
-    # and checked without cutting a release branch.
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/heads/release/')
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-jdks
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-      # The bundle tasks copy build/libs/**/*.jar into the archive's lib/, so handing them the jar
-      # the build job already produced and skipping bootJar means the published jar and the bundled
-      # one are the same file - and this job needs neither Node nor mkdocs to get it.
-      - name: Bundle the server with a JRE
-        run: |
-          mkdir -p server/catgenome/build/libs
-          cp dist/catgenome.jar server/catgenome/build/libs/catgenome.jar
-          ./gradlew -p server/catgenome bundleLinux bundleWindows -x bootJar
-          ls -l server/catgenome/build/distributions
-      - name: Start the Linux bundle with no JDK anywhere
-        # The whole point of these archives is a machine with no Java on it, which is what the
-        # previous ones got wrong: the launcher was edited in a place the template never reaches,
-        # so it died with "JAVA_HOME is not set and no 'java' command could be found in your PATH".
-        # A container with no JDK is the only honest test of that.
-        run: |
-          docker run -d --name ngbbundle -p 8080:8080 \
-              -v "$PWD/server/catgenome/build/distributions:/bundle:ro" \
-              ubuntu:22.04 bash -c '
-                  mkdir -p /opt/ngb-server &&
-                  tar -xzf /bundle/ngb-server-linux.tgz -C /opt/ngb-server &&
-                  cd /opt/ngb-server && exec bin/ngb-server'
-          for _ in $(seq 1 60); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' \
-                http://localhost:8080/catgenome/restapi/version || true)
-            [ "$code" = 200 ] && break
-            sleep 5
-          done
-          docker logs ngbbundle
-          if [ "$code" != 200 ]; then
-            echo "::error::the Linux bundle did not answer /restapi/version"
-            exit 1
-          fi
-          if docker logs ngbbundle 2>&1 | grep -F "restricted method"; then
-            echo "::error::the launcher lost --enable-native-access=ALL-UNNAMED"
-            exit 1
-          fi
-          docker rm -f ngbbundle
-      - name: Check the Windows bundle
-        # It cannot be started here. What can be checked is that it contains the three things whose
-        # absence made the old one useless: a JRE under jre/, the jar under lib/, and a .bat - and
-        # only the .bat, since CreateStartScripts' POSIX script pointed at a path that does not
-        # exist in a Windows JRE.
-        run: |
-          unzip -l server/catgenome/build/distributions/ngb-server-windows.zip > /tmp/win.txt
-          cat /tmp/win.txt
-          grep -q "jre/bin/java.exe" /tmp/win.txt
-          grep -q "lib/catgenome.jar" /tmp/win.txt
-          grep -q "bin/ngb-server.bat" /tmp/win.txt
-          if grep -qE "bin/ngb-server$" /tmp/win.txt; then
-            echo "::error::the Windows bundle ships a POSIX launcher again"
-            exit 1
-          fi
-      - uses: actions/upload-artifact@v4
-        with:
-          name: bundles
-          path: server/catgenome/build/distributions/ngb-server-*
-          retention-days: 14
 
   publish:
     name: publish
