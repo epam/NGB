@@ -34,7 +34,7 @@ name: build
 
 on:
   push:
-    branches: [develop, 'release/**']
+    branches: [develop, 'release/**', java_21]
   pull_request:
     branches: [develop, 'release/**']
   workflow_dispatch:
