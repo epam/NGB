@@ -21,9 +21,6 @@
 #   BUILD_DOCKER   set to `buildDocker` to force the image or to empty to suppress it; overrides
 #                  the branch check. .github/workflows/build.yml sets it empty because it builds
 #                  and smoke-tests the image itself, from the jar this script has just produced.
-#
-# The JRE-bundled distributions (server/catgenome: bundleLinux, bundleWindows) are deliberately not
-# here: they are 200 MB each and the release workflow builds them in a job of their own.
 
 set -eu
 

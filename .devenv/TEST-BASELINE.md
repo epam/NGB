@@ -270,15 +270,6 @@ places where a first report from the field would be the first evidence either wa
   were exercised against a purpose-built pre-3.0.0 fixture (60 `schema_version` rows, real ACL and
   biological-data-item content) in `.devenv/fixtures/pre-migration/`; timings and failure modes at
   real scale are unknown. Rehearse on a copy.
-- **The Windows bundle has never been started** — no Windows host. CI asserts only that
-  `ngb-server-windows.zip` contains `jre/bin/java.exe`, `lib/catgenome.jar` and `bin/ngb-server.bat`,
-  and that it does *not* contain a POSIX launcher.
-- **The x86_64 bundles have never been started.** This host is aarch64, so only
-  `-PbundleArch=aarch64` was run end to end; the four Temurin checksums are pinned in `build.gradle`
-  and the x64 launcher path is inspected, not executed.
-- **Nothing publishes the JRE-bundled archives.** `build.sh` does not produce them and `publish.sh`
-  uploads what it finds in `dist/`; the `bundles` CI job attaches them to the run as artifacts. A
-  release expected to offer them needs a step that does not exist yet.
 - **`.github/workflows/build.yml` has not run on GitHub.** Every job mirrors a `make` target that
   passes in these containers and the YAML parses, but no run exists — the branch has not been
   pushed. Expect the first push to shake out runner-specific problems; the likely candidates are the

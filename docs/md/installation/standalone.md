@@ -74,42 +74,8 @@ WARNING: java.lang.foreign.Linker::downcallHandle has been called by org.apache.
 
 Lucene, which NGB uses for all of its search indexes, reads memory-mapped files through the
 foreign-memory API, and Java 21 warns about that unless native access is granted explicitly. The
-flag is already part of the docker image, of the shipped `bin/ngb-server` launchers and of the
-JRE-bundled archives; it only has to be typed by hand when you run `java -jar` yourself.
-
-## Running the JRE-bundled distribution
-
-`ngb-server-linux.tgz` and `ngb-server-windows.zip` contain the server, its launcher **and** an
-Eclipse Temurin 21 runtime, for a machine with no Java installed. Unpack the archive and run the
-launcher for your platform:
-
-```
-$ tar -xzf ngb-server-linux.tgz -C /opt/ngb-server
-$ cd /opt/ngb-server
-$ bin/ngb-server
-```
-
-```
-> unzip ngb-server-windows.zip -d C:\ngb-server
-> cd C:\ngb-server
-> bin\ngb-server.bat
-```
-
-The launcher uses the `jre/` directory inside the archive and ignores whatever Java may be on the
-`PATH`, and it already passes `-Xms512m -Xmx2g --enable-native-access=ALL-UNNAMED`. `NGB_SERVER_OPTS`
-is appended to that, so raising the heap takes one setting and nothing else has to be repeated:
-
-```
-$ NGB_SERVER_OPTS="-Xmx8g" bin/ngb-server
-```
-
-Everything under [Configuring NGB instance](#configuring-ngb-instance) applies unchanged: data and
-the `config/` directory are relative to the working directory the launcher is started from.
-
-The bundled runtime is a Temurin 21 build, which needs **glibc 2.17 or newer** — RHEL/CentOS 7,
-Ubuntu 16.04 and anything more recent. On an older distribution, install a Java 21 of your own and
-run the plain jar instead. The Windows archive has not been started on a Windows host for this
-release; the Linux one is exercised in CI, in a container with no Java installed at all.
+flag is already part of the docker image; it only has to be typed by hand when you run `java -jar`
+yourself.
 
 ## Configuring NGB instance
 

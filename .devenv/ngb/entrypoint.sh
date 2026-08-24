@@ -51,9 +51,10 @@ java -version 2>&1 | sed 's/^/[ngb-entrypoint]   /'
 # the JVM print three WARNING lines on stderr at every start. The flag suppresses them and nothing
 # else - the access is intended, and refusing it is what a future JDK would do by default. It is
 # not the same as the manifest attribute (Enable-Native-Access), which only exists from JDK 24, so
-# on 21 it has to be on the command line. docker/core/Dockerfile and the generated start scripts
-# carry the same flag; this is the .devenv copy of it. A launcher that loses it still works, so
-# check a start's output for those three warnings rather than its exit code.
+# on 21 it has to be on the command line. docker/core/Dockerfile carries the same flag; this is the
+# .devenv copy of it, and those two are now the only places it lives - the generated start scripts
+# that also carried it are gone. A start that loses it still works, so check the output for those
+# three warnings rather than the exit code.
 JAVA_REQUIRED_OPTS="--enable-native-access=ALL-UNNAMED"
 
 # --- the jar ----------------------------------------------------------------
