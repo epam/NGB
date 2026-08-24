@@ -76,7 +76,6 @@ import com.epam.catgenome.entity.file.FsFile;
 import com.epam.catgenome.entity.file.AbstractFsItem;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFileType;
-import com.epam.catgenome.entity.maf.MafFile;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
@@ -90,8 +89,6 @@ import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.gene.parser.GtfFeature;
-import com.epam.catgenome.manager.maf.parser.MafCodec;
-import com.epam.catgenome.manager.maf.parser.MafFeature;
 import com.epam.catgenome.manager.reference.io.FastaUtils;
 import com.epam.catgenome.manager.seg.parser.SegCodec;
 import com.epam.catgenome.manager.seg.parser.SegFeature;
@@ -110,7 +107,6 @@ import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
 import htsjdk.samtools.util.PositionalOutputStream;
 import htsjdk.tribble.AsciiFeatureCodec;
-import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
@@ -162,8 +158,6 @@ public class FileManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileManager.class);
     private static final TabixFormat BED_GRAPH_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 1, 2, 3, '#', 0);
     private static final TabixFormat SEG_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 2, 3, 4, '\'', 0);
-    private static final TabixFormat MAF_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 5, 6, 7, '#', 0);
-    private static final TabixFormat BIGMAF_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 6, 7, 8, '#', 0);
     private static final String JSON_FILE_EXTENSION = ".json";
     private static final String EMPTY = "";
     // A constant only because the same message is asserted at four points below, which PMD's
@@ -241,12 +235,6 @@ public class FileManager {
         BED_GRAPH_COMPRESSED_INDEX("/${ROOT_DIR_NAME}/wig/${DIR_ID}/bedGraph.tbi"),
         BED_GRAPH_INDEX("/${ROOT_DIR_NAME}/wig/${DIR_ID}/bedGraph.idx"),
 
-
-        MAF_DIR("/${ROOT_DIR_NAME}/maf/${DIR_ID}"),
-        MAF_TEMP_DIR("/${ROOT_DIR_NAME}/maf/${DIR_ID}/tmp"),
-        MAF_INDEX("/${ROOT_DIR_NAME}/maf/${DIR_ID}/maf.tbi"),
-        MAF_TEMP_INDEX("/${ROOT_DIR_NAME}/maf/${DIR_ID}/tmp/${FILE_NAME}.tbi"),
-        MAF_FILE("/${ROOT_DIR_NAME}/maf/${DIR_ID}/maf.bmaf.gz"),
 
         WIG_DIR("/${ROOT_DIR_NAME}/wig/${DIR_ID}/downsampled"),
         WIG_FILE("/${ROOT_DIR_NAME}/wig/${DIR_ID}/downsampled/${CHROMOSOME_NAME}.wig"),
@@ -485,38 +473,6 @@ public class FileManager {
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         // create a directory for SEG files, associated with the given reference id
         makeDir(substitute(SEG_DIR, params));
-    }
-
-    /**
-     * Creates in the file system initial catalogue structure used to manage all MAF files associated
-     * with the provided MAF file id and provided user ID.
-     *
-     * @param fileId {@code long} represents a MAF file id in the system
-     */
-    public void makeMafDir(long fileId) {
-        final Map<String, Object> params = new HashMap<>();
-        params.put(DIR_ID.name(), fileId);
-        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
-        makeDir(substitute(MAF_DIR, params));
-    }
-
-    private void makeMafTempDir(long fileId) {
-        final Map<String, Object> params = new HashMap<>();
-        params.put(DIR_ID.name(), fileId);
-        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
-        makeDir(substitute(MAF_TEMP_DIR, params));
-    }
-
-    /**
-     * Deletes from the file system temporary catalogue used to manage MAF files, before merging
-     *
-     * @param fileId {@code long} represents a MAF file id in the system
-     */
-    public void deleteMafTempDir(long fileId) throws IOException {
-        final Map<String, Object> params = new HashMap<>();
-        params.put(DIR_ID.name(), fileId);
-        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
-        deleteDir(substitute(MAF_TEMP_DIR, params));
     }
 
     /**
@@ -1746,135 +1702,6 @@ public class FileManager {
     }
 
     /**
-     * Creates a reader for specified MafFile
-     * @param mafFile a MafFile to read
-     * @return a reader for specified MafFile
-     */
-    public AbstractFeatureReader<MafFeature, LineIterator> makeMafReader(final MafFile mafFile) {
-        MafCodec mafCodec = new MafCodec(mafFile.getPath());
-        if (mafFile.getIndex() != null) {
-            return AbstractFeatureReader
-                    .getFeatureReader(mafFile.getPath(), mafFile.getIndex().getPath(), mafCodec,
-                    true);
-        } else {
-            return AbstractFeatureReader.getFeatureReader(mafFile.getPath(), mafCodec, false);
-        }
-    }
-
-    /**
-     * Creates an index for a specified MafFile
-     * @param mafFile MafFile to create index for
-     */
-    public void makeMafIndex(final MafFile mafFile) throws IOException {
-        makeMafIndex(mafFile, MAF_TABIX_FORMAT);
-    }
-
-    /**
-     * Create a temporary index for a MAF file. Required for MAF files merging during registration
-     *
-     * @param file a MAF file
-     * @param mafFile a MafFile object form database. This one will represent merged MAF file after registration
-     * @throws IOException
-     */
-    public void makeMafTempIndex(File file, MafFile mafFile) throws IOException {
-        final Map<String, Object> params = new HashMap<>();
-        params.put(DIR_ID.name(), mafFile.getId());
-        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
-
-        File tempDir = new File(toRealPath(substitute(MAF_TEMP_DIR, params)));
-        if (!tempDir.exists()) {
-            makeMafTempDir(mafFile.getId());
-        }
-
-        params.put(FILE_NAME.name(), file.getName());
-
-        File indexFile = new File(toRealPath(substitute(MAF_TEMP_INDEX, params)));
-        LOGGER.debug("Writing temporary MAF index at {}", indexFile.getAbsolutePath());
-
-        boolean compressed = file.getAbsoluteFile().getPath().endsWith(".gz");
-        MafCodec codec = new MafCodec(file.getAbsolutePath());
-
-        if (compressed) {
-            makeTabixCompressedIndex(file, indexFile, codec, MAF_TABIX_FORMAT);
-        } else {
-            makeTabixIndex(file, indexFile, codec, MAF_TABIX_FORMAT);
-        }
-    }
-
-    /**
-     * Gets temporary MAF index file
-     * @param file original MAF file
-     * @param mafFile a MafFile object form database. This one will represent merged MAF file after registration
-     * @return temporary MAF index file
-     */
-    public File getMafTempIndex(File file, MafFile mafFile) {
-        final Map<String, Object> params = new HashMap<>();
-        params.put(DIR_ID.name(), mafFile.getId());
-        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
-        params.put(FILE_NAME.name(), file.getName());
-
-        return new File(toRealPath(substitute(MAF_TEMP_INDEX, params)));
-    }
-
-    /**
-     * Creates an index for a specified MafFile, representing BigMaf file, merged form several MAF files
-     * @param mafFile MafFile to create index for
-     */
-    public void makeBigMafIndex(final MafFile mafFile) throws IOException {
-        makeMafIndex(mafFile, BIGMAF_TABIX_FORMAT);
-    }
-
-    private void makeMafIndex(final MafFile mafFile, final TabixFormat tabixFormat) throws IOException {
-        final Map<String, Object> params = new HashMap<>();
-        params.put(DIR_ID.name(), mafFile.getId());
-        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
-
-        File file = new File(mafFile.getPath());
-        File indexFile = new File(toRealPath(substitute(MAF_INDEX, params)));
-        LOGGER.debug("Writing MAF index at {}", indexFile.getAbsolutePath());
-
-        if (mafFile.getCompressed()) {
-            makeTabixCompressedIndex(file, indexFile, new MafCodec(mafFile.getPath()), tabixFormat);
-        } else {
-            makeTabixIndex(file, indexFile, new MafCodec(mafFile.getPath()), tabixFormat);
-        }
-
-        BiologicalDataItem indexItem = new BiologicalDataItem();
-        indexItem.setCreatedDate(new Date());
-        indexItem.setPath(indexFile.getAbsolutePath());
-        indexItem.setSource(indexFile.getAbsolutePath());
-        indexItem.setFormat(BiologicalDataItemFormat.MAF_INDEX);
-        indexItem.setType(BiologicalDataItemResourceType.FILE);
-        indexItem.setName("");
-
-        mafFile.setIndex(indexItem);
-    }
-
-    /**
-     * Creates a writer for a specified MafFile
-     *
-     * @param mafFile a MafFile to create writer for
-     * @return a MafFile to write
-     * @throws IOException
-     */
-    public BufferedWriter makeMafFileWriter(MafFile mafFile) throws IOException {
-        final Map<String, Object> params = new HashMap<>();
-        params.put(DIR_ID.name(), mafFile.getId());
-        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
-
-        File file = new File(toRealPath(substitute(MAF_FILE, params)));
-        Assert.isTrue(file.createNewFile(), FAILED_TO_CREATE_FILE + file.getAbsolutePath());
-
-        LOGGER.debug("Writing MAF file at {}", file.getAbsolutePath());
-
-        mafFile.setPath(file.getAbsolutePath());
-        mafFile.setCompressed(true);
-
-        return new BufferedWriter(new OutputStreamWriter(
-                new BlockCompressedOutputStream(file), Charset.defaultCharset()));
-    }
-
-    /**
      * Writes list of WigSection objects to a BIGWIG file, specified by WigFile. Used for BIGWIG downsampling
      *
      * @param wigFile a WigFile to write into
@@ -2128,9 +1955,6 @@ public class FileManager {
             case SEG:
                 filePathFormat = SEG_DIR;
                 break;
-            case MAF:
-                filePathFormat = MAF_DIR;
-                break;
             case BED:
                 filePathFormat = BED_DIR;
                 break;
@@ -2202,43 +2026,6 @@ public class FileManager {
 
     public String getNgsDataRootPath() {
         return ngsDataRootPath;
-    }
-
-    private void makeTabixIndex(final File sourceFile, final File indexFile,
-                                final AsciiFeatureCodec codec, final TabixFormat format) throws IOException {
-        TabixIndex index = IndexFactory.createTabixIndex(sourceFile, codec, format, null);
-        index.write(indexFile);
-    }
-
-    private void makeTabixCompressedIndex(final File sourceFile, final File indexFile, final AsciiFeatureCodec codec,
-                                          final TabixFormat format) throws IOException {
-        TabixIndexCreator indexCreator = new TabixIndexCreator(format);
-
-        try (
-            BlockCompressedInputStream inputStream = new BlockCompressedInputStream(
-                new FileInputStream(sourceFile));
-            LittleEndianOutputStream outputStream = new LittleEndianOutputStream(
-                new BlockCompressedOutputStream(indexFile))
-        ) {
-            long p = 0;
-            String line = inputStream.readLine();
-
-            while (line != null) {
-                //add the feature to the index
-                Feature decode = codec.decode(line);
-                if (decode != null) {
-                    indexCreator.addFeature(decode, p);
-                }
-                // read the next line if available
-                p = inputStream.getFilePointer();
-                line = inputStream.readLine();
-            }
-
-            // write the index to a file
-            Index index = indexCreator.finalizeIndex(p);
-            // VERY important! either use write based on input file or pass the little endian a BGZF stream
-            index.write(outputStream);
-        }
     }
 
     private String toRealPath(final String relativePath) {

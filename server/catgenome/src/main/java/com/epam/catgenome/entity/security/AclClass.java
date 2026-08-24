@@ -8,7 +8,6 @@ public enum AclClass {
     BED,
     VCF,
     GENE,
-    MAF,
     SEG,
     WIG,
     BOOKMARK,

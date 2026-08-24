@@ -98,15 +98,10 @@ public enum BiologicalDataItemFormat {
      */
     SEG_INDEX(12, true),
 
-    /**
-     * A MAF item
+    /*
+     * Ids 13 (MAF) and 14 (MAF_INDEX) were used by a format NGB no longer supports. The gap is
+     * deliberate: the ids below are persisted in BIO_DATA_ITEM.FORMAT and must not be reassigned.
      */
-    MAF(13),
-
-    /**
-     * An index item for MAF file
-     */
-    MAF_INDEX(14, true),
 
     /**
      * A VG item
@@ -136,6 +131,18 @@ public enum BiologicalDataItemFormat {
 
     PDB_FILE(23);
 
+    /**
+     * The reserved ids of the removed MAF formats, named so they cannot be reassigned by accident.
+     */
+    private static final long MAF_ID = 13L;
+    private static final long MAF_INDEX_ID = 14L;
+
+    /**
+     * Formats removed from NGB, by the id they used to be persisted under. Kept so a database
+     * written by an older NGB reports what it holds instead of failing obscurely.
+     */
+    private static final Map<Long, String> REMOVED_FORMAT_NAMES = removedFormatNames();
+
     private long id;
     private boolean index = false;
     private static Map<Long, BiologicalDataItemFormat> idMap = new HashMap<>((int) VG.getId());
@@ -153,8 +160,6 @@ public enum BiologicalDataItemFormat {
         idMap.put(BED.id, BED);
         idMap.put(SEG.id, SEG);
         idMap.put(SEG_INDEX.id, SEG_INDEX);
-        idMap.put(MAF.id, MAF);
-        idMap.put(MAF_INDEX.id, MAF_INDEX);
         idMap.put(VG.id, VG);
         idMap.put(REFERENCE_INDEX.id, REFERENCE_INDEX);
         idMap.put(INDEX.id, INDEX);
@@ -164,6 +169,13 @@ public enum BiologicalDataItemFormat {
         idMap.put(LINEAGE_TREE.id, LINEAGE_TREE);
         idMap.put(PATHWAY.id, PATHWAY);
         idMap.put(PDB_FILE.id, PDB_FILE);
+    }
+
+    private static Map<Long, String> removedFormatNames() {
+        final Map<Long, String> names = new HashMap<>();
+        names.put(MAF_ID, "MAF");
+        names.put(MAF_INDEX_ID, "MAF_INDEX");
+        return names;
     }
 
     BiologicalDataItemFormat(long id) {
@@ -186,13 +198,34 @@ public enum BiologicalDataItemFormat {
     /**
      * Returns instance of BiologicalDataItemFormat by it's ID from the database
      * @param id ID of BiologicalDataItemFormat from the database
-     * @return BiologicalDataItemFormat instance
+     * @return BiologicalDataItemFormat instance, or {@code null} if {@code id} is {@code null} or is
+     *         not a known format id. {@code null} for an unknown id is deliberate: this method is
+     *         also called for INDEX_FORMAT of items that have no index.
+     * @throws IllegalArgumentException if the id belongs to a format NGB has removed. Those ids are
+     *         named in the message, because a database written by an older NGB can still hold them.
      */
     public static BiologicalDataItemFormat getById(Long id) {
         if (id == null) {
             return null;
         }
+        if (REMOVED_FORMAT_NAMES.containsKey(id)) {
+            throw new IllegalArgumentException(unsupportedFormatMessage(id));
+        }
 
         return idMap.get(id);
+    }
+
+    /**
+     * @param id a format id NGB has removed
+     * @return a message naming the removed format the id belonged to
+     */
+    public static String unsupportedFormatMessage(final Long id) {
+        final String removed = REMOVED_FORMAT_NAMES.get(id);
+        return removed == null
+               ? String.format("Unknown biological data item format id: %s.", id)
+               : String.format("Biological data item format %s (%s) is no longer supported. MAF "
+                               + "registration was removed from NGB and the database upgrade deletes "
+                               + "the rows that held this format, so there is nothing to re-register.",
+                               id, removed);
     }
 }

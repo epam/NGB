@@ -104,11 +104,6 @@
                         s.reference_genome_id as seg_reference_genome_id,
                         s.compressed as seg_compressed,
 
-                        maf.maf_id,
-                        maf.reference_genome_id as maf_reference_genome_id,
-                        maf.compressed as maf_compressed,
-                        maf.real_path as maf_real_path,
-
                         vg.vg_id,
                         vg.reference_genome_id as vg_reference_genome_id,
                         vg.real_path as vg_real_path,
@@ -149,7 +144,6 @@
                         LEFT JOIN catgenome.bed_graph bg ON bg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.bed bd ON bd.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.seg s ON s.bio_data_item_id = b.bio_data_item_id
-                        LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.heatmap h ON h.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.lineage_tree l ON l.bio_data_item_id = b.bio_data_item_id
@@ -212,11 +206,6 @@
                         s.reference_genome_id as seg_reference_genome_id,
                         s.compressed as seg_compressed,
 
-                        maf.maf_id,
-                        maf.reference_genome_id as maf_reference_genome_id,
-                        maf.compressed as maf_compressed,
-                        maf.real_path as maf_real_path,
-
                         vg.vg_id,
                         vg.reference_genome_id as vg_reference_genome_id,
                         vg.real_path as vg_real_path,
@@ -257,7 +246,6 @@
                         LEFT JOIN catgenome.bed_graph bg ON bg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.bed bd ON bd.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.seg s ON s.bio_data_item_id = b.bio_data_item_id
-                        LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.heatmap h ON h.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.lineage_tree l ON l.bio_data_item_id = b.bio_data_item_id
@@ -326,11 +314,6 @@
                         s.reference_genome_id as seg_reference_genome_id,
                         s.compressed as seg_compressed,
 
-                        maf.maf_id,
-                        maf.reference_genome_id as maf_reference_genome_id,
-                        maf.compressed as maf_compressed,
-                        maf.real_path as maf_real_path,
-
                         vg.vg_id,
                         vg.reference_genome_id as vg_reference_genome_id,
                         vg.real_path as vg_real_path,
@@ -371,7 +354,6 @@
                         LEFT JOIN catgenome.bed_graph bg ON bg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.bed bd ON bd.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.seg s ON s.bio_data_item_id = b.bio_data_item_id
-                        LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.heatmap h ON h.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.lineage_tree l ON l.bio_data_item_id = b.bio_data_item_id
@@ -434,11 +416,6 @@
                         s.reference_genome_id as seg_reference_genome_id,
                         s.compressed as seg_compressed,
 
-                        maf.maf_id,
-                        maf.reference_genome_id as maf_reference_genome_id,
-                        maf.compressed as maf_compressed,
-                        maf.real_path as maf_real_path,
-
                         vg.vg_id,
                         vg.reference_genome_id as vg_reference_genome_id,
                         vg.real_path as vg_real_path,
@@ -479,7 +456,6 @@
                         LEFT JOIN catgenome.bed_graph bg ON bg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.bed bd ON bd.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.seg s ON s.bio_data_item_id = b.bio_data_item_id
-                        LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.heatmap h ON h.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.lineage_tree l ON l.bio_data_item_id = b.bio_data_item_id
@@ -542,11 +518,6 @@
                         s.reference_genome_id as seg_reference_genome_id,
                         s.compressed as seg_compressed,
 
-                        maf.maf_id,
-                        maf.reference_genome_id as maf_reference_genome_id,
-                        maf.compressed as maf_compressed,
-                        maf.real_path as maf_real_path,
-
                         vg.vg_id,
                         vg.reference_genome_id as vg_reference_genome_id,
                         vg.real_path as vg_real_path,
@@ -587,7 +558,6 @@
                         LEFT JOIN catgenome.bed_graph bg ON bg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.bed bd ON bd.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.seg s ON s.bio_data_item_id = b.bio_data_item_id
-                        LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.heatmap h ON h.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.lineage_tree l ON l.bio_data_item_id = b.bio_data_item_id
@@ -650,11 +620,6 @@
                         s.reference_genome_id as seg_reference_genome_id,
                         s.compressed as seg_compressed,
 
-                        maf.maf_id,
-                        maf.reference_genome_id as maf_reference_genome_id,
-                        maf.compressed as maf_compressed,
-                        maf.real_path as maf_real_path,
-
                         vg.vg_id,
                         vg.reference_genome_id as vg_reference_genome_id,
                         vg.real_path as vg_real_path,
@@ -695,7 +660,6 @@
                         LEFT JOIN catgenome.bed_graph bg ON bg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.bed bd ON bd.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.seg s ON s.bio_data_item_id = b.bio_data_item_id
-                        LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.heatmap h ON h.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.lineage_tree l ON l.bio_data_item_id = b.bio_data_item_id

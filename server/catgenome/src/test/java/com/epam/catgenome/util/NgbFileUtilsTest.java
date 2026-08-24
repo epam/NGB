@@ -36,4 +36,20 @@ public class NgbFileUtilsTest {
         Assert.assertEquals(BiologicalDataItemFormat.INDEX, NgbFileUtils.getFormatByExtension("index.tbi"));
         Assert.assertEquals(BiologicalDataItemFormat.INDEX, NgbFileUtils.getFormatByExtension("index.foo.tbi"));
     }
+
+    /**
+     * MAF support was removed from NGB, so a MAF path resolves to no format and is not a supported
+     * file, exactly like any other extension NGB does not know.
+     */
+    @Test
+    public void mafExtensionsAreNotRecognized() {
+        Assert.assertNull(NgbFileUtils.getFormatByExtension("mutations.maf"));
+        Assert.assertNull(NgbFileUtils.getFormatByExtension("mutations.maf.gz"));
+
+        Assert.assertFalse(NgbFileUtils.isFileSupported("mutations.maf"));
+        Assert.assertFalse(NgbFileUtils.isFileSupported("mutations.maf.gz"));
+
+        // a leftover MAF index is now just an index of an unknown format, as index.foo.tbi is above
+        Assert.assertEquals(BiologicalDataItemFormat.INDEX, NgbFileUtils.getFormatByExtension("mutations.maf.tbi"));
+    }
 }

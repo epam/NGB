@@ -77,11 +77,6 @@ public enum TrackType {
     SEG,
 
     /**
-     * for MAF tracks
-     */
-    MAF,
-
-    /**
      * for VG tracks
      */
     VG

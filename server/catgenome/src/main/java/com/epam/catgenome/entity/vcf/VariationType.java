@@ -24,10 +24,6 @@
 
 package com.epam.catgenome.entity.vcf;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Enumeration {@code VariationType} represents supported Variation types
  */
@@ -68,45 +64,8 @@ public enum VariationType {
      */
     BND,
 
-    // MAF variation types
-    DNP,
-    TNP,
-    ONP,
-    CONSOLIDATED,
-
     /**
      * Determines a variation with a name, not matching all the previous ones
      */
-    UNK;
-
-    private static final String CONSOLIDATED_NAME = "Consolidated";
-    private static Map<String, VariationType> mafValueMap = new HashMap<>();
-    private static Map<VariationType, String> mafFileValueMap = new EnumMap<>(VariationType.class);
-    static {
-        mafValueMap.put("SNP", SNV);
-        mafValueMap.put("DNP", DNP);
-        mafValueMap.put("TNP", TNP);
-        mafValueMap.put("ONP", ONP);
-        mafValueMap.put(INS.name(), INS);
-        mafValueMap.put(DEL.name(), DEL);
-        mafValueMap.put(CONSOLIDATED_NAME, CONSOLIDATED);
-    }
-
-    static {
-        mafFileValueMap.put(SNV, "SNP");
-        mafFileValueMap.put(DNP, DNP.name());
-        mafFileValueMap.put(TNP, TNP.name());
-        mafFileValueMap.put(ONP, ONP.name());
-        mafFileValueMap.put(INS, INS.name());
-        mafFileValueMap.put(DEL, DEL.name());
-        mafFileValueMap.put(CONSOLIDATED, CONSOLIDATED_NAME);
-    }
-
-    public static VariationType forMafValue(String mafFileValue) {
-        return mafValueMap.get(mafFileValue);
-    }
-
-    public String toMafFileValue() {
-        return mafFileValueMap.get(this);
-    }
+    UNK
 }

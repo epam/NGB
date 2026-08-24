@@ -62,7 +62,6 @@ import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.manager.bam.BamManager;
 import com.epam.catgenome.manager.bed.BedManager;
 import com.epam.catgenome.manager.gene.GffManager;
-import com.epam.catgenome.manager.maf.MafManager;
 import com.epam.catgenome.manager.seg.SegManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 
@@ -91,9 +90,6 @@ public class DataItemManager {
 
     @Autowired
     private SegManager segManager;
-
-    @Autowired
-    private MafManager mafManager;
 
     @Autowired
     private GffManager geneManager;
@@ -190,9 +186,6 @@ public class DataItemManager {
                 break;
             case SEG:
                 segManager.unregisterSegFile(itemId);
-                break;
-            case MAF:
-                mafManager.unregisterMafFile(itemId);
                 break;
             case VCF:
                 vcfManager.unregisterVcfFile(itemId);

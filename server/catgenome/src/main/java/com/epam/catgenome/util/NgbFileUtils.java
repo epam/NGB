@@ -45,7 +45,7 @@ public final class NgbFileUtils {
                                                           ".vcf", ".vcf.gz",
                                                           ".gff.gz", ".gtf.gz", ".gff", ".gtf",
                                                           ".gff3", ".gff3.gz", ".bam", ".bai", ".bed", ".bed.gz",
-                                                          ".seg", ".seg.gz", ".maf", ".maf.gz", ".bw", "bdg", "bg",
+                                                          ".seg", ".seg.gz", ".bw", "bdg", "bg",
                                                           "bedGraph", "bdg.gz", "bg.gz", "bedGraph.gz", ".tbi", ".idx"};
 
     public static final String GZ_EXTENSION = ".gz";
@@ -93,11 +93,6 @@ public final class NgbFileUtils {
         FORMAT_MAP.put(".seg.gz", BiologicalDataItemFormat.SEG);
         FORMAT_MAP.put(".seg.tbi", BiologicalDataItemFormat.SEG_INDEX);
         FORMAT_MAP.put(".seg.gz.tbi", BiologicalDataItemFormat.BED_INDEX);
-
-        FORMAT_MAP.put(".maf", BiologicalDataItemFormat.MAF);
-        FORMAT_MAP.put(".maf.gz", BiologicalDataItemFormat.MAF);
-        FORMAT_MAP.put(".maf.tbi", BiologicalDataItemFormat.MAF_INDEX);
-        FORMAT_MAP.put(".maf.gz.tbi", BiologicalDataItemFormat.MAF_INDEX);
 
         FORMAT_MAP.put(".bw", BiologicalDataItemFormat.WIG);
         FORMAT_MAP.put(".bdg", BiologicalDataItemFormat.WIG);

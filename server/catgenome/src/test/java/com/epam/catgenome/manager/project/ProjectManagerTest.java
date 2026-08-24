@@ -59,7 +59,6 @@ import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.gene.GeneFile;
-import com.epam.catgenome.entity.maf.MafFile;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.project.ProjectItem;
 import com.epam.catgenome.entity.reference.Bookmark;
@@ -71,7 +70,6 @@ import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.manager.bed.BedManager;
 import com.epam.catgenome.manager.gene.GffManager;
-import com.epam.catgenome.manager.maf.MafManager;
 import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.seg.SegManager;
@@ -112,9 +110,6 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
     @Autowired
     private BookmarkManager bookmarkManager;
-
-    @Autowired
-    private MafManager mafManager;
 
     @Autowired
     private MetadataManager metadataManager;
@@ -588,18 +583,6 @@ public class ProjectManagerTest extends AbstractManagerTest {
         SegFile segFile = segManager.registerSegFile(request);
         projectManager.addProjectItem(project.getId(), segFile.getBioDataItemId());
 
-        // Add MAF file
-        resource = context.getResource("classpath:templates/maf/" +
-                "TCGA.ACC.mutect.abbe72a5-cb39-48e4-8df5-5fd2349f2bb2.somatic.sorted.maf.gz");
-
-        request = new IndexedFileRegistrationRequest();
-        request.setPath(resource.getFile().getAbsolutePath());
-        request.setReferenceId(referenceId);
-
-        MafFile mafFile = mafManager.registerMafFile(request);
-        Assert.assertNotNull(mafFile);
-        projectManager.addProjectItem(project.getId(), mafFile.getBioDataItemId());
-
         loadedProject = projectManager.load(project.getId());
 
         // Test VCF item
@@ -635,17 +618,6 @@ public class ProjectManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(loadedSeg.getIndex());
         Assert.assertFalse(loadedSeg.getPath().isEmpty());
         Assert.assertFalse(loadedSeg.getSamples().isEmpty());
-
-        // Test MAF Files
-        ProjectItem mafItem = loadedProject.getItems().stream().filter(i -> i.getBioDataItem().getFormat() ==
-                BiologicalDataItemFormat.MAF).findFirst().get();
-        Assert.assertNotNull(mafItem);
-        Assert.assertNotNull(mafItem.getBioDataItem());
-        SegFile loadedMaf = (SegFile) segItem.getBioDataItem();
-        Assert.assertNotNull(loadedMaf.getId());
-        Assert.assertNotNull(loadedMaf.getIndex());
-        Assert.assertFalse(loadedMaf.getPath().isEmpty());
-        Assert.assertFalse(loadedMaf.getSamples().isEmpty());
 
         // Test load my projects
         List<Project> myProjects = projectManager.loadTopLevelProjects();

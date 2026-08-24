@@ -49,7 +49,6 @@ import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.heatmap.Heatmap;
 import com.epam.catgenome.entity.heatmap.HeatmapDataType;
 import com.epam.catgenome.entity.lineage.LineageTree;
-import com.epam.catgenome.entity.maf.MafFile;
 import com.epam.catgenome.entity.pathway.NGBPathway;
 import com.epam.catgenome.entity.pathway.PathwayDatabaseSource;
 import com.epam.catgenome.entity.reference.Reference;
@@ -306,11 +305,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         SEG_REFERENCE_GENOME_ID,
         SEG_COMPRESSED,
 
-        MAF_ID,
-        MAF_REFERENCE_GENOME_ID,
-        MAF_COMPRESSED,
-        MAF_REAL_PATH,
-
         VG_ID,
         VG_REFERENCE_GENOME_ID,
         VG_REAL_PATH,
@@ -418,9 +412,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                 case SEG:
                     dataItem = mapSegFile(rs, index);
                     break;
-                case MAF:
-                    dataItem = mapMafFile(rs, index);
-                    break;
                 case HEATMAP:
                     dataItem = mapHeatMap(rs);
                     break;
@@ -477,19 +468,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             BiologicalDataItem dataItem = new BiologicalDataItem();
             dataItem.setId(rs.getLong(BIO_DATA_ITEM_ID.name()));
             return dataItem;
-        }
-
-        @NotNull
-        private static BiologicalDataItem mapMafFile(ResultSet rs, BiologicalDataItem index) throws SQLException {
-            MafFile mafFile = new MafFile();
-            mafFile.setId(rs.getLong(MAF_ID.name()));
-            mafFile.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
-            mafFile.setCompressed(rs.getBoolean(MAF_COMPRESSED.name()));
-            mafFile.setReferenceId(rs.getLong(MAF_REFERENCE_GENOME_ID.name()));
-            mafFile.setRealPath(rs.getString(MAF_REAL_PATH.name()));
-            mafFile.setIndex(index);
-
-            return mafFile;
         }
 
         @NotNull

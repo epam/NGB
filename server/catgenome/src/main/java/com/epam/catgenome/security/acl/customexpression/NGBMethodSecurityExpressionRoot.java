@@ -88,8 +88,6 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
                 return hasRole("BAM_MANAGER");
             case BED:
                 return hasRole("BED_MANAGER");
-            case MAF:
-                return hasRole("MAF_MANAGER");
             case SEG:
                 return hasRole("SEG_MANAGER");
             case VCF:
