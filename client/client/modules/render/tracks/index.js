@@ -6,7 +6,6 @@ import {
 } from './featureCounts';
 import {GENETrack as GENE} from './gene';
 import {default as HEATMAP} from './heatmap';
-import {MAFTrack as MAF} from './maf';
 import {MultiSampleVCFTrack as MultiSampleVCF} from './vcf/multi-sample-vcf';
 import {REFERENCETrack as REFERENCE} from './reference';
 import {RulerTrack as Ruler} from './ruler';
@@ -22,7 +21,6 @@ export default {
     BLAST,
     GENE,
     FEATURE_COUNTS,
-    MAF,
     REFERENCE,
     Ruler,
     SEG,

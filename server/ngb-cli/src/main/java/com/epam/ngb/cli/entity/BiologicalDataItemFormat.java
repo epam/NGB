@@ -57,8 +57,6 @@ public enum BiologicalDataItemFormat {
     BED(false, true),
     SEG(false, true),
     SEG_INDEX,
-    MAF(false, true),
-    MAF_INDEX,
     VG,
     GENBANK,
     GBK,
@@ -70,7 +68,9 @@ public enum BiologicalDataItemFormat {
 
     // The constants above used to carry a numeric id as their first constructor argument. Nothing
     // ever read it - there was no getter and the field was assigned and never used - and the values
-    // were the declaration order, 1 to 22, so the ordinal already carries whatever they said. The
+    // were simply the declaration order, 1 to 22 back when MAF and MAF_INDEX were still declared
+    // here. Removing those two shifted the ordinals of everything below them, which is harmless for
+    // the same reason: neither the old ids nor the ordinals are read by anything. The
     // format is sent to the server by name, not by id.
     /**
      * If true format requires index for registration, otherwise index is optional
@@ -110,7 +110,6 @@ public enum BiologicalDataItemFormat {
         EXTENSIONS_MAP.put("bw", WIG);
         EXTENSIONS_MAP.put("bigwig", WIG);
         EXTENSIONS_MAP.put("bed", BED);
-        EXTENSIONS_MAP.put("maf", MAF);
         EXTENSIONS_MAP.put("vg", VG);
         EXTENSIONS_MAP.put("bdg", WIG);
         EXTENSIONS_MAP.put("bg", WIG);

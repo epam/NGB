@@ -10,7 +10,6 @@ export * from './bed/bed-data-service';
 export * from './seg/seg-data-service';
 export * from './others/others-data-service';
 export * from './bookmark-data-service/bookmark-data-service';
-export * from './maf/maf-data-service';
 export * from './bucket/bucket-data-service';
 export * from './externaldb/externaldb-data-service';
 export * from './utils/utils-data-service';

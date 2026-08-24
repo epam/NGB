@@ -8,7 +8,6 @@ const __tracks_formats = [
     'BAM',
     'BED',
     'GENE',
-    'MAF',
     'SEG',
     'VCF',
     'WIG'
