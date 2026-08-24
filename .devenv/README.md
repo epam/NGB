@@ -341,7 +341,7 @@ the DAO code all agree with it). Four rules came out of that:
    miss. `unzip -l dist/catgenome-h2.jar | grep BOOT-INF/classes/database/catgenome/h2/` settles it.
 
 Note also that the manager roles the security expressions name are not all seeded — see
-[`ISSUES.md`](../ISSUES.md), issue 5. Adding a seed for one of them is a schema change on both
+[`ISSUES.md`](../ISSUES.md), issue 3. Adding a seed for one of them is a schema change on both
 flavours, with rule 2 applying.
 
 ## Notes and gotchas
@@ -369,8 +369,8 @@ flavours, with rule 2 applying.
   you reintroduce a cache, that is where the numbers to beat come from.
 - **`muscle`** is installed if the distro has it for your architecture; target-
   identification alignment needs it.
-- **BLAST / LLM / NCBI** integrations point at external services (`blast.server.url`,
-  `llm.*`, `ncbi.api.key`) and are left unset — add them to `override.properties` if a
+- **BLAST / NCBI** integrations point at external services (`blast.server.url`,
+  `ncbi.api.key`) and are left unset — add them to `override.properties` if a
   change touches those paths.
 - The first `make jar` downloads the Gradle distribution (8.14.5), the npm dependency tree and
   mkdocs into named volumes; later builds reuse them. `make reset` throws those away too.
@@ -402,7 +402,7 @@ flavours, with rule 2 applying.
   valid glob, so `rg` prints a parse error, drops that one pattern and searches the `${…}`
   directories an old test run can have left in `server/catgenome/` — Lucene segment files and stale
   test output, where a symbol you have just deleted still occurs. See
-  [`ISSUES.md`](../ISSUES.md), issue 6.
+  [`ISSUES.md`](../ISSUES.md), issue 4.
 - **Sweep for a format or a feature with `git grep -i <string>`, not `\b<string>\b`.** Camel-case
   identifiers have no word boundary after the word: `\bmaf\b` matches `MAF`, `maf-file-dao.xml` and
   `case MAF` but not `mafDataService`, which is how an Angular service registration referring to a

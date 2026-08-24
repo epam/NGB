@@ -1,9 +1,9 @@
 # Known defects, not yet fixed
 
-Six defects, deliberately left alone rather than fixed in passing, so that they can be filed, argued
-about and scheduled on their own. The first five were found while preparing the 3.0.0 platform
+Four defects, deliberately left alone rather than fixed in passing, so that they can be filed, argued
+about and scheduled on their own. The first three were found while preparing the 3.0.0 platform
 release: each is older than that release, none is a regression it introduced, and fixing any of them
-is a behaviour change that has nothing to do with moving to Java 21. The sixth is different — it is
+is a behaviour change that has nothing to do with moving to Java 21. The fourth is different — it is
 a one-line wart in the repository's own tooling, introduced by the 3.0.0 work itself, and it is here
 because it quietly misleads anyone searching the tree.
 
@@ -12,10 +12,8 @@ the body. Line numbers are as of the 3.0.0 release.
 
 - [1. `isRemotePath` tests for `ftsp:`, so `ftp://` paths are read as local files](#1-isremotepath-tests-for-ftsp-so-ftp-paths-are-read-as-local-files)
 - [2. Properties read through `#{catgenome[…]}` cannot be overridden on the command line](#2-properties-read-through-catgenome-cannot-be-overridden-on-the-command-line)
-- [3. The OpenAI client sends the API key in a header named `bearer`](#3-the-openai-client-sends-the-api-key-in-a-header-named-bearer)
-- [4. `GOOGLE_MED_PALM2` is an accepted LLM provider with nothing behind it](#4-google_med_palm2-is-an-accepted-llm-provider-with-nothing-behind-it)
-- [5. Six manager roles that `@PreAuthorize` requires are not created by any installation](#5-six-manager-roles-that-preauthorize-requires-are-not-created-by-any-installation)
-- [6. `.gitignore:17` is not a valid glob, so `ripgrep` searches the directories it protects](#6-gitignore17-is-not-a-valid-glob-so-ripgrep-searches-the-directories-it-protects)
+- [3. Six manager roles that `@PreAuthorize` requires are not created by any installation](#3-six-manager-roles-that-preauthorize-requires-are-not-created-by-any-installation)
+- [4. `.gitignore:17` is not a valid glob, so `ripgrep` searches the directories it protects](#4-gitignore17-is-not-a-valid-glob-so-ripgrep-searches-the-directories-it-protects)
 - [Documentation errors, already corrected](#documentation-errors-already-corrected)
 
 ---
@@ -130,82 +128,7 @@ notes as a known limitation, which is the whole of the mitigation today.
 
 ---
 
-## 3. The OpenAI client sends the API key in a header named `bearer`
-
-**Where.** `server/catgenome/src/main/java/com/epam/catgenome/manager/llm/OpenAIClient.java:59-66`
-
-```java
-public OpenAIClient(final String openAIKey, final String endpoint) {
-    final List<Header> headers = Collections.singletonList(new Header("bearer", openAIKey));
-    this.client = new OpenAIClientBuilder()
-            .credential(new KeyCredential(openAIKey))
-            .endpoint(endpoint)
-            .clientOptions(new HttpClientOptions().setHeaders(headers))
-            .buildClient();
-}
-```
-
-**What happens.** Every request on this path carries an extra header, literally `bearer: <api key>`,
-*in addition to* whatever the `KeyCredential` sets (`api-key` for an Azure endpoint,
-`Authorization: Bearer …` for `api.openai.com`). No service reads a header called `bearer`, so it
-authenticates nothing; it is almost certainly a mangled `Authorization: Bearer <key>`.
-
-This constructor is reached only from `CustomOpenAILLMClient`, i.e. from the `llm.custom.type=openai`
-configuration.
-
-**Why it matters.** The credential is duplicated into a non-standard header that goes to whatever
-`llm.custom.url` points at, and through any proxy in between — a place where request headers are
-routinely logged. It is a needless second copy of a secret, on the one code path where the endpoint
-is operator-supplied rather than Azure's.
-
-**Suggested fix.** Delete the `clientOptions(…)` line: `.credential(new KeyCredential(key))` already
-authenticates, and the one-argument constructor above it does exactly that. If the intent was to
-support an endpoint that wants a raw bearer token, spell it correctly —
-`new Header("Authorization", "Bearer " + key)` — and say in a comment which service needs it.
-
----
-
-## 4. `GOOGLE_MED_PALM2` is an accepted LLM provider with nothing behind it
-
-**Where.** `server/catgenome/src/main/java/com/epam/catgenome/entity/llm/LLMProvider.java:28`
-
-```java
-public enum LLMProvider {
-    OPENAI_GPT_35, OPENAI_GPT_40, GOOGLE_MED_PALM2, CUSTOM;
-}
-```
-
-**What happens.** No handler is registered under `GOOGLE_MED_PALM2`, and nothing else in the server
-or the client mentions it — `git grep -rn GOOGLE_MED_PALM2 -- server client` finds the declaration
-and nothing more. Because it is a valid enum value, `?provider=GOOGLE_MED_PALM2` binds successfully
-on all three `/restapi/llm/*` endpoints, and the failure happens later, in `LLMService.getHandler`
-(`manager/llm/LLMService.java:99-102`):
-
-```java
-Assert.notNull(handler, provider + " is not supported.");
-```
-
-which `ExceptionHandlerAdvice` turns into NGB's generic error result —
-`{"status":"ERROR","message":"GOOGLE_MED_PALM2 is not supported."}`. Were the value not in the enum,
-Spring's parameter binding would have rejected the request with a 400 before any handler ran.
-
-3.0.0 removed the sibling `GOOGLE_PALM_2` — the one that had a handler and a client entry — when
-Google retired the API. This one was already an orphan before that and was left as it was.
-
-**Why it matters.** Small: the client does not offer it, so only a direct API caller can reach it,
-and the error message is at least accurate. But it is an enum value advertising a provider that
-cannot work, and the OpenAPI schema of the three `/llm/*` endpoints — and so any client generated
-from it — offers four providers where there are three.
-
-**Reproduce.** `POST /restapi/llm/chat?provider=GOOGLE_MED_PALM2` with any message body.
-
-**Suggested fix.** Delete the value. It is not persisted anywhere — no column holds an `LLMProvider`
-— so there is no migration; check the OpenAPI schema and the client's model list afterwards, both of
-which already list only the three real providers.
-
----
-
-## 5. Six manager roles that `@PreAuthorize` requires are not created by any installation
+## 3. Six manager roles that `@PreAuthorize` requires are not created by any installation
 
 **Where.** `server/catgenome/src/main/java/com/epam/catgenome/security/acl/SecurityExpressions.java`
 and `security/acl/customexpression/NGBMethodSecurityExpressionRoot.java:85-110` name the roles;
@@ -257,7 +180,7 @@ in 2018, and the `MAF` branch of `hasSpecificRole` was dropped with the rest of 
 
 ---
 
-## 6. `.gitignore:17` is not a valid glob, so `ripgrep` searches the directories it protects
+## 4. `.gitignore:17` is not a valid glob, so `ripgrep` searches the directories it protects
 
 **Where.** `.gitignore:17`, added by `82d67867` "Java 21 dev env prep"
 

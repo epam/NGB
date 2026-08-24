@@ -10,9 +10,9 @@ AWS SDK v2 2.54.1, POI 5.5.1, biojava 7.2.6, against H2 2.3.232 and PostgreSQL 1
 
 | Suite | Command | Result |
 |---|---|---|
-| H2 | `make test` | 546 tests, **1 failed**, 21 skipped (~4.5 min) |
-| PostgreSQL | `make test-pg` | 546 tests, **1 failed**, 21 skipped (~4 min on an idle host; **~11.5 min on the first run after `make reset-pg`**, which builds the volume, the database and the whole migration chain from scratch and looks like a hang if you are expecting 4; 15 min if it shares the machine with a docker build and a few running servers — the PostgreSQL suite is the one that notices) |
-| Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings in 14 files / 0 errors (~15 s) |
+| H2 | `make test` | 546 tests, **1 failed**, 21 skipped (~4.5 min). **2 failed is also a pass** — `PdbDataManagerTest.testParse` flaps, see below; compare the failing test *names* against [H2: 1 live-data failure, and 1 that flaps](#h2-1-live-data-failure-and-1-that-flaps), never the count. |
+| PostgreSQL | `make test-pg` | 546 tests, **1 failed** (or 2, same flapper), 21 skipped (~4 min on an idle host; **~11.5 min on the first run after `make reset-pg`**, which builds the volume, the database and the whole migration chain from scratch and looks like a hang if you are expecting 4; 15 min if it shares the machine with a docker build and a few running servers — the PostgreSQL suite is the one that notices) |
+| Static analysis | `make lint` | **green** — pmd clean, checkstyle 35 warnings in 13 files / 0 errors (~15 s) |
 | CLI integration | `make cli-test` | 145 rows, **129 passed, 0 failed, 16 skipped** (~5 min) — see [`make cli-test`](#make-cli-test) |
 | CLI unit | `docker-compose exec -T builder ./gradlew --no-daemon -p server/ngb-cli test` | 135 tests in 31 classes, **0 failed**, 0 skipped (~10 s). **No make target runs them**: `buildJar` does not depend on `buildCli`, and `make cli-build` passes `-PnoTest`, which makes `buildCli` `clean assemble` instead of `clean build`. Run the command in this row by hand; CI runs them as a step of `test-h2`. |
 
@@ -190,7 +190,7 @@ standing between a broken NGB security expression and a green build.
 
 | Module | Command | Checkstyle | PMD |
 |---|---|---|---|
-| `server/catgenome` | `make lint` | 37 warnings in 14 files, **0 errors** | clean |
+| `server/catgenome` | `make lint` | 35 warnings in 13 files, **0 errors** | clean |
 | `server/catgenome`, tests too | `./gradlew -p server/catgenome checkstyleMain checkstyleTest pmdMain pmdTest` | +11 warnings in 3 test files, **0 errors** | clean |
 | `server/ngb-cli` | `./gradlew -p server/ngb-cli checkstyleMain checkstyleTest pmdMain pmdTest` | 6 warnings main + 1 test, **0 errors** | clean |
 
@@ -199,9 +199,9 @@ Reports: `server/<module>/build/reports/{checkstyle,pmd}/main.html`.
 **The warnings do not fail the build**, by long-standing choice: `checkstyle.xml` sets
 `severity=warning` at `Checker` level, and Gradle's `Checkstyle` task fails only on errors
 (`maxWarnings` defaults to `Integer.MAX_VALUE`). Checkstyle 7.2 reported one of them; 11.1.0 reports
-37 because eight years of new checks and refined defaults landed in between — mostly `[Indentation]`
-in generated-looking `externaldb/bindings/*` VOs, a few `[FinalClass]`, and
-`CustomChatResponse.java`'s member name `finish_reason` (it mirrors a JSON field). Nothing is
+35 because eight years of new checks and refined defaults landed in between, and they are only two
+checks: 30 `[Indentation]`, mostly in the generated-looking `externaldb/bindings/*` VOs and in
+`app/AppConfiguration.java`, and 5 `[FinalClass]`. Nothing is
 suppressed and no severity was lowered. Turning the warnings into errors is a worthwhile clean-up
 and a code-style change, not a build fix.
 
@@ -357,8 +357,6 @@ places where a first report from the field would be the first evidence either wa
   cannot stand in for it, and no Azure subscription was available. Compile- and unit-verified only.
   The `s3://` / `sws://` paths that share the reader stack are covered by `verify-cloud`.
 - **`sws://` (Swift) has not been read from a live endpoint** either; MinIO stands in for it.
-- **The LLM round trip has never been exercised** — no API keys for any provider. The clients are
-  wired and compile; nothing has been observed on the wire.
 - **PostgreSQL 17 has never been run**, and neither has any version between 9.6 and 16. 16 is what
   this environment and CI run. The wider range quoted in the documentation is the JDBC driver's.
 - **No upgrade has been performed on a production-sized database or index set.** Both conversions

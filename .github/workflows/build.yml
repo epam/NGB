@@ -60,7 +60,7 @@ jobs:
       - uses: ./.github/actions/setup-jdks
       # Exactly what `make lint` runs, on both modules. checkstyleTest/pmdTest are deliberately not
       # here: neither module has ever had the test sources linted and both are full of violations
-      # that are nobody's current problem. Main is clean - 0 errors, 37 warnings in 14 files - and
+      # that are nobody's current problem. Main is clean - 0 errors, 35 warnings in 13 files - and
       # the warnings are counted in .devenv/TEST-BASELINE.md so that a rise is visible.
       - run: ./gradlew -p server/catgenome checkstyleMain pmdMain
       - run: ./gradlew -p server/ngb-cli checkstyleMain pmdMain
