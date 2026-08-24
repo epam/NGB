@@ -278,11 +278,6 @@ public class LaunchIdentificationManager {
         return pubMedService.fetchPubMedArticles(request);
     }
 
-    public String getArticlesAbstracts(final PublicationSearchRequest request) throws ParseException, IOException {
-        targetManager.expandTargetGenes(request.getTargetId(), request.getGeneIds());
-        return pubMedService.getArticleAbstracts(request);
-    }
-
     public List<GeneSequences> getGeneSequences(final Long targetId,
                                                 final List<String> geneIds,
                                                 final boolean includeAdditionalGenes)

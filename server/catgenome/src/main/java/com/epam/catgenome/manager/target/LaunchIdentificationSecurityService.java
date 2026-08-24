@@ -159,11 +159,6 @@ public class LaunchIdentificationSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public String getArticleAbstracts(final PublicationSearchRequest request) throws ParseException, IOException {
-        return manager.getArticlesAbstracts(request);
-    }
-
-    @PreAuthorize(ROLE_USER)
     public List<GeneRefSection> getGeneSequencesTable(final Long targetId,
                                                       final List<String> geneIds,
                                                       final Boolean getComments,

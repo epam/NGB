@@ -344,18 +344,6 @@ public class LaunchIdentificationController extends AbstractRESTController {
         return Result.success(launchIdentificationSecurityService.getPublications(request));
     }
 
-    @PostMapping(value = "/target/abstracts")
-    @Operation(
-            summary = "Returns merged abstracts for specified gene ids",
-            description = "Returns merged abstracts for specified gene ids")
-    @ApiResponses(
-            value = {@ApiResponse(responseCode = HTTP_STATUS_OK, description = API_STATUS_DESCRIPTION)
-            })
-    public Result<String> getAbstracts(@RequestBody final PublicationSearchRequest request)
-            throws ParseException, IOException {
-        return Result.success(launchIdentificationSecurityService.getArticleAbstracts(request));
-    }
-
     @GetMapping(value = "/target/sequences/table")
     @Operation(
             summary = "Returns data for Gene Sequences block as a table",
