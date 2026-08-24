@@ -1,12 +1,9 @@
 <div class="loading-indicator"
-     ng-if="$ctrl.loadingSummary || $ctrl.loadingPublications">
+     ng-if="$ctrl.loadingPublications">
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
 <div ng-class="{'hidden': !$ctrl.failedPublications || $ctrl.loadingPublications}">
     <ngb-panel-error-list message-list="$ctrl.publicationsError"></ngb-panel-error-list>
-</div>
-<div ng-class="{'hidden': !$ctrl.failedSummary || $ctrl.loadingSummary}">
-    <ngb-panel-error-list message-list="$ctrl.summaryError"></ngb-panel-error-list>
 </div>
 <div class="empty-container"
      ng-if="$ctrl.emptyPublications">
@@ -14,27 +11,6 @@
                 flex>
         <span>No records found.</span>
     </md-content>
-</div>
-<div class="summary-button" ng-if="$ctrl.llmModels && $ctrl.llmModels.length">
-    <md-button ng-click="$ctrl.generateSummary($event)"
-               ng-disabled="$ctrl.loadingPublications || $ctrl.loadingSummary || $ctrl.publications.length === 0"
-               md-no-ink
-    >
-                <span class="button-text">
-                    Get summary with Generative AI
-                </span>
-    </md-button>
-</div>
-<div class="ngb-bibliography-section"
-     ng-if="$ctrl.summary && !$ctrl.loadingSummary">
-    <div class="ngb-bibliography-section-title">
-        <span class="section-name">
-            Summary
-        </span>
-    </div>
-    <div class="summary-container"
-         ng-bind-html="$ctrl.summary.html">
-    </div>
 </div>
 <div class="header-container">
     <md-input-container md-no-float
@@ -66,7 +42,7 @@
                        placeholder="Select genes"
                        multiple="true"
                        md-on-close="$ctrl.onCloseSelector()"
-                       ng-disabled="$ctrl.loadingSummary || $ctrl.loadingPublications"
+                       ng-disabled="$ctrl.loadingPublications"
                        md-container-class="bibliography-gene-select-container">
                 <md-option ng-repeat="item in $ctrl.genes"
                            ng-value="item.geneId">

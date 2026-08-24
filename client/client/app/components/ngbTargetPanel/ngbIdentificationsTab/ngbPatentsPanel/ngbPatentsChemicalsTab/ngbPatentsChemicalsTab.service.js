@@ -91,10 +91,6 @@ export default class ngbPatentsChemicalsTabService {
         return this.ngbPatentsPanelService.sourceModel && this.ngbPatentsPanelService.sourceModel.name === GOOGLE_PATENTS_SOURCE;
     }
 
-    get summaryCriteria() {
-        return this.searchBy === this.searchByOptions.name ? this.selectedDrug : this.searchStructure;
-    }
-
     _loadingDrugs = false;
     _failedDrugs = false;
     _errorDrugsMessage = null;

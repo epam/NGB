@@ -1,5 +1,3 @@
-import processLinks from '../../utilities/process-links';
-
 const PAGE_SIZE = 5;
 
 export default class NgbBibliographyPanelService {
@@ -9,19 +7,11 @@ export default class NgbBibliographyPanelService {
     _publicationsError = null;
     _emptyPublications = false;
 
-    _loadingSummary = false;
-    _failedSummary = false;
-    _summaryError = null;
-    _emptySummary = false;
-
     _publications = [];
     _totalPages = 0;
     _currentPage = 1;
     _totalPublications = 0;
 
-    _summaryResult = null;
-
-    _llmSummaryToken = 0;
     _publicationsToken = 0;
 
     _keyWords = '';
@@ -44,19 +34,6 @@ export default class NgbBibliographyPanelService {
         return this._emptyPublications;
     }
 
-    get loadingSummary() {
-        return this._loadingSummary;
-    }
-    set loadingSummary(value) {
-        this._loadingSummary = value;
-    }
-    get failedSummary() {
-        return this._failedSummary;
-    }
-    get summaryError() {
-        return this._summaryError;
-    }
-
     get publications() {
         return this._publications || [];
     }
@@ -69,10 +46,6 @@ export default class NgbBibliographyPanelService {
     }
     set currentPage(value) {
         this._currentPage = value;
-    }
-
-    get summaryResult() {
-        return this._summaryResult;
     }
 
     get keyWords() {
@@ -92,34 +65,26 @@ export default class NgbBibliographyPanelService {
     }
 
     static instance (
-        $sce,
         dispatcher,
         ngbTargetPanelService,
-        targetDataService,
-        targetLLMService
+        targetDataService
     ) {
         return new NgbBibliographyPanelService(
-            $sce,
             dispatcher,
             ngbTargetPanelService,
-            targetDataService,
-            targetLLMService
+            targetDataService
         );
     }
 
     constructor(
-        $sce,
         dispatcher,
         ngbTargetPanelService,
-        targetDataService,
-        targetLLMService
+        targetDataService
     ) {
         Object.assign(this, {
-            $sce,
             dispatcher,
             ngbTargetPanelService,
-            targetDataService,
-            targetLLMService
+            targetDataService
         });
         this.selectedGeneIds = this.genes.map(g => g.geneId);
 
@@ -138,7 +103,6 @@ export default class NgbBibliographyPanelService {
 
     updateGenes (targetIdentificationData) {
         this.selectedGeneIds = this.genes.map(g => g.geneId);
-        this.clearSummary();
         this.clearPublications();
         this._totalPublications = (this.ngbTargetPanelService.identificationData || {}).publicationsCount;
         (this.getPublicationsResults)(1);
@@ -212,23 +176,9 @@ export default class NgbBibliographyPanelService {
         });
     }
 
-    _increaseLLMSummaryToken() {
-        this._llmSummaryToken = (this._llmSummaryToken || 0) + 1;
-        return this._llmSummaryToken;
-    }
-
     _increasePublicationsToken() {
         this._publicationsToken = (this._publicationsToken || 0) + 1;
         return this._publicationsToken;
-    }
-
-    _getLLMSummaryCommitPhase() {
-        const token = this._increaseLLMSummaryToken();
-        return (fn) => {
-            if (typeof fn === 'function' && token === this._llmSummaryToken) {
-                fn();
-            }
-        };
     }
 
     _getPublicationsCommitPhase() {
@@ -238,14 +188,6 @@ export default class NgbBibliographyPanelService {
                 fn();
             }
         };
-    }
-
-    clearSummary() {
-        this._increaseLLMSummaryToken();
-        this._failedSummary = false;
-        this._summaryError = null;
-        this._summaryResult = undefined;
-        this._loadingSummary = false;
     }
 
     clearPublications() {
@@ -261,38 +203,4 @@ export default class NgbBibliographyPanelService {
         this._loadingPublications = false;
     }
 
-    getLlmSummary() {
-        if (!this.targetLLMService || !this.targetLLMService.model) {
-            return Promise.resolve();
-        }
-        const request = (this._publications || []).slice(0, 10).map(p => p.uid);
-        const commit = this._getLLMSummaryCommitPhase();
-        return new Promise(resolve => {
-            this.targetDataService.getLlmSummary(request, this.targetLLMService.model)
-                .then((data) => {
-                    commit(() => {
-                        this._failedSummary = false;
-                        this._summaryError = null;
-                        this.setSummaryResults(data);
-                        this._loadingSummary = false;
-                    });
-                    resolve(true);
-                })
-                .catch(err => {
-                    commit(() => {
-                        this._failedSummary = true;
-                        this._summaryError = [err.message];
-                        this._loadingSummary = false;
-                    });
-                    resolve(false);
-                });
-        });
-    }
-
-    setSummaryResults(summary) {
-        this._summaryResult = {
-            html: this.$sce.trustAsHtml(processLinks(summary)),
-            summary
-        };
-    }
 }

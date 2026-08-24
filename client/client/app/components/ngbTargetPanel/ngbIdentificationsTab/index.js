@@ -13,7 +13,6 @@ import ngbGenomicsPanel from './ngbGenomicsPanel';
 import ngbStructurePanel from './ngbStructurePanel';
 import ngbBibliographyPanel from './ngbBibliographyPanel';
 import ngbPatentsPanel from './ngbPatentsPanel';
-import ngbIdentificationChat from './ngbIdentificationChat';
 import ngbPluralText from './ngbPluralText';
 
 export default angular
@@ -25,8 +24,7 @@ export default angular
         ngbStructurePanel,
         ngbBibliographyPanel,
         ngbPatentsPanel,
-        ngbPluralText,
-        ngbIdentificationChat
+        ngbPluralText
     ])
     .controller(controller.UID, controller)
     .component('ngbIdentificationsTab', component)

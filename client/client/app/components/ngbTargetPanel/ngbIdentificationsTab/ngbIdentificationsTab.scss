@@ -40,32 +40,6 @@ ngb-identifications-tab {
             margin: 0;
             font-weight: bold;
         }
-
-        .identification-actions {
-            line-height: 1;
-            margin-left: auto;
-            display: inline-flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: flex-end;
-
-            >*:not(:first-child) {
-                margin-left: 10px;
-            }
-
-            .identification-action {
-                color: rgb(51, 103, 214);
-                white-space: nowrap;
-
-                ng-md-icon {
-                    fill: currentColor;
-                }
-
-                &:not([disabled]):hover {
-                    text-decoration: underline;
-                }
-            }
-        }
     }
 
     .identification-content {

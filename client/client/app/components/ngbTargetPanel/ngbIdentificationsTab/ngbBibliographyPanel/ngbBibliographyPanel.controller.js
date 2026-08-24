@@ -17,57 +17,19 @@ export default class ngbBibliographyPanelController {
         $timeout,
         dispatcher,
         ngbBibliographyPanelService,
-        targetLLMService,
         ngbTargetPanelService
     ) {
         Object.assign(this, {
             $scope,
             $timeout,
             ngbBibliographyPanelService,
-            targetLLMService,
             ngbTargetPanelService
         });
-        this._summaryWasGenerated = false;
         const refresh = this.refresh.bind(this);
-        const onTargetChanged = () => {
-            this._summaryWasGenerated = false;
-        }
-        const modelChanged = () => this.onChangeLlmModel();
-        const apply = () => $timeout(() => $scope.$apply());
         dispatcher.on('target:identification:publications:page:changed', refresh);
-        dispatcher.on('target:identification:changed', onTargetChanged);
-        dispatcher.on('target:identification:publications:model:changed', modelChanged);
-        dispatcher.on('target:identification:publications:chat:initialized', apply);
-        dispatcher.on('target:identification:publications:chat:answer', apply);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('target:identification:publications:page:changed', refresh);
-            dispatcher.removeListener('target:identification:changed', onTargetChanged);
-            dispatcher.removeListener('target:identification:publications:model:changed', modelChanged);
-            dispatcher.removeListener('target:identification:publications:chat:initialized', apply);
-            dispatcher.removeListener('target:identification:publications:chat:answer', apply);
         });
-    }
-
-    get llmModel() {
-        return this.targetLLMService
-            ? this.targetLLMService.model
-            : undefined;
-    }
-
-    set llmModel(llmModel) {
-        if (this.targetLLMService) {
-            this.targetLLMService.model = llmModel;
-        }
-    }
-
-    get llmModelType() {
-        return this.llmModel ? this.llmModel.type : undefined;
-    }
-
-    get llmModels() {
-        return this.targetLLMService
-            ? this.targetLLMService.models
-            : [];
     }
 
     get publications() {
@@ -98,19 +60,6 @@ export default class ngbBibliographyPanelController {
         return this.ngbBibliographyPanelService.emptyPublications;
     }
 
-    get loadingSummary() {
-        return this.ngbBibliographyPanelService.loadingSummary;
-    }
-    set loadingSummary(value) {
-        this.ngbBibliographyPanelService.loadingSummary = value;
-    }
-    get failedSummary() {
-        return this.ngbBibliographyPanelService.failedSummary;
-    }
-    get summaryError() {
-        return this.ngbBibliographyPanelService.summaryError;
-    }
-
     get totalPages() {
         return this.ngbBibliographyPanelService.totalPages;
     }
@@ -136,29 +85,6 @@ export default class ngbBibliographyPanelController {
 
     $onInit() {
         (this.refresh)();
-    }
-
-    async generateSummary(event) {
-        this._summaryWasGenerated = true;
-        if (event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        this.loadingSummary = true;
-        this.summary = await this.ngbBibliographyPanelService.getLlmSummary()
-            .then(success => {
-                if (success) {
-                    return this.ngbBibliographyPanelService.summaryResult;
-                }
-                return null;
-            });
-        this.$timeout(() => this.$scope.$apply());
-    }
-
-    onChangeLlmModel() {
-        if (this._summaryWasGenerated) {
-            (this.generateSummary)();
-        }
     }
 
     async searchPublications() {
