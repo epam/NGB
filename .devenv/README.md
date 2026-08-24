@@ -333,6 +333,12 @@ the DAO code all agree with it). Four rules came out of that:
 4. **Do not edit an already-applied migration.** Flyway fails validation with a checksum mismatch
    wherever the old version ran. Fresh dev databases do not care; anywhere else needs a
    `flyway repair` or a new schema. Add a forward script instead.
+5. **Rebuild the jar before you start a server on it.** The scripts are packaged *resources*, so
+   `make up` runs whatever is inside `dist/catgenome-h2.jar` — not what is in the tree. A new script
+   with no `make jar-fast` (or `make jar-pg-fast` for `up-pg`) in front of it simply does not run,
+   and the symptom is a database that looks like the migration is broken rather than absent. `make
+   test` / `make test-pg` build their own classpath and are immune, which is what makes it easy to
+   miss. `unzip -l dist/catgenome-h2.jar | grep BOOT-INF/classes/database/catgenome/h2/` settles it.
 
 Note also that the manager roles the security expressions name are not all seeded — see
 [`ISSUES.md`](../ISSUES.md), issue 5. Adding a seed for one of them is a schema change on both
@@ -368,6 +374,40 @@ flavours, with rule 2 applying.
   change touches those paths.
 - The first `make jar` downloads the Gradle distribution (8.14.5), the npm dependency tree and
   mkdocs into named volumes; later builds reuse them. `make reset` throws those away too.
+- **Two Gradle targets cannot run at once**, in the same container or in different ones: they share
+  `GRADLE_USER_HOME=/cache/gradle`, and the second one dies before it compiles anything with
+  `Timeout waiting to lock journal cache (/cache/gradle/caches/journal-1) … Owner PID: <n>`. It is
+  a lock, not a corruption — wait for the first to finish and re-run. Only the `verify-*` scripts and
+  `make smoke` are safe alongside a build, because they are `curl` from the host.
+- **A running instance logs a stack trace every minute that is not yours.**
+  `ProteinPatentsScheduledService.searchPatents` throws
+  `IllegalArgumentException: Patented protein sequences database not available`, because the devenv
+  ships no BLAST patents database (`blast.server.url` is unset, above). Harmless, and unrelated to
+  whatever you were doing when it appeared — but it is every 60 s
+  (`@Scheduled(fixedRateString = "${targets.sequence.patents.search.rate:60000}")`, and no profile
+  overrides it), so it buries anything else in the log. Set that property in
+  `override.properties` if you need to read the log around a startup.
+- **There is no `make smoke-pg`.** `make smoke` probes the H2/SAML ports only (8080 and 8443), so
+  for the PostgreSQL instance use `curl http://localhost:8090/catgenome/restapi/version`, which
+  should answer `{"payload":"3.0.0","status":"OK"}`. The `verify-*` scripts do take a base URL, so
+  those are `bash scripts/verify-tracks.sh http://localhost:8090/catgenome`.
+- **`make up` on an existing container can come up with no published ports at all** if the Docker
+  daemon restarted underneath it: `docker inspect` shows `HostConfig.PortBindings` set and
+  `NetworkSettings.Ports` empty, and every request is refused while the container looks healthy.
+  `docker-compose rm -sf ngb-h2 && make up` fixes it.
+- **Search this tree with `git grep`, not `rg`.** Two independent reasons, neither of them loud.
+  `rg` skips dot-directories unless it is given `--hidden`, so **this file, everything else in
+  `.devenv/`, and `.github/` are invisible to it** — a search that never looked at the build
+  environment reads exactly like one that found nothing to fix in it. And `.gitignore:17` is not a
+  valid glob, so `rg` prints a parse error, drops that one pattern and searches the `${…}`
+  directories an old test run can have left in `server/catgenome/` — Lucene segment files and stale
+  test output, where a symbol you have just deleted still occurs. See
+  [`ISSUES.md`](../ISSUES.md), issue 6.
+- **Sweep for a format or a feature with `git grep -i <string>`, not `\b<string>\b`.** Camel-case
+  identifiers have no word boundary after the word: `\bmaf\b` matches `MAF`, `maf-file-dao.xml` and
+  `case MAF` but not `mafDataService`, which is how an Angular service registration referring to a
+  just-deleted file survives a sweep that looked complete. The word-boundary form also hides
+  `MafManager`, `MafFile` and `makeMafDir`. Take the extra hits and read them.
 
 ## The stack, and what exercises each part
 

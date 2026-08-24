@@ -10,11 +10,11 @@ AWS SDK v2 2.54.1, POI 5.5.1, biojava 7.2.6, against H2 2.3.232 and PostgreSQL 1
 
 | Suite | Command | Result |
 |---|---|---|
-| H2 | `make test` | 545 tests, **1 failed**, 21 skipped (~4.5 min) |
-| PostgreSQL | `make test-pg` | 545 tests, **1 failed**, 21 skipped (~4 min on an idle host; 15 min if it shares the machine with a docker build and a few running servers — the PostgreSQL suite is the one that notices) |
+| H2 | `make test` | 546 tests, **1 failed**, 21 skipped (~4.5 min) |
+| PostgreSQL | `make test-pg` | 546 tests, **1 failed**, 21 skipped (~4 min on an idle host; **~11.5 min on the first run after `make reset-pg`**, which builds the volume, the database and the whole migration chain from scratch and looks like a hang if you are expecting 4; 15 min if it shares the machine with a docker build and a few running servers — the PostgreSQL suite is the one that notices) |
 | Static analysis | `make lint` | **green** — pmd clean, checkstyle 37 warnings in 14 files / 0 errors (~15 s) |
 | CLI integration | `make cli-test` | 145 rows, **129 passed, 0 failed, 16 skipped** (~5 min) — see [`make cli-test`](#make-cli-test) |
-| CLI unit | `./gradlew -p server/ngb-cli test` | 135 tests, **0 failed**, 0 skipped (~10 s). No make target of its own: `make jar` runs them, because `buildCli` is a `clean build` unless `-PnoTest` is passed. CI runs them as a step of `test-h2`. |
+| CLI unit | `docker-compose exec -T builder ./gradlew --no-daemon -p server/ngb-cli test` | 135 tests in 31 classes, **0 failed**, 0 skipped (~10 s). **No make target runs them**: `buildJar` does not depend on `buildCli`, and `make cli-build` passes `-PnoTest`, which makes `buildCli` `clean assemble` instead of `clean build`. Run the command in this row by hand; CI runs them as a step of `test-h2`. |
 
 **The one failure is a live-network test**: `GffManagerTest.testLoadGenesTranscript`, which asserts
 on a biotype Ensembl returns over REST. `PdbDataManagerTest.testParse` is the second network test;
@@ -22,20 +22,35 @@ it usually passes but flaps with RCSB's answer, so treat a 2nd failure there as 
 See [Live-data failures](#live-data-failures).
 
 Which means: **a non-network failure is always a regression.** There is no documented schema or DAO
-failure to hide behind on either flavour, and the two flavours do not differ — 545 / 1 / 21 on both.
+failure to hide behind on either flavour, and the two flavours do not differ — 546 / 1 / 21 on both.
 
 CI passes `-PexcludeNetworkTests`, which drops exactly those two tests and nothing else
 (`server/catgenome/build.gradle`), so the `test-h2` and `test-pg` jobs should read
-543 tests / 0 failed / 21 skipped. A red CI run is a real regression by construction.
+544 tests / 0 failed / 21 skipped. A red CI run is a real regression by construction.
+
+The total was 545 until the MAF removal, which deleted `MafManagerTest` (3 tests) and
+`MafFileDaoTest` (1) and added five: four in the new `BiologicalDataItemFormatTest` and
+`NgbFileUtilsTest.mafExtensionsAreNotRecognized`. If you are comparing against an older
+recording, that is the whole of the difference.
 
 **Three conditions the numbers depend on.** Get any of them wrong and you will see extra failures
 that are not yours:
 
 1. **`make test-pg` needs a clean database.** `ngb_test` lives in the persistent `pg-data` volume
    and several tests do not clean up after themselves, so a second run on a dirty volume shows
-   extra failures — 6 in `HeatmapManagerTest` ("File with name 'loadHeatmapTest' already exists"),
-   `UrlShorterManagerTest` (`expected:<95d52dd9> but was:<alias>`), and others. Run `make reset-pg`
-   first. Fixing that self-cleanup is worth doing and nobody has.
+   **8 extra failures**, every one of them a row the previous run left behind:
+
+   | Failure | Message |
+   |---|---|
+   | `HeatmapManagerTest` — `createHeatmapTest`, `loadHeatmapTest`, `updateCellAnnotationTest`, `updateColumnTreeTest`, `updateLabelAnnotationTest`, `updateRowTreeTest` | `File with name 'loadHeatmapTest' already exists` |
+   | `UrlShorterManagerTest.generateAndSaveShortUrlPostfixShouldSaveAcceptAlias` | `expected:<95d52dd9> but was:<alias>` |
+   | `UserSecurityServiceTest.createUserPassTest` | `User with name 'USER2' already exists.` |
+
+   That is the whole list. The dirty run recorded here was 546 tests / **11** failed / 21 skipped:
+   the 8 above, `GffManagerTest.testLoadGenesTranscript`, and both `PdbDataManagerTest` tests, which
+   were external weather rather than dirt — RCSB was unreachable, so `UnknownHostException` surfaced
+   as `ExternalDbUnavailableException`. Run `make reset-pg` first. Fixing that self-cleanup is worth
+   doing and nobody has.
 2. **`make test` needs a clean `contents/`.** `/contents/` in the repo root is gitignored scratch
    space (`files.base.directory.path`, plus every global Lucene index). Leftovers there used to make
    `HomologeneManagerTest.searchTest` pass and `TargetManagerTest.loadTargetsTest` fail; both are
@@ -67,6 +82,31 @@ that are not yours:
    and for the `ngb_test` database `make test-pg` uses, which condition 1 already says to reset;
    `make reset-ngb-data` for a running H2 instance. `make test` is immune: its database is
    `jdbc:h2:mem:test_catgenome`, built from the scripts on every run.
+
+   Both of those resets destroy the data in the instance, which is the wrong trade if what it holds
+   is the registered files `scripts/verify-lucene.sh` and `scripts/verify-tracks.sh` need. **Flyway
+   `repair` rewrites the recorded checksums instead**, and the probe harness in
+   [`fixtures/README.md`](fixtures/README.md#probe) already drives it. For H2 the database file is in
+   a volume the `builder` container does not mount, so copy it out and back:
+
+   ```bash
+   cd .devenv && docker-compose stop ngb-h2
+   docker run --rm -v ngb-dev_ngb-h2-db:/d -v "$PWD/fixtures/probe":/f alpine \
+       cp /d/catgenome.mv.db /f/repair.mv.db
+   docker-compose exec -T builder bash -lc '
+     cd /workspace/.devenv/fixtures/probe
+     with-java21 java -cp "$(cat cp-new.txt):newcls" FlywayProbe \
+       "jdbc:h2:file:/workspace/.devenv/fixtures/probe/repair;NON_KEYWORDS=END,USER,VALUE" \
+       catgenome "" CATGENOME \
+       "filesystem:/workspace/server/catgenome/src/main/resources/database/catgenome/h2" repair'
+   docker run --rm -v ngb-dev_ngb-h2-db:/d -v "$PWD/fixtures/probe":/f:ro alpine \
+       sh -c 'rm -f /d/* && cp /f/repair.mv.db /d/catgenome.mv.db'
+   docker-compose up -d ngb-h2
+   ```
+
+   Leave the *pending* migrations pending — `repair` reports them as `invalid` too ("Detected
+   resolved migration not applied to database"), and that one is not an error to fix: the server
+   applies them itself on the next start, which is the thing worth watching.
 
 ## H2: 1 live-data failure, and 1 that flaps
 
@@ -101,6 +141,11 @@ whether network-dependent assertions belong in the unit suite at all — the sam
 service returns, so it will keep flipping. Treat a failure there as external drift, not a
 regression — and do not "fix" it by loosening the assertion, for the same reason as
 `GffManagerTest.testLoadGenesTranscript`.
+
+`testParseMapPdp` in the same class reaches the same service, so when RCSB is unreachable rather
+than merely changed, the class contributes **two** failures, both
+`ExternalDbUnavailableException` wrapping an `UnknownHostException`. Two failures with that message
+are the network; a `ComparisonFailure` from `testParse` alone is drift in the data.
 
 `BlatSearchManagerTest.testFind` and `testFindBlatReadSequence` used to belong in this section and
 do not any more, which is worth knowing about because the trap is reusable. They failed with
@@ -159,6 +204,13 @@ in generated-looking `externaldb/bindings/*` VOs, a few `[FinalClass]`, and
 `CustomChatResponse.java`'s member name `finish_reason` (it mirrors a JSON field). Nothing is
 suppressed and no severity was lowered. Turning the warnings into errors is a worthwhile clean-up
 and a code-style change, not a build fix.
+
+One thing that will move the warning count on you: `MagicNumber` at
+`server/catgenome/config/checkstyle/checkstyle.xml:86-87` exempts only `-1` to `10` plus `16`,
+`256`, `1024` and `65535`, so any other numeric literal written inline is a new warning — a `13L`
+added to a method body took the count 37 → 39. A constant *definition* is exempt, so naming it
+(`private static final long MAF_ID = 13L`) is both the fix and the better code. Two warnings
+appearing after a change of yours is not a baseline drift.
 
 PMD is clean with **zero** violations, and worth keeping that way: a red static-analysis baseline
 hides real regressions. Two rules were consciously narrowed rather than carried across from PMD 5
@@ -248,9 +300,52 @@ as a `cloud` compose profile and reads registered `s3://` / `sws://` tracks, `fi
 pre-signed download URLs against it. `verify-lucene.sh`'s output is byte-identical to a recording
 taken on Lucene 6 before the upgrade, both kept in `.devenv/fixtures/pre-migration/lucene6/`.
 
-**MAF cannot be verified through the server at all** — `MafController` was deleted in `562b6a6d`
-(Dec 2018), so `MafManagerTest.testRegisterMaf` is the whole of its coverage, and the MAF row of
-`verify-tracks.sh` is skipped.
+**It does not tell you the client renders anything.** Nothing in this environment draws a track.
+`make ui` runs webpack's production build, which fails on a dangling import and so proves the bundle
+links, and `npx eslint`/`stylelint` are the only other client scripts `client/package.json` has —
+there is no karma, jest or playwright target and no browser in the containers. So "the bundle builds
+and the tracks read over REST" is the whole of the client evidence; a track that no longer *draws*
+would pass every check here. `make up` and a look at <http://ngb.dev.local:8080/catgenome> is the
+only thing that closes that gap, and it is manual.
+
+Related trap: **the built bundle is build output, so grepping it proves nothing until it is
+rebuilt.** `client/dist/` and `server/catgenome/src/main/resources/static/app.bundle.*.js` are both
+gitignored artefacts that can be months old. Run `make ui` first, and grep with a **positive
+control** — something you expect to still be there — because "0 hits" is otherwise equally
+consistent with having grepped the wrong file.
+
+**The schema scripts are jar resources.** `database/catgenome/{h2,postgres}/*.sql` are packaged into
+`catgenome.jar`, so editing one and running `make up` without `make jar-fast` (or `make jar-pg-fast`)
+silently runs the *old* set: Flyway applies whatever is in `dist/`, not what is in the tree. `make
+test` and `make test-pg` build their own classpath and are immune, which is exactly why a stale
+`dist/` is easy to miss — the suite agrees with you and the running server does not.
+
+### What has been done about the MAF removal
+
+MAF support was removed in 3.0.0, so there is no longer a MAF row in `verify-tracks.sh` and no MAF
+test in the suite. The migration that purges it, `v2026.08.24_12.00__drop_maf_support.sql`, is
+covered two ways, and the difference matters:
+
+- **Fresh-schema application**, by `make test` and `make test-pg`: every Spring context in both
+  suites builds its schema from the full script set, so 546 contexts applying it without error is
+  the evidence that it is valid SQL on both flavours. Querying `ngb_test` afterwards also shows
+  `catgenome.maf`, `catgenome.s_maf` and the `MafFile` `acl_class` row gone with the other 11
+  `acl_class` rows intact. But no fixture has any MAF rows, so the row-purge statements ran against
+  nothing — and H2's suite is in-memory, so for H2 even the DDL evidence is only "it did not throw".
+- **A seeded upgrade rehearsal**, by hand, on **both** flavours, against the pre-3.0.0 fixtures in
+  [`fixtures/README.md`](fixtures/README.md). A fully linked MAF registration — file item, index
+  item, `CATGENOME.MAF` row, dataset link, `METADATA` row, ACL identity and entry — was inserted
+  while the restored schema was still Flyway-3-era, then the upgraded jar was started on it. On
+  both: the Flyway 3 history conversion ran once, the migration applied and was recorded once as
+  successful, every purge check came back 0, table and sequence gone, the previously-MAF-bearing
+  dataset still loaded its other files with a VCF track reading off it, and a second start applied
+  nothing. Nothing was over-deleted — `acl_class` 12 → 11, `ACL_SID` 1 → 1 on both.
+
+Two limits on that, both real. The rehearsal covers **the database upgrade and nothing else**: the
+fixtures' Lucene 6 `contents/` trees were deliberately not restored, because that is the separate
+reindex procedure with its own fixture and its own page, so "the upgrade was rehearsed" must not be
+read as "the reindex was rehearsed in the same run". And it is **manual and left no test behind** —
+if the migration is ever edited, it has to be redone by hand.
 
 ## Known gaps
 

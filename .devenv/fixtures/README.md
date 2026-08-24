@@ -59,7 +59,23 @@ docker run --rm -v ngb-dev_pg-data:/d -v "$PWD/fixtures/pre-migration/pg":/o alp
 Verify the H2 one is genuine rather than an empty schema before trusting it: it should have
 59 tables in `CATGENOME`, 60 rows in `CATGENOME."schema_version"` (the Flyway 3 baseline plus
 59 migrations), and rows in `CATGENOME.REFERENCE`. Note the quoting — Flyway 3 created the
-history table as quoted lowercase, so `catgenome.schema_version` does **not** resolve.
+history table as quoted lowercase, so `catgenome.schema_version` does **not** resolve. That stays
+true **after** an upgrade, and on PostgreSQL too: `FlywayMigrator` converts the table in place and
+does not rename it, so a query written against the upgraded database still needs
+`CATGENOME."schema_version"`.
+
+**`ACL_SID` is empty in both `pre-migration/` fixtures**, and so are `ACL_OBJECT_IDENTITY` and
+`ACL_ENTRY`. They were captured in `AUTH_MODE=none`, where nothing ever writes a sid. `ACL_CLASS` is
+the exception, with 12 rows, because those are seeded by
+`v2018.09.17_11.03__ACL_tables.sql` (11) and `v2021.08.27_16.00__issue_534_session_sharing.sql` (1)
+rather than written by use. So anything you want to exercise against ACL behaviour here has to
+**create its own sid first**: `(SELECT MIN(ID) FROM CATGENOME.ACL_SID)` yields `NULL`, which
+`ACL_ENTRY.SID` rejects outright (`NOT NULL`) and `ACL_OBJECT_IDENTITY.OWNER_SID` accepts silently —
+the second is worse, because the insert reports success and leaves an identity nobody owns.
+
+Two columns catch people out for the related reason that a script written from the *create* scripts
+is 59 migrations out of date: `BIOLOGICAL_DATA_ITEM.OWNER` (added by that same ACL script) and
+`SOURCE` are `NOT NULL` by this point, and `CREATED_BY` is gone.
 
 ## `pre-migration/lucene6/`
 
@@ -81,6 +97,11 @@ fixture is the only Lucene 6 index that will ever exist again, and `make reset`,
 | `verify-lucene-9.12.3-after-reindex.txt` | the same 18 probes after the upgrade and the documented reindex. **Byte-identical to the line above** — that a rebuild returns the same answers, and not merely that it succeeds, is the thing the unit suite cannot express |
 | `test-tree-lucene6-dirs.tgz` | the *test* suite's Lucene 6 indexes, from `server/catgenome/` — `contents/ncbi/` plus the six `${…index.directory}` directories the two test profiles used to leave in the source tree. 107 K. Nothing writes them there any more; see the second condition in [`TEST-BASELINE.md`](../TEST-BASELINE.md) if an old tree of yours still has them |
 | `from-test-suite/` | an earlier, smaller capture: just `taxonomy/` and `targets/` as written by `make test`. Superseded by the tarballs; kept because it is 324 K and needs no unpacking |
+
+Both `verify-lucene-*.txt` recordings were taken while the server still called itself 2.8.0, so a
+run against the current jar diffs in exactly one line — `version 2.8.0` → `3.0.0`. One line is the
+pass; a second one is not. They were deliberately not re-recorded, because the value of the pair is
+that they are byte-identical to each other.
 
 Keep a second copy outside the repository here too —
 `lucene6-fixture-6be43c24.tar.gz` — because a `git clean -xdf` would take this directory with it

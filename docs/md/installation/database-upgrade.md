@@ -59,6 +59,61 @@ a supported location — local, `http(s)://`, `s3://`, `sws://` or `az://`.
 rows, so once you have upgraded they can no longer be removed through the API or the UI and the
 only way back is the backup.
 
+## MAF registrations are deleted by the upgrade
+
+MAF (Mutation Annotation Format) support is removed in this release — see the
+[release notes](../release-notes/3.0.0/3.0.0.md#removed). **Unlike HDFS and GA4GH above, there is
+nothing for you to do first.** Those two leave rows behind that you have to unregister by hand;
+MAF is deleted for you, by a schema migration, on the first start of the upgraded server.
+
+What the migration deletes: the `CATGENOME.BIOLOGICAL_DATA_ITEM` rows holding
+a MAF file or a MAF index, every `PROJECT_ITEM`, `BOOKMARK_ITEM` and
+`GENOME_ANNOTATION_DATA_ITEM` row that referred to one, their `METADATA` rows, and the `MafFile`
+ACL class with the object identities and permission entries hanging off it. Then it drops the
+`CATGENOME.MAF` table and its `S_MAF` sequence. Predefined roles are not touched here — see
+[PostgreSQL-only schema convergence](#postgresql-only-schema-convergence) for the one that also
+mentions MAF.
+
+Three things follow from that:
+
+* **It is irreversible, and it is not optional.** The migration runs whether or not you have any
+  MAF rows, and there is no flag to skip it. The "back up first" instruction at the top of this
+  page is what covers you; a dataset that had a MAF file in it keeps all its other files, but the
+  MAF registration is not recoverable except from that backup. If you want to know what will go,
+  ask the old release before you upgrade:
+
+    ```sql
+    SELECT bio_data_item_id, name, path, format
+    FROM catgenome.biological_data_item
+    WHERE format IN (13, 14);   -- 13 = MAF, 14 = MAF_INDEX
+    ```
+
+    The usual answer is no rows: no released NGB has been able to register a MAF file since
+    December 2018.
+
+* **The MAF files on disk are left alone.** SQL cannot delete files, so `<contents>/maf/**` under
+  `files.base.directory.path` stays where it is. Nothing reads it any more; remove it by hand once
+  you are satisfied with the upgrade.
+
+* **A saved session may still name a MAF track.** `NGB_SESSION.SESSION_VALUE` is opaque text that
+  only the web client interprets, so no migration can clean it up and nothing server-side will
+  fail. A session link shared before the upgrade simply will not restore that one track; re-save
+  the session to be rid of it.
+
+Formats 13 and 14 stay reserved in the database and are never reassigned, so a row restored from an
+older backup after the upgrade is not silently reinterpreted as some other format — it is rejected
+as it is read, the same way HDFS and GA4GH rows are:
+
+```
+Biological data item format 13 (MAF) is no longer supported. MAF registration was removed from
+NGB and the database upgrade deletes the rows that held this format, so there is nothing to
+re-register.
+```
+
+Like the resource-type rejection above, this happens in the row mapper and so fails the whole
+request. In an ordinary upgrade you will never see it — the migration deletes those rows in the
+same start.
+
 ## H2
 
 The default configuration (`database.jdbc.url=jdbc:h2:file:/opt/catgenome/H2/catgenome`)
@@ -175,16 +230,17 @@ administrators:
 
 * **The predefined roles change.** PostgreSQL was seeding `ROLE_CYTOBANDS_MANAGER` and
   `ROLE_MAF_MANAGER`, which no NGB release has ever used on H2 and which are not part of
-  the documented role set. They are **deleted, along with any grants of them** — if a user
-  held `ROLE_MAF_MANAGER`, they lose it, and MAF file management falls back to
-  administrators, as it always has on H2. Conversely `ROLE_WIG_MANAGER` was **missing** on
-  PostgreSQL, which was a real defect: nothing but an administrator could manage WIG files.
-  It is now created. Roles you created yourself are not touched.
+  the documented role set. They are **deleted, along with any grants of them**. Conversely
+  `ROLE_WIG_MANAGER` was **missing** on PostgreSQL, which was a real defect: nothing but an
+  administrator could manage WIG files. It is now created. Roles you created yourself are not
+  touched.
 
-  If any of your users held `ROLE_MAF_MANAGER`, decide before upgrading how those people
-  should keep working — normally by granting the relevant permissions on the MAF datasets
-  directly. And grant `ROLE_WIG_MANAGER` to whoever was supposed to have had it: until now,
-  on PostgreSQL, only an administrator could manage WIG files.
+  Nothing is lost with `ROLE_MAF_MANAGER`. It named a file format that is removed in this
+  release — see [MAF registrations are deleted by the
+  upgrade](#maf-registrations-are-deleted-by-the-upgrade) — so there is no MAF file management
+  left for it to delegate, and the security expression that tested for it is gone too. A user who
+  held it needs no replacement permission. Do grant `ROLE_WIG_MANAGER` to whoever was supposed to
+  have had it, though: until now, on PostgreSQL, only an administrator could manage WIG files.
 
   **The numeric ids of two surviving roles change** as the deleted ones make way:
   `ROLE_SEG_MANAGER` moves from 10 to 9 and `ROLE_TARGET_MANAGER` from 11 to 10, with their
@@ -257,3 +313,9 @@ Start NGB and check that the datasets and reference genomes you had before are a
 On the API, `GET /restapi/reference/loadAll` should return the same references as before
 the upgrade, and the log should contain neither a Flyway error nor a `Migration ... failed`
 line.
+
+If you want to read the schema history table itself, **quote the name in lower case** —
+`CATGENOME."schema_version"` on H2, `catgenome."schema_version"` on PostgreSQL. Flyway 3 created
+it that way and the conversion described above changes its layout without renaming it, so an
+unquoted `catgenome.schema_version` does not resolve on either flavour after the upgrade. Every
+migration should have one row with `success` true.

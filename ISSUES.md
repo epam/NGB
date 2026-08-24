@@ -1,9 +1,11 @@
 # Known defects, not yet fixed
 
-Five defects found while preparing the 3.0.0 platform release and deliberately left alone there:
-each one is older than that release, none is a regression it introduced, and fixing any of them is a
-behaviour change that has nothing to do with moving to Java 21. They are written up here rather than
-fixed silently so that they can be filed, argued about and scheduled on their own.
+Six defects, deliberately left alone rather than fixed in passing, so that they can be filed, argued
+about and scheduled on their own. The first five were found while preparing the 3.0.0 platform
+release: each is older than that release, none is a regression it introduced, and fixing any of them
+is a behaviour change that has nothing to do with moving to Java 21. The sixth is different — it is
+a one-line wart in the repository's own tooling, introduced by the 3.0.0 work itself, and it is here
+because it quietly misleads anyone searching the tree.
 
 Each section is meant to be filed as an issue as it stands — the heading is the title, the body is
 the body. Line numbers are as of the 3.0.0 release.
@@ -12,7 +14,8 @@ the body. Line numbers are as of the 3.0.0 release.
 - [2. Properties read through `#{catgenome[…]}` cannot be overridden on the command line](#2-properties-read-through-catgenome-cannot-be-overridden-on-the-command-line)
 - [3. The OpenAI client sends the API key in a header named `bearer`](#3-the-openai-client-sends-the-api-key-in-a-header-named-bearer)
 - [4. `GOOGLE_MED_PALM2` is an accepted LLM provider with nothing behind it](#4-google_med_palm2-is-an-accepted-llm-provider-with-nothing-behind-it)
-- [5. Seven manager roles that `@PreAuthorize` requires are not created by any installation](#5-seven-manager-roles-that-preauthorize-requires-are-not-created-by-any-installation)
+- [5. Six manager roles that `@PreAuthorize` requires are not created by any installation](#5-six-manager-roles-that-preauthorize-requires-are-not-created-by-any-installation)
+- [6. `.gitignore:17` is not a valid glob, so `ripgrep` searches the directories it protects](#6-gitignore17-is-not-a-valid-glob-so-ripgrep-searches-the-directories-it-protects)
 - [Documentation errors, already corrected](#documentation-errors-already-corrected)
 
 ---
@@ -202,7 +205,7 @@ which already list only the three real providers.
 
 ---
 
-## 5. Seven manager roles that `@PreAuthorize` requires are not created by any installation
+## 5. Six manager roles that `@PreAuthorize` requires are not created by any installation
 
 **Where.** `server/catgenome/src/main/java/com/epam/catgenome/security/acl/SecurityExpressions.java`
 and `security/acl/customexpression/NGBMethodSecurityExpressionRoot.java:85-110` name the roles;
@@ -211,7 +214,7 @@ and `security/acl/customexpression/NGBMethodSecurityExpressionRoot.java:85-110` 
 
 **What happens.** A fresh installation of either flavour has ten predefined roles: `ROLE_ADMIN`,
 `ROLE_USER`, and the `REFERENCE`, `BAM`, `VCF`, `GENE`, `BED`, `WIG`, `SEG` and `TARGET` managers.
-The security expressions name seven more, and none of them is ever created:
+The security expressions name six more, and none of them is ever created:
 
 | Role | Named by | Guards |
 |---|---|---|
@@ -219,7 +222,7 @@ The security expressions name seven more, and none of them is ever created:
 | `ROLE_PATHWAY_MANAGER` | `SecurityExpressions` | pathway registration, deletion and `PUT /restapi/pathway/index` |
 | `ROLE_LINEAGE_TREE_MANAGER` | `SecurityExpressions` | lineage-tree registration and deletion |
 | `ROLE_PROJECT_MANAGER` | `SecurityExpressions` | most of `ProjectSecurityService` |
-| `ROLE_MAF_MANAGER`, `ROLE_BUCKET_MANAGER`, `ROLE_BOOKMARK_MANAGER` | `hasSpecificRole(AclClass)` | `GET /restapi/permissions` for those entity types |
+| `ROLE_BUCKET_MANAGER`, `ROLE_BOOKMARK_MANAGER` | `hasSpecificRole(AclClass)` | `GET /restapi/permissions` for those entity types |
 
 So every one of those expressions reduces to `ROLE_ADMIN` (plus, where the expression offers it, the
 entity's owner). `DefaultRoles` lists `ROLE_HEATMAP_MANAGER` with a `null` id, which is a code-level
@@ -228,28 +231,96 @@ enumeration, not a seed — nothing inserts it.
 **Why it matters.** It is the same defect 3.0.0 already fixed once, in a narrower form: PostgreSQL
 never seeded `ROLE_WIG_MANAGER`, so on a PostgreSQL install nobody but an administrator could satisfy
 `WigSecurityService`'s checks, and that was treated as a production bug and fixed with a convergence
-migration. The seven above are the same thing on both flavours. Concretely, an operator cannot
+migration. The six above are the same thing on both flavours. Concretely, an operator cannot
 delegate heatmap, pathway, lineage-tree or project management to a non-administrator, and
 `docs/md/installation/lucene-reindex.md` tells them to use `ROLE_PATHWAY_MANAGER` for the pathway
 reindex call — a role that does not exist.
 
 **Reproduce.** On a fresh install, `GET /restapi/role/loadAll` returns ten roles and none of the
-seven. Grant a user every role there is and `POST /restapi/heatmap` still comes back denied.
+six. Grant a user every role there is and `POST /restapi/heatmap` still comes back denied.
 
 **Workaround, which nothing documents.** An administrator can create them:
 `POST /restapi/role/create?roleName=ROLE_PATHWAY_MANAGER` — `RoleManager.getValidName` adds the
 `ROLE_` prefix if it is left off — and then `POST /restapi/role/{id}/assign`. The expressions match
 by name, so a hand-created role works exactly like a predefined one.
 
-**Suggested fix.** Seed the seven as predefined roles in both script sets, the way
+**Suggested fix.** Seed the six as predefined roles in both script sets, the way
 `v2026.08.21_12.20__align_predefined_roles_with_h2.sql` seeded `ROLE_WIG_MANAGER` on PostgreSQL —
 one forward migration per flavour, ids allocated with `(SELECT MAX(id) + 1 FROM catgenome.role)`
 rather than hardcoded, since hardcoding an id is what made the two flavours diverge in the first
 place. Then add them to `DefaultRoles` and to the predefined-role table in
 `docs/md/user-guide/um-overview.md`, which currently lists only the roles that really exist. Decide
-per role whether the feature is meant to be delegable at all: `ROLE_MAF_MANAGER` guards a format
-whose REST controller was deleted in 2018, so dropping the `MAF` branch of `hasSpecificRole` is
-probably the better answer for that one.
+per role whether the feature is meant to be delegable at all — for one of them the answer was no, and
+it has already been acted on: `ROLE_MAF_MANAGER` guarded a format whose REST controller was deleted
+in 2018, and the `MAF` branch of `hasSpecificRole` was dropped with the rest of MAF support in
+3.0.0. That is why this finding names six roles and not the seven it was filed with.
+
+---
+
+## 6. `.gitignore:17` is not a valid glob, so `ripgrep` searches the directories it protects
+
+**Where.** `.gitignore:17`, added by `82d67867` "Java 21 dev env prep"
+
+```
+/server/catgenome/${*
+```
+
+**What happens.** The line exists for a real reason: the two test profiles used to leave
+directories in the source tree named literally after unresolved `${…}` properties — six Lucene index
+directories plus `contents/ncbi/` — and the pattern ignores them (see the second condition in
+[`.devenv/TEST-BASELINE.md`](.devenv/TEST-BASELINE.md)). Git accepts it: `git check-ignore -v`
+attributes such a path to this line and `git status` stays clean.
+
+`ripgrep` does not. It parses the line as a glob, in which `${` opens an alternate group that is
+never closed, and prints on stderr — on **every** invocation, anywhere in the tree:
+
+```
+rg: ./.gitignore: line 17: error parsing glob '/server/catgenome/${*': unclosed alternate group; missing '}' (maybe escape '{' with '[{]'?)
+```
+
+It then drops that one pattern and keeps the other forty — on ripgrep 14.1.1 a partial parse failure
+is not fatal — so `dist/`, `docs/site/`, `node_modules/` and `server/catgenome/build/` do stay out of
+a search. What does not stay out is anything under `server/catgenome/${…}/`.
+
+**Why it matters.** On a tree that has those directories — any checkout where the test suite was run
+before they stopped being written, and they are gitignored so nothing ever cleans them up — `rg`
+reads Lucene segment files and stale test output as though they were source. A symbol you have just
+deleted turns up in a months-old index and looks exactly like a missed call site, while Git,
+`git grep` and `git status` all agree the files are not in the repository. The error line is easy to
+miss because it goes to stderr while the matches go to stdout, and most people are reading the
+matches — and once that line is being skipped over, so is every other notice `rg` puts there.
+
+**Not this defect, but the other half of why the standing advice in
+[`.devenv/README.md`](.devenv/README.md) is to search with `git grep`:** `rg` also skips
+dot-directories unless it is given `--hidden`, so `.devenv/` — the whole build environment, its
+README and `TEST-BASELINE.md` — and `.github/` are invisible to a plain `rg` regardless of this line.
+
+**Reproduce.**
+
+```bash
+rg --files > /dev/null                     # the parse error, on stderr
+
+D='server/catgenome/${lucene.index.directory}'
+mkdir -p "$D" && echo 'MafFile' > "$D/decoy.txt"
+git check-ignore -v "$D/decoy.txt"         # .gitignore:17 - git ignores it
+git status --porcelain | grep decoy        # empty
+git grep -l MafFile | grep decoy           # empty
+rg -l MafFile | grep decoy                 # server/catgenome/${lucene.index.directory}/decoy.txt
+rm -rf "$D"
+```
+
+**Suggested fix.** Escape the brace, which is what `ripgrep`'s own hint asks for, so the line means
+the same thing to both tools:
+
+```
+/server/catgenome/$[{]*
+```
+
+Git reads `[{]` as a one-character class matching `{`, and `ripgrep` then parses the line and honours
+it. Escaping the `$` instead — `[$]{*` — does **not** work: the unclosed `{` is the whole problem,
+and `rg` reports the identical error. Verify with the reproduction above: no parse error,
+`git check-ignore` still attributing the decoy to line 17, and `rg -l` no longer finding it. Until
+it is fixed, search this tree with `git grep`.
 
 ---
 

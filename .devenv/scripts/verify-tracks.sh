@@ -32,10 +32,6 @@
 # fake-remote-files.py. Without docker they are skipped, and the script says so. The S3-looking
 # alias is what exercises the hostname clause of EnhancedUrlHelper.headMayBeRefused, which is kept
 # alongside the signature clause for real AWS; `make verify-cloud` covers the signature clause.
-#
-# MAF has no REST surface at all: MafController and MafSecurityService were deleted in 562b6a6d
-# (Dec 2018), leaving MafManager reachable only from Java. It cannot be verified here, and
-# MafManagerTest.testRegisterMaf is the whole of its coverage.
 
 set -uo pipefail
 
@@ -230,10 +226,6 @@ probe cram_track "cram" \
     -X POST "${JSON[@]}" -d "{\"id\":$(id_of cram),\"chromosomeId\":$CHR_X,\"startIndex\":12585000,\"endIndex\":12585100,\"scaleFactor\":1,$BAM_OPTION}" \
     "$BASE/bam/track/get"
 same "cram == bam" bam_track cram_track
-
-step "MAF"
-note "no REST surface since 562b6a6d - see the header; covered by MafManagerTest only"
-SKIPPED=$((SKIPPED + 1))
 
 # ---------------------------------------------------------------- remote fixtures
 

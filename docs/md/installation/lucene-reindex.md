@@ -194,7 +194,7 @@ directory before rebuilding it.
 preprocessed large-scale and transcript files it derived at registration time, which is faster;
 either produces a working index.
 
-SEG, MAF and WIG files have no feature index and need nothing.
+SEG and WIG files have no feature index and need nothing.
 
 ### Doing them all at once
 

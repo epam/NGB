@@ -1,7 +1,7 @@
 # NGB — working notes for Claude
 
 New Genome Browser: a Spring server that indexes and serves genomic file formats (BAM/CRAM,
-VCF, BED, WIG, GFF/GTF, SEG, MAF) to a browser client.
+VCF, BED, WIG, GFF/GTF, SEG) to a browser client.
 
 | Path | What |
 |---|---|
