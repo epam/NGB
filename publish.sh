@@ -71,7 +71,9 @@ if ! docker inspect --type=image "ngb:latest" &> /dev/null; then
     exit 0
 fi
 
-if [[ "$BRANCH_NAME" == "release/"* ]]; then
+# TEMP: also push from java_21, to publish a docker image for that branch. Revert to the plain
+# release/* check once java_21 lands.
+if [[ "$BRANCH_NAME" == "release/"* || "$BRANCH_NAME" == "java_21" ]]; then
   if [ -n "${DOCKERHUB_USERNAME:-}" ] && [ -n "${DOCKERHUB_TOKEN:-}" ]; then
     run docker login -u "$DOCKERHUB_USERNAME" --password-stdin <<<"$DOCKERHUB_TOKEN"
   fi

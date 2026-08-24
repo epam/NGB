@@ -346,7 +346,9 @@ jobs:
         # Images do not survive a job boundary, and `docker save` of this one is ~700 MB of
         # artifact. Rebuilding from the downloaded jar is the same three commands the build job ran
         # and takes about a minute; the layers on top of the Temurin base are two COPYs.
-        if: startsWith(github.ref, 'refs/heads/release/')
+        # TEMP: also build on java_21 pushes, to publish a docker image for that branch. Revert
+        # to the plain release/* check once java_21 lands.
+        if: startsWith(github.ref, 'refs/heads/release/') || github.ref == 'refs/heads/java_21'
         run: |
           cp dist/catgenome.jar dist/ngb-cli.tar.gz docker/core/
           docker build -t ngb:latest docker/core
@@ -357,7 +359,8 @@ jobs:
           role-to-assume: ${{ secrets.AWS_PUBLISH_ROLE_ARN }}
           aws-region: us-east-1
       - uses: docker/login-action@v3
-        if: ${{ startsWith(github.ref, 'refs/heads/release/') && env.DOCKERHUB_USERNAME != '' }}
+        # TEMP: see the java_21 note above.
+        if: ${{ (startsWith(github.ref, 'refs/heads/release/') || github.ref == 'refs/heads/java_21') && env.DOCKERHUB_USERNAME != '' }}
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
