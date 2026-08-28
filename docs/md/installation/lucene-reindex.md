@@ -227,6 +227,28 @@ curl -s "$NGB/project/tree" \
 Reindexing is CPU- and IO-bound and holds no lock on anything else; run it while the server is
 serving, but expect it to be slow on large VCFs.
 
+**_Note_**: `project/tree` lists files inside datasets. **Reference-linked gene files and BED annotations** (e.g. `*_Genes`, `*_Domains`) are attached to the reference, not a dataset - add them too:
+
+```bash
+curl -s "$NGB/reference/loadAll" \
+  | jq -r '.payload[] | (.geneFile.id // empty | "GENE \(.)"),
+                        (.annotationFiles[]?.id | "BED \(.)")'
+```
+
+Then reindex those found with the same GENE/BED endpoints:
+
+| File type | Rebuild with | CLI |
+|---|---|---|
+| GENE | `curl -s -X GET $NGB/gene/<geneFileId>/index?full=true > /dev/null` | `ngb index_file <id>` |
+| BED | `curl -s -X GET $NGB/bed/<bedFileId>/index > /dev/null` | `ngb index_file <id>` |
+
+Verify a rebuild landed on the new codec:
+
+```bash
+find <base>/contents -name 'segments*' -exec sh -c 'grep -ao "Lucene[0-9]*" "$1"' _ {} \;
+# expect Lucene9* (not Lucene6*)
+```
+
 ## Verifying
 
 Once the global indexes are back and at least one VCF and one GFF/GTF have been reindexed:
