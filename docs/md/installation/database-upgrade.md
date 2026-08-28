@@ -121,62 +121,48 @@ stores the database in `/opt/catgenome/H2/`. H2 1.3 wrote `catgenome.h2.db`; H2 
 `catgenome.mv.db`, so the two never overwrite each other and the old file is its own
 backup.
 
-You need both H2 jars. The new one ships inside the NGB jar; the old one is on Maven
-Central as `com.h2database:h2:1.3.176`.
+> Both H2 jars will need for upgrade - for *old* and *new* H2 versions.  
+> To obtain jars:
+>
+>     curl -fsSL -O https://repo1.maven.org/maven2/com/h2database/h2/1.3.176/h2-1.3.176.jar
+>     curl -fsSL -O https://repo1.maven.org/maven2/com/h2database/h2/2.3.232/h2-2.3.232.jar
 
-1. **Stop NGB.**
+1. **Stop NGB**. Once stopped, free DB lock:
 
-2. **Export the old database** with the *old* H2 jar. It has to be the old jar: the new one
-   cannot open the file.
+        rm -f /opt/catgenome/H2/catgenome.lock.db
 
-   ```bash
-   java -cp h2-1.3.176.jar org.h2.tools.Script \
-       -url  jdbc:h2:file:/opt/catgenome/H2/catgenome \
-       -user catgenome -password '' \
-       -script /tmp/catgenome-export.sql
-   ```
+2. **Export the old database** with the *old* H2 jar.
 
-3. **Patch two column declarations in the export.** Only needed if you use heatmap tracks,
-   but harmless either way:
+        java -cp h2-1.3.176.jar org.h2.tools.Script \
+            -url  jdbc:h2:file:/opt/catgenome/H2/catgenome \
+            -user catgenome -password '' \
+            -script /tmp/catgenome-export.sql
 
-   ```bash
-   sed -i 's/_CELL_VALUE DECIMAL,/_CELL_VALUE DOUBLE PRECISION,/' /tmp/catgenome-export.sql
-   ```
+3. **Patch two column declarations in the export.**  
+  Only needed if you use heatmap tracks, but harmless either way:
 
-   `HEATMAP.MIN_CELL_VALUE` and `HEATMAP.MAX_CELL_VALUE` were declared as bare `DECIMAL`,
-   and the two H2 versions read that differently: 1.3 kept the stored scale, while 2.x takes
-   it to mean "no decimal places" and rounds every value to a whole number as the dump is
-   imported. NGB re-declares both columns as `DOUBLE PRECISION` on first start, but by then
-   the import has already happened, so the scale has to be fixed in the dump. Those are the
-   only two `DECIMAL` columns in the schema, so the command above cannot match anything else.
+        sed -i 's/_CELL_VALUE DECIMAL,/_CELL_VALUE DOUBLE PRECISION,/' /tmp/catgenome-export.sql
+
+    `HEATMAP.MIN_CELL_VALUE` and `HEATMAP.MAX_CELL_VALUE` were declared as bare `DECIMAL`, and the two H2 versions read that differently: 1.3 kept the stored scale, while 2.x takes it to mean "no decimal places" and rounds every value to a whole number as the dump is imported. NGB re-declares both columns as `DOUBLE PRECISION` on first start, but by then the import has already happened, so the scale has to be fixed in the dump. Those are the only two `DECIMAL` columns in the schema, so the command above cannot match anything else.
 
 4. **Move the old files aside** so the new database starts from an empty directory:
 
-   ```bash
-   mkdir /opt/catgenome/H2-1.3-backup
-   mv /opt/catgenome/H2/catgenome.*.db /opt/catgenome/H2-1.3-backup/
-   ```
+        mkdir /opt/catgenome/H2-1.3-backup
+        mv /opt/catgenome/H2/catgenome.*.db /opt/catgenome/H2-1.3-backup/
 
 5. **Import into a 2.x database** with the *new* H2 jar:
 
-   ```bash
-   java -cp h2-2.3.232.jar org.h2.tools.RunScript \
-       -url  'jdbc:h2:file:/opt/catgenome/H2/catgenome;NON_KEYWORDS=END,USER,VALUE' \
-       -user catgenome -password '' \
-       -script /tmp/catgenome-export.sql
-   ```
+        java -cp h2-2.3.232.jar org.h2.tools.RunScript \
+            -url  'jdbc:h2:file:/opt/catgenome/H2/catgenome;NON_KEYWORDS=END,USER,VALUE' \
+            -user catgenome -password '' \
+            -script /tmp/catgenome-export.sql
 
-   `NON_KEYWORDS=END,USER,VALUE` is not optional. H2 2.x made those three words reserved,
-   and the NGB schema uses all three as identifiers — the `USER` table, and `VALUE` and
-   `END` columns. Without it the import fails on the first `CREATE TABLE CATGENOME.USER`
-   with `Syntax error ... expected "identifier" [42001-232]`. You only need it on this
-   command line; NGB itself issues the equivalent `SET NON_KEYWORDS` on every connection it
-   opens, so **no change to `catgenome.properties` is required**.
+    `NON_KEYWORDS=END,USER,VALUE` is not optional. H2 2.x made those three words reserved, and the NGB schema uses all three as identifiers — the `USER` table, and `VALUE` and `END` columns. Without it the import fails on the first `CREATE TABLE CATGENOME.USER` with `Syntax error ... expected "identifier" [42001-232]`. You only need it on this command line; NGB itself issues the equivalent `SET NON_KEYWORDS` on every connection it opens, so **no change to `catgenome.properties` is required**.
 
-6. **Start NGB.** It picks up `catgenome.mv.db` and converts the schema history (below).
+    > An updated H2 file should be produced as a result: `/opt/catgenome/H2/catgenome.mv.db`
 
-7. Once you are satisfied, delete `/opt/catgenome/H2-1.3-backup/` and
-   `/tmp/catgenome-export.sql`.
+6. **Start NGB with the same mounts as the old one**. It picks up `catgenome.mv.db` and converts the schema history (below).
+7. Once you are satisfied, delete `/opt/catgenome/H2-1.3-backup/` and `/tmp/catgenome-export.sql`.
 
 ## PostgreSQL
 
